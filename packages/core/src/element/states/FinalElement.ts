@@ -12,6 +12,7 @@ type FinalProps = z.infer<typeof finalSchema>;
 export const Final = createElementDefinition({
   tag: "final",
   propsSchema: finalSchema,
+  role: "output",
   allowedChildren: ["onentry", "onexit"],
   onExecutionGraphConstruction(buildContext) {
     // final typically doesn't have sub-states, but might have onentry or data

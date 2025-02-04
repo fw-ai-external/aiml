@@ -6,8 +6,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useLogsByRunId } from "@/hooks/use-logs";
 
-export function WorkflowLogs({ runId }: { runId: string }) {
-  const { logs, isLoading, refetchLogs } = useLogsByRunId(runId);
+export function WorkflowLogs({ runId }: { runId?: string }) {
+  const { logs, isLoading, refetchLogs } = useLogsByRunId(runId ?? "");
 
   return (
     <ScrollArea className="h-[calc(100vh-126px)] px-4 pb-4 text-xs w-[400px]">

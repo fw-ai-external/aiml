@@ -1,6 +1,6 @@
 import { mastra } from "@/mastra";
 import { NextResponse } from "next/server";
-import { stringify } from "node:querystring";
+import { stringify } from "superjson";
 import { zodToJsonSchema } from "zod-to-json-schema";
 export async function GET(
   request: Request,

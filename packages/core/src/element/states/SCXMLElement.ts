@@ -18,6 +18,7 @@ type SCXMLProps = z.infer<typeof scxmlSchema>;
 export const SCXML = createElementDefinition({
   tag: "scxml",
   propsSchema: scxmlSchema,
+  role: "user-input",
   allowedChildren: ["state", "parallel", "final", "datamodel", "script"],
   onExecutionGraphConstruction(buildContext) {
     // Convert all child elements into ExecutionGraphElements

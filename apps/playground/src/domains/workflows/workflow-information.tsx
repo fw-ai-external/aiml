@@ -9,7 +9,7 @@ export function WorkflowInformation({
   runId,
 }: {
   workflowId: string;
-  runId: string;
+  runId?: string;
 }) {
   return (
     <Tabs defaultValue="run">

@@ -14,6 +14,8 @@ import { contructNodesAndEdges } from "./utils";
 import { WorkflowConditionNode } from "./workflow-condition-node";
 import { WorkflowDefaultNode } from "./workflow-default-node";
 import { useWindowSizeObserver } from "react-screen-hooks";
+import { LLMNodeController } from "@/components/flow/llm-node-controller";
+import { StateNodeController } from "@/domains/workflows/state-node-controller";
 
 function WorkflowGraph({ workflow }: { workflow: Workflow }) {
   const { width, height } = useWindowSizeObserver({
@@ -27,10 +29,14 @@ function WorkflowGraph({ workflow }: { workflow: Workflow }) {
   const nodeTypes = {
     "default-node": WorkflowDefaultNode,
     "condition-node": WorkflowConditionNode,
+    "llm-node": LLMNodeController,
+    "state-node": StateNodeController,
+    "user-input-node": WorkflowDefaultNode,
+    "final-node": WorkflowDefaultNode,
   };
 
   return (
-    <div className={` bg-red-500 w-[${width}px] h-[${height}px]`}>
+    <div className={` w-[${width}px] h-[${height}px]`}>
       <ReactFlow
         nodes={nodes}
         edges={edges}

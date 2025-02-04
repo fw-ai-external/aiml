@@ -1,6 +1,11 @@
 import Dagre from "@dagrejs/dagre";
 import { type StepCondition } from "@mastra/core/workflows";
 import { Node, Edge, MarkerType } from "@xyflow/react";
+import { FireAgentSpecNode } from "../../../../../packages/core/src/element/types";
+import {
+  SCXMLNodeType,
+  BaseElement,
+} from "../../../../../packages/core/src/element/BaseElement";
 
 export type Condition = {
   ref: {
@@ -128,25 +133,52 @@ export const contructNodesAndEdges = ({
     const stepId = step.id;
     const steps = [_step, ...(stepsList?.[stepId] || [])]?.reduce(
       (acc, step, i) => {
-        const newStep = {
-          ...step.step,
-          label: step.step.id,
-          type: "default-node",
-          id: nodes.some((node) => node.id === step.step.id)
-            ? `${step.step.id}-${i}`
-            : step.step.id,
-        };
-        if (step.config?.when) {
-          const conditions = extractConditions(step.config.when);
-          const conditionStep = {
-            id: crypto.randomUUID(),
-            conditions,
-            type: "condition-node",
-          };
+        if (
+          step.step.role === "state" ||
+          step.step.role === "user-input" ||
+          step.step.role === "output"
+        ) {
+          const type = (() => {
+            switch (step.step.role) {
+              case "state":
+                return "state-node";
+              case "user-input":
+                return "user-input-node";
+              case "output":
+                return "final-node";
+              default:
+                return "default-node";
+            }
+          })();
 
-          acc.push(conditionStep);
+          console.log(step.step.children);
+
+          const newStep = {
+            ...step.step,
+            label: step.step.id,
+            type,
+            id: nodes.some((node) => node.id === step.step.id)
+              ? `${step.step.id}-${i}`
+              : step.step.id,
+            data: {
+              elementType: step.step.elementType,
+              attributes: step.step.attributes,
+              children: step.step.children,
+              role: step.step.role,
+            },
+          };
+          if (step.config?.when) {
+            const conditions = extractConditions(step.config.when);
+            const conditionStep = {
+              id: crypto.randomUUID(),
+              conditions,
+              type: "condition-node",
+            };
+
+            acc.push(conditionStep);
+          }
+          acc.push(newStep);
         }
-        acc.push(newStep);
         return acc;
       },
       []
@@ -159,6 +191,10 @@ export const contructNodesAndEdges = ({
         position: { x: _index * 300, y: index * 100 },
         type: step.type,
         data: {
+          attributes: step.data.attributes,
+          role: step.data.role,
+          elementType: step.data.elementType,
+          children: step.data.children,
           conditions: step.conditions,
           label: step.label,
           description: step.description,

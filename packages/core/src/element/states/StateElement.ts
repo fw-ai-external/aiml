@@ -13,6 +13,7 @@ type StateProps = z.infer<typeof stateSchema>;
 export const State = createElementDefinition({
   tag: "state",
   propsSchema: stateSchema,
+  role: "state",
   allowedChildren: [
     "onentry",
     "onexit",

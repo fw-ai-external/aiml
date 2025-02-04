@@ -12,6 +12,7 @@ type ParallelProps = z.infer<typeof parallelSchema>;
 export const Parallel = createElementDefinition({
   tag: "parallel",
   propsSchema: parallelSchema,
+  role: "state",
   allowedChildren: ["onentry", "onexit", "state", "parallel", "transition"],
   onExecutionGraphConstruction(buildContext) {
     // 1. Check cache to avoid building multiple times

@@ -28,7 +28,10 @@ export type ElementDefinition<
    * The actual tag name used in the config/tsx
    */
   tag: Tag;
-
+  /**
+   * The role of the element
+   */
+  role?: "state" | "action" | "user-input" | "error" | "output";
   /**
    * The props/options exposed to the schema by this element
    */
@@ -229,6 +232,7 @@ export const createElementDefinition = <
     const tagNode = new BaseElement({
       id: config.tag === "scxml" ? "Incoming Request" : props.id,
       tag: config.tag,
+      role: config.role || "action",
       elementType: config.tag as SCXMLNodeType,
       attributes: validatedProps,
       children: nodes,

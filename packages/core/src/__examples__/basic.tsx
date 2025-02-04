@@ -7,7 +7,7 @@ import { Final } from "../element/states/FinalElement";
 import { Runtime } from "../runtime";
 import { parseSpec } from "../parser";
 import { Transition } from "../element/control-flow";
-
+import { Assign } from "../element/actions/AssignElement";
 const userInput = "Hello, how are you?";
 const basicWorkflow = (
   <SCXML datamodel="minimal">
@@ -17,7 +17,8 @@ const basicWorkflow = (
         system="You are a helpful assistant."
         prompt={userInput}
       />
-      <Transition id="final_state" />
+      {/* <Assign location="userInput" expr={userInput} /> */}
+      <Transition target="final_state" />
     </State>
     <Final id="final_state" />
   </SCXML>

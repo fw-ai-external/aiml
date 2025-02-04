@@ -11,8 +11,11 @@
   "workspaces": ["packages/*", "apps/*"],
   "packageManager": "bun@1.1.42",
   "devDependencies": {
-    "turbo": "latest",
     "@types/bun": "latest",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^4.0.3",
+    "turbo": "latest",
     "typescript": "latest"
   },
   "dependencies": {

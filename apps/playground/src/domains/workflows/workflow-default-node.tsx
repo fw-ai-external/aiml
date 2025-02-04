@@ -1,9 +1,9 @@
-import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
-import { Footprints } from 'lucide-react';
+import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
+import { LucideShare } from "lucide-react";
 
-import { Text } from '@/components/ui/text';
+import { Text } from "@/components/ui/text";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 export type DefaultNode = Node<
   {
@@ -12,26 +12,58 @@ export type DefaultNode = Node<
     withoutTopHandle?: boolean;
     withoutBottomHandle?: boolean;
   },
-  'default-node'
+  "default-node"
 >;
 
 export function WorkflowDefaultNode({ data }: NodeProps<DefaultNode>) {
-  const { label, description, withoutTopHandle, withoutBottomHandle } = data;
+  const { label, description, withoutTopHandle, withoutBottomHandle, role } =
+    data;
   return (
-    <div className={cn('bg-mastra-bg-8 rounded-md w-[274px]')}>
-      {!withoutTopHandle && <Handle type="target" position={Position.Top} style={{ visibility: 'hidden' }} />}
+    <div
+      className={cn("bg-mastra-bg-8 rounded-md w-[274px]", {
+        "bg-mastra-bg-8": role !== "user-input",
+        "bg-blue-500": role === "user-input",
+        "bg-green-700": role === "output",
+      })}
+    >
+      {!withoutTopHandle && (
+        <Handle
+          type="target"
+          position={Position.Top}
+          style={{ visibility: "hidden" }}
+        />
+      )}
       <div className="p-2">
-        <div className="text-sm bg-mastra-bg-9 flex items-center gap-[6px] rounded-sm  p-2">
-          <Footprints className="text-current w-4 h-4" />
-          <Text size="xs" weight="medium" className="text-mastra-el-6 capitalize">
+        <div
+          className={cn("text-sm flex items-center gap-[6px] rounded-sm p-2", {
+            "bg-mastra-bg-9": role !== "user-input",
+            "bg-blue-500": role === "user-input",
+            "bg-green-700": role === "output",
+          })}
+        >
+          <LucideShare className="text-current w-4 h-4 rotate-90 text-mastra-el-6" />
+          {/* <Footprints className="text-current w-4 h-4 mr-2" /> */}
+          <Text
+            size="xs"
+            weight="medium"
+            className="text-mastra-el-6 capitalize"
+          >
             {label}
           </Text>
         </div>
       </div>
       {description && (
-        <div className="bg-mastra-bg-4 rounded-b-md p-2 text-[10px] text-left text-mastra-el-4">{description}</div>
+        <div className="bg-mastra-bg-4 rounded-b-md p-2 text-[10px] text-left text-mastra-el-4">
+          {description}
+        </div>
       )}
-      {!withoutBottomHandle && <Handle type="source" position={Position.Bottom} style={{ visibility: 'hidden' }} />}
+      {!withoutBottomHandle && (
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          style={{ visibility: "hidden" }}
+        />
+      )}
     </div>
   );
 }

@@ -55,6 +55,7 @@ export type StepCondition = {
 export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
   readonly elementType: SCXMLNodeType;
   readonly tag: string;
+  readonly role: "state" | "action" | "user-input" | "error" | "output";
   protected _dataModel: Record<string, unknown> = {};
   protected _eventQueue: Array<{ name: string; data: unknown }> = [];
   protected parent?: BaseElement;
@@ -73,6 +74,7 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
   constructor(config: {
     id: string;
     tag: string;
+    role: "state" | "action" | "user-input" | "error" | "output";
     elementType: SCXMLNodeType;
     attributes?: Record<string, string>;
     parent?: BaseElement;
@@ -133,9 +135,10 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
         };
       },
     });
-
+    this.role = config.role;
     this.elementType = config.elementType;
     this.tag = config.tag;
+    this.role = config.role;
     this.attributes = config.attributes ?? {};
     this.parent = config.parent;
     this.children = config.children ?? [];

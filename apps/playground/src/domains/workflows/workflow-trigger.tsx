@@ -22,12 +22,12 @@ export function WorkflowTrigger({
   runId,
 }: {
   workflowId: string;
-  runId: string;
+  runId?: string;
 }) {
   const { isLoading, workflow } = useWorkflow(workflowId);
   const { executeWorkflow, isExecutingWorkflow } = useExecuteWorkflow();
   const [result, setResult] = useState<any>(null);
-  const { urlState, setUrl, setState, reset } = useUrlState({ runId: runId });
+  const { urlState, setUrl, setState } = useUrlState({ runId: runId ?? "" });
 
   const triggerSchema = workflow?.triggerSchema;
 

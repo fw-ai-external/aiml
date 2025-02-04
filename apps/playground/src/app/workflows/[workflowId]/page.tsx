@@ -66,9 +66,7 @@ function WorkflowClient({
       <main className="flex-1 relative grid grid-cols-[1fr_400px] divide-x w-full min-h-screen">
         <WorkflowGraph workflow={workflow!} />
         <div className="flex flex-col">
-          {runId && (
-            <WorkflowInformation workflowId={workflowId} runId={runId} />
-          )}
+          <WorkflowInformation workflowId={workflowId} runId={runId} />
         </div>
       </main>
     </div>
