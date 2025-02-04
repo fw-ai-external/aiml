@@ -1,0 +1,228 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+  "vcs": {
+    "clientKind": "git",
+    "enabled": true,
+    "useIgnoreFile": true,
+    "defaultBranch": "origin/main"
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 120,
+    "attributePosition": "auto"
+  },
+  "organizeImports": { "enabled": true },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": false,
+      "correctness": {
+        "noInvalidUseBeforeDeclaration": "off",
+        "noUnusedImports": {
+          "level": "error",
+          "fix": "safe"
+        }
+      },
+      "style": {
+        "noDefaultExport": "off",
+        "noParameterAssign": "off",
+        "noNonNullAssertion": "off"
+      },
+      "suspicious": {
+        "noEmptyBlockStatements": "off",
+        "noExplicitAny": "warn",
+        "noFallthroughSwitchClause": "off"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "all",
+      "arrowParentheses": "always",
+      "bracketSpacing": true,
+      "bracketSameLine": false,
+      "quoteStyle": "single",
+      "attributePosition": "auto"
+    }
+  },
+  "json": {
+    "parser": {
+      "allowTrailingCommas": true,
+      "allowComments": true
+    }
+  },
+  "overrides": [
+    {
+      "include": ["./apps/web/**"],
+      "linter": {
+        "enabled": true,
+        "rules": {
+          "recommended": false,
+          "complexity": {
+            "noBannedTypes": "error",
+            "noUselessTypeConstraint": "error"
+          },
+          "correctness": {
+            "noPrecisionLoss": "error",
+            "noUnusedVariables": "off",
+            "useArrayLiterals": "off",
+            "noConstAssign": "off",
+            "noGlobalObjectCalls": "off",
+            "noInvalidConstructorSuper": "off",
+            "noInvalidNewBuiltin": "off",
+            "noNewSymbol": "off",
+            "noSetterReturn": "off",
+            "noUndeclaredVariables": "off",
+            "noUnreachable": "off",
+            "noUnreachableSuper": "off",
+            "noUnusedImports": {
+              "level": "error",
+              "fix": "safe"
+            }
+          },
+          "style": {
+            "noArguments": "error",
+            "noVar": "error",
+            "useConst": "error",
+            "noNamespace": "off",
+            "useAsConstAssertion": "error",
+            "useBlockStatements": "off"
+          },
+          "suspicious": {
+            "noExplicitAny": "warn",
+            "noExtraNonNullAssertion": "error",
+            "noMisleadingInstantiator": "error",
+            "noUnsafeDeclarationMerging": "error",
+            "noDuplicateClassMembers": "off",
+            "noDuplicateObjectKeys": "off",
+            "noDuplicateParameters": "off",
+            "noFunctionAssign": "off",
+            "noImportAssign": "off",
+            "noRedeclare": "off",
+            "noUnsafeNegation": "off",
+            "useGetterReturn": "off"
+          },
+          "nursery": {
+            "useSortedClasses": {
+              "level": "warn",
+              "fix": "safe",
+              "options": {
+                "attributes": ["classList"],
+                "functions": ["clsx", "cva", "tw", "cn"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "include": ["./apps/api-middleware/**"],
+      "linter": {
+        "enabled": true,
+        "rules": {
+          "recommended": false,
+          "correctness": {
+            "noInvalidUseBeforeDeclaration": "off",
+            "noUnusedImports": {
+              "level": "error",
+              "fix": "safe"
+            }
+          },
+          "style": {
+            "noDefaultExport": "off",
+            "noParameterAssign": "off",
+            "noNonNullAssertion": "off"
+          },
+          "suspicious": {
+            "noEmptyBlockStatements": "off",
+            "noExplicitAny": "warn",
+            "noFallthroughSwitchClause": "off"
+          }
+        }
+      }
+    }
+  ],
+  "files": {
+    "maxSize": 10485760,
+    "ignore": [
+      "**/drizzle/meta/**",
+      "**/__pycache__/**",
+      "**/*.py[cod]",
+      "**/*$py.class",
+      "**/*.so",
+      "**/.Python",
+      "**/env/**",
+      "**/develop-eggs/**",
+      "**/dist/**",
+      "**/downloads/**",
+      "**/eggs/**",
+      "**/lib64/**",
+      "**/parts/**",
+      "**/sdist/**",
+      "**/var/**",
+      "**/wheels/**",
+      "**/*.egg-info/**",
+      "**/.installed.cfg",
+      "**/*.egg",
+      "**/out/**",
+      "**/*.manifest",
+      "**/*.spec",
+      "**/pip-log.txt",
+      "**/pip-delete-this-directory.txt",
+      "**/htmlcov/**",
+      "**/.tox/**",
+      "**/.coverage",
+      "**/.coverage.*",
+      "**/.cache",
+      "**/nosetests.xml",
+      "**/coverage.xml",
+      "**/*.cover",
+      "**/.hypothesis/**",
+      "**/*.mo",
+      "**/*.pot",
+      "**/*.log",
+      "**/local_settings.py",
+      "**/instance/**",
+      "**/.webassets-cache",
+      "**/.scrapy",
+      "docs/_build/**",
+      "**/target/**",
+      "**/.ipynb_checkpoints",
+      "**/.python-version",
+      "**/celerybeat-schedule",
+      "**/*.sage.py",
+      "**/.venv",
+      "**/venv/**",
+      "**/ENV/**",
+      "**/.spyderproject",
+      "**/.spyproject",
+      "**/.ropeproject",
+      "./site",
+      "**/.mypy_cache/**",
+      "**/node_modules/**",
+      "**/.pnp.*",
+      ".yarn/*",
+      "**/.DS_Store",
+      "**/.eslintcache",
+      "**/tsconfig.tsbuildinfo",
+      "**/.next",
+      "apps/web/.vscode",
+      "**/.firebase/**",
+      "**/.packages/**",
+      "**/*.vsix",
+      "**/.vercel",
+      "**/.yarn",
+      "**/yarn.lock",
+      "**/.yarnrc.yml",
+      "packages/generated_protos/**",
+      "apps/web/.contentlayer/generated/*",
+      "**/worker-vscode-extension/**"
+    ]
+  }
+}

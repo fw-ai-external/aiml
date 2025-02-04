@@ -1,0 +1,25 @@
+{
+  "name": "@workflow/api",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "bun --watch src/index.ts",
+    "lint": "biome check .",
+    "test": "bun test",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@workflow/core": "workspace:*",
+    "@hono/node-server": "^1.13.8",
+    "hono": "^4.6.17",
+    "superjson": "^2.2.2"
+  },
+  "devDependencies": {
+    "@workflow/tsconfig": "workspace:*",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

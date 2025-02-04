@@ -1,0 +1,477 @@
+# SCXML Implementation Plan Using Extended Mastra Elements
+
+## Overview
+
+This implementation extends Mastra's core functionality to support all SCXML elements, not just states. Each SCXML element type (state, transition, datamodel, etc.) is represented by a specialized class that knows how to execute its specific behavior while integrating with Mastra's workflow system.
+
+## Core Architecture
+
+### 1. Base SCXML Element Class
+
+```typescript
+// src/elements/SCXMLElement.ts
+import { Step } from "@mastra/core";
+import type { SCXMLNodeType } from "./types";
+
+export class SCXMLElement extends Step {
+  readonly elementType: SCXMLNodeType;
+  protected dataModel: Record<string, any> = {};
+  protected eventQueue: Array<{ name: string; data: any }> = [];
+
+  constructor(config: {
+    id: string;
+    elementType: SCXMLNodeType;
+    attributes?: Record<string, any>;
+    parent?: SCXMLElement;
+  }) {
+    super({
+      id: config.id,
+      execute: async ({ context }) => {
+        await this.execute();
+        return {
+          elementType: this.elementType,
+          dataModel: this.dataModel,
+        };
+      },
+    });
+
+    this.elementType = config.elementType;
+  }
+
+  // Base functionality for all SCXML elements
+  evaluateExpr(expr: string, context: any) {
+    return new Function(
+      "context",
+      "_data",
+      `
+      with(_data) {
+        with(context) {
+          return ${expr};
+        }
+      }
+    `
+    )(context, this.dataModel);
+  }
+
+  // Virtual methods for element-specific behavior
+  async enter(): Promise<void> {}
+  async exit(): Promise<void> {}
+  async execute(): Promise<void> {}
+}
+```
+
+### 2. Specialized Element Classes
+
+```typescript
+// src/elements/StateElement.ts
+export class StateElement extends SCXMLElement {
+  private transitions: TransitionElement[] = [];
+  private children: SCXMLElement[] = [];
+
+  constructor(config: {
+    id: string;
+    initial?: string;
+    attributes?: Record<string, any>;
+  }) {
+    super({
+      ...config,
+      elementType: "state",
+    });
+  }
+
+  override async execute() {
+    // Execute onentry elements on enter
+    await this.enter();
+
+    // Process any transitions
+    for (const transition of this.transitions) {
+      if (await transition.shouldExecute()) {
+        await transition.execute();
+        break;
+      }
+    }
+  }
+
+  async enter() {
+    // Execute onentry elements
+    for (const entry of this.getEntryElements()) {
+      await entry.execute();
+    }
+  }
+
+  async exit() {
+    // Execute onexit elements
+    for (const exit of this.getExitElements()) {
+      await exit.execute();
+    }
+  }
+}
+
+// src/elements/TransitionElement.ts
+export class TransitionElement extends SCXMLElement {
+  constructor(config: {
+    event?: string;
+    cond?: string;
+    target?: string;
+    type?: "internal" | "external";
+  }) {
+    super({
+      ...config,
+      elementType: "transition",
+    });
+  }
+
+  override async execute() {
+    // Execute transition actions
+    for (const action of this.getActionElements()) {
+      await action.execute();
+    }
+  }
+
+  async shouldExecute(): Promise<boolean> {
+    if (!this.attributes.cond) return true;
+    return this.evaluateExpr(this.attributes.cond, this.context);
+  }
+}
+
+// src/elements/DataModelElement.ts
+export class DataModelElement extends SCXMLElement {
+  constructor() {
+    super({
+      id: "datamodel",
+      elementType: "datamodel",
+    });
+  }
+
+  override async execute() {
+    // Initialize data elements
+    for (const data of this.getDataElements()) {
+      await data.execute();
+    }
+  }
+}
+```
+
+### 3. TagNode Integration
+
+The TagNode now creates appropriate SCXML elements based on the node type:
+
+```typescript
+// src/elements/TagNode.ts
+export class TagNode extends SCXMLElement {
+  constructor(
+    attributes: Attributes,
+    nodes: FireAgentNode[],
+    config: TagNodeDefinition<Props, Schema, Tag, As>,
+    parents: Array<{ name: string; id: string }>
+  ) {
+    super({
+      id: attributes.id,
+      elementType: config.as,
+      attributes,
+      parent: parents[parents.length - 1],
+    });
+
+    // Create child elements based on node type
+    this.nodes = nodes.map((node) => this.createSCXMLElement(node));
+  }
+
+  private createSCXMLElement(node: FireAgentNode): SCXMLElement {
+    switch (node.name) {
+      case "state":
+        return new StateElement(node.attributes);
+      case "transition":
+        return new TransitionElement(node.attributes);
+      case "datamodel":
+        return new DataModelElement();
+      // ... other element types
+      default:
+        return new SCXMLElement({
+          elementType: node.name as SCXMLNodeType,
+          attributes: node.attributes,
+        });
+    }
+  }
+}
+```
+
+### 4. Element Execution Flow
+
+```typescript
+// src/Runtime/ElementExecutor.ts
+export class ElementExecutor {
+  async executeElement(element: SCXMLElement, context: any) {
+    switch (element.elementType) {
+      case "scxml":
+        await this.executeScxml(element as SCXMLElement);
+        break;
+      case "state":
+        await this.executeState(element as StateElement);
+        break;
+      case "parallel":
+        await this.executeParallel(element as ParallelElement);
+        break;
+      case "transition":
+        await this.executeTransition(element as TransitionElement);
+        break;
+      // ... other element types
+    }
+  }
+
+  private async executeScxml(element: SCXMLElement) {
+    // Initialize datamodel
+    const datamodel = element.nodes.find((n) => n.elementType === "datamodel");
+    if (datamodel) {
+      await datamodel.execute();
+    }
+
+    // Enter initial state
+    const initial = element.attributes.initial;
+    if (initial) {
+      const initialState = element.nodes.find(
+        (n) => n.elementType === "state" && n.attributes.id === initial
+      );
+      if (initialState) {
+        await initialState.enter();
+      }
+    }
+  }
+}
+```
+
+## SCXML Feature Implementation
+
+### 1. Data Model Support
+
+```typescript
+class SCXMLDataModel {
+  private data: Record<string, any> = {};
+
+  assign(location: string, value: any) {
+    const path = location.split(".");
+    let current = this.data;
+
+    for (let i = 0; i < path.length - 1; i++) {
+      current = current[path[i]] = current[path[i]] || {};
+    }
+
+    current[path[path.length - 1]] = value;
+  }
+
+  evaluate(expr: string, context: any) {
+    return new Function(
+      "context",
+      "_data",
+      `
+      with(_data) {
+        with(context) {
+          return ${expr};
+        }
+      }
+    `
+    )(context, this.data);
+  }
+}
+```
+
+### 2. Event Handling System
+
+```typescript
+class EventHandler {
+  private queue: Array<{ name: string; data: any }> = [];
+  private internal: Array<{ name: string; data: any }> = [];
+
+  enqueue(event: { name: string; data: any }, isInternal = false) {
+    const targetQueue = isInternal ? this.internal : this.queue;
+    targetQueue.push(event);
+  }
+
+  async processEvents(state: SCXMLState) {
+    while (this.internal.length > 0 || this.queue.length > 0) {
+      const event = this.internal.shift() || this.queue.shift();
+      if (event) {
+        await state.handleEvent(event);
+      }
+    }
+  }
+}
+```
+
+### 3. Transition Selection
+
+```typescript
+class TransitionSelector {
+  selectTransitions(state: SCXMLState, event: { name: string; data: any }) {
+    const enabledTransitions = state.transitions
+      .filter((t) => this.matchesEvent(t.event, event.name))
+      .filter((t) => !t.cond || state.evaluateExpr(t.cond, event.data));
+
+    return this.prioritizeTransitions(enabledTransitions);
+  }
+
+  private prioritizeTransitions(transitions: any[]) {
+    // Implement SCXML transition priority rules
+    return transitions.sort((a, b) => {
+      // 1. Document order
+      if (a.documentOrder !== b.documentOrder) {
+        return a.documentOrder - b.documentOrder;
+      }
+
+      // 2. Specificity
+      return this.getSpecificity(b) - this.getSpecificity(a);
+    });
+  }
+}
+```
+
+## Integration with Mastra
+
+### 1. Workflow Integration
+
+```typescript
+// src/StateMachine/SCXMLWorkflow.ts
+export class SCXMLWorkflow extends Workflow {
+  constructor(config: TagNode) {
+    super({
+      name: config.attributes.name || "scxml-workflow",
+      initial: config.attributes.initial,
+    });
+
+    this.initializeFromTagNode(config);
+  }
+
+  private initializeFromTagNode(node: TagNode) {
+    // Convert TagNode hierarchy to Mastra workflow
+    this.addState(node);
+
+    for (const child of node.nodes) {
+      if (child instanceof TagNode) {
+        this.initializeFromTagNode(child);
+      }
+    }
+  }
+}
+```
+
+### 2. Runtime Execution
+
+```typescript
+// src/Runtime/SCXMLRuntime.ts
+export class SCXMLRuntime {
+  private eventHandler: EventHandler;
+  private dataModel: SCXMLDataModel;
+
+  constructor(private workflow: SCXMLWorkflow) {
+    this.eventHandler = new EventHandler();
+    this.dataModel = new SCXMLDataModel();
+  }
+
+  async start() {
+    const instance = this.workflow.createInstance();
+
+    instance.onTransition((state) => {
+      // Handle state changes
+      this.dataModel.assign("_state", state.value);
+    });
+
+    return instance.start();
+  }
+}
+```
+
+## Type System Integration
+
+```typescript
+// src/types/scxml.ts
+export type SCXMLNodeType =
+  | "scxml"
+  | "state"
+  | "parallel"
+  | "transition"
+  | "initial"
+  | "final"
+  | "onentry"
+  | "onexit"
+  | "history"
+  | "datamodel"
+  | "data"
+  | "assign"
+  | "invoke"
+  | "send"
+  | "cancel";
+
+export interface SCXMLAttributes {
+  id?: string;
+  initial?: string;
+  name?: string;
+  type?: string;
+  event?: string;
+  target?: string;
+  cond?: string;
+  expr?: string;
+  location?: string;
+}
+```
+
+## Testing Strategy
+
+1. **Unit Tests**: Test individual SCXML features
+2. **Integration Tests**: Test complete state machines
+3. **Conformance Tests**: Run W3C SCXML test suite
+4. **Performance Tests**: Benchmark against reference implementations
+
+## Implementation Phases
+
+1. **Phase 1: Core Infrastructure**
+
+   - Implement SCXMLState extension
+   - Update TagNode implementation
+   - Modify ConfigParser
+
+2. **Phase 2: Basic SCXML Features**
+
+   - State transitions
+   - Event handling
+   - Data model
+   - Entry/exit actions
+
+3. **Phase 3: Advanced Features**
+
+   - History states
+   - Parallel states
+   - Invoke
+   - Delayed events
+
+4. **Phase 4: Optimization & Testing**
+   - Performance optimization
+   - W3C test suite compliance
+   - Documentation
+   - Examples
+
+## Usage Example
+
+```typescript
+import { parseFireAgentConfig } from "../ConfigParser";
+import { SCXMLRuntime } from "../Runtime/SCXMLRuntime";
+
+const scxml = `
+  <scxml initial="start">
+    <state id="start">
+      <transition event="next" target="processing"/>
+    </state>
+    <state id="processing">
+      <onentry>
+        <assign location="count" expr="count + 1"/>
+      </onentry>
+      <transition target="end" cond="count >= 3"/>
+    </state>
+    <final id="end"/>
+  </scxml>
+`;
+
+async function run() {
+  const config = await parseFireAgentConfig(scxml);
+  const runtime = new SCXMLRuntime(config);
+  await runtime.start();
+}
+```

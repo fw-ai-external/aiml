@@ -1,0 +1,22 @@
+{
+  "name": "@workflow/monorepo",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "workspaces": ["packages/*", "apps/*"],
+  "packageManager": "bun@1.1.42",
+  "devDependencies": {
+    "turbo": "latest",
+    "@types/bun": "latest",
+    "typescript": "latest"
+  },
+  "dependencies": {
+    "@types/react": "^19.0.8",
+    "@xyflow/react": "^12.4.2"
+  }
+}

@@ -1,0 +1,185 @@
+## Mapping SCXML Elements to Mastra Workflow API
+
+Each SCXML element can be represented using Mastra's workflow API. Here's how to implement each element type:
+
+### SCXML Element as Workflow Root
+
+The SCXML root element maps to Mastra's Workflow class:
+
+```typescript
+const stateMachine = new Workflow({
+  name: "state-machine",
+  triggerSchema: z.object({
+    // Initial data schema
+  }),
+});
+```
+
+### State Element Implementation
+
+States are represented as Steps in Mastra. You can create basic states like this:
+
+```typescript
+const basicState = new Step({
+  id: "myState",
+  outputSchema: z.object({
+    // State output schema
+  }),
+  execute: async ({ context }) => {
+    // State logic
+    return {
+      /* state data */
+    };
+  },
+});
+
+// Add to workflow
+workflow.step(basicState);
+```
+
+For states with entry/exit actions:
+
+```typescript
+const stateWithActions = new Step({
+  id: "stateWithActions",
+  onEntry: async ({ context }) => {
+    // Entry actions
+  },
+  execute: async ({ context }) => {
+    // State logic
+  },
+  onExit: async ({ context }) => {
+    // Exit actions
+  },
+});
+```
+
+### Parallel Element Implementation
+
+Parallel states can be achieved using Mastra's parallel execution feature:
+
+```typescript
+// Define parallel branches
+const branch1 = new Step({ id: "branch1" /* ... */ });
+const branch2 = new Step({ id: "branch2" /* ... */ });
+
+// Add parallel branches to workflow
+workflow.step(branch1).step(branch2); // Steps at same level run in parallel
+```
+
+### Final Element Implementation
+
+Final states can be implemented using a Step with specific conditions:
+
+```typescript
+const finalState = new Step({
+  id: "finalState",
+  execute: async ({ context }) => {
+    return { status: "completed" };
+  },
+});
+
+workflow.step(previousStep).then(finalState, {
+  when: { "previousStep.status": "success" },
+});
+```
+
+### Action Elements Implementation
+
+Action elements map to different aspects of Mastra's Step API:
+
+#### Assign Action
+
+```typescript
+const assignStep = new Step({
+  id: "assign",
+  execute: async ({ context }) => ({
+    newValue: computedValue,
+  }),
+});
+```
+
+#### Log Action
+
+```typescript
+const logStep = new Step({
+  id: "log",
+  execute: async ({ context }) => {
+    console.log("Log message");
+    return { logged: true };
+  },
+});
+```
+
+#### Send/Raise Events
+
+```typescript
+const sendEventStep = new Step({
+  id: "sendEvent",
+  execute: async ({ context }) => {
+    await context.sendEvent("customEvent", { data: "value" });
+    return { eventSent: true };
+  },
+});
+```
+
+#### Conditional (If/Elseif/Else) Implementation
+
+Conditions can be implemented using Mastra's branching features:
+
+```typescript
+const condition1 = new Step({ id: "condition1" });
+const condition2 = new Step({ id: "condition2" });
+const elseCase = new Step({ id: "else" });
+
+workflow
+  .step(condition1, {
+    when: { "previousStep.value": "condition1" },
+  })
+  .step(condition2, {
+    when: { "previousStep.value": "condition2" },
+  })
+  .step(elseCase, {
+    when: {
+      "previousStep.value": {
+        $nin: ["condition1", "condition2"],
+      },
+    },
+  });
+```
+
+#### Foreach Implementation
+
+Iteration can be handled within a Step's execute function:
+
+```typescript
+const foreachStep = new Step({
+  id: "foreach",
+  execute: async ({ context }) => {
+    const items = context.getStepPayload("items");
+    const results = [];
+
+    for (const item of items) {
+      results.push(await processItem(item));
+    }
+
+    return { results };
+  },
+});
+```
+
+### Control Flow and Transitions
+
+Transitions between states can be implemented using Mastra's control flow features:
+
+```typescript
+workflow
+  .step(sourceState)
+  .then(targetState, {
+    when: { "sourceState.status": "complete" },
+  })
+  .after(targetState)
+  .step(nextState);
+```
+
+This mapping allows you to represent any SCXML state machine using Mastra's workflow API while maintaining the execution order and behavior defined in the SCXML specification. The workflow API provides a more programmatic and type-safe way to define state machines while preserving the semantic meaning of SCXML elements.

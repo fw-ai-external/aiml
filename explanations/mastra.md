@@ -1,0 +1,302 @@
+## Workflows
+
+Workflows in Mastra help you orchestrate complex sequences of operations with features like branching, parallel execution, resource suspension, and more.
+
+Mastra’s workflow system provides:
+
+- A standardized way to define steps and link them together.
+- Support for both simple (linear) and advanced (branching, parallel) paths.
+- Debugging and observability features to track each workflow run.
+
+### Example
+
+To create a workflow, you define one or more steps, link them, and then commit the workflow before starting it.
+
+Typically, you would call an LLM or other service in some way in some step. But for this example, we'll just double the input value in the first step and increment it in the second.
+
+```typescript copy showLineNumbers
+import { Workflow, Step } from "@mastra/core";
+import { z } from "zod";
+
+// 1. Define the workflow
+const myWorkflow = new Workflow({
+  name: "my-workflow",
+  triggerSchema: z.object({
+    inputValue: z.number(),
+  }),
+});
+
+// 2. Create steps
+const stepOne = new Step({
+  id: "stepOne",
+  execute: async ({ context: { machineContext } }) => ({
+    doubledValue: machineContext.triggerData.inputValue * 2,
+  }),
+});
+
+const stepTwo = new Step({
+  id: "stepTwo",
+  execute: async ({ context: { machineContext } }) => ({
+    incrementedValue:
+      machineContext.stepResults.stepOne.payload.doubledValue + 1,
+  }),
+});
+
+// 3. Link and commit steps
+myWorkflow.step(stepOne).then(stepTwo).commit();
+
+// 4. Run the workflow
+const { runId, start } = myWorkflow.createRun({
+  triggerData: { inputValue: 3 },
+});
+
+const result = await start();
+console.log("Workflow result:", result.results);
+```
+
+This example shows the essentials: define your workflow, add steps, commit the workflow, then execute it.
+
+### Defining Steps
+
+The basic building block of a workflow is a step. Steps are defined using schemas for inputs and outputs, and can fetch prior step results.
+
+### Control Flow
+
+Workflows let you define a control flow to chain steps together in with parallel steps, branching paths, and more.
+
+### Suspend and Resume
+
+When you need to pause execution for external data, user input, or asynchronous events, Mastra supports suspension at any step, persisting the state of the workflow so you can resume it later.
+
+### Observability and Debugging
+
+Mastra workflows automatically log the input and output of each step within a workflow run, allowing you to send this data to your preferred logging, telemetry, or observability tools.
+
+You can:
+
+- Track the status of each step (e.g., `success`, `error`, or `suspended`).
+- Store run-specific metadata for analysis.
+- Integrate with third-party observability platforms like Datadog or New Relic by forwarding logs.
+
+## Defining Steps in a Workflow
+
+When you build a workflow, you typically break down operations into smaller tasks that can be linked and reused. Steps provide a structured way to manage these tasks by defining inputs, outputs, and execution logic.
+
+The code below shows how to define these steps inline or separately.
+
+### Creating Steps
+
+You define steps and then add them to your workflow. This code is an example of how to define steps and link them afterward.
+
+```typescript showLineNumbers filename="src/mastra/workflows/index.ts" copy
+import { Step, Workflow } from "@mastra/core";
+import { z } from "zod";
+
+// Define steps separately
+const stepOne = new Step({
+  id: "stepOne",
+  outputSchema: z.object({
+    doubledValue: z.number(),
+  }),
+  execute: async ({ context: { machineContext } }) => ({
+    doubledValue: machineContext.triggerData.inputValue * 2,
+  }),
+});
+
+const stepTwo = new Step({
+  id: "stepTwo",
+  outputSchema: z.object({
+    incrementedValue: z.number(),
+  }),
+  execute: async ({ context: { machineContext } }) => ({
+    incrementedValue:
+      machineContext.stepResults.stepOne.payload.doubledValue + 1,
+  }),
+});
+
+// Build the workflow
+const myWorkflow = new Workflow({
+  name: "my-workflow",
+  triggerSchema: z.object({
+    inputValue: z.number(),
+  }),
+});
+
+myWorkflow.step(stepOne).then(stepTwo);
+myWorkflow.commit();
+```
+
+## Control Flow in Workflows: Branching, Merging, and Conditions
+
+When you create a multi-step process, you may need to run steps in parallel, chain them sequentially, or follow different paths based on outcomes. This page describes how you can manage branching, merging, and conditions to construct workflows that meet your logic requirements. The code snippets show the key patterns for structuring complex control flow.
+
+### Parallel Execution
+
+You can run multiple steps at the same time if they don’t depend on each other. This approach can speed up your workflow when steps perform independent tasks. The code below shows how to add two steps in parallel:
+
+```typescript
+myWorkflow.step(fetchUserData).step(fetchOrderData);
+```
+
+### Sequential Execution
+
+Sometimes you need to run steps in strict order to ensure outputs from one step become inputs for the next. Use .then() to link dependent operations. The code below shows how to chain steps sequentially:
+
+```typescript
+myWorkflow.step(fetchOrderData).then(validateData).then(processOrder);
+```
+
+### Branching and Merging Paths
+
+When different outcomes require different paths, branching is helpful. You can also merge paths later once they complete. The code below shows how to branch after stepA and later converge on stepF:
+
+```typescript
+myWorkflow
+  .step(stepA)
+  .then(stepB)
+  .then(stepD)
+  .after(stepA)
+  .step(stepC)
+  .then(stepE)
+  .after([stepD, stepE])
+  .step(stepF);
+```
+
+In this example:
+
+- stepA leads to stepB, then to stepD.
+- Separately, stepA also triggers stepC, which in turn leads to stepE.
+- The workflow waits for both stepD and stepE to finish before proceeding to stepF.
+
+### Cyclical Dependencies
+
+You can loop back to earlier steps based on conditions, allowing you to repeat tasks until certain results are achieved. The code below shows a workflow that repeats fetchData when a status is “retry”:
+
+```typescript
+myWorkflow
+  .step(fetchData)
+  .then(processData)
+  .after(processData)
+  .step(finalizeData, {
+    when: { "processData.status": "success" },
+  })
+  .step(fetchData, {
+    when: { "processData.status": "retry" },
+  });
+```
+
+If processData returns “success,” finalizeData runs. If it returns “retry,” the workflow loops back to fetchData.
+
+### Conditions
+
+Use the when property to control whether a step runs based on data from previous steps. Below are three ways to specify conditions.
+
+#### Option 1: Function
+
+```typescript
+myWorkflow.step(
+  new Step({
+    id: "processData",
+    execute: async ({ context }) => {
+      // Action logic
+    },
+  }),
+  {
+    when: async ({ context }) => {
+      const fetchData = context?.getStepPayload<{ status: string }>(
+        "fetchData"
+      );
+      return fetchData?.status === "success";
+    },
+  }
+);
+```
+
+#### Option 2: Query Object
+
+```typescript
+myWorkflow.step(
+  new Step({
+    id: "processData",
+    execute: async ({ context }) => {
+      // Action logic
+    },
+  }),
+  {
+    when: {
+      ref: {
+        step: {
+          id: "fetchData",
+        },
+        path: "status",
+      },
+      query: { $eq: "success" },
+    },
+  }
+);
+```
+
+#### Option 3: Simple Path Comparison
+
+```typescript
+myWorkflow.step(
+  new Step({
+    id: "processData",
+    execute: async ({ context }) => {
+      // Action logic
+    },
+  }),
+  {
+    when: {
+      "fetchData.status": "success",
+    },
+  }
+);
+```
+
+### Renaming Variables
+
+Variables let you pass outputs from one step into another step’s inputs.
+
+#### Passing Trigger Data
+
+```typescript
+myWorkflow.step(stepOne).then(stepTwo, {
+  variables: {
+    valueToIncrement: {
+      step: "trigger",
+      path: "inputValue",
+    },
+  },
+});
+```
+
+#### Passing Output from a Previous Step
+
+```typescript
+myWorkflow.step(stepOne).then(stepTwo, {
+  variables: {
+    valueToIncrement: {
+      step: stepOne,
+      path: "doubledValue",
+    },
+  },
+});
+```
+
+#### Passing Output Using a Step ID
+
+```typescript
+myWorkflow.step(stepOne).then(stepTwo, {
+  variables: {
+    valueToIncrement: {
+      step: {
+        id: "stepOne",
+      },
+      path: "doubledValue",
+    },
+  },
+});
+```
+
+In all these examples, you pick the specific data you want to pass forward. This approach helps decouple steps and keep your workflow logic clear.

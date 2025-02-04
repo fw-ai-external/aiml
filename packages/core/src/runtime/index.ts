@@ -1,0 +1,177 @@
+import { Workflow, type WorkflowRunState } from "@mastra/core/workflows";
+import { BaseElement } from "../element/BaseElement";
+import { z } from "zod";
+import { BuildContext } from "./BuildContext";
+import { StepValue } from "./StepValue";
+import { ExecutionGraphElement } from "./types";
+
+export type RuntimeOptions = {
+  onTransition?: (state: WorkflowRunState) => void;
+  onError?: (error: Error) => void;
+  onComplete?: () => void;
+};
+
+export class Runtime<
+  InputSchema extends z.ZodType<any>,
+  InputType extends z.infer<InputSchema>,
+> {
+  public workflow: Workflow;
+  private readonly rootElement: BaseElement;
+  private activeStates: Set<string> = new Set();
+  constructor(
+    private readonly spec: BaseElement,
+    private options?: RuntimeOptions
+  ) {
+    this.rootElement = spec;
+    this.workflow = this.buildWorkflowTree(
+      new Workflow({
+        name: "workflow",
+        triggerSchema: z.object({}),
+      })
+    );
+  }
+
+  // Walks the spec and its children and builds the workflow tree of steps
+  private buildWorkflowTree(workflow: Workflow): Workflow {
+    // Add the root spec and let it add its children
+    const buildContext = new BuildContext(
+      workflow,
+      this.spec.getChildren,
+      this.spec.getAttributes,
+      {},
+      this.spec
+    );
+
+    const executionGraph =
+      this.spec.onExecutionGraphConstruction?.(buildContext);
+    if (!executionGraph) {
+      throw new Error("Execution graph construction returned undefined");
+    }
+    function addGraphElementToWorkflow(
+      element: ExecutionGraphElement,
+      parallel: boolean = false
+    ) {
+      if (element.runAfter) {
+        workflow.after(
+          element.runAfter.map((id) => buildContext.getElementById(id)) as any
+        ) as any;
+      }
+      // Add the current element to the workflow
+
+      const step = buildContext.getElementById(element.id);
+      if (step) {
+        if (parallel) {
+          workflow.step(step, {
+            // create a function that evaluates the when expression
+            // this serves as a guard for the step
+            // TODO use Step context here
+            when: async ({ context }) =>
+              element.when ? eval(element.when) : true,
+          });
+        } else {
+          workflow.then(step, {
+            // create a function that evaluates the when expression
+            // this serves as a guard for the step
+            // TODO use Step context here
+            when: async ({ context }) =>
+              element.when ? eval(element.when) : true,
+          });
+        }
+      }
+
+      // Recursively add all child elements
+      if (element.next) {
+        for (const child of element.next) {
+          addGraphElementToWorkflow(child);
+        }
+      }
+
+      if (element.parallel) {
+        for (const child of element.parallel) {
+          addGraphElementToWorkflow(child, true);
+        }
+      }
+    }
+
+    console.log(executionGraph);
+
+    // Start with the root execution graph element and add all elements recursively
+    addGraphElementToWorkflow(executionGraph, true);
+
+    return workflow.commit();
+  }
+
+  private handleStateTransition(state: WorkflowRunState) {
+    // Update active states
+    const newActiveStates = new Set(
+      Object.keys(state.context).filter(
+        (key) =>
+          (state.context as Record<string, { isActive?: boolean }>)[key]
+            ?.isActive === true
+      )
+    );
+
+    // Handle state exits
+    for (const stateId of this.activeStates) {
+      if (!newActiveStates.has(stateId)) {
+        const element = this.findElementById(stateId);
+        if (element && "deactivate" in element) {
+          (element as any).deactivate?.();
+        }
+      }
+    }
+
+    this.activeStates = newActiveStates;
+    this.options?.onTransition?.(state);
+  }
+
+  private findElementById(
+    id: string,
+    element: BaseElement = this.rootElement
+  ): BaseElement | undefined {
+    if (element.id === id) {
+      return element;
+    }
+
+    for (const child of element.getChildren) {
+      if (child instanceof BaseElement) {
+        const found = this.findElementById(id, child);
+        if (found) {
+          return found;
+        }
+      }
+    }
+
+    return undefined;
+  }
+
+  async run(input: InputType) {
+    const { runId, start } = this.workflow.createRun();
+
+    // Set up state transition monitoring
+    this.workflow.watch(runId, {
+      onTransition: (state) => this.handleStateTransition(state as any),
+    });
+
+    try {
+      const { results } = await start({
+        triggerData: {
+          input: new StepValue(input),
+          chatHistory: [],
+          userInput: null,
+          datamodel: {},
+        },
+      });
+
+      this.options?.onComplete?.();
+
+      return {
+        runId,
+        results,
+      };
+    } catch (error) {
+      this.options?.onError?.(error as Error);
+      throw error;
+    }
+  }
+}
