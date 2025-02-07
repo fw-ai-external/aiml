@@ -8,7 +8,7 @@ import { SCXML, State, Final, Parallel } from "../element/states";
 import { OnEntry, Transition } from "../element/control-flow";
 import { Assign, Log, Script } from "../element/actions";
 import { Data, DataModel } from "../element/context";
-import { BaseElement } from "../element/BaseElement";
+import { BaseElement } from "../runtime/BaseElement";
 import { Runtime } from "../runtime";
 import { parseSpec } from "../parser";
 import { SCXMLNodeTypes } from "../element";
@@ -48,7 +48,7 @@ describe("tsx parser", () => {
     const result = renderTSX(fireAgentMachine);
     expect(result).toBeDefined();
     expect(isBaseElement(result) && result.elementType).toBe("scxml");
-    const rootChildren = isBaseElement(result) && result.getChildren;
+    const rootChildren = isBaseElement(result) && result.children;
     expect(rootChildren && rootChildren.length).toBe(3);
     expect(
       rootChildren &&
@@ -93,7 +93,7 @@ describe("tsx parser", () => {
     expect(result).toBeDefined();
 
     expect(isBaseElement(result) && result.elementType).toBe("scxml");
-    const rootChildren = isBaseElement(result) && result.getChildren;
+    const rootChildren = isBaseElement(result) && result.children;
     expect(rootChildren && rootChildren.length).toBe(5);
     expect(
       rootChildren &&
@@ -110,40 +110,38 @@ describe("tsx parser", () => {
       );
     expect(stateA).toBeDefined();
     expect(
-      isBaseElement(stateA) && stateA.getChildren && stateA.getChildren.length
+      isBaseElement(stateA) && stateA.children && stateA.children.length
     ).toBe(2);
     expect(
       isBaseElement(stateA) &&
-        stateA.getChildren &&
-        stateA.getChildren.map(
+        stateA.children &&
+        stateA.children.map(
           (child) => isBaseElement(child) && child.elementType
         )
     ).toEqual(["onentry", "transition"]);
 
     const onentry =
       isBaseElement(stateA) &&
-      stateA.getChildren &&
-      stateA.getChildren.find(
+      stateA.children &&
+      stateA.children.find(
         (child) => isBaseElement(child) && child.elementType === "onentry"
       );
     expect(onentry).toBeDefined();
     expect(
-      isBaseElement(onentry) &&
-        onentry.getChildren &&
-        onentry.getChildren.length
+      isBaseElement(onentry) && onentry.children && onentry.children.length
     ).toBe(2);
     expect(
       isBaseElement(onentry) &&
-        onentry.getChildren &&
-        onentry.getChildren.map(
+        onentry.children &&
+        onentry.children.map(
           (child) => isBaseElement(child) && child.elementType
         )
     ).toEqual(["assign", "assign"]);
 
     const assign1 =
       isBaseElement(onentry) &&
-      onentry.getChildren &&
-      onentry.getChildren.find(
+      onentry.children &&
+      onentry.children.find(
         (child) => isBaseElement(child) && child.elementType === "assign"
       );
     expect(assign1).toBeDefined();
@@ -151,15 +149,15 @@ describe("tsx parser", () => {
     expect(isBaseElement(assign1) && assign1.attributes?.location).toBe("x");
 
     const assign2 =
-      isBaseElement(onentry) && onentry.getChildren && onentry.getChildren[1];
+      isBaseElement(onentry) && onentry.children && onentry.children[1];
     expect(assign2).toBeDefined();
     expect(isBaseElement(assign2) && assign2.attributes?.expr).toBe("99");
     expect(isBaseElement(assign2) && assign2.attributes?.location).toBe("x");
 
     const transition =
       isBaseElement(stateA) &&
-      stateA.getChildren &&
-      stateA.getChildren.find(
+      stateA.children &&
+      stateA.children.find(
         (child) => isBaseElement(child) && child.elementType === "transition"
       );
     expect(transition).toBeDefined();
@@ -172,8 +170,8 @@ describe("tsx parser", () => {
 
     const assign3 =
       isBaseElement(transition) &&
-      transition.getChildren &&
-      transition.getChildren.find(
+      transition.children &&
+      transition.children.find(
         (child) => isBaseElement(child) && child.elementType === "assign"
       );
     expect(assign3).toBeDefined();
@@ -190,40 +188,38 @@ describe("tsx parser", () => {
       );
     expect(stateB).toBeDefined();
     expect(
-      isBaseElement(stateB) && stateB.getChildren && stateB.getChildren.length
+      isBaseElement(stateB) && stateB.children && stateB.children.length
     ).toBe(3);
     expect(
       isBaseElement(stateB) &&
-        stateB.getChildren &&
-        stateB.getChildren.map(
+        stateB.children &&
+        stateB.children.map(
           (child) => isBaseElement(child) && child.elementType
         )
     ).toEqual(["onentry", "transition", "transition"]);
 
     const onentryB =
       isBaseElement(stateB) &&
-      stateB.getChildren &&
-      stateB.getChildren.find(
+      stateB.children &&
+      stateB.children.find(
         (child) => isBaseElement(child) && child.elementType === "onentry"
       );
     expect(onentryB).toBeDefined();
     expect(
-      isBaseElement(onentryB) &&
-        onentryB.getChildren &&
-        onentryB.getChildren.length
+      isBaseElement(onentryB) && onentryB.children && onentryB.children.length
     ).toBe(1);
     expect(
       isBaseElement(onentryB) &&
-        onentryB.getChildren &&
-        onentryB.getChildren.map(
+        onentryB.children &&
+        onentryB.children.map(
           (child) => isBaseElement(child) && child.elementType
         )
     ).toEqual(["assign"]);
 
     const assign4 =
       isBaseElement(onentryB) &&
-      onentryB.getChildren &&
-      onentryB.getChildren.find(
+      onentryB.children &&
+      onentryB.children.find(
         (child) => isBaseElement(child) && child.elementType === "assign"
       );
     expect(assign4).toBeDefined();
@@ -232,8 +228,8 @@ describe("tsx parser", () => {
 
     const transitionB1 =
       isBaseElement(stateB) &&
-      stateB.getChildren &&
-      stateB.getChildren.find(
+      stateB.children &&
+      stateB.children.find(
         (child) => isBaseElement(child) && child.elementType === "transition"
       );
     expect(transitionB1).toBeDefined();
@@ -245,7 +241,7 @@ describe("tsx parser", () => {
     );
 
     const transitionB2 =
-      isBaseElement(stateB) && stateB.getChildren && stateB.getChildren[2];
+      isBaseElement(stateB) && stateB.children && stateB.children[2];
     expect(transitionB2).toBeDefined();
     expect(isBaseElement(transitionB2) && transitionB2.attributes?.target).toBe(
       "f"
@@ -312,8 +308,8 @@ describe("tsx parser", () => {
       const name = node.elementType;
       expect(name).toBeDefined();
       expect(name! in SCXMLNodeTypes).toBe(true);
-      if (node.getChildren) {
-        node.getChildren.forEach((child: FireAgentSpecNode) =>
+      if (node.children) {
+        node.children.forEach((child: FireAgentSpecNode) =>
           expectSyncSCXMLNode(child)
         );
       }
@@ -391,27 +387,27 @@ describe("tsx parser", () => {
     const result = renderTSX(fireAgentSpec);
     printConfigTree(result);
     expect(result.elementType).toBe("scxml");
-    const testState = result?.getChildren?.find(
+    const testState = result?.children?.find(
       (child) =>
         isBaseElement(child) &&
         child.elementType === "state" &&
         child.attributes?.id === "test"
     )!;
     expect(testState).toBeDefined();
-    expect((testState as BaseElement)?.getChildren?.length).toBe(2);
+    expect((testState as BaseElement)?.children?.length).toBe(2);
     expect(
-      (testState as BaseElement)?.getChildren?.map(
+      (testState as BaseElement)?.children?.map(
         (child) => (child as BaseElement).elementType
       )
     ).toEqual(["GeneralAITask", "transition"]);
 
-    const invokeTask = (testState as BaseElement)?.getChildren?.find(
+    const invokeTask = (testState as BaseElement)?.children?.find(
       (child) => (child as BaseElement).tag === "GeneralAITask"
     )!;
     expect(invokeTask).toBeDefined();
-    expect((invokeTask as BaseElement)?.getChildren?.length).toBe(1);
+    expect((invokeTask as BaseElement)?.children?.length).toBe(1);
     expect(
-      (invokeTask as BaseElement)?.getChildren?.map(
+      (invokeTask as BaseElement)?.children?.map(
         (child) => (child as BaseElement).elementType
       )
     ).toEqual(["data"]);

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import { BaseElement } from "../BaseElement";
+import { BaseElement } from "../../runtime/BaseElement";
 import { ExecutionGraphElement } from "../../runtime/types";
 
 const scxmlSchema = z.object({

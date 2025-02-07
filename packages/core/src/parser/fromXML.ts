@@ -5,7 +5,7 @@ import { getNodeDefinitionClass, isSupportedNodeName } from "../element/index";
 import { ElementError } from "../errors";
 import { InternalError } from "../errors";
 import { warnOnDuplicateKeys } from "./utils";
-import { BaseElement } from "../element/BaseElement";
+import { BaseElement } from "../runtime/BaseElement";
 
 export async function fromXML(xml: string): Promise<BaseElement> {
   const parsedXml = await xml2js(xml);

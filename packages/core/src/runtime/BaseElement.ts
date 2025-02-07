@@ -1,11 +1,11 @@
-import { Step } from "@mastra/core/workflows";
-import { StepContext } from "../runtime/StepContext";
-import { StepValue } from "../runtime/StepValue";
+import { Step } from "@mastra/core";
+import { StepContext } from "./StepContext";
+import { StepValue } from "./StepValue";
 import type { RunstepOutput } from "../types";
-import { FireAgentSpecNode } from "./types";
+import { FireAgentSpecNode } from "../element/types";
 import { z } from "zod";
-import { BuildContext } from "../runtime/BuildContext";
-import { ExecutionGraphElement } from "../runtime/types";
+import { BuildContext } from "./BuildContext";
+import { ExecutionGraphElement } from "./types";
 
 export type SCXMLNodeType =
   | "scxml"
@@ -34,6 +34,14 @@ export type SCXMLNodeType =
   | "finalize"
   | "llm";
 
+/** Represents a single SCXML element. */
+export type Component<P> = BaseElement; // (props: P, context: ComponentContext) => Renderable;
+
+/**
+ * A Literal represents a literal value.
+ */
+export type Literal = string | number | null | undefined | boolean;
+
 export type SCXMLContext = {
   dataModel: Record<string, unknown>;
   eventQueue: Array<{ name: string; data: unknown }>;
@@ -60,7 +68,7 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
   protected _eventQueue: Array<{ name: string; data: unknown }> = [];
   protected parent?: BaseElement;
   public readonly attributes: Record<string, string>;
-  protected readonly children: FireAgentSpecNode[] = [];
+  public readonly children: FireAgentSpecNode[] = [];
   public readonly onExecutionGraphConstruction?: (
     buildContext: BuildContext
   ) => ExecutionGraphElement;
@@ -228,13 +236,26 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
   protected enqueueEvent(name: string, data?: unknown): void {
     this.getRootElement()._eventQueue.push({ name, data });
   }
+}
 
-  // Public getters to access protected properties
-  public get getChildren(): FireAgentSpecNode[] {
-    return this.children;
-  }
+/**
+ * A Node represents an element of an exicution graph.
+ */
+export type Node = BaseElement | Literal | Node[];
 
-  public get getAttributes(): Record<string, any> {
-    return this.attributes;
-  }
+/** @hidden */
+export type ElementPredicate = (e: BaseElement) => boolean;
+
+/** @hidden */
+export type PropsOfComponent<T extends Component<any>> =
+  T extends Component<infer P> ? P : never;
+
+/** @hidden */
+export function isElement(value: unknown): value is BaseElement {
+  return value !== null && typeof value === "object" && "tag" in value;
+}
+
+/** @hidden */
+export function Fragment({ children }: { children: Node }): Node {
+  return children;
 }

@@ -1,11 +1,6 @@
 import Dagre from "@dagrejs/dagre";
 import { type StepCondition } from "@mastra/core/workflows";
 import { Node, Edge, MarkerType } from "@xyflow/react";
-import { FireAgentSpecNode } from "../../../../../packages/core/src/element/types";
-import {
-  SCXMLNodeType,
-  BaseElement,
-} from "../../../../../packages/core/src/element/BaseElement";
 
 export type Condition = {
   ref: {

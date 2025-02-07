@@ -12,11 +12,18 @@
     "./examples/*": {
       "import": "./dist/__examples__/*.js",
       "types": "./dist/__examples__/*.d.ts"
+    },
+    "./jsx-runtime": {
+      "import": {
+        "types": "./dist/jsx-runtime.d.ts",
+        "default": "./dist/jsx-runtime.js"
+      }
     }
   },
   "scripts": {
     "build": "hohoro",
     "dev": "node --watch-path=./src dev.mjs",
+    "run": "bun run src/cli/index.ts",
     "lint": "biome check .",
     "test": "bun test",
     "clean": "rm -rf dist"
@@ -37,6 +44,9 @@
     "@swc/core": "^1.10.14",
     "@types/node": "^20.0.0",
     "@workflow/tsconfig": "workspace:*",
+    "cli-highlight": "^2.1.11",
+    "cli-spinners": "^3.2.0",
+    "ink": "^5.1.0",
     "typescript": "^5.0.0"
   }
 }

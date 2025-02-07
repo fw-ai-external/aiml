@@ -1,5 +1,5 @@
 import { StepConfig, Workflow } from "@mastra/core/workflows";
-import { BaseElement } from "../element/BaseElement";
+import { BaseElement } from "./BaseElement";
 import { FireAgentSpecNode } from "../element/types";
 import { ExecutionGraphElement } from "./types";
 
@@ -33,7 +33,7 @@ export class BuildContext {
         return node;
       }
 
-      for (const child of node.getChildren) {
+      for (const child of node.children) {
         const found = this.findElementById(child, targetId);
         if (found) {
           return found;
@@ -76,7 +76,7 @@ export class BuildContext {
     if (child instanceof BaseElement) {
       return new BuildContext(
         this.workflow,
-        child.getChildren,
+        child.children,
         child.attributes,
         this.conditions,
         child

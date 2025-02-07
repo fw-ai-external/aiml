@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import { BaseElement } from "../BaseElement";
+import { BaseElement } from "../../runtime/BaseElement";
 
 const historySchema = z.object({
   id: z.string().optional(),

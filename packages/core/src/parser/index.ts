@@ -4,7 +4,7 @@ import { BaseError } from "../errors";
 import { fromXML } from "./fromXML";
 import { renderTSX } from "./renderTSX";
 import type { FireAgentNode } from "./types";
-import { BaseElement } from "../element/BaseElement";
+import { BaseElement } from "../runtime/BaseElement";
 
 export async function parseSpec(
   config: string | React.ReactElement<any, any>

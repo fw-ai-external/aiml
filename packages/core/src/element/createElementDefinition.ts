@@ -7,7 +7,11 @@ import { StepContext } from "../runtime/StepContext";
 import { StepValue } from "../runtime/StepValue";
 import type { Element } from "../types/jsx";
 import type { RunstepOutput } from "../types";
-import { BaseElement, SCXMLNodeType, StepCondition } from "./BaseElement";
+import {
+  BaseElement,
+  SCXMLNodeType,
+  StepCondition,
+} from "../runtime/BaseElement";
 import { ExecutionGraphElement } from "../runtime/types";
 import { BuildContext } from "../runtime/BuildContext";
 
@@ -28,6 +32,10 @@ export type ElementDefinition<
    * The actual tag name used in the config/tsx
    */
   tag: Tag;
+  /**
+   * The type of the element
+   */
+  scxmlType?: SCXMLNodeType;
   /**
    * The role of the element
    */
@@ -224,8 +232,13 @@ export const createElementDefinition = <
         "Children should not be props, they should be split out and converted to nodes"
       );
     }
-    if (!("onExecutionGraphConstruction" in config)) {
+    if (!("onExecutionGraphConstruction" in config) && "render" in config) {
       return nodes as BaseElement[];
+    }
+    if (!("onExecutionGraphConstruction" in config)) {
+      throw new Error(
+        "onExecutionGraphConstruction is required to be defined for elements that do not render sub-elements"
+      );
     }
     validatedProps.children = nodes;
 
@@ -233,7 +246,7 @@ export const createElementDefinition = <
       id: config.tag === "scxml" ? "Incoming Request" : props.id,
       tag: config.tag,
       role: config.role || "action",
-      elementType: config.tag as SCXMLNodeType,
+      elementType: config.scxmlType || (config.tag as SCXMLNodeType),
       attributes: validatedProps,
       children: nodes,
       parent: parents[parents.length - 1],
@@ -241,7 +254,7 @@ export const createElementDefinition = <
       exit: config.exit,
       onExecutionGraphConstruction: config.onExecutionGraphConstruction,
     });
-
+    console.log("tagNode", tagNode.tag);
     return tagNode;
   };
 

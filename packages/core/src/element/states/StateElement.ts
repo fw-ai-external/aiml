@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
 import { ExecutionGraphElement } from "../../runtime/types";
-import { BaseElement } from "../BaseElement";
+import { BaseElement } from "../../runtime/BaseElement";
 
 const stateSchema = z.object({
   id: z.string(),
@@ -18,6 +18,7 @@ export const State = createElementDefinition({
     "onentry",
     "onexit",
     "transition",
+    "invoke",
     "state",
     "parallel",
     "final",

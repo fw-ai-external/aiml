@@ -1,4 +1,4 @@
-import type { BaseElement, SCXMLNodeType } from "../element/BaseElement";
+import type { BaseElement, SCXMLNodeType } from "../runtime/BaseElement";
 
 export interface InstructionNode {
   kind: "instruction";

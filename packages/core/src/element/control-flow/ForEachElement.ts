@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
 import type { StepContext } from "../../runtime/StepContext";
 import { StepValue } from "../../runtime/StepValue";
-import type { BaseElement } from "../BaseElement";
+import type { BaseElement } from "../../runtime/BaseElement";
 
 const forEachSchema = z.object({
   id: z.string().optional(),

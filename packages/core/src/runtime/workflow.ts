@@ -1,4 +1,4 @@
-import { BaseElement } from "../element/BaseElement";
+import { BaseElement } from "./BaseElement";
 import { BuildContext } from "./BuildContext";
 import { ExecutionGraphElement } from "./types";
 

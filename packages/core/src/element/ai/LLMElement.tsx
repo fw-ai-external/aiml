@@ -6,6 +6,8 @@ import { StepValue } from "../../runtime/StepValue";
 import { aiStreamToFireAgentStream } from "../../utils/ai";
 import { getProviderWithClient } from "../../utils/llm/provider";
 import { gbnf } from "../../utils/llm/grammar/grammar";
+import { ExecutionGraphElement } from "../../runtime/types";
+import { v4 as uuidv4 } from "uuid";
 
 const llmSchema = z.object({
   id: z.string().optional(),
@@ -30,8 +32,31 @@ const llmSchema = z.object({
 
 export const LLM = createElementDefinition({
   tag: "llm",
+  scxmlType: "invoke",
   propsSchema: llmSchema,
   allowedChildren: "none",
+  onExecutionGraphConstruction(buildContext) {
+    // 1. If we already built this node, return the cached version.
+    const existing = buildContext.getCachedGraphElement(
+      buildContext.attributes.id
+    );
+    if (existing) {
+      return existing;
+    }
+
+    const llmNode: ExecutionGraphElement = {
+      id: buildContext.attributes.id || `llm_${uuidv4()}`,
+      type: "action",
+      subType: "llm",
+      attributes: {
+        ...buildContext.attributes,
+      },
+    };
+    // store it in the cache
+    buildContext.setCachedGraphElement(buildContext.attributes.id, llmNode);
+
+    return llmNode;
+  },
 
   async execute(
     ctx: StepContext<z.infer<typeof llmSchema>>

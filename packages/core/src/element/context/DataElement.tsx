@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { BaseElement } from "../BaseElement";
+import type { BaseElement } from "../../runtime/BaseElement";
 import type { StepContext } from "../../runtime/StepContext";
 import { StepValue } from "../../runtime/StepValue";
 

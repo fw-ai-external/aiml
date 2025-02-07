@@ -7,7 +7,7 @@ import { Final } from "../element/states/FinalElement";
 import { Runtime } from "../runtime";
 import { parseSpec } from "../parser";
 import { Transition } from "../element/control-flow";
-import { Assign } from "../element/actions/AssignElement";
+
 const userInput = "Hello, how are you?";
 const basicWorkflow = (
   <SCXML datamodel="minimal">
@@ -25,10 +25,10 @@ const basicWorkflow = (
 );
 const spec = await parseSpec(basicWorkflow);
 const runtime = new Runtime(spec);
-// const result = await runtime.run({
-//   userInput,
-// });
-
-// console.log("result", result);
 
 export const basic = runtime.workflow;
+
+export async function runBasic() {
+  const result = await runtime.run({});
+  console.log("result", result);
+}

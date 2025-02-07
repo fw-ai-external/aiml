@@ -4,7 +4,7 @@ import { CompositionError, ElementError, InternalError } from "../errors";
 import type { ReactTagNodeDefinition } from "../element/createElementDefinition";
 import type { FireAgentNode, TextNode } from "./types";
 import { warnOnDuplicateKeys } from "./utils";
-import { BaseElement } from "../element/BaseElement";
+import { BaseElement } from "../runtime/BaseElement";
 export type ReactElements =
   | React.ReactElement<
       {
@@ -90,7 +90,10 @@ export function instanciateNode(
     // }
 
     // const props: Record<string, any> = element.props as Record<string, any>;
-    const { children, ...props } = element.props as Record<string, any>;
+    const { children, ...props } = element.props as any as {
+      children: FireAgentNode[];
+      [key: string]: any;
+    };
     if (element.type === React.Fragment && children) {
       // const children = props.children as ReactElements[] | undefined;
 
@@ -110,7 +113,6 @@ export function instanciateNode(
     }
 
     const ElementClass = getNodeDefinitionClass(nodeName);
-
     // Process children
     let childNodes: FireAgentNode[] = [];
     if (children !== undefined) {
@@ -132,6 +134,7 @@ export function instanciateNode(
           ...parents,
           // { name: nodeName, id: element.props.id || element.key },
         ]);
+
         if (parsedChildren == null) {
           childNodes = [];
         } else if (Array.isArray(parsedChildren)) {

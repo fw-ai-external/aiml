@@ -1,9 +1,11 @@
-import { Workflow, type WorkflowRunState } from "@mastra/core/workflows";
-import { BaseElement } from "../element/BaseElement";
+import { Workflow } from "@mastra/core";
+import { BaseElement } from "./BaseElement";
 import { z } from "zod";
 import { BuildContext } from "./BuildContext";
 import { StepValue } from "./StepValue";
 import { ExecutionGraphElement } from "./types";
+
+type WorkflowRunState = Awaited<ReturnType<Workflow["getState"]>>;
 
 export type RuntimeOptions = {
   onTransition?: (state: WorkflowRunState) => void;
@@ -36,8 +38,8 @@ export class Runtime<
     // Add the root spec and let it add its children
     const buildContext = new BuildContext(
       workflow,
-      this.spec.getChildren,
-      this.spec.getAttributes,
+      this.spec.children,
+      this.spec.attributes,
       {},
       this.spec
     );
@@ -93,7 +95,7 @@ export class Runtime<
       }
     }
 
-    console.log(executionGraph);
+    console.log(JSON.stringify(executionGraph, null, 2));
 
     // Start with the root execution graph element and add all elements recursively
     addGraphElementToWorkflow(executionGraph, true);
@@ -104,9 +106,9 @@ export class Runtime<
   private handleStateTransition(state: WorkflowRunState) {
     // Update active states
     const newActiveStates = new Set(
-      Object.keys(state.context).filter(
+      Object.keys(state?.context ?? {}).filter(
         (key) =>
-          (state.context as Record<string, { isActive?: boolean }>)[key]
+          (state?.context as Record<string, { isActive?: boolean }>)[key]
             ?.isActive === true
       )
     );
@@ -133,7 +135,7 @@ export class Runtime<
       return element;
     }
 
-    for (const child of element.getChildren) {
+    for (const child of element.children) {
       if (child instanceof BaseElement) {
         const found = this.findElementById(id, child);
         if (found) {

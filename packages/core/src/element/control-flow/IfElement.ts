@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { BaseElement } from "../BaseElement";
+import type { BaseElement } from "../../runtime/BaseElement";
 import { BuildContext } from "../../runtime/BuildContext";
 import { ExecutionGraphElement } from "../../runtime/types";
 import { v4 as uuidv4 } from "uuid";
@@ -82,7 +82,7 @@ export const If = createElementDefinition({
 
         // Collect child actions from the elseIf
         // This might be the direct children of ElseIfElement
-        const elseIfChildren = ch.getChildren.map((gc) => gc as BaseElement);
+        const elseIfChildren = ch.children.map((gc) => gc as BaseElement);
 
         const partitionNode = buildIfPartitionNode(
           `${ifNode.id}_p${partitionIndex}`,
@@ -98,7 +98,7 @@ export const If = createElementDefinition({
         partitionIndex++;
       } else if (ch.elementType === "else") {
         // This is the final partition if we get here
-        const elseChildren = ch.getChildren.map((gc) => gc as BaseElement);
+        const elseChildren = ch.children.map((gc) => gc as BaseElement);
 
         // mergedCond => the negation of all priorConds
         // i.e. !c1 && !c2 && ...
