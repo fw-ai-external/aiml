@@ -22,6 +22,13 @@ export const State = createElementDefinition({
     "state",
     "parallel",
     "final",
+
+    // Not part of the SCXML spec, but useful for FireAgent
+    "script",
+    "assign",
+    "if",
+    "else",
+    "elseif",
   ],
   onExecutionGraphConstruction(buildContext) {
     // 1. Create a "main" node for this state

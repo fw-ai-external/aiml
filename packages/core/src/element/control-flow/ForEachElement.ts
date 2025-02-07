@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { StepContext } from "../../runtime/StepContext";
+import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 import type { BaseElement } from "../../runtime/BaseElement";
 
@@ -19,7 +19,7 @@ export const ForEach = createElementDefinition({
   allowedChildren: "any",
 
   async execute(
-    ctx: StepContext<ForEachProps>,
+    ctx: ElementExecutionContext<ForEachProps>,
     childrenNodes: BaseElement[]
   ): Promise<StepValue> {
     const { array, item, index } = ctx.attributes;

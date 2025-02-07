@@ -115,6 +115,8 @@ export function instanciateNode(
     const ElementClass = getNodeDefinitionClass(nodeName);
     // Process children
     let childNodes: FireAgentNode[] = [];
+    let textValue: string | undefined;
+
     if (children !== undefined) {
       // Handle text content directly
       if (
@@ -122,23 +124,27 @@ export function instanciateNode(
         typeof children === "number" ||
         typeof children === "boolean"
       ) {
-        childNodes = [
-          instanciateNode(children, [
-            ...parents,
-            // { name: nodeName, id: element.props.id || element.key },
-          ]),
-        ] as FireAgentNode[];
+        textValue = String(children);
       } else {
         // Handle nested children
-        const parsedChildren = instanciateNode(children, [
-          ...parents,
-          // { name: nodeName, id: element.props.id || element.key },
-        ]);
+        const parsedChildren = instanciateNode(children, [...parents]);
 
         if (parsedChildren == null) {
           childNodes = [];
         } else if (Array.isArray(parsedChildren)) {
-          childNodes = parsedChildren;
+          // Check if all children are text nodes
+          const allTextNodes = parsedChildren.every(
+            (node) => "kind" in node && node.kind === "text"
+          );
+          if (allTextNodes) {
+            textValue = parsedChildren
+              .map((node) => ("text" in node ? node.text : ""))
+              .join("");
+          } else {
+            childNodes = parsedChildren;
+          }
+        } else if ("kind" in parsedChildren && parsedChildren.kind === "text") {
+          textValue = String(parsedChildren.text);
         } else {
           childNodes = [parsedChildren];
         }
@@ -162,6 +168,11 @@ export function instanciateNode(
         );
       }
     });
+
+    // If we found text content, add it as a value prop
+    if (textValue !== undefined) {
+      props.value = textValue;
+    }
 
     return ElementClass.initFromAttributesAndNodes(props, childNodes, parents);
   }

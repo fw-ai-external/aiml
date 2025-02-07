@@ -1,6 +1,6 @@
 import type { JSONSchemaArray, JSONSchemaObject } from "openai/lib/jsonschema";
 import { z } from "zod";
-import type { StepContext } from "../runtime/StepContext";
+import type { ElementExecutionContext } from "../runtime/ElementExecutionContext";
 import { ErrorCode } from "../utils/errorCodes";
 import type { ReplayableAsyncIterableStream } from "../utils/streams";
 
@@ -462,5 +462,5 @@ export type Secrets = {
 };
 
 export type RunStepContextSerialized = Awaited<
-  ReturnType<StepContext<{}, RunstepOutput>["serialize"]>
+  ReturnType<ElementExecutionContext<{}, RunstepOutput>["serialize"]>
 >;

@@ -7,6 +7,7 @@ import { Final } from "../element/states/FinalElement";
 import { Runtime } from "../runtime";
 import { parseSpec } from "../parser";
 import { Transition } from "../element/control-flow";
+import { Script } from "../element/actions/ScriptElement";
 
 const userInput = "Hello, how are you?";
 const basicWorkflow = (
@@ -17,6 +18,7 @@ const basicWorkflow = (
         system="You are a helpful assistant."
         prompt={userInput}
       />
+      <Script>console.log("Hello, world!");</Script>
       {/* <Assign location="userInput" expr={userInput} /> */}
       <Transition target="final_state" />
     </State>

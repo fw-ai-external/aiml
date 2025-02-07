@@ -3,7 +3,7 @@ import type { LiteralUnion } from "type-fest";
 import { z } from "zod";
 import type { ReactElements } from "../parser/renderTSX";
 import type { FireAgentNode } from "../parser/types";
-import { StepContext } from "../runtime/StepContext";
+import { ElementExecutionContext } from "../runtime/ElementExecutionContext";
 import { StepValue } from "../runtime/StepValue";
 import type { Element } from "../types/jsx";
 import type { RunstepOutput } from "../types";
@@ -67,7 +67,7 @@ export type ElementDefinition<
        * The function that executes the element when activated
        */
       execute: (
-        ctx: StepContext<AllProps, RunstepOutput>,
+        ctx: ElementExecutionContext<AllProps, RunstepOutput>,
         childrenNodes: BaseElement[]
       ) => Promise<StepValue | null>;
 

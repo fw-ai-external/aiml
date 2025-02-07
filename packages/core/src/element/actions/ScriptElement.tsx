@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { StepContext } from "../../runtime/StepContext";
+import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 
 const scriptSchema = z.object({
@@ -15,7 +15,7 @@ export const Script = createElementDefinition({
   allowedChildren: "none",
 
   async execute(
-    ctx: StepContext<z.infer<typeof scriptSchema>>
+    ctx: ElementExecutionContext<z.infer<typeof scriptSchema>>
   ): Promise<StepValue> {
     const { src, content } = ctx.attributes;
 
@@ -48,7 +48,7 @@ export const Script = createElementDefinition({
 
 async function executeScript(
   script: string,
-  ctx: StepContext<z.infer<typeof scriptSchema>>
+  ctx: ElementExecutionContext<z.infer<typeof scriptSchema>>
 ): Promise<void> {
   try {
     // Create a new Function with the script content and execute it with the context

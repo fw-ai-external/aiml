@@ -103,7 +103,7 @@ export class Runtime<
     return workflow.commit();
   }
 
-  private handleStateTransition(state: WorkflowRunState) {
+  private async handleStateTransition(state: WorkflowRunState) {
     // Update active states
     const newActiveStates = new Set(
       Object.keys(state?.context ?? {}).filter(
@@ -117,8 +117,8 @@ export class Runtime<
     for (const stateId of this.activeStates) {
       if (!newActiveStates.has(stateId)) {
         const element = this.findElementById(stateId);
-        if (element && "deactivate" in element) {
-          (element as any).deactivate?.();
+        if (element) {
+          await (element as BaseElement).deactivate?.();
         }
       }
     }
@@ -151,9 +151,14 @@ export class Runtime<
     const { runId, start } = this.workflow.createRun();
 
     // Set up state transition monitoring
-    this.workflow.watch(runId, {
-      onTransition: (state) => this.handleStateTransition(state as any),
-    });
+    this.workflow
+      .watch(runId, {
+        onTransition: (state) => this.handleStateTransition(state as any),
+      })
+      .catch((error) => {
+        console.error("error", error);
+        this.options?.onError?.(error as Error);
+      });
 
     try {
       const { results } = await start({
@@ -165,6 +170,8 @@ export class Runtime<
         },
       });
 
+      console.log("results", results);
+
       this.options?.onComplete?.();
 
       return {
@@ -172,6 +179,7 @@ export class Runtime<
         results,
       };
     } catch (error) {
+      console.error("error", error);
       this.options?.onError?.(error as Error);
       throw error;
     }

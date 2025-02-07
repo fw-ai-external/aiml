@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { StepContext } from "./StepContext";
+import { ElementExecutionContext } from "./ElementExecutionContext";
 import { StepValue } from "./StepValue";
 
-describe("StepContext", () => {
+describe("ElementExecutionContext", () => {
   it("builtinKeys array  should map 1:1 to serialized method's returnd keys ensuring validation of data elements works", async () => {
-    const builtinKeys = (StepContext as any).builtinKeys.toSorted();
-    const context = new StepContext({
+    const builtinKeys = (ElementExecutionContext as any).builtinKeys.toSorted();
+    const context = new ElementExecutionContext({
       input: new StepValue({ type: "text", text: "" }),
       datamodel: {},
       workflowInput: {

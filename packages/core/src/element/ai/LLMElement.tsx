@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { streamText, tool } from "ai";
 import { createElementDefinition } from "../createElementDefinition";
-import type { StepContext } from "../../runtime/StepContext";
+import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 import { aiStreamToFireAgentStream } from "../../utils/ai";
 import { getProviderWithClient } from "../../utils/llm/provider";
@@ -35,7 +35,7 @@ export const LLM = createElementDefinition({
   propsSchema: llmSchema,
   allowedChildren: "none",
   async execute(
-    ctx: StepContext<z.infer<typeof llmSchema>>
+    ctx: ElementExecutionContext<z.infer<typeof llmSchema>>
   ): Promise<StepValue> {
     const { system, prompt, includeChatHistory = false } = ctx.attributes;
 

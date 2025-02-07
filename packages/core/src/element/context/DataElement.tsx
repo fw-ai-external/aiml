@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
 import type { BaseElement } from "../../runtime/BaseElement";
-import type { StepContext } from "../../runtime/StepContext";
+import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 
 const dataSchema = z.object({
@@ -18,7 +18,7 @@ export const Data = createElementDefinition({
   propsSchema: dataSchema,
   allowedChildren: "none",
   async execute(
-    ctx: StepContext<DataProps>,
+    ctx: ElementExecutionContext<DataProps>,
     childrenNodes: BaseElement[]
   ): Promise<StepValue | null> {
     const { id, src, expr, content } = ctx.attributes;

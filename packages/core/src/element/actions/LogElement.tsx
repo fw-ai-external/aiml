@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { StepContext } from "../../runtime/StepContext";
+import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 
 const logSchema = z.object({
@@ -24,7 +24,7 @@ export const Log = createElementDefinition({
     };
   },
   async execute(
-    ctx: StepContext<z.infer<typeof logSchema>>
+    ctx: ElementExecutionContext<z.infer<typeof logSchema>>
   ): Promise<StepValue> {
     const { label, expr } = ctx.attributes;
 

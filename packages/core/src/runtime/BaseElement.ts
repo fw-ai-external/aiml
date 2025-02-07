@@ -1,8 +1,7 @@
 import { Step } from "@mastra/core";
-import { StepContext } from "./StepContext";
+import { ElementExecutionContext } from "./ElementExecutionContext";
 import { StepValue } from "./StepValue";
 import type { RunstepOutput } from "../types";
-import { FireAgentSpecNode } from "../element/types";
 import { z } from "zod";
 import { BuildContext } from "./BuildContext";
 import { ExecutionGraphElement } from "./types";
@@ -48,7 +47,9 @@ export type SCXMLContext = {
 };
 
 export type StepCondition = {
-  when: (context: StepContext<any, RunstepOutput>) => Promise<boolean>;
+  when: (
+    context: ElementExecutionContext<any, RunstepOutput>
+  ) => Promise<boolean>;
 };
 // | {
 //     when: {
@@ -68,7 +69,7 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
   protected _eventQueue: Array<{ name: string; data: unknown }> = [];
   protected parent?: BaseElement;
   public readonly attributes: Record<string, string>;
-  public readonly children: FireAgentSpecNode[] = [];
+  public readonly children: BaseElement[] = [];
   public readonly onExecutionGraphConstruction?: (
     buildContext: BuildContext
   ) => ExecutionGraphElement;
@@ -86,13 +87,13 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
     elementType: SCXMLNodeType;
     attributes?: Record<string, string>;
     parent?: BaseElement;
-    children?: FireAgentSpecNode[];
+    children?: BaseElement[];
     onExecutionGraphConstruction?: (
       buildContext: BuildContext
     ) => ExecutionGraphElement;
     execute?: (
-      ctx: StepContext<any, RunstepOutput>,
-      childrenNodes: FireAgentSpecNode[]
+      ctx: ElementExecutionContext<any, RunstepOutput>,
+      childrenNodes: BaseElement[]
     ) => Promise<StepValue | null>;
     enter?: () => Promise<void>;
     exit?: () => Promise<void>;
@@ -103,7 +104,7 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
       inputSchema: z.object({}),
       outputSchema: z.object({}),
       execute: async ({ context }) => {
-        const stepContext = new StepContext<any, RunstepOutput>({
+        const stepContext = new ElementExecutionContext<any, RunstepOutput>({
           input: new StepValue({}),
 
           datamodel: this._dataModel,
@@ -158,7 +159,7 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
     this.stepConditions = config.stepConditions;
   }
 
-  protected async deactivate(): Promise<void> {
+  public async deactivate(): Promise<void> {
     if (this._isActive) {
       await this.exit?.();
       this._isActive = false;

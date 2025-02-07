@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { StepContext } from "../../runtime/StepContext";
+import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 
 const sendSchema = z.object({
@@ -21,7 +21,7 @@ export const Send = createElementDefinition({
   allowedChildren: "none",
 
   async execute(
-    ctx: StepContext<z.infer<typeof sendSchema>>
+    ctx: ElementExecutionContext<z.infer<typeof sendSchema>>
   ): Promise<StepValue> {
     const {
       event,

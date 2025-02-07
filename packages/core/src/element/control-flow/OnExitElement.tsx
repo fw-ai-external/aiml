@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
 import type { BaseElement } from "../../runtime/BaseElement";
-import type { StepContext } from "../../runtime/StepContext";
+import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 
 const onExitSchema = z.object({
@@ -16,7 +16,7 @@ export const OnExit = createElementDefinition({
   allowedChildren: "any",
 
   async execute(
-    ctx: StepContext<OnExitProps>,
+    ctx: ElementExecutionContext<OnExitProps>,
     childrenNodes: BaseElement[]
   ): Promise<StepValue | null> {
     // Execute all child actions in sequence

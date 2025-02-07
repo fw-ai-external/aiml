@@ -61,8 +61,32 @@ function parseNode(node: XMLElement, parents: BaseElement[]): FireAgentNode {
   );
 
   // Parse child nodes first
-  const childNodes =
-    node.elements?.map((child) => parseNode(child, parents)) || [];
+  const childNodes: FireAgentNode[] = [];
+  let textValue: string | undefined;
+
+  if (node.elements) {
+    const parsedChildren = node.elements.map((child) =>
+      parseNode(child, parents)
+    );
+
+    // Check if all children are text nodes
+    const allTextNodes = parsedChildren.every(
+      (node) => "kind" in node && node.kind === "text"
+    );
+
+    if (allTextNodes) {
+      textValue = parsedChildren
+        .map((node) => ("text" in node ? node.text : ""))
+        .join("");
+    } else {
+      childNodes.push(...parsedChildren);
+    }
+  }
+
+  // If we found text content, add it as a value prop
+  if (textValue !== undefined) {
+    attributes.value = textValue;
+  }
 
   // Create BaseElement instance with children
   return ElementClass.initFromAttributesAndNodes(

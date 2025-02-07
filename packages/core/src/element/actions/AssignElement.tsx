@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { StepContext } from "../../runtime/StepContext";
+import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 import { BuildContext } from "../../runtime/BuildContext";
 import { ExecutionGraphElement } from "../../runtime/types";
@@ -28,7 +28,7 @@ export const Assign = createElementDefinition({
     };
   },
   async execute(
-    ctx: StepContext<z.infer<typeof assignSchema>>
+    ctx: ElementExecutionContext<z.infer<typeof assignSchema>>
   ): Promise<StepValue> {
     const { location, expr } = ctx.attributes;
 

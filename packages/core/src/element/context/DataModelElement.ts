@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { StepContext } from "../../runtime/StepContext";
+import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 import type { BaseElement } from "../../runtime/BaseElement";
 
@@ -16,7 +16,7 @@ export const DataModel = createElementDefinition({
   allowedChildren: ["data"],
 
   async execute(
-    ctx: StepContext<DataModelProps>,
+    ctx: ElementExecutionContext<DataModelProps>,
     childrenNodes: BaseElement[]
   ): Promise<StepValue> {
     try {
@@ -43,7 +43,7 @@ export const DataModel = createElementDefinition({
 
 async function initializeDataElement(
   element: BaseElement,
-  ctx: StepContext<DataModelProps>
+  ctx: ElementExecutionContext<DataModelProps>
 ): Promise<void> {
   const id = element.id;
   const expr = element.attributes["expr"];

@@ -1,5 +1,5 @@
 import Sandbox from "@nyariv/sandboxjs";
-import { StepContext } from "../runtime/StepContext";
+import { ElementExecutionContext } from "../runtime/ElementExecutionContext";
 import { SandboxEvalError } from "../errors/SandboxEvalError";
 
 type SandboxOptions = {
@@ -31,7 +31,9 @@ export const sandboxedEval = (
   // ${Object.keys(customSandbox).join(", ")}
   ${Object.keys(customSandbox)
     .map((key) => {
-      const isBuiltin = (StepContext as any).builtinKeys.includes(key as any);
+      const isBuiltin = (ElementExecutionContext as any).builtinKeys.includes(
+        key as any
+      );
       const declarator = isBuiltin ? "const" : "let";
       if (key.includes(".")) {
         const parts = key.split(".");

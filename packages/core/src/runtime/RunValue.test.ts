@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { BaseElement } from "../element/BaseElement";
+import { BaseElement } from "./BaseElement";
 import { ReplayableAsyncIterableStream } from "../utils/streams";
 import { StepValue } from "./StepValue";
 import { RunValue } from "./RunValue";
@@ -24,6 +24,7 @@ describe("RunValue unit tests", () => {
         tag: "invoke",
         elementType: "invoke",
         attributes: {},
+        role: "action",
       }),
       path: [],
       input: mockRunStepValue,
@@ -55,6 +56,7 @@ describe("RunValue unit tests", () => {
         tag: "invoke",
         elementType: "invoke",
         attributes: {},
+        role: "action",
       }),
       path: [],
       input: mockRunStepValue,
@@ -76,6 +78,7 @@ describe("RunValue unit tests", () => {
         tag: "final",
         elementType: "final",
         attributes: {},
+        role: "state",
       }),
       path: [],
       input: mockRunStepValue,
@@ -229,6 +232,7 @@ describe("RunValue unit tests", () => {
         tag: "invoke",
         elementType: "invoke",
         attributes: {},
+        role: "action",
       }),
       path: [],
       input: mockRunStepValue_1,
@@ -244,6 +248,7 @@ describe("RunValue unit tests", () => {
         tag: "final",
         elementType: "final",
         attributes: {},
+        role: "state",
       }),
       path: [],
       input: mockRunStepValue_1,

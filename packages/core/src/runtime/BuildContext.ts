@@ -1,4 +1,4 @@
-import { StepConfig, Workflow } from "@mastra/core/workflows";
+import { StepConfig, Workflow } from "@mastra/core";
 import { BaseElement } from "./BaseElement";
 import { FireAgentSpecNode } from "../element/types";
 import { ExecutionGraphElement } from "./types";

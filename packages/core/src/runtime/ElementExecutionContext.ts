@@ -9,8 +9,8 @@ import { type RunstepOutput, type Secrets } from "../types";
 import type { TagNodeDTO } from "../parser/types";
 import { ChatCompletionMessageToolCall } from "../types/openai/chat";
 
-export type StepContextSerialized = Record<string, any>;
-export class StepContext<
+export type ElementExecutionContextSerialized = Record<string, any>;
+export class ElementExecutionContext<
   PropValues extends {},
   InputValue extends RunstepOutput = RunstepOutput,
 > {
