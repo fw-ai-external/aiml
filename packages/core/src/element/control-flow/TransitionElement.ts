@@ -60,6 +60,7 @@ export const Transition = createElementDefinition({
       id:
         buildContext.attributes.id ||
         (event ? `transition_${event}` : `transition_${Date.now()}`),
+      key: buildContext.elementKey,
       type: "action",
       subType: "transition",
       when: mergedWhen,
@@ -77,7 +78,7 @@ export const Transition = createElementDefinition({
 
     // 5. If 'target' is defined, link the target's ExecutionGraphElement
     if (target) {
-      const targetElement = buildContext.getElementById(target);
+      const targetElement = buildContext.getElementByKey(target);
       if (targetElement) {
         // get or build the target's ExecutionGraphElement
         const targetEG = targetElement.onExecutionGraphConstruction?.(

@@ -26,7 +26,8 @@ export const Parallel = createElementDefinition({
     // 2. Create main parallel node
     const parallelNode: ExecutionGraphElement = {
       id: buildContext.attributes.id + "_main",
-      type: "step",
+      type: "state",
+      key: buildContext.elementKey,
       subType: "parallel",
       attributes: {
         ...buildContext.attributes,
@@ -41,7 +42,7 @@ export const Parallel = createElementDefinition({
     );
 
     // We'll keep track of all finalIDs from each child
-    const finalNodeIds: string[] = [];
+    const finalNodeKeys: string[] = [];
 
     // 3. For each child, build the graph
     //    The child might be <state>, <parallel>, etc.
@@ -61,20 +62,21 @@ export const Parallel = createElementDefinition({
       // find final nodes in that child's sub-graph
       // we might do a helper function "collectFinalNodes"
       const childFinals = collectFinalNodes(childEG);
-      finalNodeIds.push(...childFinals);
+      finalNodeKeys.push(...childFinals);
     }
 
     // 4. Create "parallelDone" node that depends on all child final node IDs
-    if (finalNodeIds.length > 0) {
+    if (finalNodeKeys.length > 0) {
       const parallelDone: ExecutionGraphElement = {
         id: buildContext.attributes.id + "_done",
-        type: "shadow",
+        type: "state",
+        key: buildContext.elementKey,
         subType: "parallelDone",
         attributes: {
           // store SCXML data if needed
           parentParallel: buildContext.attributes.id,
         },
-        runAfter: [...finalNodeIds],
+        runAfter: [...finalNodeKeys],
       };
       // attach as a child (or sibling) so it's part of the same structure
       parallelNode.next!.push(parallelDone);
@@ -94,7 +96,7 @@ export const Parallel = createElementDefinition({
 function collectFinalNodes(node: ExecutionGraphElement): string[] {
   const result: string[] = [];
   if (node.subType === "final") {
-    result.push(node.id);
+    result.push(node.key);
   }
   if (node.next) {
     for (const c of node.next) {

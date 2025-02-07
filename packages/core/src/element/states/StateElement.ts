@@ -31,9 +31,14 @@ export const State = createElementDefinition({
     "elseif",
   ],
   onExecutionGraphConstruction(buildContext) {
+    console.log(
+      "=-------------------- StateElement",
+      Object.keys(buildContext)
+    );
     // 1. Create a "main" node for this state
     const mainStateNode: ExecutionGraphElement = {
       id: buildContext.attributes.id + "_main",
+      key: buildContext.elementKey,
       type: "state",
       subType: "state",
       attributes: {

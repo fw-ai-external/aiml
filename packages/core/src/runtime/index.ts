@@ -38,6 +38,7 @@ export class Runtime<
     // Add the root spec and let it add its children
     const buildContext = new BuildContext(
       workflow,
+      this.spec.key,
       this.spec.children,
       this.spec.attributes,
       {},
@@ -54,14 +55,26 @@ export class Runtime<
       parallel: boolean = false
     ) {
       if (element.runAfter) {
+        console.log(
+          "=-------------------- runAfter",
+          element.runAfter,
+          element.key
+        );
         workflow.after(
-          element.runAfter.map((id) => buildContext.getElementById(id)) as any
+          element.runAfter.map((key) =>
+            buildContext.getElementByKey(key)
+          ) as any
         ) as any;
       }
       // Add the current element to the workflow
-
-      const step = buildContext.getElementById(element.id);
+      console.log(
+        "=-------------------- addGraphElementToWorkflow",
+        element.subType,
+        element.key
+      );
+      const step = buildContext.getElementByKey(element.key);
       if (step) {
+        console.log("=-------------------- getElementById", step.tag);
         if (parallel) {
           workflow.step(step, {
             // create a function that evaluates the when expression
@@ -71,6 +84,7 @@ export class Runtime<
               element.when ? eval(element.when) : true,
           });
         } else {
+          console.log("=-------------------- then", step.tag);
           workflow.then(step, {
             // create a function that evaluates the when expression
             // this serves as a guard for the step
@@ -94,8 +108,6 @@ export class Runtime<
         }
       }
     }
-
-    console.log(JSON.stringify(executionGraph, null, 2));
 
     // Start with the root execution graph element and add all elements recursively
     addGraphElementToWorkflow(executionGraph, true);

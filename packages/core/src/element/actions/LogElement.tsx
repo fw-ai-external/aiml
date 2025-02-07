@@ -16,6 +16,7 @@ export const Log = createElementDefinition({
   onExecutionGraphConstruction(buildContext) {
     return {
       id: buildContext.attributes.id,
+      key: buildContext.elementKey,
       type: "action",
       subType: "log",
       attributes: {

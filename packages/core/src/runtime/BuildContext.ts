@@ -9,32 +9,29 @@ export class BuildContext {
    * keyed by their SCXML element's 'id'.
    */
   private graphCache = new Map<string, ExecutionGraphElement>();
-  public children: FireAgentSpecNode[];
+  public children: BaseElement[];
   constructor(
     public workflow: Workflow,
-    children: FireAgentSpecNode[],
+    public readonly elementKey: string,
+    children: BaseElement[],
     public readonly attributes: Record<string, any>,
     public readonly conditions: StepConfig<any, any, any, any>,
-    public readonly spec: FireAgentSpecNode
+    public readonly spec: BaseElement
   ) {
     this.children = children;
   }
 
-  public get thisElement() {
-    return this.getElementById(this.attributes.id) as BaseElement;
-  }
-
-  private findElementById(
+  private findElementByKey(
     node: FireAgentSpecNode,
-    targetId: string
+    targetKey: string
   ): BaseElement | undefined {
     if (node instanceof BaseElement) {
-      if (node.id === targetId) {
+      if (node.key === targetKey) {
         return node;
       }
 
       for (const child of node.children) {
-        const found = this.findElementById(child, targetId);
+        const found = this.findElementByKey(child, targetKey);
         if (found) {
           return found;
         }
@@ -43,8 +40,11 @@ export class BuildContext {
     return undefined;
   }
 
-  public getElementById(id: string, childOf?: BaseElement): BaseElement | null {
-    const element = this.findElementById(childOf ?? this.spec, id);
+  public getElementByKey(
+    key: string,
+    childOf?: BaseElement
+  ): BaseElement | null {
+    const element = this.findElementByKey(childOf ?? this.spec, key);
     if (!element) {
       return null;
     }
@@ -76,6 +76,7 @@ export class BuildContext {
     if (child instanceof BaseElement) {
       return new BuildContext(
         this.workflow,
+        child.key,
         child.children,
         child.attributes,
         this.conditions,

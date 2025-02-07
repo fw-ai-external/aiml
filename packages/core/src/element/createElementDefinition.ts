@@ -27,7 +27,9 @@ export type ElementDefinition<
   Schema extends z.ZodType<any>,
   Tag extends string,
   AllowedChildTags extends AllowedChildrenType,
-  AllProps extends Props & { children?: Element | Element[] },
+  AllProps extends Props & {
+    children?: Element | Element[];
+  } & (AllowedChildTags extends "text" ? { value: string } : {}),
 > = {
   /**
    * The actual tag name used in the config/tsx
@@ -109,7 +111,9 @@ export const createElementDefinition = <
   Tag extends SCXMLNodeType,
   AllProps extends AllowedChildTags extends "none"
     ? Props
-    : Props & { children?: ReactElements },
+    : Props & { children?: ReactElements } & (AllowedChildTags extends "text"
+          ? { value: string }
+          : {}),
   AllowedChildTags extends AllowedChildrenType,
 >(
   config: ElementDefinition<Props, Schema, Tag, AllowedChildTags, AllProps>
@@ -159,6 +163,7 @@ export const createElementDefinition = <
         return z.object({
           kind: z.literal("text"),
           text: z.string(),
+          value: z.string(),
         });
       }
 
@@ -235,20 +240,26 @@ export const createElementDefinition = <
     const llmNode: ExecutionGraphElement = {
       id: buildContext.attributes.id || `llm_${uuidv4()}`,
       type: config.role || "action",
+      key: buildContext.elementKey,
       subType: config.tag as SCXMLNodeType,
-      attributes: {
-        ...buildContext.attributes,
-      },
+      attributes: buildContext.attributes,
     };
+    console.log(
+      "=-------------------- adding to cache",
+      buildContext.attributes.id || llmNode.id
+    );
     // store it in the cache
-    buildContext.setCachedGraphElement(buildContext.attributes.id, llmNode);
+    buildContext.setCachedGraphElement(
+      buildContext.attributes.id || llmNode.id,
+      llmNode
+    );
 
     return llmNode;
   };
 
   ReactTagNode.initFromAttributesAndNodes = (
     props: Props,
-    nodes: FireAgentNode[],
+    nodes: BaseElement[],
     parents: BaseElement[]
   ): BaseElement | BaseElement[] => {
     const validatedProps = ReactTagNode.validateProps(props);
@@ -266,6 +277,7 @@ export const createElementDefinition = <
 
     const tagNode = new BaseElement({
       id: config.tag === "scxml" ? "Incoming Request" : props.id,
+      key: uuidv4(),
       tag: config.tag,
       role: config.role || "action",
       elementType: config.scxmlType || (config.tag as SCXMLNodeType),
@@ -286,7 +298,7 @@ export const createElementDefinition = <
   // Instance methods
   ReactTagNode.prototype.initFromAttributesAndNodes = (
     props: Props,
-    nodes: FireAgentNode[],
+    nodes: BaseElement[],
     initiatedfrom?: "render" | "spec"
   ): BaseElement | BaseElement[] => {
     return ReactTagNode.initFromAttributesAndNodes(props, nodes, []);

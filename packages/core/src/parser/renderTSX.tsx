@@ -5,6 +5,7 @@ import type { ReactTagNodeDefinition } from "../element/createElementDefinition"
 import type { FireAgentNode, TextNode } from "./types";
 import { warnOnDuplicateKeys } from "./utils";
 import { BaseElement } from "../runtime/BaseElement";
+
 export type ReactElements =
   | React.ReactElement<
       {
@@ -85,10 +86,6 @@ export function instanciateNode(
 
   // Handle React elements
   if (isReactTagElement(element)) {
-    // if (!element.key) {
-    //   element.key = uuidv4();
-    // }
-
     // const props: Record<string, any> = element.props as Record<string, any>;
     const { children, ...props } = element.props as any as {
       children: FireAgentNode[];
@@ -174,7 +171,11 @@ export function instanciateNode(
       props.value = textValue;
     }
 
-    return ElementClass.initFromAttributesAndNodes(props, childNodes, parents);
+    return ElementClass.initFromAttributesAndNodes(
+      props,
+      childNodes as BaseElement[],
+      parents
+    );
   }
 
   // Handle pre-existing FireAgentNodes

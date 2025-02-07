@@ -79,11 +79,12 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
 
   private stepConditions?: StepCondition;
   private _isActive: boolean = false;
-
+  public readonly key: string;
   constructor(config: {
     id: string;
     tag: string;
     role: "state" | "action" | "user-input" | "error" | "output";
+    key: string;
     elementType: SCXMLNodeType;
     attributes?: Record<string, string>;
     parent?: BaseElement;
@@ -103,10 +104,9 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
       id: config.id,
       inputSchema: z.object({}),
       outputSchema: z.object({}),
-      execute: async ({ context }) => {
+      execute: async (context) => {
         const stepContext = new ElementExecutionContext<any, RunstepOutput>({
           input: new StepValue({}),
-
           datamodel: this._dataModel,
           workflowInput: {
             userMessage: "",
@@ -137,16 +137,13 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
           };
         }
 
-        return {
-          elementType: this.elementType,
-          dataModel: this._dataModel,
-          isActive: this._isActive,
-        };
+        return result as any;
       },
     });
     this.role = config.role;
     this.elementType = config.elementType;
     this.tag = config.tag;
+    this.key = config.key;
     this.role = config.role;
     this.attributes = config.attributes ?? {};
     this.parent = config.parent;

@@ -34,8 +34,9 @@ export const SCXML = createElementDefinition({
 
     return {
       id: "Incoming Request",
-      type: "step", // SCXML is a container => step
+      type: "user-input", // SCXML is a container => state
       subType: "scxml", // let subType reflect it's SCXML root
+      key: buildContext.elementKey,
       attributes: {
         ...buildContext.attributes,
         // any top-level SCXML data e.g. version, initial, binding, etc.

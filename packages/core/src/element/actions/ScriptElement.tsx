@@ -6,20 +6,18 @@ import { StepValue } from "../../runtime/StepValue";
 const scriptSchema = z.object({
   id: z.string().optional(),
   src: z.string().optional(),
-  content: z.string().optional(),
 });
 
 export const Script = createElementDefinition({
   tag: "script",
   propsSchema: scriptSchema,
-  allowedChildren: "none",
+  allowedChildren: "text",
 
-  async execute(
-    ctx: ElementExecutionContext<z.infer<typeof scriptSchema>>
-  ): Promise<StepValue> {
-    const { src, content } = ctx.attributes;
+  async execute(ctx): Promise<StepValue> {
+    console.log("=-------------------- Script");
+    const { src, value } = ctx.attributes;
 
-    if (!src && !content) {
+    if (!src && !value) {
       throw new Error("Script element requires either 'src' or inline content");
     }
 
@@ -29,15 +27,15 @@ export const Script = createElementDefinition({
         const response = await fetch(src);
         const script = await response.text();
         await executeScript(script, ctx);
-      } else if (content) {
+      } else if (value) {
         // Execute inline script
-        await executeScript(content, ctx);
+        await executeScript(value, ctx);
       }
 
       return new StepValue({
         type: "object",
-        object: { src, content },
-        raw: JSON.stringify({ src, content }),
+        object: { src, value },
+        raw: JSON.stringify({ src, value }),
       });
     } catch (error) {
       console.error("Error executing script:", error);

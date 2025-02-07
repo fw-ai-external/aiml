@@ -22,8 +22,9 @@ export const History = createElementDefinition({
     });
     return {
       id: buildContext.attributes.id,
-      type: "step",
+      type: "state",
       subType: "history",
+      key: buildContext.elementKey,
       attributes: {
         ...buildContext.attributes, // e.g. type="shallow/deep"
       },

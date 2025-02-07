@@ -91,7 +91,7 @@ function parseNode(node: XMLElement, parents: BaseElement[]): FireAgentNode {
   // Create BaseElement instance with children
   return ElementClass.initFromAttributesAndNodes(
     attributes,
-    childNodes,
+    childNodes as BaseElement[],
     parents
   ) as BaseElement;
 }

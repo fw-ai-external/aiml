@@ -3,9 +3,13 @@
  */
 export interface ExecutionGraphElement {
   /**
-   * Unique identifier for referencing in dependsOn or for cross-references.
+   * Unique identifier provided by the user.
    */
   id: string;
+  /**
+   * Unique identifier for every element, even if an id is not provided by the user or supported by the element.
+   */
+  key: string;
 
   /**
    * "step" or "action".
