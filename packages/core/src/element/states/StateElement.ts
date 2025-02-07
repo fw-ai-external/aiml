@@ -27,7 +27,7 @@ export const State = createElementDefinition({
     // 1. Create a "main" node for this state
     const mainStateNode: ExecutionGraphElement = {
       id: buildContext.attributes.id + "_main",
-      type: "step",
+      type: "state",
       subType: "state",
       attributes: {
         ...buildContext.attributes,

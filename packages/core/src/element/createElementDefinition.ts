@@ -14,6 +14,7 @@ import {
 } from "../runtime/BaseElement";
 import { ExecutionGraphElement } from "../runtime/types";
 import { BuildContext } from "../runtime/BuildContext";
+import { v4 as uuidv4 } from "uuid";
 
 export type AllowedChildrenType =
   | "any"
@@ -39,7 +40,7 @@ export type ElementDefinition<
   /**
    * The role of the element
    */
-  role?: "state" | "action" | "user-input" | "error" | "output";
+  role?: "state" | "action" | "error" | "user-input" | "output";
   /**
    * The props/options exposed to the schema by this element
    */
@@ -73,7 +74,7 @@ export type ElementDefinition<
       /**
        * The function that initializes this element's workflow steps
        */
-      onExecutionGraphConstruction: (
+      onExecutionGraphConstruction?: (
         buildContext: BuildContext
       ) => ExecutionGraphElement;
 
@@ -220,6 +221,31 @@ export const createElementDefinition = <
     );
   };
 
+  const defaultExecutionGraphConstruction = (
+    buildContext: BuildContext
+  ): ExecutionGraphElement => {
+    // If we already built this node, return the cached version.
+    const existing = buildContext.getCachedGraphElement(
+      buildContext.attributes.id
+    );
+    if (existing) {
+      return existing;
+    }
+
+    const llmNode: ExecutionGraphElement = {
+      id: buildContext.attributes.id || `llm_${uuidv4()}`,
+      type: config.role || "action",
+      subType: config.tag as SCXMLNodeType,
+      attributes: {
+        ...buildContext.attributes,
+      },
+    };
+    // store it in the cache
+    buildContext.setCachedGraphElement(buildContext.attributes.id, llmNode);
+
+    return llmNode;
+  };
+
   ReactTagNode.initFromAttributesAndNodes = (
     props: Props,
     nodes: FireAgentNode[],
@@ -235,11 +261,7 @@ export const createElementDefinition = <
     if (!("onExecutionGraphConstruction" in config) && "render" in config) {
       return nodes as BaseElement[];
     }
-    if (!("onExecutionGraphConstruction" in config)) {
-      throw new Error(
-        "onExecutionGraphConstruction is required to be defined for elements that do not render sub-elements"
-      );
-    }
+
     validatedProps.children = nodes;
 
     const tagNode = new BaseElement({
@@ -252,7 +274,10 @@ export const createElementDefinition = <
       parent: parents[parents.length - 1],
       enter: config.enter,
       exit: config.exit,
-      onExecutionGraphConstruction: config.onExecutionGraphConstruction,
+      onExecutionGraphConstruction:
+        "onExecutionGraphConstruction" in config
+          ? config.onExecutionGraphConstruction
+          : defaultExecutionGraphConstruction,
     });
     console.log("tagNode", tagNode.tag);
     return tagNode;

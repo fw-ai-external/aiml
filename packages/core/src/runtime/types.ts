@@ -14,7 +14,7 @@ export interface ExecutionGraphElement {
    * - "shadow" => a control-flow node that does not execute, but is used to track dependencies.
    *   (e.g. parallelDone, historyDone, etc.)
    */
-  type: "step" | "action" | "shadow";
+  type: "state" | "action" | "error" | "user-input" | "output";
 
   /**
    * subType clarifies the exact kind of step/action, e.g.
