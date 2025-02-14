@@ -1,0 +1,84 @@
+{
+  "name": "vscode-scxml",
+  "displayName": "SCXML Language Support",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattapperson/workflow.git",
+    "directory": "apps/vscode-plugin"
+  },
+  "license": "MIT",
+  "description": "SCXML language support including syntax highlighting, validation, and intelligent features",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.86.0"
+  },
+  "activationEvents": ["onLanguage:xml"],
+  "main": "./.dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "aiml",
+        "aliases": ["Workflow", "workflow"],
+        "extensions": [".aiml"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "aiml",
+        "scopeName": "text.xml.workflow",
+        "path": "./syntaxes/scxml.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "SCXML Language Server Configuration",
+      "properties": {
+        "scxml.maxNumberOfProblems": {
+          "scope": "resource",
+          "type": "number",
+          "default": 100,
+          "description": "Controls the maximum number of problems produced by the server."
+        },
+        "scxml.trace.server": {
+          "scope": "window",
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "verbose",
+          "description": "Traces the communication between VS Code and the language server."
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "@workflow/element-types": "workspace:*",
+    "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "@types/vscode": "^1.86.0",
+    "@vscode/vsce": "^3.2.2",
+    "biome": "^0.3.3",
+    "bun-types": "^1.2.2",
+    "changeset": "^0.2.6",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "vscode:prepublish": "bun run build",
+    "build": "bun run check-types && bun run lint && bun esbuild.mjs --production",
+    "check-types": "tsc --noEmit",
+    "lint": "biome check .",
+    "watch": "bun esbuild.mjs --watch",
+    "test": "bun test",
+    "package": "bun run build && vsce package --no-dependencies",
+    "test:watch": "bun test --watch",
+    "publish:marketplace": "bun run package && vsce publish --no-dependencies && ovsx publish --no-dependencies",
+    "publish:marketplace:prerelease": "bun run package && vsce publish --pre-release --no-dependencies && ovsx publish --pre-release --no-dependencies",
+    "changeset": "changeset",
+    "version-packages": "changeset version"
+  }
+}

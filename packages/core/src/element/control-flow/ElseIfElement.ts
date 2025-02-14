@@ -53,7 +53,10 @@ export const ElseIf = createElementDefinition({
       next: childActions,
     };
 
-    buildContext.setCachedGraphElement(node.id, node);
+    buildContext.setCachedGraphElement(
+      [buildContext.attributes.id, node.key].filter(Boolean),
+      node
+    );
     return node;
   },
 });

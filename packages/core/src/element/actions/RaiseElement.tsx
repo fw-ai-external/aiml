@@ -1,21 +1,10 @@
-import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
-
-const raiseSchema = z.object({
-  id: z.string().optional(),
-  event: z.string(),
-});
+import { raiseConfig } from "@workflow/element-types";
 
 export const Raise = createElementDefinition({
-  tag: "raise",
-  propsSchema: raiseSchema,
-  allowedChildren: "none",
-
-  async execute(
-    ctx: ElementExecutionContext<z.infer<typeof raiseSchema>>
-  ): Promise<StepValue> {
+  ...raiseConfig,
+  async execute(ctx) {
     const { event } = ctx.attributes;
 
     try {

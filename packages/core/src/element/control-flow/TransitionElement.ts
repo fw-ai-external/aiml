@@ -23,7 +23,7 @@ export const Transition = createElementDefinition({
   onExecutionGraphConstruction(buildContext) {
     // 1. If we already built this node, return the cached version.
     const existing = buildContext.getCachedGraphElement(
-      buildContext.attributes.id
+      buildContext.elementKey
     );
     if (existing) {
       return existing;
@@ -72,7 +72,7 @@ export const Transition = createElementDefinition({
 
     // store it in the cache
     buildContext.setCachedGraphElement(
-      buildContext.attributes.id,
+      [buildContext.elementKey, buildContext.attributes.id].filter(Boolean),
       transitionNode
     );
 
@@ -102,6 +102,10 @@ export const Transition = createElementDefinition({
             `Transition ${transitionNode.id} already depends on ${targetEG.id}`
           );
         }
+      } else {
+        throw new Error(
+          `Transition ${transitionNode.id} has target ${target} which is not found in the workflow`
+        );
       }
     }
 

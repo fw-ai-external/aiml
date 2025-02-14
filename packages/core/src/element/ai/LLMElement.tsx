@@ -6,6 +6,7 @@ import { StepValue } from "../../runtime/StepValue";
 import { aiStreamToFireAgentStream } from "../../utils/ai";
 import { getProviderWithClient } from "../../utils/llm/provider";
 import { gbnf } from "../../utils/llm/grammar/grammar";
+import { llmConfig } from "@workflow/element-types";
 
 const llmSchema = z.object({
   id: z.string().optional(),
@@ -29,11 +30,7 @@ const llmSchema = z.object({
 });
 
 export const LLM = createElementDefinition({
-  tag: "llm",
-  role: "action",
-  scxmlType: "invoke",
-  propsSchema: llmSchema,
-  allowedChildren: "none",
+  ...llmConfig,
   async execute(
     ctx: ElementExecutionContext<z.infer<typeof llmSchema>>
   ): Promise<StepValue> {

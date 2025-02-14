@@ -1,5 +1,5 @@
-import type { BaseElement, SCXMLNodeType } from "../runtime/BaseElement";
-
+import type { BaseElement } from "../runtime/BaseElement";
+import type { SCXMLNodeType } from "@workflow/element-types";
 export interface InstructionNode {
   kind: "instruction";
 

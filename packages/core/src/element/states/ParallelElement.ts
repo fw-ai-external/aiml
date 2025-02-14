@@ -37,7 +37,7 @@ export const Parallel = createElementDefinition({
 
     // store in cache
     buildContext.setCachedGraphElement(
-      buildContext.attributes.id,
+      [buildContext.attributes.id, parallelNode.key].filter(Boolean),
       parallelNode
     );
 

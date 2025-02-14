@@ -1,18 +1,9 @@
-import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
-
-const logSchema = z.object({
-  id: z.string().optional(),
-  label: z.string().optional(),
-  expr: z.string(),
-});
+import { logConfig } from "@workflow/element-types";
 
 export const Log = createElementDefinition({
-  tag: "log",
-  propsSchema: logSchema,
-  allowedChildren: "none",
+  ...logConfig,
   onExecutionGraphConstruction(buildContext) {
     return {
       id: buildContext.attributes.id,
@@ -24,9 +15,7 @@ export const Log = createElementDefinition({
       },
     };
   },
-  async execute(
-    ctx: ElementExecutionContext<z.infer<typeof logSchema>>
-  ): Promise<StepValue> {
+  async execute(ctx) {
     const { label, expr } = ctx.attributes;
 
     try {

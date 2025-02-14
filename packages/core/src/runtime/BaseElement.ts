@@ -6,32 +6,7 @@ import { z } from "zod";
 import { BuildContext } from "./BuildContext";
 import { ExecutionGraphElement } from "./types";
 
-export type SCXMLNodeType =
-  | "scxml"
-  | "state"
-  | "parallel"
-  | "transition"
-  | "initial"
-  | "final"
-  | "onentry"
-  | "onexit"
-  | "on"
-  | "history"
-  | "datamodel"
-  | "data"
-  | "assign"
-  | "invoke"
-  | "send"
-  | "cancel"
-  | "script"
-  | "log"
-  | "raise"
-  | "if"
-  | "elseif"
-  | "else"
-  | "foreach"
-  | "finalize"
-  | "llm";
+import type { SCXMLNodeType } from "@workflow/element-types";
 
 /** Represents a single SCXML element. */
 export type Component<P> = BaseElement; // (props: P, context: ComponentContext) => Renderable;

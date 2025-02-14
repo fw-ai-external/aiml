@@ -1,25 +1,14 @@
-import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
-import { BuildContext } from "../../runtime/BuildContext";
-import { ExecutionGraphElement } from "../../runtime/types";
-
-const assignSchema = z.object({
-  id: z.string().optional(),
-  location: z.string(),
-  expr: z.string().optional(),
-});
+import { v4 as uuidv4 } from "uuid";
+import { assignConfig } from "@workflow/element-types";
 
 export const Assign = createElementDefinition({
-  tag: "assign",
-  propsSchema: assignSchema,
-  allowedChildren: "none",
-  onExecutionGraphConstruction(
-    buildContext: BuildContext
-  ): ExecutionGraphElement {
+  ...assignConfig,
+  onExecutionGraphConstruction(buildContext) {
     return {
       id: buildContext.attributes.id,
+      key: buildContext.attributes.id ?? uuidv4(),
       type: "action",
       subType: "assign",
       attributes: {
@@ -27,9 +16,7 @@ export const Assign = createElementDefinition({
       },
     };
   },
-  async execute(
-    ctx: ElementExecutionContext<z.infer<typeof assignSchema>>
-  ): Promise<StepValue> {
+  async execute(ctx) {
     const { location, expr } = ctx.attributes;
 
     if (!location) {

@@ -1,22 +1,10 @@
-import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
-
-const cancelSchema = z.object({
-  id: z.string().optional(),
-  sendid: z.string().optional(),
-  sendidexpr: z.string().optional(),
-});
+import { cancelConfig } from "@workflow/element-types";
 
 export const Cancel = createElementDefinition({
-  tag: "cancel",
-  propsSchema: cancelSchema,
-  allowedChildren: "none",
-
-  async execute(
-    ctx: ElementExecutionContext<z.infer<typeof cancelSchema>>
-  ): Promise<StepValue> {
+  ...cancelConfig,
+  async execute(ctx) {
     const { sendid, sendidexpr } = ctx.attributes;
 
     if (!sendid && !sendidexpr) {

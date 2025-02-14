@@ -1,94 +1,51 @@
 import React from "react";
-import type { LiteralUnion } from "type-fest";
 import { z } from "zod";
-import type { ReactElements } from "../parser/renderTSX";
 import type { FireAgentNode } from "../parser/types";
 import { ElementExecutionContext } from "../runtime/ElementExecutionContext";
 import { StepValue } from "../runtime/StepValue";
 import type { Element } from "../types/jsx";
 import type { RunstepOutput } from "../types";
-import {
-  BaseElement,
-  SCXMLNodeType,
-  StepCondition,
-} from "../runtime/BaseElement";
+import { BaseElement, StepCondition } from "../runtime/BaseElement";
 import { ExecutionGraphElement } from "../runtime/types";
 import { BuildContext } from "../runtime/BuildContext";
 import { v4 as uuidv4 } from "uuid";
 
-export type AllowedChildrenType =
-  | "any"
-  | "none"
-  | "text"
-  | LiteralUnion<SCXMLNodeType, string>[];
+import type {
+  ElementDefinition as BaseElementDefinition,
+  AllowedChildrenType,
+  SCXMLNodeType,
+} from "@workflow/element-types";
 
 export type ElementDefinition<
-  Props extends z.infer<Schema>,
-  Schema extends z.ZodType<any>,
+  Props extends { id?: string } & Record<string, any>,
   Tag extends string,
-  AllowedChildTags extends AllowedChildrenType,
-  AllProps extends Props & {
-    children?: Element | Element[];
-  } & (AllowedChildTags extends "text" ? { value: string } : {}),
-> = {
-  /**
-   * The actual tag name used in the config/tsx
-   */
+> = Omit<BaseElementDefinition, "tagName"> & {
   tag: Tag;
-  /**
-   * The type of the element
-   */
-  scxmlType?: SCXMLNodeType;
-  /**
-   * The role of the element
-   */
-  role?: "state" | "action" | "error" | "user-input" | "output";
-  /**
-   * The props/options exposed to the schema by this element
-   */
-  propsSchema?: Schema;
-  /**
-   * The allowed children for this element as an array of tags or a function that returns an array of tags
-   */
-  allowedChildren?: AllowedChildTags | ((props: Props) => AllowedChildTags);
-
   enter?: () => Promise<void>;
   exit?: () => Promise<void>;
 } & (
-  | {
-      /**
-       * The function that renders sub-elements of this element, like a shadow-dom in html
-       * this is used to componatize custom elements
-       */
-      render?: (
-        props: AllProps & { nodes?: FireAgentNode[] }
-      ) => React.JSX.Element;
-    }
-  | {
-      /**
-       * The function that executes the element when activated
-       */
-      execute: (
-        ctx: ElementExecutionContext<AllProps, RunstepOutput>,
-        childrenNodes: BaseElement[]
-      ) => Promise<StepValue | null>;
-
-      /**
-       * The function that initializes this element's workflow steps
-       */
-      onExecutionGraphConstruction?: (
-        buildContext: BuildContext
-      ) => ExecutionGraphElement;
-
-      /**
-       * The conditions that determine when this element's step should execute.
-       */
-      elementShouldRun?: StepCondition;
-    }
-);
+    | {
+        render?: (
+          props: Props & { nodes?: FireAgentNode[] }
+        ) => React.JSX.Element;
+      }
+    | {
+        execute: (
+          ctx: ElementExecutionContext<
+            Props & { children?: Element[] },
+            RunstepOutput
+          >,
+          childrenNodes: BaseElement[]
+        ) => Promise<StepValue | null>;
+        onExecutionGraphConstruction?: (
+          buildContext: BuildContext
+        ) => ExecutionGraphElement;
+        elementShouldRun?: StepCondition;
+      }
+  );
 
 export type ReactTagNodeDefinition<
-  Props extends Record<string, any> = Record<string, any>,
+  Props extends { id?: string } & Record<string, any> = Record<string, any>,
 > = {
   tag: string;
   public: boolean;
@@ -101,25 +58,18 @@ export type ReactTagNodeDefinition<
   areChildrenAllowed(children: string[]): boolean;
 };
 
-export type ReactTagNodeType<Props = any> = ReturnType<
-  typeof createElementDefinition<Props, any, SCXMLNodeType, any, any>
->;
+export type ReactTagNodeType<
+  Props extends { id?: string } & Record<string, any> = any,
+> = ReturnType<typeof createElementDefinition<Props, string>>;
 
 export const createElementDefinition = <
-  Props extends z.infer<Schema>,
-  Schema extends z.ZodType<any>,
-  Tag extends SCXMLNodeType,
-  AllProps extends AllowedChildTags extends "none"
-    ? Props
-    : Props & { children?: ReactElements } & (AllowedChildTags extends "text"
-          ? { value: string }
-          : {}),
-  AllowedChildTags extends AllowedChildrenType,
+  Props extends { id?: string } & Record<string, any>,
+  Tag extends string,
 >(
-  config: ElementDefinition<Props, Schema, Tag, AllowedChildTags, AllProps>
+  config: ElementDefinition<Props, Tag>
 ) => {
   const ReactTagNode = function (
-    props: AllProps & { children?: Element | Element[] }
+    props: Props & { children?: Element | Element[] }
   ) {
     const render = () => {
       if ("render" in config && config.render) {
@@ -140,43 +90,6 @@ export const createElementDefinition = <
   ReactTagNode.validateProps = (props: Props) => {
     const propsSchema = config.propsSchema || z.object({});
 
-    // TODO  validate children too
-    const childrenSchema = (() => {
-      let allowedTags: AllowedChildTags | undefined;
-      if (typeof config.allowedChildren === "function") {
-        allowedTags = config.allowedChildren({} as Props);
-      } else {
-        allowedTags = config.allowedChildren;
-      }
-      if (!allowedTags) {
-        return undefined;
-      }
-
-      if (allowedTags === "none") {
-        return z.never();
-      }
-      if (allowedTags === "any") {
-        return z.array(z.any()).optional();
-      }
-
-      if (allowedTags === "text") {
-        return z.object({
-          kind: z.literal("text"),
-          text: z.string(),
-          value: z.string(),
-        });
-      }
-
-      return z
-        .array(
-          z.object({
-            tag: z.string(), //z.enum(allowedTags as [string, ...string[]]),
-            attributes: z.record(z.any()).optional(),
-            elements: z.any(),
-          })
-        )
-        .optional();
-    })();
     const allowedChildren = config.allowedChildren || "none";
     const verifiedProps = propsSchema
       .and(
@@ -218,8 +131,8 @@ export const createElementDefinition = <
 
     const allowedChildren = Array.isArray(config.allowedChildren)
       ? config.allowedChildren
-      : (config.allowedChildren as any as (props: Props) => AllowedChildTags[])(
-          {} as any
+      : (config.allowedChildren as (props: Props) => AllowedChildrenType)(
+          {} as Props
         );
     return children.every(
       (child) => !child || allowedChildren.includes(child as any)
@@ -250,7 +163,7 @@ export const createElementDefinition = <
     );
     // store it in the cache
     buildContext.setCachedGraphElement(
-      buildContext.attributes.id || llmNode.id,
+      [buildContext.attributes.id || llmNode.id, llmNode.key].filter(Boolean),
       llmNode
     );
 
@@ -262,26 +175,26 @@ export const createElementDefinition = <
     nodes: BaseElement[],
     parents: BaseElement[]
   ): BaseElement | BaseElement[] => {
-    const validatedProps = ReactTagNode.validateProps(props);
-    // TODO: follow up with matt to make sure this change is intended
-    if ("children" in validatedProps) {
-      throw new Error(
-        "Children should not be props, they should be split out and converted to nodes"
-      );
-    }
+    const validatedProps = ReactTagNode.validateProps(props) as Props & {
+      children?: BaseElement[];
+    };
     if (!("onExecutionGraphConstruction" in config) && "render" in config) {
       return nodes as BaseElement[];
     }
 
-    validatedProps.children = nodes;
+    // Merge validated props with nodes as children
+    const propsWithChildren = {
+      ...validatedProps,
+      children: nodes,
+    };
 
     const tagNode = new BaseElement({
-      id: config.tag === "scxml" ? "Incoming Request" : props.id,
+      id: config.tag === "scxml" ? "Incoming Request" : props.id || uuidv4(),
       key: uuidv4(),
       tag: config.tag,
       role: config.role || "action",
       elementType: config.scxmlType || (config.tag as SCXMLNodeType),
-      attributes: validatedProps,
+      attributes: propsWithChildren,
       children: nodes,
       parent: parents[parents.length - 1],
       enter: config.enter,

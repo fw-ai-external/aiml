@@ -1,17 +1,10 @@
-import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
 import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
-
-const scriptSchema = z.object({
-  id: z.string().optional(),
-  src: z.string().optional(),
-});
+import { scriptConfig, ScriptProps } from "@workflow/element-types";
 
 export const Script = createElementDefinition({
-  tag: "script",
-  propsSchema: scriptSchema,
-  allowedChildren: "text",
+  ...scriptConfig,
 
   async execute(ctx): Promise<StepValue> {
     console.log("=-------------------- Script");
@@ -46,8 +39,8 @@ export const Script = createElementDefinition({
 
 async function executeScript(
   script: string,
-  ctx: ElementExecutionContext<z.infer<typeof scriptSchema>>
-): Promise<void> {
+  ctx: ElementExecutionContext<ScriptProps>
+) {
   try {
     // Create a new Function with the script content and execute it with the context
     const fn = new Function(

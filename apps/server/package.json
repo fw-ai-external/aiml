@@ -1,0 +1,24 @@
+{
+  "name": "server",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "migrate": "npx drizzle-kit push"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/pg": "^8.11.11",
+    "drizzle-kit": "^0.30.4",
+    "tsx": "^4.19.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.39.2",
+    "drizzle-zod": "^0.7.0",
+    "pg": "^8.13.1",
+    "postgres": "^3.4.5"
+  }
+}

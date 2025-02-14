@@ -1,28 +1,11 @@
-import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
-
-const sendSchema = z.object({
-  id: z.string().optional(),
-  event: z.string().optional(),
-  eventexpr: z.string().optional(),
-  target: z.string().optional(),
-  targetexpr: z.string().optional(),
-  type: z.string().optional(),
-  delay: z.string().optional(),
-  delayexpr: z.string().optional(),
-  namelist: z.string().optional(),
-});
+import { sendConfig } from "@workflow/element-types";
 
 export const Send = createElementDefinition({
-  tag: "send",
-  propsSchema: sendSchema,
-  allowedChildren: "none",
+  ...sendConfig,
 
-  async execute(
-    ctx: ElementExecutionContext<z.infer<typeof sendSchema>>
-  ): Promise<StepValue> {
+  async execute(ctx) {
     const {
       event,
       eventexpr,

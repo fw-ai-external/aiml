@@ -1,0 +1,83 @@
+{
+  "name": "Workflow",
+  "scopeName": "text.xml.workflow",
+  "fileTypes": ["xml", "aiml"],
+  "patterns": [
+    {
+      "include": "#tags"
+    },
+    {
+      "include": "#comments"
+    }
+  ],
+  "repository": {
+    "tags": {
+      "patterns": [
+        {
+          "name": "meta.tag.scxml",
+          "begin": "(<)(?=(workflow|state|parallel|transition|final|history|onentry|onexit|datamodel|data|assign|if|elseif|else|foreach|log|raise|send|cancel|script|invoke|finalize)\\b)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.scxml" }
+          },
+          "end": "(/?>)",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.end.scxml" }
+          },
+          "patterns": [
+            {
+              "name": "entity.name.tag.scxml",
+              "match": "(?<=<)(?:workflow|state|parallel|transition|final|history|onentry|onexit|datamodel|data|assign|if|elseif|else|foreach|log|raise|send|cancel|script|invoke|finalize)"
+            },
+            {
+              "include": "#attributes"
+            }
+          ]
+        },
+        {
+          "name": "meta.tag.scxml",
+          "begin": "(</)(?=(workflow|state|parallel|transition|final|history|onentry|onexit|datamodel|data|assign|if|elseif|else|foreach|log|raise|send|cancel|script|invoke|finalize)\\b)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.scxml" }
+          },
+          "end": "(>)",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.end.scxml" }
+          },
+          "patterns": [
+            {
+              "name": "entity.name.tag.scxml",
+              "match": "(?<=</)(?:workflow|state|parallel|transition|final|history|onentry|onexit|datamodel|data|assign|if|elseif|else|foreach|log|raise|send|cancel|script|invoke|finalize)"
+            }
+          ]
+        }
+      ]
+    },
+    "attributes": {
+      "patterns": [
+        {
+          "name": "entity.other.attribute-name.scxml",
+          "match": "\\b(?:version|initial|name|id|target|cond|event|type|expr|location|src|binding|datamodel|array|item|index|label|sendid|delay|idlocation|persist)\\b"
+        },
+        {
+          "name": "string.quoted.double.scxml",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.scxml",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "comments": {
+      "name": "comment.block.scxml",
+      "begin": "<!--",
+      "end": "-->",
+      "captures": {
+        "0": { "name": "punctuation.definition.comment.scxml" }
+      }
+    }
+  }
+}

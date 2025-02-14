@@ -1,0 +1,41 @@
+{
+  "name": "@workflow/prompt-lang",
+  "version": "0.1.0",
+  "description": "Prompt language tools",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "workflow": "./dist/cli.js"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "dev": "bun src/index.ts",
+    "build": "tsup src/index.ts src/cli.ts --format cjs --dts",
+    "lint": "biome check src"
+  },
+  "files": ["dist", "LICENSE"],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/yargs": "^17.0.24",
+    "tsup": "^6.7.0",
+    "typescript": "^5.0.4"
+  },
+  "tsup": {
+    "sourcemap": true,
+    "format": ["cjs"],
+    "clean": true,
+    "dts": true
+  },
+  "watch": {
+    "test": {
+      "patterns": ["./src"],
+      "inherit": true,
+      "extensions": "ts"
+    }
+  },
+  "dependencies": {
+    "yargs": "^17.7.2"
+  }
+}

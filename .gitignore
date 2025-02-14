@@ -8,8 +8,10 @@ pr_msg*.txt
 
 # dependencies
 /node_modules
+**/node_modules
 /.pnp
 .pnp.js
+.turbo
 
 # testing
 /coverage
@@ -18,6 +20,8 @@ pr_msg*.txt
 /.next/
 /out/
 **/dist/
+**/.dist/
+**/.build/
 
 # production
 /build

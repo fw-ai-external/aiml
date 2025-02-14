@@ -35,7 +35,10 @@ export const If = createElementDefinition({
       next: [],
     };
 
-    buildContext.setCachedGraphElement(ifNode.id, ifNode);
+    buildContext.setCachedGraphElement(
+      [buildContext.attributes.id, ifNode.key].filter(Boolean),
+      ifNode
+    );
 
     // 1) The first partition is the content under <if> (not <elseif> or <else>)
     // We gather those child nodes until we reach an <elseif> or <else>.

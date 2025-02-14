@@ -1,53 +1,42 @@
-import { describe, expect, it, beforeEach } from "bun:test";
-import { StepContext } from "../../runtime/StepContext";
-import { StepValue } from "../../runtime/StepValue";
-import { z } from "zod";
-import { BaseElement } from "../BaseElement";
+import { describe, expect, it, beforeEach, mock } from "bun:test";
+import { BaseElement } from "../../runtime/BaseElement";
 import { Raise } from "./RaiseElement";
-
-const raiseSchema = z.object({
-  id: z.string().optional(),
-  event: z.string(),
-});
-
-type RaiseProps = z.infer<typeof raiseSchema>;
+import { StepValue } from "../../runtime/StepValue";
 
 describe("RaiseElement", () => {
-  let ctx: StepContext<RaiseProps>;
+  let ctx: any;
   let root: BaseElement;
+  let mockSendEvent: ReturnType<typeof mock>;
 
   beforeEach(() => {
     root = new BaseElement({
       id: "root",
       elementType: "scxml",
       tag: "scxml",
+      role: "state",
+      key: "root-key",
+      attributes: {},
+      children: [],
+      onExecutionGraphConstruction: (buildContext) => ({
+        id: "root",
+        key: "root-key",
+        type: "state",
+        subType: "scxml",
+        attributes: {},
+      }),
     });
 
-    ctx = new StepContext({
+    mockSendEvent = mock((event: string) => {});
+
+    // Create a minimal mock context that matches what RaiseElement expects
+    ctx = {
       input: new StepValue({ type: "text", text: "" }),
-      datamodel: {},
-      workflowInput: {
-        userMessage: "Hello, world!",
-        systemMessage: "",
-        chatHistory: [],
-        clientSideTools: [],
-      },
       attributes: {
         event: "test.event",
       },
-      state: {
-        id: "test",
-        attributes: {},
-        input: new StepValue({ type: "text", text: "" }),
-      },
-      machine: {
-        id: "test",
-        secrets: { system: {} },
-      },
-      run: {
-        id: "test",
-      },
-    });
+      datamodel: {},
+      sendEvent: mockSendEvent,
+    };
   });
 
   it("should create instance with correct properties", () => {
@@ -58,10 +47,10 @@ describe("RaiseElement", () => {
       },
       [],
       [root]
-    );
+    ) as BaseElement;
 
-    expect((element as BaseElement).elementType).toBe("raise");
-    expect((element as BaseElement).attributes.event).toBe("test.event");
+    expect(element.elementType).toBe("raise");
+    expect(element.attributes.event).toBe("test.event");
   });
 
   it("should raise event", async () => {
@@ -72,14 +61,16 @@ describe("RaiseElement", () => {
       },
       [],
       [root]
-    );
+    ) as BaseElement;
 
-    const result = await (element as BaseElement).execute?.(ctx as any);
-    const value = await result?.value();
+    const executeResult = await element.execute?.(ctx);
+    const value = await executeResult?.value();
     expect(value).toEqual({
-      type: "text",
-      text: "Raised event: test.event",
+      type: "object",
+      object: { event: "test.event" },
+      raw: JSON.stringify({ event: "test.event" }),
     });
+    expect(mockSendEvent).toHaveBeenCalledWith("test.event");
   });
 
   it("should throw error if event attribute is missing", async () => {
@@ -89,10 +80,10 @@ describe("RaiseElement", () => {
       } as any,
       [],
       [root]
-    );
+    ) as BaseElement;
 
-    await expect(
-      (element as BaseElement).execute?.(ctx as any)
-    ).rejects.toThrow("Raise element requires an 'event' attribute");
+    await expect(element.execute?.(ctx)).rejects.toThrow(
+      "Raise element requires an 'event' attribute"
+    );
   });
 });

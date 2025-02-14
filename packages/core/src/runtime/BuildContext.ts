@@ -66,10 +66,14 @@ export class BuildContext {
    * keyed by the elementId (unique SCXML ID).
    */
   public setCachedGraphElement(
-    elementId: string,
+    elementId: string | string[],
     ege: ExecutionGraphElement
   ): void {
-    this.graphCache.set(elementId, ege);
+    if (Array.isArray(elementId)) {
+      elementId.forEach((id) => this.graphCache.set(id, ege));
+    } else {
+      this.graphCache.set(elementId, ege);
+    }
   }
 
   public createNewContextForChild(child: FireAgentSpecNode): BuildContext {
