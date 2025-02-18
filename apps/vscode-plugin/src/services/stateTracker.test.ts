@@ -2,7 +2,33 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { StateTracker } from "./stateTracker";
 import { Token, TokenType } from "../token";
 import { DebugLogger } from "../utils/debug";
-import { describe, expect, it, beforeEach, jest } from "bun:test";
+import { describe, expect, it, beforeEach, jest, mock } from "bun:test";
+
+// Mock element configs
+mock.module("@workflow/element-types", () => ({
+  allElementConfigs: {
+    state: {
+      tag: "state",
+      role: "state",
+      documentation: "Basic state container",
+    },
+    parallel: {
+      tag: "parallel",
+      role: "state",
+      documentation: "Parallel state container",
+    },
+    final: {
+      tag: "final",
+      role: "state",
+      documentation: "Final state",
+    },
+    history: {
+      tag: "history",
+      role: "state",
+      documentation: "History state",
+    },
+  },
+}));
 
 // Mock the debug logger
 const mockLogger: Partial<DebugLogger> = {

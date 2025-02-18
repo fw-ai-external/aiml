@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import {
   CompletionItem,
@@ -11,6 +11,7 @@ import {
   TokenType,
   getOwnerAttributeName,
   getOwnerTagName,
+  getTokens,
 } from "./token";
 import { allElementConfigs } from "@workflow/element-types";
 import { z } from "zod";
@@ -38,7 +39,7 @@ const mockConnection: Connection = {
   client: {
     register: () => Promise.resolve(),
   },
-  sendDiagnostics: () => {},
+  sendDiagnostics: vi.fn(),
 } as unknown as Connection;
 
 // Helper to create a text document with content
@@ -50,7 +51,8 @@ function createTextDocument(content: string): TextDocument {
 async function getCompletionsAt(content: string, position: Position) {
   const doc = createTextDocument(content);
   const offset = doc.offsetAt(position);
-  const token = buildActiveToken(mockConnection, doc, content, offset);
+  const tokens = getTokens(mockConnection, content);
+  const token = buildActiveToken(tokens, offset);
 
   // Get the tag name if we're inside an element
   let tagName = "";
@@ -164,61 +166,34 @@ async function getCompletionsAt(content: string, position: Position) {
   return [];
 }
 
+import { DocumentValidator } from "./services/validator";
+import { StateTracker } from "./services/stateTracker";
+import { DebugLogger } from "./utils/debug";
+
 // Helper to validate a document
 async function validateDocument(content: string) {
   const doc = createTextDocument(content);
-  const diagnostics: any[] = [];
+  const tokens = getTokens(mockConnection, content);
 
-  // Simulate the validation logic
-  const tokens = buildActiveToken(mockConnection, doc, content, 0).all;
+  const mockLogger: Partial<DebugLogger> = {
+    validation: (message: string, context?: any) => {
+      console.log(`[Validation] ${message}`, context);
+    },
+    state: () => {},
+  };
+
+  const stateTracker = new StateTracker(mockLogger as DebugLogger);
+  const validator = new DocumentValidator(
+    mockConnection,
+    mockLogger as DebugLogger,
+    stateTracker
+  );
+
+  // First pass to collect state IDs
   const stateIds = new Set<string>();
-
-  // Track element boundaries and attributes
-  let currentElement: {
-    tagName: string;
-    attributes: Set<string>;
-    start: number;
-  } | null = null;
-
-  // Process tokens
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
-
-    // Handle element start
-    if (
-      token.type === TokenType.TagName &&
-      tokens[i - 1]?.type === TokenType.StartTag
-    ) {
-      const tagName = content.substring(token.startIndex, token.endIndex);
-      currentElement = {
-        tagName,
-        attributes: new Set(),
-        start: i,
-      };
-    }
-    // Handle element end
-    else if (
-      token.type === TokenType.SimpleEndTag ||
-      token.type === TokenType.EndTag
-    ) {
-      currentElement = null;
-    }
-    // Handle attributes
-    else if (token.type === TokenType.AttributeName && currentElement) {
-      const attrName = content.substring(token.startIndex, token.endIndex);
-      if (currentElement.attributes.has(attrName)) {
-        diagnostics.push({
-          message: `Duplicate attribute '${attrName}' found. Attributes can only appear once per element.`,
-          range: {
-            start: doc.positionAt(token.startIndex),
-            end: doc.positionAt(token.endIndex),
-          },
-        });
-      }
-      currentElement.attributes.add(attrName);
-    }
-    // Handle attribute values
-    else if (token.type === TokenType.String) {
+    if (token.type === TokenType.String) {
       const attrNameToken = getOwnerAttributeName(tokens, i);
       const tagNameToken = getOwnerTagName(tokens, i);
 
@@ -239,54 +214,22 @@ async function validateDocument(content: string) {
         if (tagName === "state" && attrName === "id") {
           stateIds.add(attrValue);
         }
-
-        // Look up the element config and schema
-        const elementConfig = allElementConfigs[tagName];
-        if (elementConfig?.propsSchema.shape[attrName]) {
-          const schema = elementConfig.propsSchema.shape[attrName];
-
-          try {
-            // Special handling for transition target
-            if (tagName === "transition" && attrName === "target") {
-              if (!stateIds.has(attrValue)) {
-                throw new Error(
-                  `Target state '${attrValue}' not found. Available states: ${Array.from(stateIds).join(", ")}`
-                );
-              }
-            }
-            // Validate enum values
-            else if (schema instanceof z.ZodEnum) {
-              if (!schema._def.values.includes(attrValue)) {
-                throw new Error(
-                  `Value must be one of: ${schema._def.values.join(", ")}`
-                );
-              }
-            }
-            // Validate boolean values
-            else if (schema instanceof z.ZodBoolean) {
-              if (attrValue !== "true" && attrValue !== "false") {
-                throw new Error("Value must be 'true' or 'false'");
-              }
-            }
-            // Validate string values
-            else if (schema instanceof z.ZodString) {
-              schema.parse(attrValue);
-            }
-          } catch (error) {
-            diagnostics.push({
-              message: `Invalid value for attribute '${attrName}': ${error instanceof Error ? error.message : "Unknown error"}`,
-              range: {
-                start: doc.positionAt(token.startIndex),
-                end: doc.positionAt(token.endIndex),
-              },
-            });
-          }
-        }
       }
     }
   }
 
-  return diagnostics;
+  // Mock the state tracker to return our collected state IDs
+  stateTracker.getStatesForDocument = vi.fn().mockReturnValue(stateIds);
+
+  validator.validateDocument(doc, tokens);
+
+  // Extract diagnostics from the mock connection
+  const lastCall = (mockConnection.sendDiagnostics as ReturnType<typeof vi.fn>)
+    .mock.lastCall;
+  if (lastCall) {
+    return lastCall[0].diagnostics;
+  }
+  return [];
 }
 
 describe("SCXML Language Server", () => {

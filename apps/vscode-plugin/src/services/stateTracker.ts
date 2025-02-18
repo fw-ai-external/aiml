@@ -6,7 +6,6 @@ import {
   getOwnerTagName,
 } from "../token";
 import { DebugLogger } from "../utils/debug";
-import { allStateElementConfigs } from "@workflow/element-types";
 
 export class StateTracker {
   private documentStateIds: Map<string, Set<string>> = new Map();
@@ -50,10 +49,7 @@ export class StateTracker {
             token.endIndex - 1
           );
 
-          if (
-            attrName === "id" &&
-            allStateElementConfigs.some((config) => config.tag === tagName)
-          ) {
+          if (tagName === "state" && attrName === "id") {
             this.logger.state("Found state ID", { id: attrValue });
             stateIds.add(attrValue);
           }

@@ -5,6 +5,7 @@ import {
   buildActiveToken,
   getOwnerAttributeName,
   getOwnerTagName,
+  getTokens,
 } from "../token";
 import { allElementConfigs } from "@workflow/element-types";
 
@@ -31,12 +32,8 @@ export class HoverProvider {
     try {
       const offset = document.offsetAt(position);
       const content = document.getText();
-      const token = buildActiveToken(
-        this.connection,
-        document,
-        content,
-        offset
-      );
+      const tokens = getTokens(this.connection, content);
+      const token = buildActiveToken(tokens, offset);
 
       this.logger.info(
         `Processing hover request - uri: ${document.uri}, offset: ${offset}, position: ${JSON.stringify(position)}`

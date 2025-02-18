@@ -7,6 +7,7 @@ import {
   DidChangeConfigurationNotification,
   TextDocumentPositionParams,
 } from "vscode-languageserver/node";
+import { getTokens } from "./token";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { createDebugger } from "./utils/debug";
 import { StateTracker } from "./services/stateTracker";
@@ -79,7 +80,8 @@ connection.onCompletion((params: TextDocumentPositionParams) => {
 
 // Handle document changes
 documents.onDidChangeContent((change) => {
-  validator.validateDocument(change.document);
+  const tokens = getTokens(connection, change.document.getText());
+  validator.validateDocument(change.document, tokens);
 });
 
 // Handle hover requests

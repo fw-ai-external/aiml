@@ -2,6 +2,7 @@ import {
   CompletionItem,
   CompletionItemKind,
   Connection,
+  Position,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import {
@@ -10,6 +11,8 @@ import {
   buildActiveToken,
   getOwnerAttributeName,
   IActiveToken,
+  getOwnerTagName,
+  getTokens,
 } from "../token";
 import { allElementConfigs } from "@workflow/element-types";
 import { z } from "zod";
@@ -33,46 +36,71 @@ export class CompletionProvider {
 
   public getCompletions(
     document: TextDocument,
-    position: { line: number; character: number }
+    position: Position
   ): CompletionItem[] {
-    const offset = document.offsetAt(position);
-    const content = document.getText();
-    console.log("Content", content);
-    const token = buildActiveToken(this.connection, document, content, offset);
+    try {
+      const offset = document.offsetAt(position);
+      const content = document.getText();
+      const tokens = getTokens(this.connection, content);
+      const tokenContext = buildActiveToken(tokens, offset);
 
-    this.logger.completion("Getting completions", {
-      uri: document.uri,
-      offset,
-      tokenType: token.token ? TokenType[token.token.type] : "none",
-    });
+      this.logger.completion("Getting completions", {
+        offset,
+        tokenContext: {
+          token: tokenContext.token,
+          prevToken: tokenContext.prevToken,
+        },
+      });
 
-    if (this.shouldProvideElementCompletions(token)) {
-      console.log("Providing element completions");
-      return this.getElementCompletions();
-    }
+      // Check completion context
+      if (this.shouldProvideElementCompletions(tokenContext)) {
+        this.logger.completion("Providing element completions");
+        return this.getElementCompletions();
+      }
 
-    const tagName = this.getContextTagName(token, content);
-    console.log("Tag name", tagName);
-    if (!tagName) {
+      // Get the current tag name
+      const tagNameToken = getOwnerTagName(
+        tokens,
+        tokenContext.token?.index ?? tokens.length - 1
+      );
+
+      // If we have a tag name, check for attribute completions
+      if (tagNameToken) {
+        const tagName = content.substring(
+          tagNameToken.startIndex,
+          tagNameToken.endIndex
+        );
+
+        if (this.shouldProvideAttributeValueCompletions(tokenContext)) {
+          this.logger.completion("Providing attribute value completions");
+          return this.getAttributeValueCompletions(
+            document,
+            tagName,
+            content,
+            tokens,
+            tokenContext.token?.index ?? tokens.length - 1
+          );
+        }
+
+        if (this.shouldProvideAttributeCompletions(tokenContext)) {
+          this.logger.completion("Providing attribute completions", {
+            tagName,
+          });
+          return this.getAttributeCompletions(tagName);
+        }
+      }
+
+      // If no tag name or not providing attribute completions, check for element completions
+      if (this.shouldProvideElementCompletions(tokenContext)) {
+        this.logger.completion("Providing element completions");
+        return this.getElementCompletions();
+      }
+
+      return [];
+    } catch (error) {
+      this.logger.error("Error getting completions", error as Error);
       return [];
     }
-
-    if (this.shouldProvideAttributeCompletions(token)) {
-      console.log("Providing attribute completions", { tagName });
-      return this.getAttributeCompletions(tagName);
-    }
-
-    if (this.shouldProvideAttributeValueCompletions(token)) {
-      return this.getAttributeValueCompletions(
-        document,
-        tagName,
-        content,
-        token.all,
-        token.index
-      );
-    }
-
-    return [];
   }
 
   private shouldProvideElementCompletions(tokenContext: IActiveToken): boolean {
@@ -87,18 +115,19 @@ export class CompletionProvider {
     if (tokenContext.prevToken) {
       return (
         tokenContext.prevToken.type === TokenType.StartTag ||
-        tokenContext.prevToken.type === TokenType.StartEndTag
+        tokenContext.prevToken.type === TokenType.StartEndTag ||
+        tokenContext.prevToken.type === TokenType.None
       );
     }
 
-    return false;
+    return true;
   }
 
   private getElementCompletions(): CompletionItem[] {
     this.logger.completion("Providing element completions");
     return Object.entries(allElementConfigs).map(([name, config]) => ({
       label: name,
-      kind: CompletionItemKind.Constructor,
+      kind: CompletionItemKind.Class,
       documentation: config.documentation || `${name} element`,
     }));
   }
@@ -141,12 +170,33 @@ export class CompletionProvider {
   private shouldProvideAttributeValueCompletions(
     tokenContext: IActiveToken
   ): boolean {
-    this.logger.completion("Providing attribute value completions");
+    this.logger.completion(
+      "Checking if should provide attribute value completions",
+      {
+        token: tokenContext.token,
+        prevToken: tokenContext.prevToken,
+      }
+    );
 
     if (!tokenContext.prevToken) {
       return false;
     }
-    return tokenContext.prevToken.type === TokenType.Equal;
+
+    // Handle both standard = and JSX { cases
+    if (tokenContext.prevToken.type === TokenType.Equal) {
+      return true;
+    }
+
+    // For JSX style, check if we're right after the {
+    if (
+      tokenContext.token?.type === TokenType.JSXExpressionStart ||
+      (tokenContext.prevToken.type === TokenType.JSXExpressionStart &&
+        (!tokenContext.token || tokenContext.token.type === TokenType.None))
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   private getAttributeValueCompletions(
@@ -166,22 +216,6 @@ export class CompletionProvider {
       attrNameToken.endIndex
     );
 
-    this.logger.completion("Providing attribute value completions", {
-      tagName,
-      attrName,
-    });
-
-    // Special handling for transition target
-    if (tagName === "transition" && attrName === "target") {
-      const stateIds = this.stateTracker.getStatesForDocument(document.uri);
-      return Array.from(stateIds).map((id) => ({
-        label: id,
-        kind: CompletionItemKind.Reference,
-        documentation: `Reference to state with id="${id}"`,
-      }));
-    }
-
-    // Handle other attribute types
     const elementConfig = allElementConfigs[tagName];
     if (!elementConfig) {
       return [];
@@ -192,14 +226,17 @@ export class CompletionProvider {
       return [];
     }
 
-    if (schema instanceof z.ZodEnum) {
-      return schema._def.values.map((value: string) => ({
-        label: value,
-        kind: CompletionItemKind.EnumMember,
-        documentation: `Valid value for ${attrName}`,
+    // Handle transition target attribute
+    if (tagName === "transition" && attrName === "target") {
+      const stateIds = this.stateTracker.getStatesForDocument(document.uri);
+      return Array.from(stateIds).map((id) => ({
+        label: id,
+        kind: CompletionItemKind.Reference,
+        documentation: `Reference to state with id="${id}"`,
       }));
     }
 
+    // For boolean attributes
     if (schema instanceof z.ZodBoolean) {
       return [
         { label: "true", kind: CompletionItemKind.Value },
@@ -207,81 +244,15 @@ export class CompletionProvider {
       ];
     }
 
-    return [];
-  }
+    // For enum attributes
+    if (schema._def?.typeName === "ZodEnum") {
+      return schema._def.values.map((value: string) => ({
+        label: value,
+        kind: CompletionItemKind.Property,
+        documentation: `Valid value for ${attrName}`,
+      }));
+    }
 
-  private getContextTagName(
-    tokenContext: IActiveToken,
-    content: string
-  ): string {
-    /* the token context for... `<llm responseFormat="`
-    {
-  all: [
-    {
-      index: 0,
-      type: 10,
-      startIndex: 0,
-      endIndex: 1,
-    }, {
-      index: 1,
-      type: 6,
-      startIndex: 1,
-      endIndex: 6,
-    }, {
-      index: 2,
-      type: 2,
-      startIndex: 6,
-      endIndex: 7,
-    }, {
-      index: 3,
-      type: 7,
-      startIndex: 7,
-      endIndex: 9,
-    }, {
-      index: 4,
-      type: 14,
-      startIndex: 9,
-      endIndex: 10,
-    }, {
-      index: 5,
-      type: 1,
-      startIndex: 10,
-      endIndex: 11,
-    }, {
-      index: 6,
-      type: 5,
-      startIndex: 11,
-      endIndex: 15,
-    }, {
-      index: 7,
-      type: 1,
-      startIndex: 15,
-      endIndex: 16,
-    }, {
-      index: 8,
-      type: 11,
-      startIndex: 16,
-      endIndex: 18,
-    }
-  ],
-  index: 0,
-  activeEndToken: undefined,
-  prevToken: undefined,
-  token: {
-    index: 0,
-    type: 10,
-    startIndex: 0,
-    endIndex: 1,
-  }
-    */
-    // in this case, the returned value should be `llm`
-    console.log("Token context", content);
-    for (let i = tokenContext.index; i >= 0; i--) {
-      const t = tokenContext.all[i];
-      if (t.type === TokenType.TagName) {
-        return content.substring(t.startIndex, t.endIndex);
-      }
-    }
-    return "";
+    return [];
   }
 }

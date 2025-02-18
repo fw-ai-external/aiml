@@ -16,6 +16,9 @@ export enum TokenType {
   EndTag, // >
   StartEndTag, // </
   Equal, // =
+  JSXExpressionStart = 100, // {
+  JSXExpressionEnd = 101, // }
+  JSXValue = 102, // true/false/etc inside {}
 }
 
 export interface Token {
@@ -46,6 +49,10 @@ let templateStringRegex = /^`.*?`/s;
 let jsattributeValueRegex = /^`.*?`/; // `{true ? "yes" : "no"}`
 let attributeNameRegex =
   /^[a-zA-Z0-9\-:]+(?:\s*=\s*(?:"[^"]*"|{(?:[^{}]|{[^{}]*})*}))?/;
+
+const jsxExpressionStartRegex = /^{/;
+const jsxExpressionEndRegex = /^}/;
+const jsxValueRegex = /^(true|false|null|undefined|\d+)/;
 
 export function getTokens(connection: Connection, content: string) {
   let tokens: Array<Token> = [];
@@ -119,6 +126,9 @@ export function getTokens(connection: Connection, content: string) {
     let readed =
       regexTest(spaceRegex, TokenType.Whitespace) ||
       regexTest(commentRegex, TokenType.Comment) ||
+      regexTest(jsxExpressionStartRegex, TokenType.JSXExpressionStart) ||
+      regexTest(jsxExpressionEndRegex, TokenType.JSXExpressionEnd) ||
+      regexTest(jsxValueRegex, TokenType.JSXValue) ||
       nameTest(nameRegex) ||
       regexTest(startEndTagRegex, TokenType.StartEndTag) ||
       regexTest(endTagRegex, TokenType.EndTag) ||
@@ -276,60 +286,47 @@ function getCacheTokens(doc: TextDocument | null) {
 }
 
 export function buildActiveToken(
-  connection: Connection,
-  doc: TextDocument,
-  content: string,
-  activeOffset: number
+  tokens: Token[],
+  offset: number
 ): IActiveToken {
-  let nodeTrace = [];
-  let tokens = getCacheTokens(doc) || getTokens(connection, content);
-  if (doc) {
-    tokenCaches[doc.uri] = { version: doc.version, tokens: tokens };
-  }
-  let index = 0;
-  let activeEndToken: Token | undefined = undefined;
-  for (let index = 0; index < tokens.length; index++) {
-    let token = tokens[index];
-    if (token.endIndex == activeOffset) {
-      activeEndToken = token;
+  let activeToken: Token | undefined;
+  let prevToken: Token | undefined;
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (offset >= token.startIndex && offset <= token.endIndex) {
+      activeToken = token;
+      prevToken = tokens[i - 1];
+      break;
     }
-    if (token.endIndex > activeOffset && token.startIndex <= activeOffset) {
-      return {
-        all: tokens,
-        index: index,
-        activeEndToken,
-        prevToken: index > 0 ? tokens[index - 1] : undefined,
-        token: token,
+    // Handle case where cursor is between tokens
+    if (offset < token.startIndex) {
+      activeToken = {
+        type: TokenType.None,
+        startIndex: offset,
+        endIndex: offset,
+        index: i,
       };
+      prevToken = tokens[i - 1];
+      break;
     }
-    // else if(token.endIndex == activeOffset) {
-    //     return {
-    //         all: tokens,
-    //         index: index,
-    //         prevToken: index > 0 ? tokens[index - 1] : undefined,
-    //         token: token
-    //     };
-    // }
-    else if (token.startIndex > activeOffset) {
-      return {
-        all: tokens,
-        activeEndToken,
-        index: -1,
-        prevToken: index > 0 ? tokens[index - 1] : undefined,
-      };
-    }
-    // else if(token.startIndex > activeOffset) {
-    //     return {
-    //         all: tokens,
-    //         index: index - 1,
-    //         prevToken: index > 2 ? tokens[index - 2] : undefined,
-    //         token: index > 1 ? tokens[index - 1] : undefined,
-    //     };
-    // }
   }
+
+  // Handle cursor at end of document
+  if (!activeToken && tokens.length > 0) {
+    prevToken = tokens[tokens.length - 1];
+    activeToken = {
+      type: TokenType.None,
+      startIndex: offset,
+      endIndex: offset,
+      index: tokens.length,
+    };
+  }
+
   return {
+    token: activeToken,
+    prevToken,
     all: tokens,
-    activeEndToken,
-    index: -1,
+    index: activeToken?.index ?? tokens.length,
   };
 }

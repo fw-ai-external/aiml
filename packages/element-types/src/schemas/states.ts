@@ -9,6 +9,7 @@ import type { AllowedChildrenType, BaseElementDefinition } from "..";
 // State Element - Basic state container
 export const stateConfig: BaseElementDefinition = {
   tag: "state",
+  role: "state",
   propsSchema: z.object({
     id: z.string(),
     initial: z.string().optional(),
@@ -36,6 +37,7 @@ export type StateProps = z.infer<typeof stateConfig.propsSchema>;
 // Parallel Element
 export const parallelConfig: BaseElementDefinition = {
   tag: "parallel",
+  role: "state",
   propsSchema: z.object({
     id: z.string(),
   }),
@@ -55,6 +57,7 @@ export type ParallelProps = z.infer<typeof parallelConfig.propsSchema>;
 // Final Element
 export const finalConfig: BaseElementDefinition = {
   tag: "final",
+  role: "state",
   propsSchema: z.object({
     id: z.string().optional(),
   }),
@@ -68,6 +71,7 @@ export type FinalProps = z.infer<typeof finalConfig.propsSchema>;
 // History Element
 export const historyConfig: BaseElementDefinition = {
   tag: "history",
+  role: "state",
   propsSchema: z.object({
     id: z.string().optional(),
   }),

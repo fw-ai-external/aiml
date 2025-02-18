@@ -21,6 +21,22 @@ const mockBuildActiveToken = mock(() => ({
   index: 1,
 }));
 
+mock.module("../token", () => ({
+  TokenType,
+  buildActiveToken: mockBuildActiveToken,
+  getOwnerAttributeName: mock(() => null),
+  getOwnerTagName: mock(() => ({
+    type: TokenType.TagName,
+    startIndex: 1,
+    endIndex: 6,
+    index: 1,
+  })),
+  getTokens: mock(() => [
+    { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
+    { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
+  ]),
+}));
+
 // Mock dependencies
 const mockConnection = {
   console: {

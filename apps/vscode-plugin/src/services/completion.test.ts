@@ -31,10 +31,23 @@ mock.module("@workflow/element-types", () => ({
         shape: {
           id: { constructor: { name: "ZodString" } },
           final: { constructor: { name: "ZodBoolean" } },
+          initial: {
+            constructor: { name: "ZodEnum" },
+            _def: { values: ["running", "stopped", "paused"] },
+          },
           type: {
             constructor: { name: "ZodEnum" },
             _def: { values: ["state", "parallel", "final"] },
           },
+        },
+      },
+    },
+    transition: {
+      documentation: "Transition element documentation",
+      propsSchema: {
+        shape: {
+          target: { constructor: { name: "ZodString" } },
+          event: { constructor: { name: "ZodString" } },
         },
       },
     },
@@ -125,7 +138,12 @@ describe("CompletionProvider", () => {
       const position = { line: 0, character: 7 };
 
       mockBuildActiveToken.mockImplementation(() => ({
-        token: undefined,
+        token: {
+          type: TokenType.Whitespace,
+          startIndex: 6,
+          endIndex: 7,
+          index: 2,
+        },
         prevToken: {
           type: TokenType.TagName,
           startIndex: 1,
@@ -135,8 +153,9 @@ describe("CompletionProvider", () => {
         all: [
           { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
           { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
+          { type: TokenType.Whitespace, startIndex: 6, endIndex: 7, index: 2 },
         ],
-        index: 1,
+        index: 2,
       }));
 
       const completions = provider.getCompletions(document, position);
@@ -200,14 +219,15 @@ describe("CompletionProvider", () => {
       ]);
     });
 
-    it("should provide boolean completions for boolean attributes", () => {
+    it("should provide boolean completions for JSX-style boolean attributes", () => {
       const document = TextDocument.create(
         "test.aiml",
         "aiml",
         1,
         "<llm includeChatHistory={"
       );
-      const position = { line: 0, character: 14 };
+      // Position right after the {
+      const position = { line: 0, character: 23 };
 
       const completions = provider.getCompletions(document, position);
 
@@ -217,33 +237,92 @@ describe("CompletionProvider", () => {
       ]);
     });
 
-    it.skip("should provide enum completions for enum attributes", () => {
+    it("should provide boolean completions for HTML-style boolean attributes", () => {
       const document = TextDocument.create(
         "test.aiml",
         "aiml",
         1,
-        '<llm responseFormat="'
+        '<llm includeChatHistory="'
+      );
+      // Position right after the "
+      const position = { line: 0, character: 23 };
+
+      const completions = provider.getCompletions(document, position);
+
+      expect(completions).toEqual([
+        { label: "true", kind: CompletionItemKind.Value },
+        { label: "false", kind: CompletionItemKind.Value },
+      ]);
+    });
+
+    it("should provide enum completions for enum attributes", () => {
+      const document = TextDocument.create(
+        "test.aiml",
+        "aiml",
+        1,
+        '<state type="'
       );
       const position = {
         line: 0,
-        character: "<llm responseFormat=".length,
+        character: '<state type="'.length,
       };
+
+      // Mock element config for state element with enum type
+      mock.module("@workflow/element-types", () => ({
+        allElementConfigs: {
+          state: {
+            documentation: "State element documentation",
+            propsSchema: {
+              shape: {
+                type: {
+                  _def: {
+                    typeName: "ZodEnum",
+                    values: ["state", "parallel", "final"],
+                  },
+                },
+              },
+            },
+          },
+        },
+      }));
+
+      mockBuildActiveToken.mockImplementation(() => ({
+        token: undefined,
+        prevToken: {
+          type: TokenType.Equal,
+          startIndex: 11,
+          endIndex: 12,
+          index: 3,
+        },
+        all: [
+          { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
+          { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
+          {
+            type: TokenType.AttributeName,
+            startIndex: 7,
+            endIndex: 11,
+            index: 2,
+          },
+          { type: TokenType.Equal, startIndex: 11, endIndex: 12, index: 3 },
+        ],
+        index: 3,
+      }));
 
       const completions = provider.getCompletions(document, position);
 
       expect(completions).toEqual([
         {
-          label: "json",
-          kind: CompletionItemKind.Property,
-          documentation: "State element documentation",
-        },
-        {
-          label: "text",
+          label: "state",
           kind: CompletionItemKind.Property,
           documentation: "Valid value for type",
         },
         {
-          label: "gbnf",
+          label: "parallel",
+          kind: CompletionItemKind.Property,
+          documentation: "Valid value for type",
+        },
+        {
+          label: "final",
           kind: CompletionItemKind.Property,
           documentation: "Valid value for type",
         },

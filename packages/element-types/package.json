@@ -7,7 +7,6 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@workflow/core": "workspace:*",
     "type-fest": "^4.0.0",
     "zod": "^3.24.1",
     "zod-metadata": "^1.1.1"
