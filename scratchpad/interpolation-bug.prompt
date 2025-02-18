@@ -1,0 +1,11 @@
+https://github.com/promptfile/promptfile/issues/172
+
+<User>
+Here's a valid variable: @{variable}
+
+Here's another valid variable, but inside of a fenced code block:
+
+```json
+@{anotherVariable}
+```
+</User>

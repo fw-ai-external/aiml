@@ -28,13 +28,13 @@ import { cn } from "@/lib/utils";
 interface FileTab {
   id: string;
   name: string;
-  type: "xml" | "scxml";
+  type: "aiml" | "scxml";
 }
 
 interface ExplorerItemType {
   id: string;
   name: string;
-  type: "xml" | "scxml";
+  type: "aiml" | "scxml";
   isFolder: boolean;
   children?: ExplorerItemType[];
 }

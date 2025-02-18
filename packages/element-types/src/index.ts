@@ -1,5 +1,6 @@
 import type { LiteralUnion } from "type-fest";
-import { z } from "zod";
+import zod, { z } from "zod";
+import { register } from "zod-metadata";
 import {
   finalConfig,
   historyConfig,
@@ -132,6 +133,8 @@ export type ElementDefinition<
     | ((props: Props) => AllowedChildrenType);
 };
 
+register(zod);
+
 // Export all schemas and types
 export * from "./schemas/states";
 export * from "./schemas/actions";
@@ -161,3 +164,7 @@ export const allElementConfigs: Record<string, BaseElementDefinition> = {
   foreach: forEachConfig,
   llm: llmConfig,
 } as const;
+
+export const allStateElementConfigs = Object.values(allElementConfigs).filter(
+  (config) => config.role === "state"
+);

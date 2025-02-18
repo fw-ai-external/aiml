@@ -1,0 +1,37 @@
+{
+  "name": "micro-mdx-parser",
+  "version": "1.1.24",
+  "description": "A tiny parser to convert markdown or html into JSON",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "author": "David Wells",
+  "license": "MIT",
+  "keywords": ["mdx"],
+  "homepage": "https://github.com/DavidWells/micro-mdx",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DavidWells/micro-mdx.git"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir dist --target node --format esm",
+    "test:lib": "bun test src/index.test.ts",
+    "test:lexer": "bun test src/lexer.test.ts",
+    "test:parser": "bun test src/parser.test.ts",
+    "test:stringify": "bun test src/stringify.test.ts",
+    "test:mdx": "bun test src/mdx.test.ts",
+    "test": "bun test src/**/*.test.ts",
+    "publish": "git push origin && git push origin --tags",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "bun-types": "latest",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "oparser": "^3.0.22"
+  }
+}

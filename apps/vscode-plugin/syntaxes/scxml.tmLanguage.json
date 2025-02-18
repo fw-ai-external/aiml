@@ -1,7 +1,7 @@
 {
   "name": "Workflow",
-  "scopeName": "text.xml.workflow",
-  "fileTypes": ["xml", "aiml"],
+  "scopeName": "text.aiml.workflow",
+  "fileTypes": ["aiml"],
   "patterns": [
     {
       "include": "#tags"

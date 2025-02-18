@@ -70,7 +70,7 @@ export const transitionConfig: BaseElementDefinition = {
     id: z.string().optional(),
     event: z.string().optional(),
     cond: z.string().optional(),
-    target: z.string().optional(),
+    target: z.string().metadata({ valueMustBeID: true }).optional(),
   }),
   description: "State transitions",
   allowedChildren: "none" as AllowedChildrenType,

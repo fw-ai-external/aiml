@@ -1,0 +1,42 @@
+import routing from "./routing.prompt";
+import meetAndGreet from "./meet_and_greet.prompt";
+import cancelOrder from "./cancel_order.prompt";
+import modifyOrder from "./modify_order.prompt";
+import profileManagement from "./profile_management.prompt";
+import humanAgent from "./human_agent.prompt";
+import selectProducts from "./select_products.prompt";
+import getOrderDetails from "./get_order_details.prompt";
+import getProductDetails from "./get_product_details.prompt";
+import getUserDetails from "./get_user_details.prompt";
+import listAllProductTypes from "./list_all_product_types.prompt";
+import goodBye from "./good_bye.prompt";
+
+<workflow initial="routing">
+    <datamodel>
+        <data id="user_id" expr="null" />
+        <data id="initialState" expr="null" />
+        <data id="llm_output" expr="null" />
+        <data id="issueNotes" expr="[]" />
+    </datamodel>
+
+    <routing />
+    <meetAndGreet />
+    <cancelOrder />
+    <modifyOrder />
+    <profileManagement />
+    <humanAgent />
+    <selectProducts />
+    <getOrderDetails />
+    <getProductDetails />
+    <getUserDetails />
+    <listAllProductTypes />
+    <goodBye />
+
+    <final id="back_to_user" />
+    <final id="error">
+        <llm
+            mockResponse= {`{"role" : "assistant" , "content" : "I'm sorry, but I'm having trouble processing your request. Please try again later." }`}
+            mockResponseType="json"
+        />
+    </final>
+</workflow>

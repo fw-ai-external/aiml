@@ -4,15 +4,13 @@ export enum TokenType {
   None,
   Invalid,
   Whitespace,
-  ProcessingInstruction, // <? ... ?>
   String, // "..."
   Comment, // <!-- ... -->
-  CDATA, // <![CDATA[ ... ]]>
-  Entity, // <!ENTITY ...>
-  Notation, // <!NOTATION ...>
   Name, // any element or attribute name (for example, `svg`, `rect`, `width`)
-  TagName,
-  AttributeName,
+  TagName, // any element or attribute name (for example, `svg`, `rect`, `width`)
+  AttributeName, // any attribute name (for example, `id`, `class`, `style`)
+  AttributeStringValue, // any attribute value (for example, `"100"`, `"red"`, `"100px"`)
+  AttributeJSValue, // any attribute value (for example, `{true ? "yes" : "no"}`, `{false}`, `{100}`, or multiple lines of code between `{` and `}`)
   StartTag, // <
   SimpleEndTag, // />
   EndTag, // >
@@ -35,11 +33,7 @@ export function getTokenLen(token: Token) {
 const NO_OUTPUT_WHITE_TOKEN = false;
 
 let spaceRegex = /^[ \r\n\t\f]+/;
-let processingRegex = /^<\?.*?\?>/;
 let commentRegex = /^<!--.*?-->/s;
-let cdataRegex = /^<!\[CDATA\[.*?\]\]>/;
-let entityRegex = /^<!ENTITY.*?>/;
-let notationRegex = /^<!NOTATION.*?>/;
 let nameRegex = /^[a-zA-Z0-9\-:]+/;
 let startTagRegex = /^</;
 let endTagRegex = /^>/;
@@ -47,8 +41,13 @@ let simpleEndTagRegex = /^\/>/;
 let startEndTagRegex = /^<\//;
 let equalRegex = /^=/;
 let stringRegex = /^".*?"/s;
+let templateStringRegex = /^`.*?`/s;
 
-function getTokens(connection: Connection, content: string) {
+let jsattributeValueRegex = /^`.*?`/; // `{true ? "yes" : "no"}`
+let attributeNameRegex =
+  /^[a-zA-Z0-9\-:]+(?:\s*=\s*(?:"[^"]*"|{(?:[^{}]|{[^{}]*})*}))?/;
+
+export function getTokens(connection: Connection, content: string) {
   let tokens: Array<Token> = [];
   let pos = 0;
 
@@ -118,16 +117,15 @@ function getTokens(connection: Connection, content: string) {
 
   while (pos < content.length) {
     let readed =
-      regexTest(cdataRegex, TokenType.CDATA) ||
       regexTest(spaceRegex, TokenType.Whitespace) ||
-      regexTest(processingRegex, TokenType.ProcessingInstruction) ||
       regexTest(commentRegex, TokenType.Comment) ||
-      regexTest(entityRegex, TokenType.Entity) ||
-      regexTest(notationRegex, TokenType.Notation) ||
       nameTest(nameRegex) ||
       regexTest(startEndTagRegex, TokenType.StartEndTag) ||
       regexTest(endTagRegex, TokenType.EndTag) ||
       regexTest(simpleEndTagRegex, TokenType.SimpleEndTag) ||
+      // regexTest(jsattributeValueRegex, TokenType.AttributeJSValue) ||
+      // regexTest(attributeStringValueRegex, TokenType.AttributeStringValue) ||
+      regexTest(attributeNameRegex, TokenType.AttributeName) ||
       regexTest(startTagRegex, TokenType.StartTag) ||
       regexTest(stringRegex, TokenType.String) ||
       regexTest(equalRegex, TokenType.Equal);

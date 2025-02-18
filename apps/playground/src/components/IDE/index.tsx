@@ -17,7 +17,7 @@ export function IDE() {
         ...FFQuantumTheme.dark,
       });
       monaco.languages.html.registerHTMLLanguageService(
-        "xml",
+        "aiml",
         {},
         { documentFormattingEdits: true }
       );
@@ -28,7 +28,7 @@ export function IDE() {
     <Editor
       height="100%"
       theme="myTheme"
-      language="xml"
+      language="aiml"
       options={{
         formatOnType: true,
         formatOnPaste: true,

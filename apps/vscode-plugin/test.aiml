@@ -4,7 +4,7 @@
             <log expr="'Entering idle state'" />
         </onentry>
 
-        <transition event="start" target="running">
+        <transition event="start" target="idle">
             <log expr="'Starting...'" />
         </transition>
     </state>
@@ -18,4 +18,5 @@
             <log expr="'Stopping...'" />
         </transition>
     </state>
+    
 </workflow>
