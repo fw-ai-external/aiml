@@ -6,18 +6,16 @@ import {
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import {
-  Token,
-  TokenType,
   buildActiveToken,
   getOwnerAttributeName,
   IActiveToken,
   getOwnerTagName,
-  getTokens,
-} from "../token";
+} from "../utils/token";
 import { allElementConfigs } from "@workflow/element-types";
 import { z } from "zod";
 import { DebugLogger } from "../utils/debug";
 import { StateTracker } from "./stateTracker";
+import { parseToTokens, Token, TokenType } from "../acorn";
 
 export class CompletionProvider {
   private connection: Connection;
@@ -41,7 +39,7 @@ export class CompletionProvider {
     try {
       const offset = document.offsetAt(position);
       const content = document.getText();
-      const tokens = getTokens(this.connection, content);
+      const tokens = parseToTokens(content);
       const tokenContext = buildActiveToken(tokens, offset);
 
       this.logger.completion("Getting completions", {
@@ -188,11 +186,7 @@ export class CompletionProvider {
     }
 
     // For JSX style, check if we're right after the {
-    if (
-      tokenContext.token?.type === TokenType.JSXExpressionStart ||
-      (tokenContext.prevToken.type === TokenType.JSXExpressionStart &&
-        (!tokenContext.token || tokenContext.token.type === TokenType.None))
-    ) {
+    if (tokenContext.token?.type === TokenType.AttributeValue) {
       return true;
     }
 

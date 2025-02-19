@@ -7,13 +7,13 @@ import {
   DidChangeConfigurationNotification,
   TextDocumentPositionParams,
 } from "vscode-languageserver/node";
-import { getTokens } from "./token";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { createDebugger } from "./utils/debug";
 import { StateTracker } from "./services/stateTracker";
 import { DocumentValidator } from "./services/validator";
 import { CompletionProvider } from "./services/completion";
 import { HoverProvider } from "./services/hover";
+import { parseToTokens } from "./acorn";
 
 // Create a connection for the server
 const connection = createConnection(ProposedFeatures.all);
@@ -80,7 +80,7 @@ connection.onCompletion((params: TextDocumentPositionParams) => {
 
 // Handle document changes
 documents.onDidChangeContent((change) => {
-  const tokens = getTokens(connection, change.document.getText());
+  const tokens = parseToTokens(change.document.getText());
   validator.validateDocument(change.document, tokens);
 });
 

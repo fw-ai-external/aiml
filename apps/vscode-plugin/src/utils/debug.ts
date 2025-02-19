@@ -1,5 +1,5 @@
 import { Connection } from "vscode-languageserver/node";
-import { Token, TokenType } from "../token";
+import { Token, TokenType } from "../acorn";
 
 export function createDebugger(connection: Connection) {
   const prefix = (category: string) => `[${category}]`;

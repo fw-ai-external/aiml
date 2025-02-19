@@ -5,9 +5,9 @@ import {
   buildActiveToken,
   getOwnerAttributeName,
   getOwnerTagName,
-  getTokens,
-} from "../token";
+} from "../utils/token";
 import { allElementConfigs } from "@workflow/element-types";
+import { parseToTokens } from "../acorn";
 
 /**
  * Server-side hover provider that generates hover content for SCXML elements.
@@ -32,7 +32,7 @@ export class HoverProvider {
     try {
       const offset = document.offsetAt(position);
       const content = document.getText();
-      const tokens = getTokens(this.connection, content);
+      const tokens = parseToTokens(content);
       const token = buildActiveToken(tokens, offset);
 
       this.logger.info(

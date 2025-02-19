@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { StateCollector } from "./stateCollector";
-import { TokenType } from "../token";
+import { TokenType } from "../acorn";
 import { TextDocument } from "vscode-languageserver-textdocument";
 
 describe("StateCollector", () => {

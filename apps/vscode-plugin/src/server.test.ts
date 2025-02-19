@@ -8,11 +8,9 @@ import {
 } from "vscode-languageserver/node";
 import {
   buildActiveToken,
-  TokenType,
   getOwnerAttributeName,
   getOwnerTagName,
-  getTokens,
-} from "./token";
+} from "./utils/token";
 import { allElementConfigs } from "@workflow/element-types";
 import { z } from "zod";
 
@@ -44,14 +42,14 @@ const mockConnection: Connection = {
 
 // Helper to create a text document with content
 function createTextDocument(content: string): TextDocument {
-  return TextDocument.create("file:///test.scxml", "scxml", 1, content);
+  return TextDocument.create("file:///test.aiml", "aiml", 1, content);
 }
 
 // Helper to get completion items at a specific position
 async function getCompletionsAt(content: string, position: Position) {
   const doc = createTextDocument(content);
   const offset = doc.offsetAt(position);
-  const tokens = getTokens(mockConnection, content);
+  const tokens = parseToTokens(content);
   const token = buildActiveToken(tokens, offset);
 
   // Get the tag name if we're inside an element
@@ -169,11 +167,13 @@ async function getCompletionsAt(content: string, position: Position) {
 import { DocumentValidator } from "./services/validator";
 import { StateTracker } from "./services/stateTracker";
 import { DebugLogger } from "./utils/debug";
+import { TokenType } from "./acorn";
+import { parseToTokens } from "./acorn";
 
 // Helper to validate a document
 async function validateDocument(content: string) {
   const doc = createTextDocument(content);
-  const tokens = getTokens(mockConnection, content);
+  const tokens = parseToTokens(content);
 
   const mockLogger: Partial<DebugLogger> = {
     validation: (message: string, context?: any) => {

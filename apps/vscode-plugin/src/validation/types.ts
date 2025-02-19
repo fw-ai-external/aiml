@@ -1,5 +1,6 @@
-import { TextDocument, Diagnostic } from "vscode-languageserver/node";
-import { Token } from "../token";
+import { Diagnostic } from "vscode-languageserver/node";
+import { Token } from "../acorn";
+import { TextDocument } from "vscode-languageserver-textdocument";
 
 export interface ValidationContext {
   document: TextDocument;

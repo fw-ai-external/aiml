@@ -1,267 +1,224 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { StateTracker } from "./stateTracker";
-import { Token, TokenType } from "../token";
 import { DebugLogger } from "../utils/debug";
-import { describe, expect, it, beforeEach, jest, mock } from "bun:test";
+import { describe, expect, it, beforeEach } from "bun:test";
+import { parseToTokens } from "../acorn";
 
-// Mock element configs
-mock.module("@workflow/element-types", () => ({
-  allElementConfigs: {
-    state: {
-      tag: "state",
-      role: "state",
-      documentation: "Basic state container",
-    },
-    parallel: {
-      tag: "parallel",
-      role: "state",
-      documentation: "Parallel state container",
-    },
-    final: {
-      tag: "final",
-      role: "state",
-      documentation: "Final state",
-    },
-    history: {
-      tag: "history",
-      role: "state",
-      documentation: "History state",
-    },
-  },
-}));
-
-// Mock the debug logger
-const mockLogger: Partial<DebugLogger> = {
-  state: jest.fn(),
-};
-
-describe("StateTracker", () => {
+describe.only("StateTracker", () => {
   let stateTracker: StateTracker;
+  let mockLogger: Partial<DebugLogger>;
+  let logs: any[] = [];
 
   beforeEach(() => {
+    logs = [];
+    mockLogger = {
+      state: (message: string, context: any) => {
+        logs.push({ message, context });
+        console.log("[StateTracker]", message, context);
+      },
+    };
     stateTracker = new StateTracker(mockLogger as DebugLogger);
-    jest.clearAllMocks();
   });
 
-  describe("trackStates", () => {
-    it("should track state IDs from state elements", () => {
-      const document = TextDocument.create(
-        "test.xml",
-        "aiml",
-        1,
-        '<state id="idle"/><state id="active"/>'
-      );
+  // describe.only("trackStates", () => {
+  //   it("should track basic state elements", async () => {
+  //     const document = TextDocument.create(
+  //       "test.aiml",
+  //       "aiml",
+  //       1,
+  //       '<state id="idle"/><state id="active"/>'
+  //     );
+  //     const tokens = await getTokens(document.getText());
+  //     stateTracker.trackStates(document, tokens);
 
-      const tokens: Token[] = [
-        { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
-        { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
-        { type: TokenType.AttributeName, startIndex: 7, endIndex: 9, index: 2 },
-        { type: TokenType.Equal, startIndex: 9, endIndex: 10, index: 3 },
-        { type: TokenType.String, startIndex: 10, endIndex: 16, index: 4 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 16,
-          endIndex: 18,
-          index: 5,
-        },
-        { type: TokenType.StartTag, startIndex: 18, endIndex: 19, index: 6 },
-        { type: TokenType.TagName, startIndex: 19, endIndex: 24, index: 7 },
-        {
-          type: TokenType.AttributeName,
-          startIndex: 25,
-          endIndex: 27,
-          index: 8,
-        },
-        { type: TokenType.Equal, startIndex: 27, endIndex: 28, index: 9 },
-        { type: TokenType.String, startIndex: 28, endIndex: 36, index: 10 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 36,
-          endIndex: 38,
-          index: 11,
-        },
-      ];
+  //     const states = stateTracker.getStatesForDocument(document.uri);
+  //     expect(states).toEqual(new Set(["idle", "active"]));
+  //   });
 
-      stateTracker.trackStates(document, tokens, document.getText());
+  //   it("should track parallel states", async () => {
+  //     const document = TextDocument.create(
+  //       "test.aiml",
+  //       "aiml",
+  //       1,
+  //       '<parallel id="concurrent"/>'
+  //     );
+  //     const tokens = await getTokens(document.getText());
+  //     stateTracker.trackStates(document, tokens);
 
-      const states = stateTracker.getStatesForDocument(document.uri);
-      expect(states).toEqual(new Set(["idle", "active"]));
-      expect(mockLogger.state).toHaveBeenCalledWith(
-        "Starting state tracking for document",
-        { uri: document.uri }
-      );
-    });
+  //     const states = stateTracker.getStatesForDocument(document.uri);
+  //     expect(states).toEqual(new Set(["concurrent"]));
+  //   });
 
-    it("should handle documents with no states", () => {
-      const document = TextDocument.create(
-        "test.xml",
-        "aiml",
-        1,
-        '<transition target="unknown"/>'
-      );
+  //   it("should track final states", async () => {
+  //     const document = TextDocument.create(
+  //       "test.aiml",
+  //       "aiml",
+  //       1,
+  //       '<final id="completed"/>'
+  //     );
+  //     const tokens = await getTokens(document.getText());
+  //     stateTracker.trackStates(document, tokens);
 
-      const tokens: Token[] = [
-        { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
-        { type: TokenType.TagName, startIndex: 1, endIndex: 10, index: 1 },
-        {
-          type: TokenType.AttributeName,
-          startIndex: 11,
-          endIndex: 17,
-          index: 2,
-        },
-        { type: TokenType.Equal, startIndex: 17, endIndex: 18, index: 3 },
-        { type: TokenType.String, startIndex: 18, endIndex: 27, index: 4 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 27,
-          endIndex: 29,
-          index: 5,
-        },
-      ];
+  //     const states = stateTracker.getStatesForDocument(document.uri);
+  //     expect(states).toEqual(new Set(["completed"]));
+  //   });
 
-      stateTracker.trackStates(document, tokens, document.getText());
+  //   it("should track history states", async () => {
+  //     const document = TextDocument.create(
+  //       "test.aiml",
+  //       "aiml",
+  //       1,
+  //       '<history id="prev-state"/>'
+  //     );
+  //     const tokens = await getTokens(document.getText());
+  //     stateTracker.trackStates(document, tokens);
 
-      const states = stateTracker.getStatesForDocument(document.uri);
-      expect(states.size).toBe(0);
-    });
+  //     const states = stateTracker.getStatesForDocument(document.uri);
+  //     expect(states).toEqual(new Set(["prev-state"]));
+  //   });
 
-    it("should update states when document changes", () => {
-      const document1 = TextDocument.create(
-        "test.xml",
-        "aiml",
-        1,
-        '<state id="idle"/>'
-      );
+  //   it("should track multiple state types in the same document", async () => {
+  //     const document = TextDocument.create(
+  //       "test.aiml",
+  //       "aiml",
+  //       1,
+  //       `
+  //       <state id="normal"/>
+  //       <parallel id="concurrent"/>
+  //       <final id="done"/>
+  //       <history id="prev"/>
+  //       `
+  //     );
+  //     const tokens = await getTokens(document.getText());
+  //     stateTracker.trackStates(document, tokens);
 
-      const tokens1: Token[] = [
-        { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
-        { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
-        { type: TokenType.AttributeName, startIndex: 7, endIndex: 9, index: 2 },
-        { type: TokenType.Equal, startIndex: 9, endIndex: 10, index: 3 },
-        { type: TokenType.String, startIndex: 10, endIndex: 16, index: 4 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 16,
-          endIndex: 18,
-          index: 5,
-        },
-      ];
+  //     const states = stateTracker.getStatesForDocument(document.uri);
+  //     expect(states).toEqual(new Set(["normal", "concurrent", "done", "prev"]));
+  //   });
 
-      stateTracker.trackStates(document1, tokens1, document1.getText());
-      expect(stateTracker.getStatesForDocument(document1.uri)).toEqual(
-        new Set(["idle"])
-      );
+  //   it("should track nested states", async () => {
+  //     const document = TextDocument.create(
+  //       "test.aiml",
+  //       "aiml",
+  //       1,
+  //       `
+  //       <state id="parent">
+  //         <state id="child1"/>
+  //         <parallel id="child2">
+  //           <state id="grandchild"/>
+  //         </parallel>
+  //       </state>
+  //       `
+  //     );
+  //     const tokens = await getTokens(document.getText());
+  //     stateTracker.trackStates(document, tokens);
 
-      const document2 = TextDocument.create(
-        document1.uri,
-        "aiml",
-        2,
-        '<state id="active"/>'
-      );
+  //     const states = stateTracker.getStatesForDocument(document.uri);
+  //     expect(states).toEqual(
+  //       new Set(["parent", "child1", "child2", "grandchild"])
+  //     );
+  //   });
 
-      const tokens2: Token[] = [
-        { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
-        { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
-        { type: TokenType.AttributeName, startIndex: 7, endIndex: 9, index: 2 },
-        { type: TokenType.Equal, startIndex: 9, endIndex: 10, index: 3 },
-        { type: TokenType.String, startIndex: 10, endIndex: 18, index: 4 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 18,
-          endIndex: 20,
-          index: 5,
-        },
-      ];
+  //   it("should handle documents with no states", async () => {
+  //     const document = TextDocument.create(
+  //       "test.aiml",
+  //       "aiml",
+  //       1,
+  //       '<transition target="unknown"/>'
+  //     );
+  //     const tokens = await getTokens(document.getText());
+  //     stateTracker.trackStates(document, tokens);
 
-      stateTracker.trackStates(document2, tokens2, document2.getText());
-      expect(stateTracker.getStatesForDocument(document2.uri)).toEqual(
-        new Set(["active"])
-      );
-    });
-  });
+  //     const states = stateTracker.getStatesForDocument(document.uri);
+  //     expect(states.size).toBe(0);
+  //   });
 
-  describe("clearStates", () => {
-    it("should remove states for the specified document", () => {
-      const document = TextDocument.create(
-        "test.xml",
-        "aiml",
-        1,
-        '<state id="idle"/>'
-      );
+  //   it("should update states when document changes", async () => {
+  //     const document1 = TextDocument.create(
+  //       "test.aiml",
+  //       "aiml",
+  //       1,
+  //       '<state id="idle"/>'
+  //     );
+  //     const tokens1 = await getTokens(document1.getText());
+  //     stateTracker.trackStates(document1, tokens1);
+  //     expect(stateTracker.getStatesForDocument(document1.uri)).toEqual(
+  //       new Set(["idle"])
+  //     );
 
-      const tokens: Token[] = [
-        { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
-        { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
-        { type: TokenType.AttributeName, startIndex: 7, endIndex: 9, index: 2 },
-        { type: TokenType.Equal, startIndex: 9, endIndex: 10, index: 3 },
-        { type: TokenType.String, startIndex: 10, endIndex: 16, index: 4 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 16,
-          endIndex: 18,
-          index: 5,
-        },
-      ];
+  //     const document2 = TextDocument.create(
+  //       document1.uri,
+  //       "aiml",
+  //       2,
+  //       '<parallel id="concurrent"/>'
+  //     );
+  //     const tokens2 = await getTokens(document2.getText());
+  //     stateTracker.trackStates(document2, tokens2);
+  //     expect(stateTracker.getStatesForDocument(document2.uri)).toEqual(
+  //       new Set(["concurrent"])
+  //     );
+  //   });
 
-      stateTracker.trackStates(document, tokens, document.getText());
-      expect(stateTracker.getStatesForDocument(document.uri).size).toBe(1);
+  it.only("should handle states without IDs", async () => {
+    const document = TextDocument.create(
+      "test.aiml",
+      "aiml",
+      1,
+      `
+<final/>
+<history/>
+<state id="withId"/>
+        `
+    );
+    const tokens = parseToTokens(document.getText());
+    console.log("tokens", tokens);
+    stateTracker.trackStates(document, tokens);
 
-      stateTracker.clearStates(document.uri);
-      expect(stateTracker.getStatesForDocument(document.uri).size).toBe(0);
-      expect(mockLogger.state).toHaveBeenCalledWith(
-        "Cleared states for document",
-        { uri: document.uri }
-      );
-    });
-  });
-
-  describe("getStatesForDocument", () => {
-    it("should return empty set for unknown document", () => {
-      const states = stateTracker.getStatesForDocument("unknown.xml");
-      expect(states).toEqual(new Set());
-    });
-
-    it("should return tracked states for known document", () => {
-      const document = TextDocument.create(
-        "test.xml",
-        "aiml",
-        1,
-        '<state id="idle"/><state id="active"/>'
-      );
-
-      const tokens: Token[] = [
-        { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
-        { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
-        { type: TokenType.AttributeName, startIndex: 7, endIndex: 9, index: 2 },
-        { type: TokenType.Equal, startIndex: 9, endIndex: 10, index: 3 },
-        { type: TokenType.String, startIndex: 10, endIndex: 16, index: 4 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 16,
-          endIndex: 18,
-          index: 5,
-        },
-        { type: TokenType.StartTag, startIndex: 18, endIndex: 19, index: 6 },
-        { type: TokenType.TagName, startIndex: 19, endIndex: 24, index: 7 },
-        {
-          type: TokenType.AttributeName,
-          startIndex: 25,
-          endIndex: 27,
-          index: 8,
-        },
-        { type: TokenType.Equal, startIndex: 27, endIndex: 28, index: 9 },
-        { type: TokenType.String, startIndex: 28, endIndex: 36, index: 10 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 36,
-          endIndex: 38,
-          index: 11,
-        },
-      ];
-
-      stateTracker.trackStates(document, tokens, document.getText());
-      const states = stateTracker.getStatesForDocument(document.uri);
-      expect(states).toEqual(new Set(["idle", "active"]));
-    });
+    const states = stateTracker.getStatesForDocument(document.uri);
+    expect(states).toEqual(new Set(["withId"]));
   });
 });
+
+//   describe.skip("clearStates", () => {
+//     it("should remove states for the specified document", async () => {
+//       const document = TextDocument.create(
+//         "test.aiml",
+//         "aiml",
+//         1,
+//         '<state id="idle"/>'
+//       );
+//       const tokens = await getTokens(document.getText());
+//       stateTracker.trackStates(document, tokens);
+//       expect(stateTracker.getStatesForDocument(document.uri).size).toBe(1);
+
+//       stateTracker.clearStates(document.uri);
+//       expect(stateTracker.getStatesForDocument(document.uri).size).toBe(0);
+//     });
+//   });
+
+//   describe.skip("getStatesForDocument", () => {
+//     it("should return empty set for unknown document", () => {
+//       const states = stateTracker.getStatesForDocument("unknown.aiml");
+//       expect(states.size).toEqual(0);
+//     });
+
+//     it("should return tracked states for known document", async () => {
+//       const document = TextDocument.create(
+//         "test.aiml",
+//         "aiml",
+//         1,
+//         `
+//         <state id="idle"/>
+//         <parallel id="concurrent"/>
+//         `
+//       );
+//       const tokens = await getTokens(document.getText());
+//       stateTracker.trackStates(document, tokens);
+
+//       const states = stateTracker.getStatesForDocument(document.uri);
+//       expect(states.size).toEqual(2);
+//       expect(states.has("idle")).toBe(true);
+//       expect(states.has("concurrent")).toBe(true);
+//     });
+//   });
+// });

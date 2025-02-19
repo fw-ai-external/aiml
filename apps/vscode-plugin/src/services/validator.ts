@@ -4,16 +4,13 @@ import {
   DiagnosticSeverity,
   Connection,
 } from "vscode-languageserver/node";
-import {
-  Token,
-  TokenType,
-  getOwnerAttributeName,
-  getOwnerTagName,
-} from "../token";
+
 import { allElementConfigs } from "@workflow/element-types";
 import { z } from "zod";
 import { DebugLogger } from "../utils/debug";
 import { StateTracker } from "./stateTracker";
+import { Token, TokenType } from "../acorn";
+import { getOwnerAttributeName, getOwnerTagName } from "../utils/token";
 
 export class DocumentValidator {
   private connection: Connection;
@@ -80,7 +77,10 @@ export class DocumentValidator {
     return stateIds;
   }
 
-  public validateDocument(document: TextDocument, tokens: Token[]): void {
+  public validateDocument(
+    document: TextDocument,
+    tokens: Token[]
+  ): Diagnostic[] {
     const text = document.getText();
     const diagnostics: Diagnostic[] = [];
 
@@ -91,7 +91,7 @@ export class DocumentValidator {
 
     // First pass: Find all state IDs
     const stateIds = this.findStateIds(document, tokens, text);
-    this.stateTracker.trackStates(document, tokens, text);
+    this.stateTracker.trackStates(document, tokens);
 
     // Second pass: Validate elements and attributes
     this.validateElements(document, tokens, text, diagnostics, stateIds);
@@ -103,6 +103,7 @@ export class DocumentValidator {
       diagnosticsCount: diagnostics.length,
       diagnostics: diagnostics.map((d) => d.message),
     });
+    return diagnostics;
   }
 
   private validateElements(

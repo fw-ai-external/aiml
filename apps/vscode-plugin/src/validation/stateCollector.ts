@@ -1,4 +1,4 @@
-import { TokenType, Token } from "../token";
+import { TokenType, Token } from "../acorn";
 import { ValidationContext, StateCollection } from "../validation/types";
 import { DebugLogger } from "../utils/debug";
 

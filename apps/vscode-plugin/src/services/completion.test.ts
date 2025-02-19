@@ -1,10 +1,10 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { CompletionProvider } from "./completion";
 import { StateTracker } from "./stateTracker";
-import { TokenType } from "../token";
 import { Connection, CompletionItemKind } from "vscode-languageserver";
 import { DebugLogger } from "../utils/debug";
 import { describe, expect, it, beforeEach, mock } from "bun:test";
+import { TokenType } from "../acorn";
 
 interface TokenResult {
   token:
@@ -88,7 +88,6 @@ const mockStateTracker = {
 };
 
 mock.module("../../token", () => ({
-  TokenType,
   buildActiveToken: mockBuildActiveToken,
 }));
 

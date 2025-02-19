@@ -1,16 +1,11 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { DocumentValidator } from "./validator";
 import { StateTracker } from "./stateTracker";
-import {
-  Token,
-  TokenType,
-  getOwnerAttributeName,
-  getOwnerTagName,
-} from "../token";
 import { Connection, DiagnosticSeverity } from "vscode-languageserver";
 import { DebugLogger } from "../utils/debug";
 import { describe, expect, it, beforeEach, jest, mock } from "bun:test";
 import { z } from "zod";
+import { parseToTokens, Token } from "../acorn";
 
 // Mock dependencies
 const mockConnection: Partial<Connection> = {
@@ -59,38 +54,7 @@ describe("DocumentValidator", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockStateTracker.getStatesForDocument.mockReturnValue(new Set());
-    mockStateTracker.trackStates.mockImplementation((doc, tokens, text) => {
-      // Simulate tracking states
-      const stateIds = new Set<string>();
-      for (let i = 0; i < tokens.length; i++) {
-        const token = tokens[i];
-        if (token.type === TokenType.String) {
-          const attrNameToken = getOwnerAttributeName(tokens, i);
-          const tagNameToken = getOwnerTagName(tokens, i);
 
-          if (attrNameToken && tagNameToken) {
-            const tagName = text.substring(
-              tagNameToken.startIndex,
-              tagNameToken.endIndex
-            );
-            const attrName = text.substring(
-              attrNameToken.startIndex,
-              attrNameToken.endIndex
-            );
-            const attrValue = text.substring(
-              token.startIndex + 1,
-              token.endIndex - 1
-            );
-
-            if (tagName === "state" && attrName === "id") {
-              stateIds.add(attrValue);
-            }
-          }
-        }
-      }
-      mockStateTracker.getStatesForDocument.mockReturnValue(stateIds);
-    });
     validator = new DocumentValidator(
       mockConnection as Connection,
       mockLogger as DebugLogger,
@@ -107,27 +71,7 @@ describe("DocumentValidator", () => {
         '<state id="idle" id="active"/>'
       );
 
-      const tokens: Token[] = [
-        { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
-        { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
-        { type: TokenType.AttributeName, startIndex: 7, endIndex: 9, index: 2 },
-        { type: TokenType.Equal, startIndex: 9, endIndex: 10, index: 3 },
-        { type: TokenType.String, startIndex: 10, endIndex: 16, index: 4 },
-        {
-          type: TokenType.AttributeName,
-          startIndex: 17,
-          endIndex: 19,
-          index: 5,
-        },
-        { type: TokenType.Equal, startIndex: 19, endIndex: 20, index: 6 },
-        { type: TokenType.String, startIndex: 20, endIndex: 28, index: 7 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 28,
-          endIndex: 30,
-          index: 8,
-        },
-      ];
+      const tokens: Token[] = parseToTokens(document.getText());
 
       validator.validateDocument(document, tokens);
 
@@ -142,7 +86,7 @@ describe("DocumentValidator", () => {
       });
     });
 
-    it("should validate transition target states", () => {
+    it("should validate transition target states", async () => {
       const document = TextDocument.create(
         "test.aiml",
         "aiml",
@@ -150,39 +94,11 @@ describe("DocumentValidator", () => {
         '<state id="idle"/><transition target="unknown"/>'
       );
 
-      const tokens: Token[] = [
-        // state element
-        { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
-        { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
-        { type: TokenType.AttributeName, startIndex: 7, endIndex: 9, index: 2 },
-        { type: TokenType.Equal, startIndex: 9, endIndex: 10, index: 3 },
-        { type: TokenType.String, startIndex: 10, endIndex: 16, index: 4 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 16,
-          endIndex: 18,
-          index: 5,
-        },
-        // transition element
-        { type: TokenType.StartTag, startIndex: 18, endIndex: 19, index: 6 },
-        { type: TokenType.TagName, startIndex: 19, endIndex: 29, index: 7 },
-        {
-          type: TokenType.AttributeName,
-          startIndex: 30,
-          endIndex: 36,
-          index: 8,
-        },
-        { type: TokenType.Equal, startIndex: 36, endIndex: 37, index: 9 },
-        { type: TokenType.String, startIndex: 37, endIndex: 46, index: 10 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 46,
-          endIndex: 48,
-          index: 11,
-        },
-      ];
+      const tokens = parseToTokens(document.getText());
 
-      validator.validateDocument(document, tokens);
+      const diagnostics = validator.validateDocument(document, tokens);
+
+      console.log(diagnostics);
 
       expect(mockConnection.sendDiagnostics).toHaveBeenCalledWith({
         uri: document.uri,
@@ -200,16 +116,7 @@ describe("DocumentValidator", () => {
     it("should validate required id attribute", () => {
       const document = TextDocument.create("test.xml", "aiml", 1, "<state/>");
 
-      const tokens: Token[] = [
-        { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
-        { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 6,
-          endIndex: 8,
-          index: 2,
-        },
-      ];
+      const tokens: Token[] = parseToTokens(document.getText());
 
       validator.validateDocument(document, tokens);
 
@@ -232,27 +139,7 @@ describe("DocumentValidator", () => {
         '<state id="idle" initial="running"/>'
       );
 
-      const tokens: Token[] = [
-        { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
-        { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
-        { type: TokenType.AttributeName, startIndex: 7, endIndex: 9, index: 2 },
-        { type: TokenType.Equal, startIndex: 9, endIndex: 10, index: 3 },
-        { type: TokenType.String, startIndex: 10, endIndex: 16, index: 4 },
-        {
-          type: TokenType.AttributeName,
-          startIndex: 17,
-          endIndex: 24,
-          index: 5,
-        },
-        { type: TokenType.Equal, startIndex: 24, endIndex: 25, index: 6 },
-        { type: TokenType.String, startIndex: 25, endIndex: 34, index: 7 },
-        {
-          type: TokenType.SimpleEndTag,
-          startIndex: 34,
-          endIndex: 36,
-          index: 8,
-        },
-      ];
+      const tokens: Token[] = parseToTokens(document.getText());
 
       validator.validateDocument(document, tokens);
 

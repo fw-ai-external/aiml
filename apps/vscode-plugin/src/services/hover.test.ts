@@ -1,9 +1,9 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { HoverProvider } from "./hover";
-import { TokenType } from "../token";
 import { Connection } from "vscode-languageserver";
 import { DebugLogger } from "../utils/debug";
 import { describe, expect, it, beforeEach, mock } from "bun:test";
+import { TokenType } from "../acorn";
 
 // Mock token utilities
 const mockBuildActiveToken = mock(() => ({
@@ -19,22 +19,6 @@ const mockBuildActiveToken = mock(() => ({
     { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
   ],
   index: 1,
-}));
-
-mock.module("../token", () => ({
-  TokenType,
-  buildActiveToken: mockBuildActiveToken,
-  getOwnerAttributeName: mock(() => null),
-  getOwnerTagName: mock(() => ({
-    type: TokenType.TagName,
-    startIndex: 1,
-    endIndex: 6,
-    index: 1,
-  })),
-  getTokens: mock(() => [
-    { type: TokenType.StartTag, startIndex: 0, endIndex: 1, index: 0 },
-    { type: TokenType.TagName, startIndex: 1, endIndex: 6, index: 1 },
-  ]),
 }));
 
 // Mock dependencies
@@ -55,34 +39,6 @@ const mockLogger: DebugLogger = {
   completion: mock(() => {}),
   state: mock(() => {}),
 };
-
-mock.module("../../token", () => ({
-  TokenType,
-  buildActiveToken: mockBuildActiveToken,
-  getOwnerAttributeName: mock(() => null),
-  getOwnerTagName: mock(() => ({
-    type: TokenType.TagName,
-    startIndex: 1,
-    endIndex: 6,
-    index: 1,
-  })),
-}));
-
-// Mock element configs
-mock.module("@workflow/element-types", () => ({
-  allElementConfigs: {
-    state: {
-      documentation: "State element documentation",
-      propsSchema: {
-        shape: {
-          id: {
-            constructor: { name: "ZodString" },
-          },
-        },
-      },
-    },
-  },
-}));
 
 describe("HoverProvider", () => {
   let provider: HoverProvider;
@@ -117,7 +73,6 @@ describe("HoverProvider", () => {
 
       // Mock attribute token
       mock.module("../../token", () => ({
-        TokenType,
         buildActiveToken: mockBuildActiveToken,
         getOwnerAttributeName: mock(() => ({
           type: TokenType.AttributeName,
@@ -148,7 +103,6 @@ describe("HoverProvider", () => {
 
       // Mock no token
       mock.module("../../token", () => ({
-        TokenType,
         buildActiveToken: mock(() => ({
           token: undefined,
           prevToken: undefined,
@@ -182,7 +136,6 @@ describe("HoverProvider", () => {
 
       // Mock tag name token for unknown element
       mock.module("../../token", () => ({
-        TokenType,
         buildActiveToken: mockBuildActiveToken,
         getOwnerAttributeName: mock(() => null),
         getOwnerTagName: mock(() => ({
@@ -208,7 +161,6 @@ describe("HoverProvider", () => {
 
       // Mock error in buildActiveToken
       mock.module("../../token", () => ({
-        TokenType,
         buildActiveToken: mock(() => {
           throw new Error("Test error");
         }),
@@ -229,7 +181,6 @@ describe("HoverProvider", () => {
 
       // Mock unknown attribute
       mock.module("../../token", () => ({
-        TokenType,
         buildActiveToken: mockBuildActiveToken,
         getOwnerAttributeName: mock(() => ({
           type: TokenType.AttributeName,
