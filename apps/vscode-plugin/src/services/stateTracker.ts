@@ -1,6 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { DebugLogger } from "../utils/debug";
-import { Token, TokenType } from "../acorn";
+import { Token } from "../acorn";
 import { StateCollector } from "../validation/stateCollector";
 
 export class StateTracker {
@@ -16,34 +16,15 @@ export class StateTracker {
   }
 
   public trackStates(document: TextDocument, tokens: Token[]): void {
-    this.logger.state("Starting state tracking for document", {
-      uri: document.uri,
+    const { stateIds } = this.stateCollector.collect({
+      document,
       content: document.getText(),
+      tokens,
     });
-
-    const stateIds = new Set<string>();
-    // Log all attribute name tokens
-    tokens.forEach((token, index) => {
-      if (token.type === TokenType.AttributeName) {
-        this.logger.state("Found AttributeName token", {
-          text: token.text,
-          position: token.startIndex,
-          index,
-        });
-      }
-    });
-
     this.documentStateIds.set(document.uri, stateIds);
-    this.logger.state("Completed state tracking", {
-      uri: document.uri,
-      content: document.getText(),
-      stateCount: stateIds.size,
-      states: Array.from(stateIds),
-    });
   }
 
   public clearStates(uri: string): void {
     this.documentStateIds.delete(uri);
-    this.logger.state("Cleared states for document", { uri });
   }
 }

@@ -32,7 +32,7 @@ describe("StateTracker", () => {
         logs.push({ message, context });
         console.log("[StateTracker]", message, context);
       },
-    };
+    } as DebugLogger;
     stateTracker = new StateTracker(mockLogger as DebugLogger);
   });
 
@@ -42,7 +42,10 @@ describe("StateTracker", () => {
         "test.aiml",
         "aiml",
         1,
-        '<state id="idle"/><state id="active"/>'
+        `<>
+          <state id="idle"/>
+          <state id="active"/>
+        </>`
       );
       const tokens = parseToTokens(document.getText());
       stateTracker.trackStates(document, tokens);
@@ -56,7 +59,9 @@ describe("StateTracker", () => {
         "test.aiml",
         "aiml",
         1,
-        '<parallel id="concurrent"/>'
+        `<>
+          <parallel id="concurrent"/>
+        </>`
       );
       const tokens = parseToTokens(document.getText());
       stateTracker.trackStates(document, tokens);
@@ -70,7 +75,9 @@ describe("StateTracker", () => {
         "test.aiml",
         "aiml",
         1,
-        '<final id="completed"/>'
+        `<>
+          <final id="completed"/>
+        </>`
       );
       const tokens = parseToTokens(document.getText());
       stateTracker.trackStates(document, tokens);
@@ -84,7 +91,9 @@ describe("StateTracker", () => {
         "test.aiml",
         "aiml",
         1,
-        '<history id="prev-state"/>'
+        `<>
+          <history id="prev-state"/>
+        </>`
       );
       const tokens = parseToTokens(document.getText());
       stateTracker.trackStates(document, tokens);
@@ -98,12 +107,12 @@ describe("StateTracker", () => {
         "test.aiml",
         "aiml",
         1,
-        `
-        <state id="normal"/>
-        <parallel id="concurrent"/>
-        <final id="done"/>
-        <history id="prev"/>
-        `
+        `<>
+          <state id="normal"/>
+          <parallel id="concurrent"/>
+          <final id="done"/>
+          <history id="prev"/>
+        </>`
       );
       const tokens = parseToTokens(document.getText());
       stateTracker.trackStates(document, tokens);
@@ -117,14 +126,14 @@ describe("StateTracker", () => {
         "test.aiml",
         "aiml",
         1,
-        `
-        <state id="parent">
-          <state id="child1"/>
-          <parallel id="child2">
-            <state id="grandchild"/>
-          </parallel>
-        </state>
-        `
+        `<>
+          <state id="parent">
+            <state id="child1"/>
+            <parallel id="child2">
+              <state id="grandchild"/>
+            </parallel>
+          </state>
+        </>`
       );
       const tokens = parseToTokens(document.getText());
       stateTracker.trackStates(document, tokens);
@@ -140,7 +149,9 @@ describe("StateTracker", () => {
         "test.aiml",
         "aiml",
         1,
-        '<transition target="unknown"/>'
+        `<>
+          <transition target="unknown"/>
+        </>`
       );
       const tokens = parseToTokens(document.getText());
       stateTracker.trackStates(document, tokens);
@@ -154,7 +165,9 @@ describe("StateTracker", () => {
         "test.aiml",
         "aiml",
         1,
-        '<state id="idle"/>'
+        `<>
+          <state id="idle"/>
+        </>`
       );
       const tokens1 = parseToTokens(document1.getText());
       stateTracker.trackStates(document1, tokens1);
@@ -166,7 +179,9 @@ describe("StateTracker", () => {
         document1.uri,
         "aiml",
         2,
-        '<parallel id="concurrent"/>'
+        `<>
+          <parallel id="concurrent"/>
+        </>`
       );
       const tokens2 = parseToTokens(document2.getText());
       stateTracker.trackStates(document2, tokens2);
@@ -180,11 +195,11 @@ describe("StateTracker", () => {
         "test.aiml",
         "aiml",
         1,
-        `
-<final/>
-<history/>
-<state id="withId"/>
-        `
+        `<>
+          <final/>
+          <history/>
+          <state id="withId"/>
+        </>`
       );
       const tokens = parseToTokens(document.getText());
       console.log("tokens", tokens);
@@ -201,7 +216,9 @@ describe("StateTracker", () => {
         "test.aiml",
         "aiml",
         1,
-        '<state id="idle"/>'
+        `<>
+          <state id="idle"/>
+        </>`
       );
       const tokens = parseToTokens(document.getText());
       stateTracker.trackStates(document, tokens);
@@ -223,10 +240,10 @@ describe("StateTracker", () => {
         "test.aiml",
         "aiml",
         1,
-        `
-        <state id="idle"/>
-        <parallel id="concurrent"/>
-        `
+        `<>
+          <state id="idle"/>
+          <parallel id="concurrent"/>
+        </>`
       );
       const tokens = parseToTokens(document.getText());
       stateTracker.trackStates(document, tokens);

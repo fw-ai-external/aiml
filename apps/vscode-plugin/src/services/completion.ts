@@ -53,6 +53,9 @@ export class CompletionProvider {
 
       const offset = document.offsetAt(position);
       const tokens = parseToTokens(content);
+      if (tokens.length === 0) {
+        return { completions: [], type: "tag_name" };
+      }
       const tokenContext = buildActiveToken(tokens, offset);
 
       this.logger.completion("Getting completions", {
@@ -148,7 +151,7 @@ export class CompletionProvider {
     if (
       tokenContext.prevToken?.type === TokenType.Equal ||
       tokenContext.token?.type === TokenType.AttributeExpression ||
-      tokenContext.token?.type === TokenType.String
+      tokenContext.token?.type === TokenType.AttributeString
     ) {
       return false;
     }
@@ -181,7 +184,10 @@ export class CompletionProvider {
       return true;
     }
 
-    if (tokenContext.token?.type === TokenType.Name) {
+    if (
+      tokenContext.token?.type === TokenType.Name ||
+      tokenContext.token?.type === TokenType.AttributeName
+    ) {
       return true;
     }
 
@@ -222,7 +228,7 @@ export class CompletionProvider {
     // 2. We're in a JSX expression
     // 3. We just typed =
     const shouldProvide =
-      tokenContext.token?.type === TokenType.String ||
+      tokenContext.token?.type === TokenType.AttributeString ||
       tokenContext.token?.type === TokenType.AttributeExpression ||
       tokenContext.prevToken.type === TokenType.Equal;
 

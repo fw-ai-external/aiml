@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { parse, parseToTokens, TokenType } from "./acorn";
-import type { Node } from "acorn";
+import type { Node } from "typescript";
+import * as ts from "typescript";
 
 describe("acorn", () => {
   describe("parser", () => {
@@ -8,10 +9,9 @@ describe("acorn", () => {
       const code = "<div>Hello</div>";
       const ast = parse(code);
       expect(ast).toBeDefined();
-      expect(ast.type).toBe("Program");
-      const statement = ast.body[0] as Node & { expression: Node };
-      expect(statement.type).toBe("ExpressionStatement");
-      expect(statement.expression.type).toBe("JSXElement");
+      expect(ast.statements.length).toBe(1);
+      const statement = ast.statements[0] as Node;
+      expect(statement.kind).toBe(ts.SyntaxKind.ExpressionStatement);
     });
   });
 
@@ -186,6 +186,17 @@ describe("acorn", () => {
       ]);
     });
 
+    it("should handle attribute values (strings) with spaces", () => {
+      const tokens = parseToTokens(`<>
+      <state id="test"/>
+    </>`);
+
+      const attributeTokens = tokens
+        .filter((token) => token.type === TokenType.AttributeString)
+        .map((token) => token.text);
+      expect(attributeTokens).toEqual(["test"]);
+    });
+
     it("should handle attribute values (booleans)", () => {
       const tokens = parseToTokens(`
         <>
@@ -262,6 +273,7 @@ describe("acorn", () => {
         "() => input",
       ]);
     });
+
     it("should handle attribute values (Expressions)", () => {
       const tokens = parseToTokens(`
         <state value={1 + 2} />        

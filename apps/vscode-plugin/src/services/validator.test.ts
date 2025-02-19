@@ -18,7 +18,7 @@ const mockLogger: Partial<DebugLogger> = {
 
 const mockStateTracker = {
   trackStates: jest.fn(),
-  getStatesForDocument: jest.fn().mockReturnValue(new Set()),
+  getStatesForDocument: jest.fn().mockReturnValue(new Set(["idle"])),
 };
 
 // Mock element configs to match actual schema
@@ -86,19 +86,17 @@ describe("DocumentValidator", () => {
       });
     });
 
-    it("should validate transition target states", async () => {
+    it("should validate the document's transitions target states", async () => {
       const document = TextDocument.create(
         "test.aiml",
         "aiml",
         1,
-        '<state id="idle"/><transition target="unknown"/>'
+        '<root><state id="idle"/><transition target="unknown"/></root>'
       );
 
       const tokens = parseToTokens(document.getText());
 
-      const diagnostics = validator.validateDocument(document, tokens);
-
-      console.log(diagnostics);
+      validator.validateDocument(document, tokens);
 
       expect(mockConnection.sendDiagnostics).toHaveBeenCalledWith({
         uri: document.uri,

@@ -36,7 +36,7 @@ export class DocumentValidator {
 
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
-      if (token.type === TokenType.String) {
+      if (token.type === TokenType.AttributeString) {
         const attrNameToken = getOwnerAttributeName(tokens, i);
         const tagNameToken = getOwnerTagName(tokens, i);
 
@@ -172,7 +172,7 @@ export class DocumentValidator {
           }
           break;
 
-        case TokenType.String:
+        case TokenType.AttributeString:
           const attrNameToken = getOwnerAttributeName(tokens, i);
           const attrName = attrNameToken
             ? text.substring(attrNameToken.startIndex, attrNameToken.endIndex)
