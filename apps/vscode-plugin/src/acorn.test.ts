@@ -1,26 +1,13 @@
 import { describe, expect, it } from "bun:test";
-import { parse, parseToTokens, TokenType } from "./acorn";
-import type { Node } from "typescript";
-import * as ts from "typescript";
+import { parseToTokens, TokenType } from "./acorn";
 
 describe("acorn", () => {
-  describe("parser", () => {
-    it("should parse basic JSX", () => {
-      const code = "<div>Hello</div>";
-      const ast = parse(code);
-      expect(ast).toBeDefined();
-      expect(ast.statements.length).toBe(1);
-      const statement = ast.statements[0] as Node;
-      expect(statement.kind).toBe(ts.SyntaxKind.ExpressionStatement);
-    });
-  });
-
   describe("tokenizer", () => {
     it("should tokenize basic XML", () => {
       const code = "<div>Hello</div>";
       const tokens = parseToTokens(code);
 
-      expect(tokens).toHaveLength(7);
+      expect(tokens).toHaveLength(6);
       expect(tokens[0]).toEqual({
         index: 0,
         type: TokenType.StartTag,
@@ -235,6 +222,8 @@ describe("acorn", () => {
 
       `);
 
+      console.log("ddddd tokens", tokens);
+
       const attributeTokens = tokens
         .filter((token) => token.type === TokenType.AttributeArray)
         .map((token) => token.text);
@@ -261,6 +250,7 @@ describe("acorn", () => {
           <history value={() => input} />
         </>
       `);
+      console.log("345634535tokens", tokens);
 
       const attributeTokens = tokens
         .filter((token) => token.type === TokenType.AttributeFunction)
@@ -278,7 +268,6 @@ describe("acorn", () => {
       const tokens = parseToTokens(`
         <state value={1 + 2} />        
       `);
-
       const attributeTokens = tokens
         .filter((token) => token.type === TokenType.AttributeExpression)
         .map((token) => token.text);

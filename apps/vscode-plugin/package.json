@@ -58,6 +58,7 @@
     "remark-parse": "^11.0.0",
     "remark-retext": "^6.0.0",
     "retext-english": "^5.0.0",
+    "ts-morph": "^25.0.1",
     "unified": "^11.0.5",
     "unified-engine": "^11.2.2",
     "unist-util-lsp": "^2.1.0",
@@ -65,6 +66,7 @@
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",
+    "woodpile": "^0.0.6",
     "zod": "^3.24.2"
   },
   "devDependencies": {
