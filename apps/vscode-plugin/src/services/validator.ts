@@ -156,7 +156,7 @@ export class DocumentValidator {
 
         case TokenType.AttributeName:
           if (currentElementStart !== -1) {
-            const attrName = text.substring(token.startIndex, token.endIndex);
+            const attrName = token.text;
             this.logger.validation("Processing attribute", {
               tagName: currentTagName,
               attrName,
@@ -248,7 +248,7 @@ export class DocumentValidator {
     attributes: Map<string, Token>,
     diagnostics: Diagnostic[]
   ): void {
-    const attrName = text.substring(token.startIndex, token.endIndex);
+    const attrName = token.text;
 
     // Check for duplicate attributes
     if (attributes.has(attrName)) {

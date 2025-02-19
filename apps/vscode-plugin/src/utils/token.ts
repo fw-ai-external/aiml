@@ -50,19 +50,29 @@ export function getOwnerAttributeName(
   tokens: Array<Token>,
   index: number
 ): Token | null {
+  // First check if we're already on an attribute name
+  if (
+    index < tokens.length &&
+    (tokens[index].type === TokenType.AttributeName ||
+      tokens[index].type === TokenType.Name)
+  ) {
+    return tokens[index];
+  }
+
+  // Otherwise look backwards for the previous attribute name
   while (index >= 1) {
     let token = tokens[index];
     let prevToken = tokens[index - 1];
     if (
-      prevToken.type == TokenType.AttributeName ||
-      prevToken.type == TokenType.Name
+      prevToken.type === TokenType.AttributeName ||
+      prevToken.type === TokenType.Name
     ) {
       return prevToken;
     } else if (
-      prevToken.type == TokenType.StartTag ||
-      prevToken.type == TokenType.EndTag ||
-      prevToken.type == TokenType.StartEndTag ||
-      prevToken.type == TokenType.SimpleEndTag
+      prevToken.type === TokenType.StartTag ||
+      prevToken.type === TokenType.EndTag ||
+      prevToken.type === TokenType.StartEndTag ||
+      prevToken.type === TokenType.SimpleEndTag
     ) {
       break;
     }
@@ -176,4 +186,18 @@ export function buildActiveToken(
     all: tokens,
     index: activeToken?.index ?? tokens.length,
   };
+}
+
+export function getJSXExpressionValue(
+  tokens: Token[],
+  index: number
+): Token | null {
+  let depth = 0;
+  while (index >= 1) {
+    let token = tokens[index];
+    if (token.type == TokenType.SimpleEndTag) {
+      return null;
+    }
+  }
+  return null;
 }

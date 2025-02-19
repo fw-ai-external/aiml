@@ -47,37 +47,6 @@ describe("acorn", () => {
       });
     });
 
-    it("should tokenize attributes", () => {
-      const code = '<div class="test">';
-      const tokens = parseToTokens(code);
-
-      expect(tokens).toHaveLength(6);
-      expect(tokens[2]).toEqual({
-        index: 2,
-        type: TokenType.AttributeName,
-        startIndex: 5,
-        endIndex: 10,
-        raw: "class",
-        text: "class",
-      });
-      expect(tokens[3]).toEqual({
-        index: 3,
-        type: TokenType.Equal,
-        startIndex: 10,
-        endIndex: 11,
-        raw: "=",
-        text: "=",
-      });
-      expect(tokens[4]).toEqual({
-        index: 4,
-        type: TokenType.String,
-        startIndex: 11,
-        endIndex: 17,
-        raw: '"test"',
-        text: "test",
-      });
-    });
-
     it("should handle self-closing tags", () => {
       const code = "<input />";
       const tokens = parseToTokens(code);
@@ -118,12 +87,12 @@ describe("acorn", () => {
     });
 
     it("should handle JSX expressions in attributes", () => {
-      const code = "<div value={true}>";
+      const code = "<div value={true} />";
       const tokens = parseToTokens(code);
 
       expect(tokens[4]).toEqual({
         index: 4,
-        type: TokenType.AttributeValue,
+        type: TokenType.AttributeBoolean,
         startIndex: 11,
         endIndex: 17,
         raw: "{true}",
@@ -131,7 +100,22 @@ describe("acorn", () => {
       });
     });
 
-    it("should handle invalid XML", () => {
+    it("should handle JSX expressions in attributes and no closing tag", () => {
+      const code = "<div value={true}>";
+      const tokens = parseToTokens(code);
+
+      expect(tokens[0]).toEqual({
+        index: 0,
+        type: TokenType.Invalid,
+        startIndex: 0,
+        endIndex: code.length,
+        raw: code,
+        text: code,
+        error: expect.any(String),
+      });
+    });
+
+    it("should handle invalid syntax", () => {
       const code = "<div><span></div>";
       const tokens = parseToTokens(code);
 
@@ -144,6 +128,149 @@ describe("acorn", () => {
         text: code,
         error: expect.any(String),
       });
+    });
+
+    it("should handle multiple JSX elements as an error", () => {
+      const code = "<div /> <div />";
+      const tokens = parseToTokens(code);
+
+      expect(tokens[0]).toEqual({
+        index: 0,
+        type: TokenType.Invalid,
+        startIndex: 0,
+        endIndex: code.length,
+        raw: code,
+        text: code,
+        error: expect.any(String),
+      });
+    });
+
+    it("should handle attribute names", () => {
+      const tokens = parseToTokens(`
+        <>
+          <state id="normal"/>
+          <parallel id={'concurrent'}/>
+          <final id={"concurrent"}/>
+          <history id={\`prev\`}/>
+        </>
+        `);
+
+      const attributeTokens = tokens
+        .filter((token) => token.type === TokenType.AttributeName)
+        .map((token) => token.raw);
+      expect(attributeTokens).toEqual(["id", "id", "id", "id"]);
+    });
+
+    it("should handle attribute values (strings)", () => {
+      const tokens = parseToTokens(`
+        <>
+          <state id="normal"/>
+          <parallel id={'concurrent'}/>
+          <final id={"concurrent"}/>
+          <history id={\`prev\`}/>
+        </>
+        `);
+
+      const attributeTokens = tokens
+        .filter(
+          (token) =>
+            token.type === TokenType.AttributeString ||
+            token.type === TokenType.AttributeExpression
+        )
+        .map((token) => token.raw);
+      expect(attributeTokens).toEqual([
+        '"normal"',
+        "'concurrent'",
+        '"concurrent"',
+        '"prev"',
+      ]);
+    });
+
+    it("should handle attribute values (booleans)", () => {
+      const tokens = parseToTokens(`
+        <>
+          <state value={true}/>
+          <parallel value={false} />
+          <final value={true} />
+          <history value={false}/>
+        </>
+        `);
+
+      const attributeTokens = tokens
+        .filter(
+          (token) =>
+            token.type === TokenType.AttributeBoolean ||
+            token.type === TokenType.AttributeExpression
+        )
+        .map((token) => token.text);
+      expect(attributeTokens).toEqual(["true", "false", "true", "false"]);
+    });
+
+    it("should handle attribute values (objects)", () => {
+      const tokens = parseToTokens(`
+        <state value={{a: 1, b: 2}} />
+
+        `);
+
+      const attributeTokens = tokens
+        .filter((token) => token.type === TokenType.AttributeObject)
+        .map((token) => token.text);
+      expect(attributeTokens).toEqual(["{a: 1, b: 2}"]);
+    });
+
+    it("should handle attribute values (arrays)", () => {
+      const tokens = parseToTokens(`
+        <state value={[1, 2, 3]} />
+
+      `);
+
+      const attributeTokens = tokens
+        .filter((token) => token.type === TokenType.AttributeArray)
+        .map((token) => token.text);
+      expect(attributeTokens).toEqual(["[1, 2, 3]"]);
+    });
+
+    it("should handle attribute values (functions)", () => {
+      const tokens = parseToTokens(`
+        <>
+          <state value={() => {
+            return "hello";
+          }} />
+          <parallel value={() => {
+            return "delta";
+          }} />
+          <final value={((input) => {
+            return "hello" + input;
+          })} />
+          <history value={() => {
+            return (input) => {
+              return "hello" + input;
+            };
+          }} />
+          <history value={() => input} />
+        </>
+      `);
+
+      const attributeTokens = tokens
+        .filter((token) => token.type === TokenType.AttributeFunction)
+        .map((token) => token.text);
+      expect(attributeTokens).toEqual([
+        '() => {\n            return "hello";\n          }',
+        '() => {\n            return "delta";\n          }',
+        '((input) => {\n            return "hello" + input;\n          })',
+        '() => {\n            return (input) => {\n              return "hello" + input;\n            };\n          }',
+        "() => input",
+      ]);
+    });
+    it("should handle attribute values (Expressions)", () => {
+      const tokens = parseToTokens(`
+        <state value={1 + 2} />        
+      `);
+
+      const attributeTokens = tokens
+        .filter((token) => token.type === TokenType.AttributeExpression)
+        .map((token) => token.text);
+      expect(attributeTokens).toEqual(["1 + 2"]);
     });
   });
 });

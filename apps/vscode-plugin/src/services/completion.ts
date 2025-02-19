@@ -12,7 +12,6 @@ import {
   getOwnerTagName,
 } from "../utils/token";
 import { allElementConfigs } from "@workflow/element-types";
-import { z } from "zod";
 import { DebugLogger } from "../utils/debug";
 import { StateTracker } from "./stateTracker";
 import { parseToTokens, Token, TokenType } from "../acorn";
@@ -35,10 +34,24 @@ export class CompletionProvider {
   public getCompletions(
     document: TextDocument,
     position: Position
-  ): CompletionItem[] {
+  ): {
+    completions: CompletionItem[];
+    type: "attribute_value" | "attribute_name" | "tag_name" | "none";
+    context?: {
+      tagName?: string;
+      attributeName?: string;
+      parentTagName?: string;
+    };
+  } {
     try {
-      const offset = document.offsetAt(position);
       const content = document.getText();
+
+      // Return empty completions for empty documents
+      if (!content.trim()) {
+        return { completions: [], type: "tag_name" };
+      }
+
+      const offset = document.offsetAt(position);
       const tokens = parseToTokens(content);
       const tokenContext = buildActiveToken(tokens, offset);
 
@@ -50,75 +63,102 @@ export class CompletionProvider {
         },
       });
 
-      // Check completion context
-      if (this.shouldProvideElementCompletions(tokenContext)) {
-        this.logger.completion("Providing element completions");
-        return this.getElementCompletions();
-      }
-
       // Get the current tag name
       const tagNameToken = getOwnerTagName(
         tokens,
         tokenContext.token?.index ?? tokens.length - 1
       );
 
-      // If we have a tag name, check for attribute completions
-      if (tagNameToken) {
-        const tagName = content.substring(
-          tagNameToken.startIndex,
-          tagNameToken.endIndex
-        );
-
-        if (this.shouldProvideAttributeValueCompletions(tokenContext)) {
-          this.logger.completion("Providing attribute value completions");
-          return this.getAttributeValueCompletions(
+      // First check for attribute value completions
+      if (this.shouldProvideAttributeValueCompletions(tokenContext)) {
+        this.logger.completion("Providing attribute value completions");
+        if (tagNameToken) {
+          const tagName = tagNameToken.text;
+          const attributeValueCompletions = this.getAttributeValueCompletions(
             document,
             tagName,
             content,
             tokens,
             tokenContext.token?.index ?? tokens.length - 1
           );
+          const attrNameToken = getOwnerAttributeName(
+            tokens,
+            tokenContext.token?.index ?? tokens.length - 1
+          );
+          const attrName = attrNameToken?.text;
+          return {
+            completions: attributeValueCompletions,
+            type: "attribute_value",
+            context: {
+              tagName,
+              attributeName: attrName,
+            },
+          };
         }
-
-        if (this.shouldProvideAttributeCompletions(tokenContext)) {
-          this.logger.completion("Providing attribute completions", {
-            tagName,
-          });
-          return this.getAttributeCompletions(tagName);
-        }
+        return { completions: [], type: "attribute_value" };
       }
 
-      // If no tag name or not providing attribute completions, check for element completions
+      // Then check for attribute completions
+      if (
+        tagNameToken &&
+        this.shouldProvideAttributeCompletions(tokenContext)
+      ) {
+        const tagName = tagNameToken.text;
+        this.logger.completion("Providing attribute completions", {
+          tagName,
+        });
+        return {
+          completions: this.getAttributeCompletions(tagName),
+          type: "attribute_name",
+          context: {
+            tagName,
+          },
+        };
+      }
+
+      // Finally check for element completions
       if (this.shouldProvideElementCompletions(tokenContext)) {
         this.logger.completion("Providing element completions");
-        return this.getElementCompletions();
+        // Get parent tag name for element completions
+        const parentTagNameToken =
+          tokens.length > 1
+            ? getOwnerTagName(tokens, tokens.length - 2)
+            : undefined;
+        const parentTagName = parentTagNameToken?.text;
+
+        return {
+          completions: this.getElementCompletions(),
+          type: "tag_name",
+          context: {
+            parentTagName,
+          },
+        };
       }
 
-      return [];
+      // If we have no context or empty document, return empty completions with tag_name type
+      return { completions: [], type: "tag_name" };
     } catch (error) {
       this.logger.error("Error getting completions", error as Error);
-      return [];
+      return { completions: [], type: "tag_name" };
     }
   }
 
   private shouldProvideElementCompletions(tokenContext: IActiveToken): boolean {
-    if (!tokenContext.token) {
-      return true;
+    // Don't provide element completions if we're in an attribute value context
+    if (
+      tokenContext.prevToken?.type === TokenType.Equal ||
+      tokenContext.token?.type === TokenType.AttributeExpression ||
+      tokenContext.token?.type === TokenType.String
+    ) {
+      return false;
     }
 
-    if (tokenContext.token.type === TokenType.Name) {
-      return true;
-    }
-
-    if (tokenContext.prevToken) {
-      return (
-        tokenContext.prevToken.type === TokenType.StartTag ||
-        tokenContext.prevToken.type === TokenType.StartEndTag ||
-        tokenContext.prevToken.type === TokenType.None
-      );
-    }
-
-    return true;
+    // Provide element completions after < or </
+    return (
+      tokenContext.prevToken?.type === TokenType.StartTag ||
+      tokenContext.prevToken?.type === TokenType.StartEndTag ||
+      false
+    );
   }
 
   private getElementCompletions(): CompletionItem[] {
@@ -133,19 +173,16 @@ export class CompletionProvider {
   private shouldProvideAttributeCompletions(
     tokenContext: IActiveToken
   ): boolean {
-    if (tokenContext.prevToken) {
-      if (
-        tokenContext.prevToken.type === TokenType.TagName ||
-        tokenContext.prevToken.type === TokenType.Whitespace
-      ) {
-        this.logger.completion("Providing attribute name completions");
-
-        return true;
-      }
+    // Provide attribute completions after tag name or when inside an attribute name
+    if (
+      tokenContext.token?.type === TokenType.Whitespace &&
+      tokenContext.prevToken?.type === TokenType.TagName
+    ) {
+      return true;
     }
 
-    if (tokenContext.token) {
-      return tokenContext.token.type === TokenType.Name;
+    if (tokenContext.token?.type === TokenType.Name) {
+      return true;
     }
 
     return false;
@@ -180,17 +217,22 @@ export class CompletionProvider {
       return false;
     }
 
-    // Handle both standard = and JSX { cases
-    if (tokenContext.prevToken.type === TokenType.Equal) {
-      return true;
-    }
+    // We should provide completions if:
+    // 1. We're in a string attribute value
+    // 2. We're in a JSX expression
+    // 3. We just typed =
+    const shouldProvide =
+      tokenContext.token?.type === TokenType.String ||
+      tokenContext.token?.type === TokenType.AttributeExpression ||
+      tokenContext.prevToken.type === TokenType.Equal;
 
-    // For JSX style, check if we're right after the {
-    if (tokenContext.token?.type === TokenType.AttributeValue) {
-      return true;
-    }
+    this.logger.completion("Should provide attribute value completions", {
+      tokenType: tokenContext.token?.type,
+      prevTokenType: tokenContext.prevToken.type,
+      shouldProvide,
+    });
 
-    return false;
+    return shouldProvide;
   }
 
   private getAttributeValueCompletions(
@@ -200,27 +242,40 @@ export class CompletionProvider {
     tokens: Token[],
     currentIndex: number
   ): CompletionItem[] {
+    // For attribute values, we need to look back from the current token
     const attrNameToken = getOwnerAttributeName(tokens, currentIndex);
+    this.logger.completion("Looking for attribute name token", {
+      currentIndex,
+      attrNameToken,
+      tokens: tokens.map((t) => ({ type: t.type, text: t.text })),
+    });
     if (!attrNameToken) {
+      this.logger.completion("No attribute name token found", { currentIndex });
       return [];
     }
 
-    const attrName = content.substring(
-      attrNameToken.startIndex,
-      attrNameToken.endIndex
-    );
+    const attrName = attrNameToken.text;
 
     const elementConfig = allElementConfigs[tagName];
     if (!elementConfig) {
+      this.logger.completion("No element config found", { tagName });
       return [];
     }
 
     const schema = elementConfig.propsSchema.shape[attrName];
     if (!schema) {
+      this.logger.completion("No schema found", { attrName });
       return [];
     }
 
-    // Handle transition target attribute
+    this.logger.completion("Found schema", {
+      tagName,
+      attrName,
+      typeName: schema._def?.typeName,
+      values: schema._def?.values,
+    });
+
+    // Handle transition target attribute first
     if (tagName === "transition" && attrName === "target") {
       const stateIds = this.stateTracker.getStatesForDocument(document.uri);
       return Array.from(stateIds).map((id) => ({
@@ -231,7 +286,7 @@ export class CompletionProvider {
     }
 
     // For boolean attributes
-    if (schema instanceof z.ZodBoolean) {
+    if (schema._def?.typeName === "ZodBoolean") {
       return [
         { label: "true", kind: CompletionItemKind.Value },
         { label: "false", kind: CompletionItemKind.Value },
@@ -240,7 +295,8 @@ export class CompletionProvider {
 
     // For enum attributes
     if (schema._def?.typeName === "ZodEnum") {
-      return schema._def.values.map((value: string) => ({
+      const values = schema._def?.values || [];
+      return values.map((value: string) => ({
         label: value,
         kind: CompletionItemKind.Property,
         documentation: `Valid value for ${attrName}`,

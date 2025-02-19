@@ -2,20 +2,27 @@ import * as acorn from "acorn";
 import jsx from "acorn-jsx";
 
 export enum TokenType {
-  None,
-  Invalid,
-  Whitespace,
-  String, // "..."
-  Comment, // <!-- ... -->
-  Name, // any element or attribute name (for example, `svg`, `rect`, `width`)
-  TagName, // any element or attribute name (for example, `svg`, `rect`, `width`)
-  AttributeName, // any attribute name (for example, `id`, `class`, `style`)
-  AttributeValue, // any attribute value (for example, `"100"`, `"red"`, `"100px"`,`{true ? "yes" : "no"}`, `{false}`, `{100}`, or multiple lines of code between `{` and `}`)
-  StartTag, // <
-  SimpleEndTag, // />
-  EndTag, // >
-  StartEndTag, // </
-  Equal, // =
+  None = "None",
+  Invalid = "Invalid",
+  Whitespace = "Whitespace",
+  Heading = "Heading",
+  Paragraph = "Paragraph", // markdown paragraph as a child of a tag, or a standalone paragraph outside of a tag
+  Comment = "Comment", // <!-- ... -->
+  Name = "Name", // any element or attribute name (for example, `svg`, `rect`, `width`)
+  TagName = "TagName", // any element or attribute name (for example, `svg`, `rect`, `width`)
+  AttributeName = "AttributeName", // any attribute name (for example, `id`, `class`, `style`)
+  AttributeString = "AttributeString", // any attribute value (for example, `attribute="100"`, `attribute="red"`, `attribute="100px"`)
+  AttributeExpression = "AttributeExpression", // any attribute value (for example, `attribute={true ? "yes" : "no"}`, `attribute={false}`, `attribute={100}`,
+  AttributeBoolean = "AttributeBoolean", // `attribute={true}`, `attribute={false}`
+  AttributeNumber = "AttributeNumber", // `attribute={100}`
+  AttributeObject = "AttributeObject", // `attribute={{a: 1, b: 2}}`
+  AttributeArray = "AttributeArray", // `attribute={[1, 2, 3]}`
+  AttributeFunction = "AttributeFunction", // `attribute={() => {}}` or multiple lines of code between `{` and `}`)
+  StartTag = "StartTag", // <
+  SimpleEndTag = "SimpleEndTag", // />
+  EndTag = "EndTag", // >
+  StartEndTag = "StartEndTag", // </
+  Equal = "Equal", // =
 }
 
 export interface Token {
@@ -30,240 +37,343 @@ export interface Token {
 }
 
 export function parse(code: string): acorn.Program {
-  return acorn.Parser.extend(jsx()).parse(code, {
-    ecmaVersion: "latest",
-  });
+  // Handle incomplete JSX by adding a closing tag if needed
+
+  try {
+    return acorn.Parser.extend(jsx()).parse(code, {
+      ecmaVersion: "latest",
+      sourceType: "module",
+    });
+  } catch (error) {
+    // TODO: handle error
+    console.error(error);
+    throw error;
+  }
+}
+
+interface NodePosition {
+  start: number;
+  end: number;
+}
+
+interface JSXNamespacedName extends NodePosition {
+  type: "JSXNamespacedName";
+  namespace: { type: "JSXIdentifier"; name: string };
+  name: { type: "JSXIdentifier"; name: string };
+}
+
+interface JSXIdentifier extends NodePosition {
+  type: "JSXIdentifier";
+  name: string;
+}
+
+interface JSXAttribute extends NodePosition {
+  type: "JSXAttribute";
+  name: JSXIdentifier | JSXNamespacedName;
+  value: {
+    type: "JSXExpressionContainer" | "Literal";
+    start: number;
+    end: number;
+    expression?: NodePosition;
+    value?: string;
+  } | null;
+}
+
+interface JSXElement extends NodePosition {
+  type: "JSXElement";
+  openingElement: {
+    type: "JSXOpeningElement";
+    start: number;
+    end: number;
+    name: NodePosition;
+    attributes: JSXAttribute[];
+    selfClosing: boolean;
+  };
+  children: Array<
+    | JSXElement
+    | (NodePosition & { type: "JSXText"; value: string })
+    | (NodePosition & {
+        type: "JSXExpressionContainer";
+        expression: NodePosition;
+      })
+  >;
+  closingElement?: {
+    type: "JSXClosingElement";
+    start: number;
+    end: number;
+    name: NodePosition;
+  };
+}
+
+interface ExpressionStatement extends NodePosition {
+  type: "ExpressionStatement";
+  expression: JSXElement;
 }
 
 export function parseToTokens(code: string): Token[] {
   const tokens: Token[] = [];
   let index = 0;
-  let pos = 0;
+  const originalLength = code.length;
+
+  function addToken(
+    type: TokenType,
+    node: NodePosition,
+    raw?: string,
+    text?: string
+  ) {
+    // Only add tokens that are within the original code bounds
+    if (node.start < originalLength) {
+      tokens.push({
+        index: index++,
+        type,
+        startIndex: node.start,
+        endIndex: Math.min(node.end, originalLength),
+        raw: raw || code.slice(node.start, Math.min(node.end, originalLength)),
+        text:
+          text || code.slice(node.start, Math.min(node.end, originalLength)),
+      });
+    }
+  }
+
+  function processJSXElement(node: JSXElement) {
+    // Opening tag
+    addToken(
+      TokenType.StartTag,
+      {
+        start: node.openingElement.start,
+        end: node.openingElement.start + 1,
+      },
+      "<",
+      "<"
+    );
+
+    // Tag name
+    const nameNode = node.openingElement.name;
+    addToken(TokenType.TagName, nameNode);
+
+    // Attributes
+    let lastEnd = nameNode.end;
+    for (const attr of node.openingElement.attributes) {
+      if (attr.type === "JSXAttribute") {
+        // Add attribute name
+        const nameNode = attr.name;
+        const nameRaw =
+          nameNode.type === "JSXNamespacedName"
+            ? `${nameNode.namespace.name}:${nameNode.name.name}`
+            : nameNode.name;
+        addToken(TokenType.AttributeName, nameNode, nameRaw, nameRaw);
+
+        if (attr.value) {
+          // Add equals sign
+          addToken(
+            TokenType.Equal,
+            { start: attr.name.end, end: attr.name.end + 1 },
+            "=",
+            "="
+          );
+
+          if (
+            attr.value.type === "JSXExpressionContainer" &&
+            attr.value.expression
+          ) {
+            const expressionText = code
+              .slice(attr.value.expression.start, attr.value.expression.end)
+              .trim();
+            const raw = code.slice(attr.value.start, attr.value.end);
+
+            // Check for different types of expressions
+            if (expressionText.match(/^(['"`])(.*)\1$/)) {
+              // String literals
+              const content = expressionText.slice(1, -1);
+              const quote = expressionText[0];
+              addToken(
+                TokenType.AttributeString,
+                attr.value,
+                `${quote}${content}${quote}`,
+                content
+              );
+            } else if (
+              expressionText === "true" ||
+              expressionText === "false"
+            ) {
+              // Boolean literals
+              addToken(
+                TokenType.AttributeBoolean,
+                attr.value,
+                raw,
+                expressionText
+              );
+            } else if (
+              expressionText.startsWith("{") &&
+              expressionText.endsWith("}")
+            ) {
+              // Object literals
+              addToken(
+                TokenType.AttributeObject,
+                attr.value,
+                raw,
+                expressionText
+              );
+            } else if (
+              expressionText.startsWith("[") &&
+              expressionText.endsWith("]")
+            ) {
+              // Array literals
+              addToken(
+                TokenType.AttributeArray,
+                attr.value,
+                raw,
+                expressionText
+              );
+            } else if (
+              expressionText.includes("=>") ||
+              expressionText.startsWith("function")
+            ) {
+              // Function expressions
+              const expression = attr.value;
+
+              const raw = code.slice(expression.start, expression.end);
+              const expressionText = raw.slice(1, -1); // Remove curly braces
+
+              addToken(
+                TokenType.AttributeFunction,
+                attr.value,
+                raw,
+                expressionText
+              );
+            } else {
+              // Other expressions
+              addToken(
+                TokenType.AttributeExpression,
+                attr.value,
+                raw,
+                expressionText
+              );
+            }
+          } else if (attr.value.type === "Literal") {
+            const raw = code.slice(attr.value.start, attr.value.end);
+            const text = raw.slice(1, -1); // Remove quotes
+            addToken(TokenType.AttributeString, attr.value, raw, text);
+          }
+        }
+        lastEnd = attr.end;
+      }
+    }
+
+    // Check for whitespace before closing
+    const wsStart = lastEnd;
+    const wsEnd = node.openingElement.selfClosing
+      ? node.openingElement.end - 2
+      : node.openingElement.end - 1;
+    if (wsEnd > wsStart && wsEnd < originalLength) {
+      const ws = code.slice(wsStart, wsEnd);
+      if (/\s+/.test(ws)) {
+        addToken(TokenType.Whitespace, { start: wsStart, end: wsEnd }, ws, ws);
+      }
+    }
+
+    // Closing of opening tag
+    if (node.openingElement.selfClosing) {
+      if (node.openingElement.end <= originalLength) {
+        addToken(
+          TokenType.SimpleEndTag,
+          {
+            start: node.openingElement.end - 2,
+            end: node.openingElement.end,
+          },
+          "/>",
+          "/>"
+        );
+      }
+    } else {
+      if (node.openingElement.end <= originalLength) {
+        addToken(
+          TokenType.EndTag,
+          {
+            start: node.openingElement.end - 1,
+            end: node.openingElement.end,
+          },
+          ">",
+          ">"
+        );
+      }
+    }
+
+    // Only process children and closing tag if they're within original bounds
+    if (node.end <= originalLength) {
+      // Children
+      for (const child of node.children) {
+        if (child.type === "JSXElement") {
+          processJSXElement(child);
+        } else if (child.type === "JSXText") {
+          const text = child.value.trim();
+          if (text) {
+            addToken(TokenType.AttributeString, child, child.value, text);
+          }
+        } else if (child.type === "JSXExpressionContainer") {
+          addToken(TokenType.AttributeExpression, child);
+        }
+      }
+
+      // Closing tag if not self-closing
+      if (!node.openingElement.selfClosing && node.closingElement) {
+        addToken(
+          TokenType.StartEndTag,
+          {
+            start: node.closingElement.start,
+            end: node.closingElement.start + 2,
+          },
+          "</",
+          "</"
+        );
+        addToken(TokenType.TagName, node.closingElement.name);
+        addToken(
+          TokenType.EndTag,
+          {
+            start: node.closingElement.end - 1,
+            end: node.closingElement.end,
+          },
+          ">",
+          ">"
+        );
+      }
+    }
+  }
 
   try {
-    while (pos < code.length) {
-      let char = code[pos];
+    const ast = parse(code);
 
-      // Skip whitespace between tokens
-      if (/\s/.test(char)) {
-        while (pos < code.length && /\s/.test(code[pos])) pos++;
-        continue;
-      }
-
-      // Handle comments <!-- -->
-      if (char === "<" && code.slice(pos, pos + 4) === "<!--") {
-        const start = pos;
-        pos += 4;
-        while (pos < code.length && code.slice(pos - 3, pos) !== "-->") pos++;
-        tokens.push({
-          index: index++,
-          type: TokenType.Comment,
-          startIndex: start,
-          endIndex: pos,
-          raw: code.slice(start, pos),
-          text: code.slice(start + 4, pos - 3).trim(),
-        });
-        continue;
-      }
-
-      // Handle opening tags
-      if (char === "<") {
-        const start = pos;
-        pos++;
-
-        // Check for closing tag
-        if (code[pos] === "/") {
-          tokens.push({
-            index: index++,
-            type: TokenType.StartEndTag,
-            startIndex: start,
-            endIndex: pos + 1,
-            raw: "</",
-            text: "</",
-          });
-          pos++;
-        } else {
-          tokens.push({
-            index: index++,
-            type: TokenType.StartTag,
-            startIndex: start,
-            endIndex: pos,
-            raw: "<",
-            text: "<",
-          });
-        }
-
-        // Get tag name
-        const nameStart = pos;
-        while (pos < code.length && /[a-zA-Z0-9_-]/.test(code[pos])) pos++;
-        if (pos > nameStart) {
-          tokens.push({
-            index: index++,
-            type: TokenType.TagName,
-            startIndex: nameStart,
-            endIndex: pos,
-            raw: code.slice(nameStart, pos),
-            text: code.slice(nameStart, pos),
-          });
-        }
-
-        // Handle attributes
-        while (pos < code.length && code[pos] !== ">" && code[pos] !== "/") {
-          // Skip whitespace
-          while (pos < code.length && /\s/.test(code[pos])) pos++;
-          if (pos >= code.length || code[pos] === ">" || code[pos] === "/")
-            break;
-
-          // Get attribute name
-          const attrNameStart = pos;
-          while (pos < code.length && /[a-zA-Z0-9_-]/.test(code[pos])) pos++;
-          if (pos > attrNameStart) {
-            tokens.push({
-              index: index++,
-              type: TokenType.AttributeName,
-              startIndex: attrNameStart,
-              endIndex: pos,
-              raw: code.slice(attrNameStart, pos),
-              text: code.slice(attrNameStart, pos),
-            });
-
-            // Skip whitespace before =
-            while (pos < code.length && /\s/.test(code[pos])) pos++;
-
-            // Handle =
-            if (code[pos] === "=") {
-              tokens.push({
-                index: index++,
-                type: TokenType.Equal,
-                startIndex: pos,
-                endIndex: pos + 1,
-                raw: "=",
-                text: "=",
-              });
-              pos++;
-
-              // Skip whitespace after =
-              while (pos < code.length && /\s/.test(code[pos])) pos++;
-
-              // Handle attribute value
-              if (code[pos] === "{") {
-                // JSX expression
-                const exprStart = pos;
-                pos++; // Skip {
-                let braceCount = 1;
-                while (pos < code.length && braceCount > 0) {
-                  if (code[pos] === "{") braceCount++;
-                  if (code[pos] === "}") braceCount--;
-                  pos++;
-                }
-                tokens.push({
-                  index: index++,
-                  type: TokenType.AttributeValue,
-                  startIndex: exprStart,
-                  endIndex: pos,
-                  raw: code.slice(exprStart, pos),
-                  text: code.slice(exprStart + 1, pos - 1),
-                });
-              } else if (code[pos] === '"' || code[pos] === "'") {
-                // String literal
-                const quote = code[pos];
-                const valueStart = pos;
-                pos++; // Skip opening quote
-                while (pos < code.length && code[pos] !== quote) pos++;
-                pos++; // Skip closing quote
-                tokens.push({
-                  index: index++,
-                  type: TokenType.String,
-                  startIndex: valueStart,
-                  endIndex: pos,
-                  raw: code.slice(valueStart, pos),
-                  text: code.slice(valueStart + 1, pos - 1),
-                });
-              }
+    // Process the AST
+    for (const node of ast.body) {
+      if (
+        node.type === "ExpressionStatement" &&
+        "expression" in node &&
+        ((node as any).expression.type === "JSXElement" ||
+          (node as any).expression.type === "JSXFragment")
+      ) {
+        const expr = (node as any).expression;
+        if (expr.type === "JSXElement") {
+          processJSXElement(expr);
+        } else if (expr.type === "JSXFragment") {
+          for (const child of expr.children) {
+            if (child.type === "JSXElement") {
+              processJSXElement(child);
             }
-          }
-        }
-
-        // Handle tag end
-        if (code[pos] === "/" && code[pos + 1] === ">") {
-          // Check for whitespace before />
-          const wsStart = pos - 1;
-          if (/\s/.test(code[wsStart])) {
-            tokens.push({
-              index: index++,
-              type: TokenType.Whitespace,
-              startIndex: wsStart,
-              endIndex: pos,
-              raw: code.slice(wsStart, pos),
-              text: code.slice(wsStart, pos),
-            });
-          }
-          tokens.push({
-            index: index++,
-            type: TokenType.SimpleEndTag,
-            startIndex: pos,
-            endIndex: pos + 2,
-            raw: "/>",
-            text: "/>",
-          });
-          pos += 2;
-        } else if (code[pos] === ">") {
-          tokens.push({
-            index: index++,
-            type: TokenType.EndTag,
-            startIndex: pos,
-            endIndex: pos + 1,
-            raw: ">",
-            text: ">",
-          });
-          pos++;
-        }
-      } else {
-        // Handle text content
-        const textStart = pos;
-        while (pos < code.length && code[pos] !== "<") pos++;
-        if (pos > textStart) {
-          const rawText = code.slice(textStart, pos);
-          const trimmedText = rawText.trim();
-          if (trimmedText) {
-            tokens.push({
-              index: index++,
-              type: TokenType.String,
-              startIndex: textStart,
-              endIndex: pos,
-              raw: rawText,
-              text: trimmedText,
-            });
           }
         }
       }
     }
-    // Validate XML structure
-    let tagStack = [];
+
+    // Post-process tokens to fix raw values
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
-      if (token.type === TokenType.StartTag) {
-        if (i + 1 < tokens.length && tokens[i + 1].type === TokenType.TagName) {
-          tagStack.push(tokens[i + 1].text);
-        }
-      } else if (token.type === TokenType.StartEndTag) {
-        if (i + 1 < tokens.length && tokens[i + 1].type === TokenType.TagName) {
-          const closingTag = tokens[i + 1].text;
-          const lastOpenTag = tagStack.pop();
-          if (lastOpenTag !== closingTag) {
-            return [
-              {
-                index: 0,
-                type: TokenType.Invalid,
-                startIndex: 0,
-                endIndex: code.length,
-                raw: code,
-                text: code,
-                error: `Mismatched tags: expected </${lastOpenTag}> but found </${closingTag}>`,
-              },
-            ];
-          }
-        }
+      if (token.type === TokenType.AttributeString) {
+        // Fix string literals to include quotes
+        const quote = token.raw.startsWith("'") ? "'" : '"';
+        token.raw = `${quote}${token.text}${quote}`;
+      } else if (token.type === TokenType.AttributeBoolean) {
+        // Fix boolean literals to not include braces
+        token.text = token.text.replace(/[{}]/g, "");
       }
     }
 

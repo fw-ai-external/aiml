@@ -322,7 +322,7 @@ describe("SCXML Language Server", () => {
     });
 
     it("validates string values", async () => {
-      const content = '<state initial="123" />';
+      const content = "<state initial={123} />";
       const diagnostics = await validateDocument(content);
 
       expect(diagnostics.length).toBe(1);
