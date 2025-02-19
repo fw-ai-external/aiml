@@ -1,10 +1,4 @@
-import {
-  Project,
-  Node,
-  SyntaxKind,
-  JsxElement,
-  JsxOpeningElement,
-} from "ts-morph";
+import { Project, Node, SyntaxKind } from "ts-morph";
 
 export enum TokenType {
   None = "None",
@@ -42,10 +36,23 @@ export interface Token {
 }
 
 export function parseToTokens(code: string): Token[] {
-  const project = new Project();
-  const sourceFile = project.createSourceFile("temp.tsx", `<>${code}</>`);
+  const project = new Project({
+    compilerOptions: {
+      jsx: 4, // Preserve JSX
+    },
+  });
+  const wrappedCode = `declare namespace JSX {
+    interface IntrinsicElements {
+      [elemName: string]: any;
+    }
+  }
+  const element = ${code.trim()};`;
+  const sourceFile = project.createSourceFile("temp.tsx", wrappedCode);
   const tokens: Token[] = [];
   let index = 0;
+
+  // Calculate offset from the wrapper
+  const fragmentOffset = wrappedCode.indexOf(code.trim());
 
   function addToken(
     type: TokenType,
@@ -54,40 +61,32 @@ export function parseToTokens(code: string): Token[] {
     raw: string,
     text: string
   ) {
-    console.log("adding token", type, raw, text);
     tokens.push({
       index: index++,
       type,
-      startIndex: start,
-      endIndex: end,
+      startIndex: start - fragmentOffset,
+      endIndex: end - fragmentOffset,
       raw,
       text,
     });
   }
 
-  function processJsxElement(element: JsxElement) {
-    // Handle JSX fragments
-    if (
-      element.getKindName() === "JsxOpeningFragment" ||
-      element.getKindName() === "JsxClosingFragment"
-    ) {
-      return;
-    }
-    if (element.getKindName() === "SyntaxList") {
-      element.getChildren().forEach((child) => {
-        if (Node.isJsxElement(child) || Node.isJsxSelfClosingElement(child)) {
-          processJsxElement(child as JsxElement);
-        }
-      });
+  function processJsxElement(element: Node) {
+    if (!Node.isJsxElement(element) && !Node.isJsxSelfClosingElement(element)) {
       return;
     }
 
     const openingElement = Node.isJsxSelfClosingElement(element)
       ? element
-      : element.getOpeningElement();
-    const tagName = Node.isJsxSelfClosingElement(element)
-      ? element.getTagNameNode()
-      : (openingElement as JsxOpeningElement).getTagNameNode();
+      : Node.isJsxElement(element)
+        ? element.getOpeningElement()
+        : null;
+
+    if (!openingElement) {
+      return;
+    }
+
+    const tagName = openingElement.getTagNameNode();
 
     // Opening tag
     addToken(
@@ -146,7 +145,6 @@ export function parseToTokens(code: string): Token[] {
 
           if (Node.isStringLiteral(initializer)) {
             const value = initializer.getText();
-            // Keep quotes in raw value but remove from text
             addToken(
               TokenType.AttributeString,
               initializer.getStart(),
@@ -159,11 +157,35 @@ export function parseToTokens(code: string): Token[] {
             if (expression) {
               const expressionText = expression.getText();
               const raw = initializer.getText();
-              const kindName = expression.getKindName();
 
-              if (kindName === "TrueKeyword" || kindName === "FalseKeyword") {
+              if (
+                expression.getKindName() === "TrueKeyword" ||
+                expression.getKindName() === "FalseKeyword"
+              ) {
                 addToken(
                   TokenType.AttributeBoolean,
+                  initializer.getStart(),
+                  initializer.getEnd(),
+                  raw,
+                  expressionText
+                );
+              } else if (
+                Node.isParenthesizedExpression(expression) &&
+                Node.isArrowFunction(expression.getExpression())
+              ) {
+                addToken(
+                  TokenType.AttributeFunction,
+                  initializer.getStart(),
+                  initializer.getEnd(),
+                  raw,
+                  expression.getExpression().getText()
+                );
+              } else if (
+                Node.isArrowFunction(expression) ||
+                Node.isFunctionExpression(expression)
+              ) {
+                addToken(
+                  TokenType.AttributeFunction,
                   initializer.getStart(),
                   initializer.getEnd(),
                   raw,
@@ -180,17 +202,6 @@ export function parseToTokens(code: string): Token[] {
               } else if (Node.isArrayLiteralExpression(expression)) {
                 addToken(
                   TokenType.AttributeArray,
-                  initializer.getStart(),
-                  initializer.getEnd(),
-                  raw,
-                  expressionText
-                );
-              } else if (
-                Node.isArrowFunction(expression) ||
-                Node.isFunctionExpression(expression)
-              ) {
-                addToken(
-                  TokenType.AttributeFunction,
                   initializer.getStart(),
                   initializer.getEnd(),
                   raw,
@@ -241,98 +252,128 @@ export function parseToTokens(code: string): Token[] {
         ">",
         ">"
       );
-    }
 
-    // Process children
-    for (const child of element.getChildren()) {
-      if (Node.isJsxElement(child)) {
-        processJsxElement(child);
-      } else if (Node.isJsxText(child)) {
-        const text = child.getText();
-        const trimmed = text.trim();
-        if (trimmed) {
-          addToken(
-            TokenType.AttributeString,
-            child.getStart(),
-            child.getEnd(),
-            text,
-            trimmed
-          );
-        } else if (text.includes("\n") || text.includes(" ")) {
-          addToken(
-            TokenType.Whitespace,
-            child.getStart(),
-            child.getEnd(),
-            text,
-            text
-          );
+      // Process children
+      if (Node.isJsxElement(element)) {
+        const children = element.getJsxChildren();
+        for (const child of children) {
+          if (Node.isJsxElement(child)) {
+            processJsxElement(child);
+          } else if (Node.isJsxText(child)) {
+            const text = child.getText();
+            const trimmed = text.trim();
+            if (trimmed) {
+              addToken(
+                TokenType.AttributeString,
+                child.getStart(),
+                child.getEnd(),
+                trimmed,
+                trimmed
+              );
+            }
+          } else if (Node.isJsxExpression(child)) {
+            const expression = child.getExpression();
+            if (expression) {
+              addToken(
+                TokenType.AttributeExpression,
+                child.getStart(),
+                child.getEnd(),
+                child.getText(),
+                expression.getText()
+              );
+            }
+          }
         }
-      } else if (Node.isJsxExpression(child)) {
+
+        // Closing tag
+        const closingElement = element.getClosingElement();
+        if (!closingElement) {
+          throw new Error("Invalid JSX: Missing closing tag");
+        }
+
         addToken(
-          TokenType.AttributeExpression,
-          child.getStart(),
-          child.getEnd(),
-          child.getText(),
-          child.getText()
+          TokenType.StartEndTag,
+          closingElement.getStart(),
+          closingElement.getStart() + 2,
+          "</",
+          "</"
+        );
+
+        const closingTagName = closingElement.getTagNameNode();
+        if (closingTagName.getText() !== tagName.getText()) {
+          throw new Error("Invalid JSX: Mismatched closing tag");
+        }
+
+        addToken(
+          TokenType.TagName,
+          closingTagName.getStart(),
+          closingTagName.getEnd(),
+          closingTagName.getText(),
+          closingTagName.getText()
+        );
+
+        addToken(
+          TokenType.EndTag,
+          closingElement.getEnd() - 1,
+          closingElement.getEnd(),
+          ">",
+          ">"
         );
       }
-    }
-
-    if (Node.isJsxSelfClosingElement(element)) {
-      return;
-    }
-    // Closing tag
-    const closingElement = element.getClosingElement();
-    if (closingElement) {
-      addToken(
-        TokenType.StartEndTag,
-        closingElement.getStart(),
-        closingElement.getStart() + 2,
-        "</",
-        "</"
-      );
-
-      const closingTagName = closingElement.getTagNameNode();
-      addToken(
-        TokenType.TagName,
-        closingTagName.getStart(),
-        closingTagName.getEnd(),
-        closingTagName.getText(),
-        closingTagName.getText()
-      );
-
-      addToken(
-        TokenType.EndTag,
-        closingElement.getEnd() - 1,
-        closingElement.getEnd(),
-        ">",
-        ">"
-      );
     }
   }
 
   try {
-    const jsxFragment = sourceFile.getDescendantsOfKind(
-      SyntaxKind.JsxFragment
-    )[0];
-    if (!jsxFragment) {
-      throw new Error("Invalid JSX: No root element found");
-    }
-
-    const children = jsxFragment.getChildren();
-    const jsxElements = children.filter(
-      (child) => Node.isJsxElement(child) || Node.isJsxSelfClosingElement(child)
+    const varDecl = sourceFile.getFirstDescendantByKind(
+      SyntaxKind.VariableDeclaration
     );
-
-    if (jsxElements.length === 0) {
-      throw new Error("Invalid JSX: No elements found");
+    if (!varDecl) {
+      throw new Error("Invalid JSX: No content found");
     }
 
-    if (jsxElements.length > 1) {
-      throw new Error("Invalid JSX: Multiple root elements are not allowed");
+    const jsxFragment = varDecl.getFirstDescendantByKind(
+      SyntaxKind.JsxFragment
+    );
+    if (jsxFragment) {
+      // Handle JSX fragment case
+      const elements = jsxFragment.getDescendantsOfKind(SyntaxKind.JsxElement);
+      const selfClosing = jsxFragment.getDescendantsOfKind(
+        SyntaxKind.JsxSelfClosingElement
+      );
+
+      for (const element of elements) {
+        processJsxElement(element);
+      }
+      for (const element of selfClosing) {
+        processJsxElement(element);
+      }
+    } else {
+      // Handle regular JSX element case
+      const jsxElements = varDecl
+        .getDescendantsOfKind(SyntaxKind.JsxElement)
+        .filter(
+          (el) => el.getParentIfKind(SyntaxKind.JsxElement) === undefined
+        );
+
+      const jsxSelfClosing = varDecl
+        .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
+        .filter(
+          (el) => el.getParentIfKind(SyntaxKind.JsxElement) === undefined
+        );
+
+      const rootElements = [...jsxElements, ...jsxSelfClosing];
+
+      if (rootElements.length === 0) {
+        throw new Error("Invalid JSX: No elements found");
+      }
+
+      if (rootElements.length > 1) {
+        throw new Error("Invalid JSX: Multiple root elements are not allowed");
+      }
+
+      processJsxElement(rootElements[0]);
     }
 
-    processJsxElement(jsxElements[0] as JsxElement);
     return tokens;
   } catch (error) {
     return [
