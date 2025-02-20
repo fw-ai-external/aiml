@@ -250,7 +250,6 @@ describe("acorn", () => {
           <history value={() => input} />
         </>
       `);
-      console.log("345634535tokens", tokens);
 
       const attributeTokens = tokens
         .filter((token) => token.type === TokenType.AttributeFunction)

@@ -1,0 +1,22 @@
+{/* You can import other prompt files */}
+import CustomState from "./CustomState";
+
+# This is a text based prompt (it is optional)
+
+You can write a prompt just like any other prompt you might send to an LLM.
+It will be executed in the context of the state. If you use it,
+it will be executed before the first state, and its output passed to the first state.
+
+<CustomState initial />
+
+<state id="next">
+    <llm 
+        prompt="What is the capital of France?"
+    />
+    <script language="javascript">
+        state.set("next", "test");
+    </script>
+    <transition to="final" />
+</state>
+
+<final id="final" />

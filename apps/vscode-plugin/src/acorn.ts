@@ -61,9 +61,6 @@ export function parseToTokens(code: string): Token[] {
     raw: string,
     text: string
   ) {
-    if (code.trim() === "<div>Hello</div>") {
-      console.log("Adding token:", { type, raw, text });
-    }
     tokens.push({
       index: index++,
       type,
