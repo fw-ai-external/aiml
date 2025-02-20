@@ -5,7 +5,17 @@ import { DebugLogger } from "../utils/debug";
 import { Token, TokenType } from "../acorn";
 import { getOwnerAttributeName, getOwnerTagName } from "../utils/token";
 import { DotObject } from "../utils/object";
+import { BaseElement } from "@workflow/core";
 
+/**
+ * Validates the document for errors and warnings.
+ *
+ * This is a multi-pass validator that ensures that once convered to BaseElement, the workflow tree is valid.
+ * The issue here being that the workflow tree is not valid until it is built and the document might contain
+ * only partial syntax as the user is typing the spec.
+ *
+ *
+ */
 export class DocumentValidator {
   private connection: Connection;
   private logger: DebugLogger;
@@ -91,14 +101,24 @@ export class DocumentValidator {
     return diagnostics;
   }
 
+  healXML(document: TextDocument, tokens: Token[]): BaseElement {
+    //
+    const root = fromXML(document.getText());
+    return root;
+  }
+
+  documentToElementTree(document: TextDocument, tokens: Token[]): BaseElement {
+    //
+    const root = fromXML(document.getText());
+    return root;
+  }
+
   /**
    * Ensures that elements are only used as children where the parent has defined that it is a supported child element.
    * If issues are found, send a diagnostic to the user.
    */
   private validateElementChildren(
-    document: TextDocument,
-    tokens: Token[],
-    text: string,
+    elementTree: BaseElement,
     stateIds: Set<string>
   ) {}
 
@@ -108,9 +128,7 @@ export class DocumentValidator {
    * If issues are found, send a diagnostic to the user.
    */
   private validateElementAttributes(
-    document: TextDocument,
-    tokens: Token[],
-    text: string,
+    elementTree: BaseElement,
     stateIds: Set<string>
   ) {}
   /**
@@ -118,12 +136,7 @@ export class DocumentValidator {
    * If issues are found, send a diagnostic to the user.
    */
 
-  private validateStateIds(
-    document: TextDocument,
-    tokens: Token[],
-    text: string,
-    stateIds: Set<string>
-  ) {}
+  private validateStateIds(elementTree: BaseElement, stateIds: Set<string>) {}
 
   /**
    * Ensures that transition IDs are unique and that they are valid.
@@ -138,9 +151,7 @@ export class DocumentValidator {
    * If issues are found, send a diagnostic to the user.
    */
   private validateTransitionIds(
-    document: TextDocument,
-    tokens: Token[],
-    text: string,
+    elementTree: BaseElement,
     stateIds: Set<string>
   ) {}
 
@@ -149,9 +160,7 @@ export class DocumentValidator {
    * If issues are found, send a diagnostic to the user.
    */
   private validateForInfiniteLoops(
-    document: TextDocument,
-    tokens: Token[],
-    text: string,
+    elementTree: BaseElement,
     stateIds: Set<string>
   ) {}
 }
