@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { ErrorCode } from "../utils/errorCodes";
 import { ReplayableAsyncIterableStream } from "../utils/streams";
 import { StepValue } from "./StepValue";
-import { RunStepStreamEvent } from "../types";
+import { APIStreamEvent } from "../types";
 
 describe("new RunStepValue Class", () => {
   test("Take a string and return a value of string", async () => {
@@ -21,10 +21,10 @@ describe("new RunStepValue Class", () => {
       text: "test of the stream.",
     });
 
-    const result: RunStepStreamEvent[] = [];
+    const result: APIStreamEvent[] = [];
     const stream = await runStepInput.streamIterator();
     for await (const chunk of stream) {
-      result.push(chunk);
+      result.push(chunk as APIStreamEvent);
     }
     expect(result).toEqual([
       { type: "text-delta", delta: "test ", partial: "test " },
@@ -41,10 +41,10 @@ describe("new RunStepValue Class", () => {
       raw: JSON.stringify({ test: "test of the stream." }),
     });
 
-    const result = [];
+    const result: APIStreamEvent[] = [];
     const stream = await runStepInput.streamIterator();
     for await (const chunk of stream) {
-      result.push(chunk);
+      result.push(chunk as APIStreamEvent);
     }
     expect(result).toEqual([
       {
@@ -72,9 +72,9 @@ describe("new RunStepValue Class", () => {
 
     const runStepInput = new StepValue(mockAsyncIterable as any);
     const iterator = await runStepInput.streamIterator();
-    const result = [];
+    const result: APIStreamEvent[] = [];
     for await (const chunk of iterator) {
-      result.push(chunk);
+      result.push(chunk as APIStreamEvent);
     }
 
     expect(result.filter((chunk) => chunk.type === "error")).toEqual([
@@ -111,9 +111,9 @@ describe("new RunStepValue Class", () => {
 
     const runStepInput = new StepValue(mockAsyncIterable as any);
     const iterator = await runStepInput.streamIterator();
-    const result = [];
+    const result: APIStreamEvent[] = [];
     for await (const chunk of iterator) {
-      result.push(chunk);
+      result.push(chunk as APIStreamEvent);
     }
 
     expect(result).toEqual([
@@ -161,9 +161,9 @@ describe("new RunStepValue Class", () => {
 
     const runStepInput = new StepValue(mockAsyncIterable as any);
     const iterator = runStepInput.streamIterator();
-    const result = [];
+    const result: APIStreamEvent[] = [];
     for await (const chunk of iterator) {
-      result.push(chunk);
+      result.push(chunk as APIStreamEvent);
     }
 
     expect(result).toEqual([
@@ -226,9 +226,9 @@ describe("new RunStepValue Class", () => {
 
     const runStepInput = new StepValue(mockComplexAsyncIterable as any);
     const iterator = await runStepInput.streamIterator();
-    const result = [];
+    const result: APIStreamEvent[] = [];
     for await (const chunk of iterator) {
-      result.push(chunk);
+      result.push(chunk as APIStreamEvent);
     }
 
     expect(result.length).toBe(3);
@@ -315,10 +315,10 @@ describe("new RunStepValue Class", () => {
       text: "Here is my calculation: \\boxed{42}",
     });
 
-    const result = [];
+    const result: APIStreamEvent[] = [];
     const stream = await runStepInput.streamIterator();
     for await (const chunk of stream) {
-      result.push(chunk);
+      result.push(chunk as APIStreamEvent);
     }
 
     expect(result).toEqual([

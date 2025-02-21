@@ -1,15 +1,14 @@
-import { Step } from "@mastra/core";
 import { ElementExecutionContext } from "./ElementExecutionContext";
 import { StepValue } from "./StepValue";
 import type { RunstepOutput } from "../types";
 import { z } from "zod";
 import { BuildContext } from "./BuildContext";
 import { ExecutionGraphElement } from "./types";
-
 import type { SCXMLNodeType } from "@fireworks/element-types";
+import { ErrorCode } from "../utils/errorCodes";
 
 /** Represents a single SCXML element. */
-export type Component<P> = BaseElement; // (props: P, context: ComponentContext) => Renderable;
+export type Component<P> = BaseElement;
 
 /**
  * A Literal represents a literal value.
@@ -26,17 +25,79 @@ export type StepCondition = {
     context: ElementExecutionContext<any, RunstepOutput>
   ) => Promise<boolean>;
 };
-// | {
-//     when: {
-//       ref: { step: string; path: string };
-//       query: { $eq: any };
-//     };
-//   }
-// | {
-//     when: Record<string, any>;
-//   };
 
-export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
+// Define base schema types
+const BaseSchema = z.object({}).strict();
+
+export type ApiRequest = {
+  method: "POST" | "GET" | "PUT" | "DELETE";
+  url: string;
+  body?: Record<string, unknown>;
+  headers?: Record<string, string>;
+};
+
+export type ApiResponse = {
+  body: Record<string, unknown>;
+  headers: Record<string, string>;
+};
+
+export type BaseStepResult =
+  | {
+      type: "tool-result";
+      toolCallId: string;
+      toolName: string;
+      args: Record<string, unknown>;
+      result?: any;
+    }
+  | {
+      type: "tool-call";
+      toolCallId: string;
+      toolName: string;
+      args?: any;
+    }
+  | {
+      type: "text";
+      text: string;
+    }
+  | {
+      type: "object";
+      object: Record<string, unknown> | Record<string, unknown>[];
+      raw: string;
+      wasHealed?: boolean;
+    }
+  | {
+      type: "error";
+      code: ErrorCode;
+      error: string;
+      step?: string;
+    }
+  | {
+      type: "api-call";
+      apiName: string;
+      operationId: string;
+      request: ApiRequest;
+    }
+  | {
+      type: "api-call-result";
+      apiName: string;
+      operationId: string;
+      response: ApiResponse;
+    };
+
+export type StepResultItem = {
+  value: BaseStepResult;
+  name: string;
+  index: number;
+};
+
+export type StepResult =
+  | BaseStepResult
+  | {
+      type: "merged-results";
+      results: StepResultItem[];
+    };
+
+export class BaseElement {
   readonly elementType: SCXMLNodeType;
   readonly tag: string;
   readonly role: "state" | "action" | "user-input" | "error" | "output";
@@ -55,6 +116,8 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
   private stepConditions?: StepCondition;
   private _isActive: boolean = false;
   public readonly key: string;
+  public readonly id: string;
+
   constructor(config: {
     id: string;
     tag: string;
@@ -70,56 +133,16 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
     execute?: (
       ctx: ElementExecutionContext<any, RunstepOutput>,
       childrenNodes: BaseElement[]
-    ) => Promise<StepValue | null>;
+    ) => Promise<StepValue<StepResult>>;
     enter?: () => Promise<void>;
     exit?: () => Promise<void>;
     stepConditions?: StepCondition;
   }) {
-    super({
-      id: config.id,
-      inputSchema: z.object({}),
-      outputSchema: z.object({}),
-      execute: async (context) => {
-        const stepContext = new ElementExecutionContext<any, RunstepOutput>({
-          input: new StepValue({}),
-          datamodel: this._dataModel,
-          workflowInput: {
-            userMessage: "",
-            chatHistory: [],
-            clientSideTools: [],
-          },
-
-          attributes: this.attributes,
-          state: { id: config.id, attributes: {}, input: new StepValue({}) },
-          machine: { id: "workflow", secrets: { system: {}, user: {} } },
-          run: { id: "run" },
-        });
-
-        // Execute entry actions if becoming active
-        if (!this._isActive) {
-          this._isActive = true;
-          await this.enter?.();
-        }
-
-        // Execute main step logic
-        const result = await config.execute?.(stepContext, this.children);
-
-        // Update data model with step result
-        if (result) {
-          this._dataModel = {
-            ...this._dataModel,
-            [config.id]: result,
-          };
-        }
-
-        return result as any;
-      },
-    });
+    this.id = config.id;
     this.role = config.role;
     this.elementType = config.elementType;
     this.tag = config.tag;
     this.key = config.key;
-    this.role = config.role;
     this.attributes = config.attributes ?? {};
     this.parent = config.parent;
     this.children = config.children ?? [];
@@ -131,6 +154,48 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
     this.stepConditions = config.stepConditions;
   }
 
+  public async execute(
+    context: ElementExecutionContext<any, RunstepOutput>,
+    childrenNodes: BaseElement[] = []
+  ): Promise<StepValue<StepResult>> {
+    const stepContext = new ElementExecutionContext<any, RunstepOutput>({
+      input: new StepValue({}),
+      datamodel: this._dataModel,
+      workflowInput: {
+        userMessage: "",
+        chatHistory: [],
+        clientSideTools: [],
+      },
+      attributes: this.attributes,
+      state: { id: this.id, attributes: {}, input: new StepValue({}) },
+      machine: { id: "workflow", secrets: { system: {}, user: {} } },
+      run: { id: "run" },
+    });
+
+    // Execute entry actions if becoming active
+    if (!this._isActive) {
+      this._isActive = true;
+      await this.enter?.();
+    }
+
+    // Default result
+    const result = new StepValue<StepResult>({
+      type: "object",
+      object: {},
+      raw: "{}",
+      wasHealed: false,
+    });
+
+    if (result) {
+      this._dataModel = {
+        ...this._dataModel,
+        [this.id]: result,
+      };
+    }
+
+    return result;
+  }
+
   public async deactivate(): Promise<void> {
     if (this._isActive) {
       await this.exit?.();
@@ -138,25 +203,15 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
     }
   }
 
-  /**
-   * Get the default conditions that determine when this element's step should execute.
-   * Override this in an element type subclass such as ActionElement to set the default conditions
-   * for that element type.
-   */
   protected getDefaultStepConditions(): StepCondition | undefined {
     return undefined;
   }
 
-  /**
-   * Get the per element conditions that determine when this element's step should execute.
-   * for that element type.
-   */
   public getStepConditions(): StepCondition | undefined {
     return this.stepConditions ?? this.getDefaultStepConditions();
   }
 
   get dataModel(): Record<string, unknown> {
-    // TODO get the root data model, and also all the data models of the ancestors
     return this.getRootElement()._dataModel;
   }
 
@@ -164,23 +219,11 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
     this.getRootElement()._dataModel = value;
   }
 
-  // Base functionality for all SCXML elements
-  // TODO extract this to StepContext
   protected evaluateExpr(expr: string, context: unknown): unknown {
-    return new Function(
-      "context",
-      "_data",
-      `
-      with(_data) {
-        with(context) {
-          return ${expr};
-        }
-      }
-    `
-    )(context, this.dataModel);
+    const fnBody = `with(_data) { with(context) { return ${expr}; } }`;
+    return new Function("context", "_data", fnBody)(context, this.dataModel);
   }
 
-  // Helper methods
   protected getParentOfType<T extends BaseElement>(
     type: SCXMLNodeType
   ): T | undefined {
@@ -211,24 +254,17 @@ export class BaseElement extends Step<string, z.AnyZodObject, z.AnyZodObject> {
   }
 }
 
-/**
- * A Node represents an element of an exicution graph.
- */
 export type Node = BaseElement | Literal | Node[];
 
-/** @hidden */
-export type ElementPredicate = (e: BaseElement) => boolean;
+export type ElementPredicate = (node: Node) => boolean;
 
-/** @hidden */
 export type PropsOfComponent<T extends Component<any>> =
   T extends Component<infer P> ? P : never;
 
-/** @hidden */
 export function isElement(value: unknown): value is BaseElement {
   return value !== null && typeof value === "object" && "tag" in value;
 }
 
-/** @hidden */
 export function Fragment({ children }: { children: Node }): Node {
   return children;
 }

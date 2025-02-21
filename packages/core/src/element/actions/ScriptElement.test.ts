@@ -1,20 +1,19 @@
 import { describe, expect, it, beforeEach } from "bun:test";
 import { Script } from "./ScriptElement";
-import { StepContext } from "../../runtime/StepContext";
+import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 import { z } from "zod";
-import { BaseElement } from "../BaseElement";
+import { BaseElement } from "../../runtime/BaseElement";
 
 const scriptSchema = z.object({
   id: z.string().optional(),
   src: z.string().optional(),
-  content: z.string().optional(),
 });
 
 type ScriptProps = z.infer<typeof scriptSchema>;
 
 describe("ScriptElement", () => {
-  let ctx: StepContext<ScriptProps>;
+  let ctx: ElementExecutionContext<ScriptProps>;
   let root: BaseElement;
 
   beforeEach(() => {
@@ -22,9 +21,11 @@ describe("ScriptElement", () => {
       id: "root",
       elementType: "scxml",
       tag: "scxml",
+      role: "state",
+      key: "root",
     });
 
-    ctx = new StepContext({
+    ctx = new ElementExecutionContext({
       input: new StepValue({ type: "text", text: "" }),
       datamodel: {
         count: 42,
@@ -45,6 +46,7 @@ describe("ScriptElement", () => {
         id: "test",
         secrets: {
           system: {},
+          user: {},
         },
       },
       run: {
@@ -54,46 +56,43 @@ describe("ScriptElement", () => {
   });
 
   it("should create instance with correct properties", () => {
+    const scriptContent = "count = count + 1;";
     const element = Script.initFromAttributesAndNodes(
       {
         id: "script1",
-        content: "count = count + 1;",
       },
-      [],
+      [scriptContent],
       [root]
     );
 
     expect((element as BaseElement).elementType).toBe("script");
-    expect((element as BaseElement).attributes.content).toBe(
-      "count = count + 1;"
-    );
   });
 
   it("should execute script content", async () => {
+    const scriptContent = "count = count + 1;";
     const element = Script.initFromAttributesAndNodes(
       {
         id: "script1",
-        content: "count = count + 1;",
       },
-      [],
+      [scriptContent],
       [root]
     );
 
-    await (element as BaseElement).execute?.(ctx as any);
+    await (element as BaseElement).execute?.(ctx, [scriptContent]);
     expect(ctx.datamodel.count).toBe(43);
   });
 
   it("should execute script in context", async () => {
+    const scriptContent = "count = count * 2;";
     const element = Script.initFromAttributesAndNodes(
       {
         id: "script1",
-        content: "count = count * 2;",
       },
-      [],
+      [scriptContent],
       [root]
     );
 
-    await (element as BaseElement).execute?.(ctx as any);
+    await (element as BaseElement).execute?.(ctx, [scriptContent]);
     expect(ctx.datamodel.count).toBe(84);
   });
 
@@ -113,12 +112,15 @@ describe("ScriptElement", () => {
       [root]
     );
 
-    const result = await (element as BaseElement).execute?.(ctx as any);
+    const result = await (element as BaseElement).execute?.(ctx, []);
     const value = await result?.value();
     expect(value).toEqual({
       type: "object",
-      object: { src: "https://example.com/script.js" },
-      raw: JSON.stringify({ src: "https://example.com/script.js" }),
+      object: { src: "https://example.com/script.js", content: undefined },
+      raw: JSON.stringify({
+        src: "https://example.com/script.js",
+        content: undefined,
+      }),
     });
     expect(ctx.datamodel.count).toBe(42);
   });
@@ -127,42 +129,42 @@ describe("ScriptElement", () => {
     const element = Script.initFromAttributesAndNodes(
       {
         id: "script1",
-      } as any,
-      [],
-      [root]
-    );
-
-    await expect(
-      (element as BaseElement).execute?.(ctx as any)
-    ).rejects.toThrow("Script element requires either 'src' or inline content");
-  });
-
-  it("should execute script with access to data model", async () => {
-    const element = Script.initFromAttributesAndNodes(
-      {
-        id: "script1",
-        content: "ctx.datamodel.count = ctx.datamodel.count + 1;",
       },
       [],
       [root]
     );
 
-    await (element as BaseElement).execute?.(ctx as any);
+    await expect((element as BaseElement).execute?.(ctx, [])).rejects.toThrow(
+      "Script element requires either 'src' or inline content"
+    );
+  });
+
+  it("should execute script with access to data model", async () => {
+    const scriptContent = "ctx.datamodel.count = ctx.datamodel.count + 1;";
+    const element = Script.initFromAttributesAndNodes(
+      {
+        id: "script1",
+      },
+      [scriptContent],
+      [root]
+    );
+
+    await (element as BaseElement).execute?.(ctx, [scriptContent]);
     expect(ctx.datamodel.count).toBe(42);
   });
 
   it("should handle script execution errors", async () => {
+    const scriptContent = "invalidFunction();";
     const element = Script.initFromAttributesAndNodes(
       {
         id: "script1",
-        content: "invalidFunction();",
       },
-      [],
+      [scriptContent],
       [root]
     );
 
     await expect(
-      (element as BaseElement).execute?.(ctx as any)
+      (element as BaseElement).execute?.(ctx, [scriptContent])
     ).rejects.toThrow();
   });
 });

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import { StepValue } from "../../runtime/StepValue";
 import { LLM } from "./LLMElement";
-import { BaseElement } from "../BaseElement";
-import { StepContext } from "../../runtime/StepContext";
+import { BaseElement } from "../../runtime/BaseElement";
+import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
+import { v4 as uuidv4 } from "uuid";
 
-const stepContext = new StepContext({
+const stepContext = new ElementExecutionContext({
   input: new StepValue({}),
   datamodel: {},
   workflowInput: {
@@ -22,6 +23,7 @@ const stepContext = new StepContext({
   machine: { id: "workflow", secrets: { system: {}, user: {} } },
   run: { id: "run" },
 });
+
 describe("LLM Element", () => {
   it("should create an instance with correct properties", () => {
     const llm = LLM.initFromAttributesAndNodes(
@@ -32,7 +34,15 @@ describe("LLM Element", () => {
         prompt: "Hello!",
       },
       [],
-      []
+      [
+        new BaseElement({
+          id: "root",
+          elementType: "scxml",
+          tag: "scxml",
+          role: "state",
+          key: uuidv4(),
+        }),
+      ]
     );
 
     expect((llm as BaseElement).id).toBe("llm1");
@@ -51,10 +61,18 @@ describe("LLM Element", () => {
         prompt: "Hello!",
       },
       [],
-      []
+      [
+        new BaseElement({
+          id: "root",
+          elementType: "scxml",
+          tag: "scxml",
+          role: "state",
+          key: uuidv4(),
+        }),
+      ]
     );
 
-    const result = await (llm as BaseElement).execute(stepContext as any);
+    const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
     expect(result.value).toEqual({
@@ -72,10 +90,18 @@ describe("LLM Element", () => {
         prompt: "Hello!",
       },
       [],
-      []
+      [
+        new BaseElement({
+          id: "root",
+          elementType: "scxml",
+          tag: "scxml",
+          role: "state",
+          key: uuidv4(),
+        }),
+      ]
     );
 
-    const result = await (llm as BaseElement).execute(stepContext as any);
+    const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
     expect(result.value).toEqual({
@@ -93,7 +119,15 @@ describe("LLM Element", () => {
         includeChatHistory: true,
       },
       [],
-      []
+      [
+        new BaseElement({
+          id: "root",
+          elementType: "scxml",
+          tag: "scxml",
+          role: "state",
+          key: uuidv4(),
+        }),
+      ]
     );
 
     const chatHistory = [
@@ -101,7 +135,7 @@ describe("LLM Element", () => {
       { role: "assistant", content: "Previous response" },
     ];
 
-    const result = await (llm as BaseElement).execute(stepContext as any);
+    const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
     expect(result.value).toEqual({
@@ -125,10 +159,18 @@ describe("LLM Element", () => {
         prompt: "Hello!",
       },
       [],
-      []
+      [
+        new BaseElement({
+          id: "root",
+          elementType: "scxml",
+          tag: "scxml",
+          role: "state",
+          key: uuidv4(),
+        }),
+      ]
     );
 
-    const result = await (llm as BaseElement).execute(stepContext as any);
+    const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
     expect(result.value.type).toBe("error");
@@ -152,10 +194,18 @@ describe("LLM Element", () => {
         },
       },
       [],
-      []
+      [
+        new BaseElement({
+          id: "root",
+          elementType: "scxml",
+          tag: "scxml",
+          role: "state",
+          key: uuidv4(),
+        }),
+      ]
     );
 
-    const result = await (llm as BaseElement).execute(stepContext as any);
+    const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
     expect(result.value).toEqual({

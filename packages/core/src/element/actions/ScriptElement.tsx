@@ -7,12 +7,11 @@ export const Script = createElementDefinition<ScriptProps>({
   ...scriptConfig,
   role: "action",
   elementType: "script",
-  allowedChildren: "any",
-  async execute(ctx): Promise<StepValue> {
-    console.log("=-------------------- Script");
-    const { src, value } = ctx.attributes;
+  async execute(ctx, children): Promise<StepValue> {
+    const { src } = ctx.attributes;
+    const content = children[0]?.toString();
 
-    if (!src && !value) {
+    if (!src && !content) {
       throw new Error("Script element requires either 'src' or inline content");
     }
 
@@ -22,15 +21,15 @@ export const Script = createElementDefinition<ScriptProps>({
         const response = await fetch(src);
         const script = await response.text();
         await executeScript(script, ctx);
-      } else if (value) {
+      } else if (content) {
         // Execute inline script
-        await executeScript(value, ctx);
+        await executeScript(content, ctx);
       }
 
       return new StepValue({
         type: "object",
-        object: { src, value },
-        raw: JSON.stringify({ src, value }),
+        object: { src, content },
+        raw: JSON.stringify({ src, content }),
       });
     } catch (error) {
       console.error("Error executing script:", error);

@@ -9,7 +9,22 @@ import { type RunstepOutput, type Secrets } from "../types";
 import type { TagNodeDTO } from "../parser/types";
 import { ChatCompletionMessageToolCall } from "../types/openai/chat";
 
+interface StepContext<T extends RunstepOutput> {
+  input: StepValue<T>;
+  datamodel: Record<string, any>;
+  state: {
+    id: string;
+    attributes: Record<string, any>;
+    input: StepValue<T>;
+  };
+  stepResults: Record<string, any>;
+  triggerData: Record<string, any>;
+  attempts: Record<string, number>;
+  getStepPayload: () => any;
+}
+
 export type ElementExecutionContextSerialized = Record<string, any>;
+
 export class ElementExecutionContext<
   PropValues extends {},
   InputValue extends RunstepOutput = RunstepOutput,
@@ -42,6 +57,11 @@ export class ElementExecutionContext<
   run: {
     id: string;
   };
+
+  // Required by StepExecutionContext
+  runId: string;
+  context: StepContext<InputValue>;
+  suspend: () => Promise<void>;
 
   constructor(params: {
     input: StepValue<InputValue>;
@@ -76,6 +96,21 @@ export class ElementExecutionContext<
     this.run = params.run;
     this.attributes = params.attributes ?? ({} as PropValues);
     this.state = params.state;
+
+    // Initialize StepExecutionContext properties
+    this.runId = params.run.id;
+    this.context = {
+      input: params.input,
+      datamodel: params.datamodel,
+      state: params.state,
+      stepResults: {},
+      triggerData: {},
+      attempts: {},
+      getStepPayload: () => ({}),
+    };
+    this.suspend = async () => {
+      // Implementation for suspend
+    };
   }
 
   async serialize() {
@@ -89,6 +124,8 @@ export class ElementExecutionContext<
         attributes: this.state.attributes,
         input: await this.state.input.simpleValue(),
       },
+      runId: this.runId,
+      context: this.context,
     };
   }
 }

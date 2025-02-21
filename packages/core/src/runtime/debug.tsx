@@ -1,3 +1,4 @@
+import React from "react";
 import {
   BaseElement,
   ElementPredicate,
@@ -8,19 +9,19 @@ import {
 
 const debugRepresentationSymbol = Symbol("Workflow.JSX debug representation");
 
+export interface RenderContext {
+  render: (
+    node: Node,
+    options: {
+      stop: ElementPredicate;
+      map: (frame: Node) => string;
+    }
+  ) => AsyncGenerator<Node, Node, unknown>;
+  memo: (node: Node) => Node;
+}
+
 /**
  * Creates props that associate a debug representation with an element.
- *
- * Usage example:
- *
- * ```tsx
- * <InvisibleComponent {...debugRepresentation((e) => e.props.children)}>
- *   <Foo>1</Foo>
- * </InvisibleComponent>
- * ```
- *
- * When the `<InvisibleComponent>` would be displayed in a {@link DebugTree}, it will be replaced
- * with its children.
  */
 export function debugRepresentation(fn: (element: BaseElement) => unknown) {
   return {
@@ -35,6 +36,14 @@ function isEmptyJSXValue(x: unknown) {
     typeof x === "boolean" ||
     (Array.isArray(x) && x.length == 0)
   );
+}
+
+function getTagName(tag: unknown): string {
+  if (typeof tag === "function") {
+    if (tag === Fragment) return "";
+    return tag.name || "Anonymous";
+  }
+  return String(tag);
 }
 
 /**
@@ -66,6 +75,9 @@ export function debug(
     indent: string,
     context: "code" | "children" | "props"
   ): string {
+    if (value === undefined) {
+      return context === "props" ? "{undefined}" : "";
+    }
     if (typeof value === "string") {
       let jsonified = JSON.stringify(value);
       if (jsonified.length > maxStringLength) {
@@ -104,7 +116,6 @@ export function debug(
       }
 
       const childIndent = `${indent}  `;
-
       const expandChildrenForThisElement = expandJSXChildren;
 
       let children = "";
@@ -131,19 +142,16 @@ export function debug(
       }
 
       const propsString = results.join("");
+      const isFragmentComponent =
+        typeof value.tag === "function" && value.tag === Fragment;
+      const tagName = getTagName(value.tag);
 
-      const tag =
-        value.tag === Fragment && results.length == 0
-          ? ""
-          : typeof value.tag === "string"
-            ? value.tag
-            : value.tag.name;
       const child =
         children !== ""
-          ? `<${tag}${propsString}>\n${childIndent}${children}\n${indent}</${tag}>`
-          : value.tag !== Fragment
-            ? `<${tag}${propsString} />`
-            : "<></>";
+          ? `<${tagName}${propsString}>\n${childIndent}${children}\n${indent}</${tagName}>`
+          : isFragmentComponent
+            ? "<></>"
+            : `<${tagName}${propsString} />`;
 
       switch (context) {
         case "code":
@@ -206,39 +214,26 @@ export function debug(
 
 /**
  * Render a tree of JSX elements as a string, yielding each step of the rendering process.
- *
- * Most devs will not need to use this directly, and should use {@link showInspector} instead.
- *
- * @example
- * ```tsx
- *    <DebugTree>
- *      <MyComponent />
- *    </DebugTree>
- *
- * ==>
- *  Frame 0: <DebugTree><MyComponent /></DebugTree>
- *  Frame 1: <DebugTree>the text my component resolved to</DebugTree>
- * ```
  */
-export async function* DebugTree(
+export async function* debugTreeGenerator(
   props: { children: Node },
-  { render }: RenderContext
-) {
+  context: RenderContext
+): AsyncGenerator<Node, Node, unknown> {
   let current = props.children;
   while (true) {
-    yield debug(<DebugTree {...props}>{current}</DebugTree>);
+    yield current;
 
     let elementToRender = null as BaseElement | null;
     const shouldStop: ElementPredicate = (element) => {
-      if (elementToRender === null) {
+      if (elementToRender === null && isElement(element)) {
         elementToRender = element;
       }
       return element !== elementToRender;
     };
 
-    current = yield* render(current, {
+    current = yield* context.render(current, {
       stop: shouldStop,
-      map: (frame) => debug(<DebugTree {...props}>{frame}</DebugTree>),
+      map: (frame) => debug(frame),
     });
 
     if (elementToRender === null) {
@@ -246,3 +241,35 @@ export async function* DebugTree(
     }
   }
 }
+
+interface DebugTreeProps {
+  children: Node;
+  context: RenderContext;
+}
+
+export function createDebugTree(props: DebugTreeProps): React.ReactElement {
+  const [output, setOutput] = React.useState<string>("");
+
+  React.useEffect(() => {
+    const generator = debugTreeGenerator(props, props.context);
+    let mounted = true;
+
+    async function run() {
+      for await (const frame of generator) {
+        if (!mounted) break;
+        setOutput(debug(frame));
+      }
+    }
+
+    run();
+    return () => {
+      mounted = false;
+    };
+  }, [props]);
+
+  return React.createElement("pre", null, output);
+}
+
+export const DebugTree: React.FC<DebugTreeProps> = (props) => {
+  return createDebugTree(props);
+};

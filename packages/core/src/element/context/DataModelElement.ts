@@ -13,6 +13,8 @@ type DataModelProps = z.infer<typeof dataModelSchema>;
 export const DataModel = createElementDefinition({
   tag: "datamodel",
   propsSchema: dataModelSchema,
+  role: "state",
+  elementType: "datamodel",
   allowedChildren: ["data"],
 
   async execute(

@@ -1,4 +1,6 @@
-import { StepConfig, Workflow } from "@mastra/core";
+import type { Workflow } from "./index";
+
+type StepConfig<T = any, U = any, V = any, W = any> = Record<string, any>;
 import { BaseElement } from "./BaseElement";
 import { FireAgentSpecNode } from "../element/types";
 import { ExecutionGraphElement } from "./types";

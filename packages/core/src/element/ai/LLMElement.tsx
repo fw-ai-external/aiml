@@ -2,6 +2,7 @@ import { z } from "zod";
 import { streamText, tool } from "ai";
 import { createElementDefinition } from "../createElementDefinition";
 import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
+import { BaseElement } from "../../runtime/BaseElement";
 import { StepValue } from "../../runtime/StepValue";
 import { aiStreamToFireAgentStream } from "../../utils/ai";
 import { getProviderWithClient } from "../../utils/llm/provider";
@@ -29,10 +30,13 @@ const llmSchema = z.object({
     .optional(),
 });
 
-export const LLM = createElementDefinition({
+export const LLM = createElementDefinition<z.infer<typeof llmSchema>>({
   ...llmConfig,
+  elementType: "invoke",
+  role: "action",
   async execute(
-    ctx: ElementExecutionContext<z.infer<typeof llmSchema>>
+    ctx: ElementExecutionContext<z.infer<typeof llmSchema>>,
+    childrenNodes: BaseElement[]
   ): Promise<StepValue> {
     const { system, prompt, includeChatHistory = false } = ctx.attributes;
 

@@ -12,7 +12,7 @@ export type ElementProps = Record<string, any>;
 
 export type ElementConfig<T> = z.ZodObject<any>;
 
-export type AllowedChildrenType = string[] | "none" | "any";
+export type AllowedChildrenType = string[] | "none" | "any" | "text";
 
 export type ElementDefinition<
   Props extends ElementProps = ElementProps,
@@ -63,7 +63,9 @@ export const createElementDefinition = <
   config: ElementDefinition<Props>
 ) => {
   const ReactTagNode = function (
-    props: Props & { children?: Element | Element[] }
+    props: Props & {
+      children?: any;
+    }
   ) {
     const render = () => {
       if ("render" in config && config.render) {
@@ -114,7 +116,7 @@ export const createElementDefinition = <
     if (children.length === 0) {
       return true;
     }
-    if (config.allowedChildren === "any") {
+    if (config.allowedChildren === "any" || config.allowedChildren === "text") {
       return true;
     }
     if (config.allowedChildren === "none") {
@@ -123,7 +125,9 @@ export const createElementDefinition = <
 
     const allowedChildren = Array.isArray(config.allowedChildren)
       ? config.allowedChildren
-      : (config.allowedChildren as (props: Props) => string[])({} as Props);
+      : typeof config.allowedChildren === "function"
+        ? config.allowedChildren({} as Props)
+        : [];
     return children.every((child) => !child || allowedChildren.includes(child));
   };
 

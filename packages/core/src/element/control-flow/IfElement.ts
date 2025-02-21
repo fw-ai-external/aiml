@@ -4,6 +4,7 @@ import type { BaseElement } from "../../runtime/BaseElement";
 import { BuildContext } from "../../runtime/BuildContext";
 import { ExecutionGraphElement } from "../../runtime/types";
 import { v4 as uuidv4 } from "uuid";
+
 const ifSchema = z.object({
   id: z.string().optional(),
   cond: z.string(),
@@ -14,6 +15,8 @@ type IfProps = z.infer<typeof ifSchema>;
 export const If = createElementDefinition({
   tag: "if",
   propsSchema: ifSchema,
+  role: "state",
+  elementType: "if",
   allowedChildren: ["elseif", "else"],
   onExecutionGraphConstruction(
     buildContext: BuildContext
@@ -27,7 +30,8 @@ export const If = createElementDefinition({
     // Create parent node for the <if>
     const ifNode: ExecutionGraphElement = {
       id: buildContext.attributes.id || `if_${uuidv4()}`,
-      type: "step",
+      key: buildContext.elementKey,
+      type: "state",
       subType: "if",
       attributes: {
         ...buildContext.attributes, // store 'cond' etc.
@@ -156,7 +160,8 @@ function buildIfPartitionNode(
 
   const partitionNode: ExecutionGraphElement = {
     id: partitionId,
-    type: "step",
+    key: buildContext.elementKey,
+    type: "state",
     subType: "if-part",
     when: condition,
     attributes: {

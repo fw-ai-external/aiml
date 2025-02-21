@@ -4,6 +4,7 @@ import { ReplayableAsyncIterableStream } from "../utils/streams";
 import { StepValue } from "./StepValue";
 import { RunValue } from "./RunValue";
 import { APIStreamEvent } from "../types";
+import { v4 as uuidv4 } from "uuid";
 
 describe("RunValue unit tests", () => {
   test("should add a RunStepValue correctly", async () => {
@@ -21,6 +22,7 @@ describe("RunValue unit tests", () => {
       id: "testState",
       node: new BaseElement({
         id: "testState",
+        key: uuidv4(),
         tag: "invoke",
         elementType: "invoke",
         attributes: {},
@@ -53,6 +55,7 @@ describe("RunValue unit tests", () => {
       id: "testState",
       node: new BaseElement({
         id: "testState",
+        key: uuidv4(),
         tag: "invoke",
         elementType: "invoke",
         attributes: {},
@@ -75,6 +78,7 @@ describe("RunValue unit tests", () => {
       id: "testState",
       node: new BaseElement({
         id: "testState",
+        key: uuidv4(),
         tag: "final",
         elementType: "final",
         attributes: {},
@@ -104,106 +108,6 @@ describe("RunValue unit tests", () => {
     expect(runValue.finished).toBe(true);
   });
 
-  // test('should create a multiplexed stream', async () => {
-  //   const runValue = new RunValue({
-  //     runId: 'run-uuid',
-  //     machine: {
-  //       isFinishedState: () => false,
-  //       isInitialState: () => false,
-  //       isErrorState: () => false,
-  //     } as any,
-  //   });
-  //   const mockRunStepValue_1 = new RunStepValue({
-  //     type: 'text',
-  //     text: 'test-stream-1',
-  //   });
-
-  //   const mockIterator = new ReplayableAsyncIterableStream([
-  //     { type: 'text-delta', partial: 'test-stream-1', delta: 'test-stream-1' },
-  //     { type: 'text-delta', partial: 'test-stream-2', delta: 'test-stream-2' },
-  //   ]);
-  //   const mockRunStepValue_2 = new RunStepValue(mockIterator as any);
-
-  //   const state = new SequentialState({
-  //     name: 'TestStep1',
-  //     type: 'GENERIC_AI_TASK',
-  //     previousStateId: null,
-  //   });
-  //   await runValue.addRunStep({
-  //     ...state,
-  //     result: mockRunStepValue_1,
-  //   });
-
-  //   const state2 = new SequentialState({
-  //     name: 'TestStep2',
-  //     type: 'GENERIC_AI_TASK',
-  //     previousStateId: null,
-  //   });
-  //   await runValue.addRunStep({
-  //     ...state2,
-  //     result: mockRunStepValue_2,
-  //   });
-
-  //   const stream = await runValue.multiplexedStream();
-  //   const reader = stream.getReader();
-  //   const decode = new TextDecoder().decode;
-
-  //   const { value: chunk1 } = await reader.read();
-
-  //   const text1 = new TextDecoder().decode(chunk1).replace('[data] ', '');
-  //   const chunk = JSON.parse(text1);
-  //   expect(chunk.step).toEqual('TestStep1');
-  //   expect(chunk.type).toEqual('GENERIC_AI_TASK');
-  //   expect(chunk.event).toEqual({
-  //     type: 'text-delta',
-  //     partial: 'test-stream-1',
-  //     delta: 'test-stream-1',
-  //   });
-
-  //   const { value: textChunk1End } = await reader.read();
-  //   const textEnd = new TextDecoder().decode(textChunk1End).replace('[data] ', '');
-  //   const chunk1End = JSON.parse(textEnd);
-  //   expect(chunk1End.step).toEqual('TestStep1');
-  //   expect(chunk1End.type).toEqual('GENERIC_AI_TASK');
-  //   expect(chunk1End.event).toEqual({
-  //     type: 'text',
-  //     text: 'test-stream-1',
-  //   });
-
-  //   const { value: txtchunk2 } = await reader.read();
-  //   const text2 = new TextDecoder().decode(txtchunk2).replace('[data] ', '');
-
-  //   const chunk2 = JSON.parse(text2);
-  //   expect(chunk2.step).toEqual('TestStep2');
-  //   expect(chunk2.type).toEqual('GENERIC_AI_TASK');
-
-  //   expect(chunk2.event).toEqual({
-  //     type: 'text-delta',
-  //     partial: 'test-stream-1',
-  //     delta: 'test-stream-1',
-  //   });
-
-  //   const { value: textchunk3 } = await reader.read();
-  //   const text3 = new TextDecoder().decode(textchunk3).replace('[data] ', '');
-
-  //   const chunk3 = JSON.parse(text3);
-  //   expect(chunk3.step).toEqual('TestStep2');
-  //   expect(chunk3.type).toEqual('GENERIC_AI_TASK');
-
-  //   expect(chunk3.event).toEqual({
-  //     type: 'text-delta',
-  //     partial: 'test-stream-2',
-  //     delta: 'test-stream-2',
-  //   });
-
-  //   runValue.finalize();
-  //   const { value: doneMsg } = await reader.read();
-  //   const textDone = new TextDecoder().decode(doneMsg).replace('[data] ', '');
-  //   expect(textDone).toBe('[done]');
-  //   const { done } = await reader.read();
-  //   expect(done).toBe(true);
-  // });
-
   test("should create a stream", async () => {
     const runValue = new RunValue({
       runId: "run-uuid",
@@ -229,6 +133,7 @@ describe("RunValue unit tests", () => {
       id: "testState",
       node: new BaseElement({
         id: "testState",
+        key: uuidv4(),
         tag: "invoke",
         elementType: "invoke",
         attributes: {},
@@ -245,6 +150,7 @@ describe("RunValue unit tests", () => {
       id: "testState2",
       node: new BaseElement({
         id: "testState2",
+        key: uuidv4(),
         tag: "final",
         elementType: "final",
         attributes: {},
@@ -317,51 +223,4 @@ describe("RunValue unit tests", () => {
     const { done } = await reader.read();
     expect(done).toBe(true);
   });
-
-  // test.skip('should return valid token usage both streaming and non-streaming', async () => {
-  //   const stateRunners = {
-  //     [runSteps.START.type]: runSteps.START,
-  //     [runSteps.RESPOND.type]: runSteps.RESPOND,
-  //     [runSteps.GENERIC_AI_TASK.type]: runSteps.GENERIC_AI_TASK,
-  //     [runSteps.ERROR.type]: runSteps.ERROR,
-  //   };
-  //   const machine = new Machine(threeLLMCallsToCountTokens, stateRunners);
-  //   const stateMachine = new StateMachine({
-  //     machine,
-  //     stateRunners,
-  //   });
-
-  //   const result = await stateMachine.run(
-  //     'Can you come up with a 12 bar chord progression in C that works in the lydian mode?',
-  //     [],
-  //     {},
-  //   );
-
-  //   const nonStreamingOutput = await result.responseValue();
-  //   expect(nonStreamingOutput.type).toEqual('text');
-  //   expect((nonStreamingOutput as any).text).toEqual('C');
-  //   const nonStreamingTokens = result.getTotalTokens();
-  //   expect(nonStreamingTokens.completionTokens).toEqual(2);
-  //   expect(nonStreamingTokens.promptTokens).toEqual(33);
-  //   expect(nonStreamingTokens.totalTokens).toEqual(35);
-  //   expect(nonStreamingTokens.reasoningTokens).toEqual(70);
-
-  //   const responseStream = await result.responseIterator();
-  //   const chunks = [];
-  //   for await (const chunk of responseStream) {
-  //     chunks.push(chunk);
-  //   }
-  //   expect(chunks.length).toEqual(3);
-  //   expect(chunks[0].type).toEqual('text-delta');
-  //   expect(chunks[1].type).toEqual('text');
-  //   expect(chunks[2].type).toEqual('step-complete');
-  //   const lastChunk = chunks[chunks.length - 1];
-
-  //   expect(lastChunk.type).toEqual('step-complete');
-  //   const usage = (lastChunk as any).usage;
-  //   expect(usage.completionTokens).toEqual(2);
-  //   expect(usage.promptTokens).toEqual(33);
-  //   expect(usage.totalTokens).toEqual(35);
-  //   expect(usage.reasoningTokens).toEqual(70);
-  // }, 10000);
 });

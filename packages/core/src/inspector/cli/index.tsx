@@ -1,8 +1,10 @@
-import { Node } from "../../runtime/BaseElement";
+import { Node, isElement, BaseElement } from "../../runtime/BaseElement";
 import { useState, useEffect } from "react";
 import SyntaxHighlight from "./SyntaxHighlight";
 import Spinner from "./Spinner";
 import { DebugTree } from "../../runtime/debug";
+import { createRenderContext } from "../../runtime/renderContext";
+import { createElement, ReactElement } from "react";
 
 import { Box, render, Spacer, Text, useInput, useStdout } from "ink";
 
@@ -90,7 +92,7 @@ function DebugTreeStream({
       overflow="hidden"
     >
       <Text color="green">
-        {/* This doesn't handle JSX well, but it's better than nothing. */}
+        {/* This does not handle JSX well, but it is better than nothing */}
         <SyntaxHighlight code={content} language="javascript"></SyntaxHighlight>
       </Text>
     </Box>
@@ -105,6 +107,36 @@ function StatusBar() {
       </Text>
     </Box>
   );
+}
+
+function nodeToString(node: Node): string {
+  if (!node) return "";
+  if (typeof node === "string") return node;
+  if (typeof node === "number" || typeof node === "boolean")
+    return String(node);
+  if (Array.isArray(node)) return node.map(nodeToString).join("");
+  if (isElement(node)) {
+    const attrs = Object.entries(node.attributes || {})
+      .map(([key, value]) => ` ${key}="${value}"`)
+      .join("");
+    const children = Array.isArray(node.children)
+      ? node.children.map(nodeToString).join("")
+      : nodeToString(node.children);
+    return `<${node.tag}${attrs}>${children}</${node.tag}>`;
+  }
+  return "";
+}
+
+function reactToNode(element: ReactElement): Node {
+  return new BaseElement({
+    id: "debug-tree",
+    key: "debug-tree",
+    elementType: "state",
+    tag: element.type.toString(),
+    role: "state",
+    attributes: element.props as Record<string, string>,
+    children: [],
+  });
 }
 
 function Inspector({
@@ -124,29 +156,34 @@ function Inspector({
 
   const [renderedContent, setRenderedContent] = useState("");
 
-  const pushDebugTreeStep = (step: string) =>
-    setDebugTreeSteps((previous) => previous.concat([step]));
+  const pushDebugTreeStep = (step: Node) =>
+    setDebugTreeSteps((previous) => previous.concat([nodeToString(step)]));
 
   useEffect(() => {
-    const renderContext = AI.createRenderContext();
+    const renderContext = createRenderContext();
     const memoized = renderContext.memo(componentToInspect);
 
     async function getAllFrames() {
-      // This results in some duplicate pages.
-      const finalResult = await renderContext.render(
-        <DebugTree>{memoized}</DebugTree>,
-        {
-          map: pushDebugTreeStep,
-        }
-      );
-      pushDebugTreeStep(finalResult);
+      const debugTreeElement = createElement(DebugTree, {
+        children: memoized,
+        context: renderContext,
+      });
+      const debugTree = reactToNode(debugTreeElement);
+      for await (const frame of renderContext.render(debugTree, {
+        stop: () => false,
+        map: (frame) => nodeToString(frame),
+      })) {
+        pushDebugTreeStep(frame);
+      }
       setDebugTreeStreamIsDone(true);
     }
     async function getRenderedContent() {
-      const finalResult = await renderContext.render(memoized, {
-        map: setRenderedContent,
-      });
-      setRenderedContent(finalResult);
+      for await (const frame of renderContext.render(memoized, {
+        stop: () => false,
+        map: (frame) => nodeToString(frame),
+      })) {
+        setRenderedContent(nodeToString(frame));
+      }
     }
     getAllFrames();
     getRenderedContent();

@@ -1,9 +1,10 @@
 import { describe, expect, it, beforeEach } from "bun:test";
 import { Transition } from "./TransitionElement";
-import { StepContext } from "../../runtime/StepContext";
+import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { z } from "zod";
-import { BaseElement } from "../BaseElement";
+import { BaseElement } from "../../runtime/BaseElement";
 import { StepValue } from "../../runtime/StepValue";
+import { v4 as uuidv4 } from "uuid";
 
 const transitionSchema = z.object({
   id: z.string().optional(),
@@ -15,7 +16,7 @@ const transitionSchema = z.object({
 type TransitionProps = z.infer<typeof transitionSchema>;
 
 describe("TransitionElement", () => {
-  let ctx: StepContext<TransitionProps>;
+  let ctx: ElementExecutionContext<TransitionProps>;
   let root: BaseElement;
 
   beforeEach(() => {
@@ -23,9 +24,11 @@ describe("TransitionElement", () => {
       id: "root",
       elementType: "scxml",
       tag: "scxml",
+      role: "state",
+      key: uuidv4(),
     });
 
-    ctx = new StepContext({
+    ctx = new ElementExecutionContext({
       input: new StepValue({ type: "text", text: "" }),
       datamodel: {
         count: 42,
@@ -35,7 +38,6 @@ describe("TransitionElement", () => {
         chatHistory: [],
         clientSideTools: [],
       },
-
       attributes: {},
       state: {
         id: "test",
@@ -46,6 +48,7 @@ describe("TransitionElement", () => {
         id: "test",
         secrets: {
           system: {},
+          user: {},
         },
       },
       run: {
@@ -83,7 +86,7 @@ describe("TransitionElement", () => {
       [root]
     );
 
-    const result = await (element as BaseElement).execute(ctx as any);
+    const result = await (element as BaseElement).execute(ctx);
     const value = await result?.value();
     expect(value).toEqual({
       type: "object",
@@ -108,7 +111,7 @@ describe("TransitionElement", () => {
       [root]
     );
 
-    const result = await (element as BaseElement).execute(ctx as any);
+    const result = await (element as BaseElement).execute(ctx);
     const value = await result?.value();
     expect(value).toEqual({
       type: "object",
@@ -133,7 +136,7 @@ describe("TransitionElement", () => {
       [root]
     );
 
-    const result = await (element as BaseElement).execute(ctx as any);
+    const result = await (element as BaseElement).execute(ctx);
     const value = await result?.value();
     expect(value).toEqual({
       type: "object",

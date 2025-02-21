@@ -2,17 +2,20 @@ import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
 import { ExecutionGraphElement } from "../../runtime/types";
 import { BaseElement } from "../../runtime/BaseElement";
+import { StepValue } from "../../runtime/StepValue";
+import { v4 as uuidv4 } from "uuid";
 
 const finalSchema = z.object({
   id: z.string().optional(),
 });
 
-type FinalProps = z.infer<typeof finalSchema>;
+type FinalProps = { id?: string } & Record<string, any>;
 
 export const Final = createElementDefinition({
   tag: "final",
   propsSchema: finalSchema,
   role: "output",
+  elementType: "final",
   allowedChildren: ["onentry", "onexit"],
   onExecutionGraphConstruction(buildContext) {
     // final typically doesn't have sub-states, but might have onentry or data
@@ -28,7 +31,7 @@ export const Final = createElementDefinition({
 
     // We might store any onentry blocks or <donedata> in children
     return {
-      id: buildContext.attributes.id,
+      id: buildContext.attributes.id || `final_${uuidv4()}`,
       key: buildContext.elementKey,
       type: "output",
       subType: "final",
@@ -40,6 +43,16 @@ export const Final = createElementDefinition({
   },
   async execute(ctx, childrenNodes) {
     // TODO: EMIT a done event
-    return ctx.input;
+    return new StepValue({
+      type: "object",
+      object: {
+        id: ctx.attributes.id ?? uuidv4(),
+        done: true,
+      },
+      raw: JSON.stringify({
+        id: ctx.attributes.id ?? uuidv4(),
+        done: true,
+      }),
+    });
   },
 });

@@ -3,7 +3,7 @@ import * as path from "node:path";
 import { findUpSync } from "find-up";
 import { describe, expect, it } from "vitest";
 import { fromXML } from "./fromXML";
-import { BaseElement } from "../element/BaseElement";
+import { BaseElement } from "../runtime/BaseElement";
 
 describe("xml parser", () => {
   it("should parse scxml based XML", async () => {
@@ -20,103 +20,103 @@ describe("xml parser", () => {
     const result = await fromXML(scxmlDefinition);
     expect(result).toBeDefined();
     expect(result.elementType).toBe("scxml");
-    expect(result.getChildren).toBeDefined();
-    expect(result.getChildren?.length).toBe(5);
+    expect(result.children).toBeDefined();
+    expect(result.children?.length).toBe(5);
     expect(
-      result.getChildren?.map(
+      result.children?.map(
         (child) => "elementType" in child && child.elementType
       )
     ).toEqual(["datamodel", "state", "state", "state", "state"]);
 
-    const stateA = result.getChildren?.find(
+    const stateA = result.children?.find(
       (child) =>
         "elementType" in child &&
         child.elementType === "state" &&
         child.id === "a"
     ) as BaseElement;
     expect(stateA).toBeDefined();
-    expect(stateA?.getChildren?.length).toBe(4);
+    expect(stateA?.children?.length).toBe(4);
 
     expect(
-      stateA?.getChildren?.map((child) => "name" in child && child.name)
+      stateA?.children?.map((child) => "name" in child && child.name)
     ).toEqual(["onentry", undefined, "transition", "onexit"]);
 
-    const onentry = stateA?.getChildren?.find(
+    const onentry = stateA?.children?.find(
       (child) => "elementType" in child && child.elementType === "onentry"
     ) as BaseElement;
     expect(onentry).toBeDefined();
-    expect(onentry?.getChildren?.length).toBe(3);
+    expect(onentry?.children?.length).toBe(3);
     expect(
-      onentry?.getChildren?.map(
+      onentry?.children?.map(
         (child) => "elementType" in child && child.elementType
       )
     ).toEqual([undefined, "assign", "assign"]);
 
-    const assign1 = onentry?.getChildren?.find(
+    const assign1 = onentry?.children?.find(
       (child) => "elementType" in child && child.elementType === "assign"
     ) as BaseElement;
     expect(assign1).toBeDefined();
     expect(assign1?.attributes?.expr).toBe("-1");
     expect(assign1?.attributes?.location).toBe("x");
 
-    const assign2 = onentry?.getChildren?.find(
+    const assign2 = onentry?.children?.find(
       (child, i: number) => i === 2
     ) as BaseElement;
     expect(assign2).toBeDefined();
     expect(assign2?.attributes?.expr).toBe("99");
     expect(assign2?.attributes?.location).toBe("x");
 
-    const transition = stateA?.getChildren?.find(
+    const transition = stateA?.children?.find(
       (child) => "elementType" in child && child.elementType === "transition"
     ) as BaseElement;
     expect(transition).toBeDefined();
     expect(transition?.attributes?.cond).toBe("x === 99");
     expect(transition?.attributes?.target).toBe("b");
 
-    const stateB = result.getChildren?.find(
+    const stateB = result.children?.find(
       (child) =>
         "elementType" in child &&
         child.elementType === "state" &&
         child.id === "b"
     ) as BaseElement;
     expect(stateB).toBeDefined();
-    expect(stateB?.getChildren?.length).toBe(4);
+    expect(stateB?.children?.length).toBe(4);
     expect(
-      stateB?.getChildren?.map((child) => "name" in child && child.name)
+      stateB?.children?.map((child) => "name" in child && child.name)
     ).toEqual([undefined, "onentry", "transition", "transition"]);
 
-    const onentryB = stateB?.getChildren?.find(
+    const onentryB = stateB?.children?.find(
       (child) => "elementType" in child && child.elementType === "onentry"
     ) as BaseElement;
     expect(onentryB).toBeDefined();
-    expect(onentryB?.getChildren?.length).toBe(2);
+    expect(onentryB?.children?.length).toBe(2);
     expect(
-      onentryB?.getChildren?.map(
+      onentryB?.children?.map(
         (child) => "elementType" in child && child.elementType
       )
     ).toEqual(["script", "assign"]);
 
-    const assign4 = onentryB?.getChildren?.find(
+    const assign4 = onentryB?.children?.find(
       (child) => "elementType" in child && child.elementType === "assign"
     ) as BaseElement;
     expect(assign4).toBeDefined();
     expect(assign4?.attributes?.expr).toBe("x * 2");
     expect(assign4?.attributes?.location).toBe("x");
 
-    const transitionB1 = stateB?.getChildren?.find(
+    const transitionB1 = stateB?.children?.find(
       (child) => "elementType" in child && child.elementType === "transition"
     ) as BaseElement;
     expect(transitionB1).toBeDefined();
     expect(transitionB1?.attributes?.cond).toBe("x === 200");
     expect(transitionB1?.attributes?.target).toBe("c");
 
-    const transitionB2 = stateB?.getChildren?.find(
+    const transitionB2 = stateB?.children?.find(
       (child, i: number) => i === 3
     ) as BaseElement;
     expect(transitionB2).toBeDefined();
     expect(transitionB2?.attributes?.target).toBe("f");
 
-    const stateC = result.getChildren?.find(
+    const stateC = result.children?.find(
       (child) =>
         "elementType" in child &&
         child.elementType === "state" &&
@@ -124,7 +124,7 @@ describe("xml parser", () => {
     ) as BaseElement;
     expect(stateC).toBeDefined();
 
-    const stateF = result.getChildren?.find(
+    const stateF = result.children?.find(
       (child) =>
         "elementType" in child &&
         child.elementType === "state" &&
@@ -153,7 +153,7 @@ describe("xml parser", () => {
     const result = await fromXML(scxmlDefinition);
 
     expect(result).toBeDefined();
-    const state0 = result.getChildren?.find(
+    const state0 = result.children?.find(
       (child) =>
         "elementType" in child &&
         child.elementType === "state" &&
@@ -162,11 +162,11 @@ describe("xml parser", () => {
 
     expect(state0).toBeDefined();
 
-    expect(state0.getChildren?.length).toBe(3);
+    expect(state0.children?.length).toBe(3);
     expect(
-      state0.getChildren?.map((child) => "name" in child && child.name)
+      state0.children?.map((child) => "name" in child && child.name)
     ).toEqual(["onentry", "transition", "transition"]);
-    const onentry = state0.getChildren?.find(
+    const onentry = state0.children?.find(
       (child) => "elementType" in child && child.elementType === "onentry"
     ) as BaseElement;
     expect(onentry).toBeDefined();
@@ -185,9 +185,9 @@ describe("xml parser", () => {
     const result = await fromXML(xml);
     expect(result).toBeDefined();
     expect(result.elementType).toBe("scxml");
-    expect(result.getChildren?.length).toBe(3);
+    expect(result.children?.length).toBe(3);
     expect(
-      result.getChildren?.map(
+      result.children?.map(
         (child) => "elementType" in child && child.elementType
       )
     ).toEqual(["state", "state", "final"]);
@@ -208,27 +208,27 @@ describe("xml parser", () => {
     const result = await fromXML(fireAgentSpec);
     // printConfigTree(result);
     expect(result.elementType).toBe("scxml");
-    const testState = result.getChildren?.find(
+    const testState = result.children?.find(
       (child) =>
         "elementType" in child &&
         child.elementType === "state" &&
         child.id === "test"
     ) as BaseElement;
     expect(testState).toBeDefined();
-    expect(testState.getChildren?.length).toBe(2);
+    expect(testState.children?.length).toBe(2);
     expect(
-      testState.getChildren?.map(
+      testState.children?.map(
         (child) => "elementType" in child && child.elementType
       )
     ).toEqual(["GeneralAITask", "transition"]);
 
-    const invokeTask = testState.getChildren?.find(
+    const invokeTask = testState.children?.find(
       (child) => "tag" in child && child.tag === "GeneralAITask"
     ) as BaseElement;
     expect(invokeTask).toBeDefined();
-    expect(invokeTask.getChildren?.length).toBe(1);
+    expect(invokeTask.children?.length).toBe(1);
     expect(
-      invokeTask.getChildren?.map(
+      invokeTask.children?.map(
         (child) => "elementType" in child && child.elementType
       )
     ).toEqual(["data"]);

@@ -5,7 +5,7 @@ import type { ElementExecutionContext } from "../../runtime/ElementExecutionCont
 import { StepValue } from "../../runtime/StepValue";
 
 const dataSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   src: z.string().optional(),
   expr: z.string().optional(),
   content: z.string().optional(),
@@ -16,49 +16,51 @@ type DataProps = z.infer<typeof dataSchema>;
 export const Data = createElementDefinition({
   tag: "data",
   propsSchema: dataSchema,
+  role: "state",
+  elementType: "data",
   allowedChildren: "none",
   async execute(
     ctx: ElementExecutionContext<DataProps>,
     childrenNodes: BaseElement[]
-  ): Promise<StepValue | null> {
+  ): Promise<StepValue> {
     const { id, src, expr, content } = ctx.attributes;
 
     if (!id) {
       throw new Error("Data element requires an 'id' attribute");
     }
 
-    if (src) {
-      // Load data from external source
-      try {
+    try {
+      let value;
+      if (src) {
+        // Load data from external source
         const response = await fetch(src);
-        const data = await response.json();
-        ctx.datamodel[id] = data;
-      } catch (error) {
-        throw new Error(`Failed to load data from src '${src}': ${error}`);
-      }
-    } else if (expr) {
-      // Evaluate expression and assign result
-      // Note: We're using Function constructor to evaluate expressions in the datamodel context
-      const value = new Function(
-        "datamodel",
-        `with(datamodel) { return ${expr}; }`
-      )(ctx.datamodel);
-      ctx.datamodel[id] = value;
-    } else {
-      // If no src or expr, use the text content as a JSON string
-      try {
+        value = await response.json();
+      } else if (expr) {
+        // Evaluate expression and assign result
+        // Note: We're using Function constructor to evaluate expressions in the datamodel context
+        value = new Function(
+          "datamodel",
+          `with(datamodel) { return ${expr}; }`
+        )(ctx.datamodel);
+      } else {
+        // If no src or expr, use the text content as a JSON string
         const textContent = content?.trim() || "";
-        const value = textContent ? JSON.parse(textContent) : null;
-        ctx.datamodel[id] = value;
-      } catch (error) {
-        throw new Error(`Failed to parse data content as JSON: ${error}`);
+        value = textContent ? JSON.parse(textContent) : null;
       }
-    }
 
-    return new StepValue({
-      type: "data",
-      id,
-      data: ctx.datamodel[id],
-    });
+      ctx.datamodel[id] = value;
+
+      return new StepValue({
+        type: "object",
+        object: { id, value },
+        raw: JSON.stringify({ id, value }),
+      });
+    } catch (error) {
+      return new StepValue({
+        type: "error",
+        code: "DATA_ERROR",
+        error: `Failed to process data element: ${error}`,
+      });
+    }
   },
 });

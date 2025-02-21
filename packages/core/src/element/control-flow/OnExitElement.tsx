@@ -1,32 +1,41 @@
-import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
 import type { BaseElement } from "../../runtime/BaseElement";
-import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
+import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
+import { v4 as uuidv4 } from "uuid";
+import type { RunstepOutput } from "../../types";
+import { onExitConfig, OnExitProps } from "@fireworks/element-types";
 
-const onExitSchema = z.object({
-  id: z.string(),
-});
-
-type OnExitProps = z.infer<typeof onExitSchema>;
-
-export const OnExit = createElementDefinition({
-  tag: "onexit",
-  propsSchema: onExitSchema,
-  allowedChildren: "any",
-
+export const OnExit = createElementDefinition<OnExitProps>({
+  ...onExitConfig,
+  role: "action",
+  elementType: "onexit",
   async execute(
     ctx: ElementExecutionContext<OnExitProps>,
     childrenNodes: BaseElement[]
-  ): Promise<StepValue | null> {
+  ): Promise<StepValue> {
     // Execute all child actions in sequence
+    const results: StepValue<RunstepOutput>[] = [];
     for (const child of childrenNodes) {
-      await (child as BaseElement).execute(ctx as any);
+      if (typeof child.execute === "function") {
+        // Pass the context directly to child execution
+        const result = await child.execute(ctx);
+        if (result) {
+          results.push(result);
+        }
+      }
     }
 
     return new StepValue({
-      type: "onexit",
-      id: ctx.attributes.id,
+      type: "object",
+      object: {
+        id: ctx.attributes.id ?? uuidv4(),
+        results,
+      },
+      raw: JSON.stringify({
+        id: ctx.attributes.id ?? uuidv4(),
+        results,
+      }),
     });
   },
 });

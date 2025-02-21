@@ -5,14 +5,13 @@ declare module "react" {
   namespace JSX {
     type ElementType = string | typeof TagNodeDefinition;
 
-    type Element =
-      | React.ReactElement<any, any>
-      | React.Component
-      | ReactTagNodeDefinition
-      | FireAgentNode
-      | JSX.Element
-      | JSX.Element[]
-      | Element[];
+    type Element = React.ReactElement<any, any>;
+    // | React.Component
+    // | ReactTagNodeDefinition
+    // | FireAgentNode
+    // | JSX.Element
+    // | JSX.Element[]
+    // | Element[];
     interface IntrinsicElements
       extends KeysToLowercase<typeof intrinsicSCXMLNodes> {}
   }
