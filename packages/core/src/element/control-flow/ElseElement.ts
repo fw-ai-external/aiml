@@ -14,6 +14,8 @@ type ElseProps = z.infer<typeof elseSchema>;
 export const Else = createElementDefinition({
   tag: "else",
   propsSchema: elseSchema,
+  role: "state",
+  elementType: "else",
   allowedChildren: "any",
 
   onExecutionGraphConstruction(
@@ -38,7 +40,8 @@ export const Else = createElementDefinition({
 
     const node: ExecutionGraphElement = {
       id: buildContext.attributes.id || `else_${uuidv4()}`,
-      type: "step",
+      key: buildContext.elementKey,
+      type: "state",
       subType: "else",
       when: "true",
       attributes: {

@@ -4,6 +4,7 @@ import { BuildContext } from "../../runtime/BuildContext";
 import { ExecutionGraphElement } from "../../runtime/types";
 import { v4 as uuidv4 } from "uuid";
 import { BaseElement } from "../../runtime/BaseElement";
+
 const elseIfSchema = z.object({
   id: z.string().optional(),
   cond: z.string(),
@@ -14,6 +15,8 @@ type ElseIfProps = z.infer<typeof elseIfSchema>;
 export const ElseIf = createElementDefinition({
   tag: "elseif",
   propsSchema: elseIfSchema,
+  role: "state",
+  elementType: "elseif",
   allowedChildren: "any",
 
   onExecutionGraphConstruction(
@@ -43,7 +46,8 @@ export const ElseIf = createElementDefinition({
     const condVal = buildContext.attributes.cond || "false";
     const node: ExecutionGraphElement = {
       id: buildContext.attributes.id || `elseif_${uuidv4()}`,
-      type: "step",
+      key: buildContext.elementKey,
+      type: "state",
       subType: "elseif",
       // 'when' might be naive. True short-circuit is built in IfElement
       when: condVal,

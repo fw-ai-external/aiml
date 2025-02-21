@@ -29,7 +29,8 @@ export const Final = createElementDefinition({
     // We might store any onentry blocks or <donedata> in children
     return {
       id: buildContext.attributes.id,
-      type: "step", // or "action" if you prefer
+      key: buildContext.elementKey,
+      type: "output",
       subType: "final",
       attributes: {
         ...buildContext.attributes,

@@ -3,9 +3,11 @@ import type { ElementExecutionContext } from "../../runtime/ElementExecutionCont
 import { StepValue } from "../../runtime/StepValue";
 import { scriptConfig, ScriptProps } from "@fireworks/element-types";
 
-export const Script = createElementDefinition({
+export const Script = createElementDefinition<ScriptProps>({
   ...scriptConfig,
-
+  role: "action",
+  elementType: "script",
+  allowedChildren: "any",
   async execute(ctx): Promise<StepValue> {
     console.log("=-------------------- Script");
     const { src, value } = ctx.attributes;

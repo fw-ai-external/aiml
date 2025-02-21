@@ -1,9 +1,12 @@
 import { createElementDefinition } from "../createElementDefinition";
 import { StepValue } from "../../runtime/StepValue";
-import { raiseConfig } from "@fireworks/element-types";
+import { raiseConfig, RaiseProps } from "@fireworks/element-types";
 
-export const Raise = createElementDefinition({
+export const Raise = createElementDefinition<RaiseProps>({
   ...raiseConfig,
+  role: "action",
+  elementType: "raise",
+  allowedChildren: "none",
   async execute(ctx) {
     const { event } = ctx.attributes;
 

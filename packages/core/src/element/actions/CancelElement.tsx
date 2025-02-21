@@ -1,9 +1,12 @@
 import { createElementDefinition } from "../createElementDefinition";
 import { StepValue } from "../../runtime/StepValue";
-import { cancelConfig } from "@fireworks/element-types";
+import { cancelConfig, CancelProps } from "@fireworks/element-types";
 
-export const Cancel = createElementDefinition({
+export const Cancel = createElementDefinition<CancelProps>({
   ...cancelConfig,
+  role: "action",
+  elementType: "cancel",
+  allowedChildren: "none",
   async execute(ctx) {
     const { sendid, sendidexpr } = ctx.attributes;
 

@@ -1,10 +1,13 @@
 import { createElementDefinition } from "../createElementDefinition";
 import { StepValue } from "../../runtime/StepValue";
 import { v4 as uuidv4 } from "uuid";
-import { assignConfig } from "@fireworks/element-types";
+import { assignConfig, AssignProps } from "@fireworks/element-types";
 
-export const Assign = createElementDefinition({
+export const Assign = createElementDefinition<AssignProps>({
   ...assignConfig,
+  role: "action",
+  elementType: "assign",
+  allowedChildren: "none",
   onExecutionGraphConstruction(buildContext) {
     return {
       id: buildContext.attributes.id,

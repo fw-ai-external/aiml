@@ -8,7 +8,8 @@ export const defaultActionExecutionGraphMapper = (
   return {
     id: buildContext.attributes.id,
     type: "action",
-    subType: buildContext.thisElement.elementType,
+    key: buildContext.elementKey,
+    subType: buildContext.spec.elementType,
     attributes: {
       ...buildContext.attributes, // location, expr, etc.
     },
@@ -24,6 +25,7 @@ export const defaultStepExecutionGraphMapper = (
         return (child as BaseElement).onExecutionGraphConstruction?.(
           new BuildContext(
             buildContext.workflow,
+            child.id,
             buildContext.children,
             buildContext.attributes,
             buildContext.conditions,
@@ -38,7 +40,8 @@ export const defaultStepExecutionGraphMapper = (
   // We might store any onentry blocks or <donedata> in children
   return {
     id: buildContext.attributes.id,
-    type: "step", // or "action" if you prefer
+    key: buildContext.elementKey,
+    type: "state", // or "action" if you prefer
     subType: "final",
     attributes: {
       ...buildContext.attributes,

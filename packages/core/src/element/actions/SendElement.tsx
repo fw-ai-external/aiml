@@ -1,10 +1,12 @@
 import { createElementDefinition } from "../createElementDefinition";
 import { StepValue } from "../../runtime/StepValue";
-import { sendConfig } from "@fireworks/element-types";
+import { sendConfig, SendProps } from "@fireworks/element-types";
 
-export const Send = createElementDefinition({
+export const Send = createElementDefinition<SendProps>({
   ...sendConfig,
-
+  role: "action",
+  elementType: "send",
+  allowedChildren: "none",
   async execute(ctx) {
     const {
       event,

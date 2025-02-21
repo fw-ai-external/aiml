@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { SandboxEvalError } from "../errors/SandboxEvalError";
-import type { StepContextSerialized } from "../runtime/StepContext";
+import type { ElementExecutionContextSerialized } from "../runtime/ElementExecutionContext";
 import { sandboxedEval } from "./js-sandbox";
 
 // Helper function to create a base context with required properties
 function createBaseContext(
   overrides: Record<string, any> = {}
-): StepContextSerialized {
+): ElementExecutionContextSerialized {
   return {
     input: null,
     inputs: null,

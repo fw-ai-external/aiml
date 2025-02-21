@@ -1,9 +1,12 @@
 import { createElementDefinition } from "../createElementDefinition";
 import { StepValue } from "../../runtime/StepValue";
-import { logConfig } from "@fireworks/element-types";
+import { logConfig, LogProps } from "@fireworks/element-types";
 
-export const Log = createElementDefinition({
+export const Log = createElementDefinition<LogProps>({
   ...logConfig,
+  role: "action",
+  elementType: "log",
+  allowedChildren: "none",
   onExecutionGraphConstruction(buildContext) {
     return {
       id: buildContext.attributes.id,
