@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { SandboxEvalError } from "../errors/SandboxEvalError";
 import type { ElementExecutionContextSerialized } from "../runtime/ElementExecutionContext";
 import { sandboxedEval } from "./js-sandbox";

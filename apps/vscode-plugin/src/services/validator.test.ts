@@ -2,7 +2,8 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { Connection } from "vscode-languageserver/node";
 import { DocumentValidator } from "./validator";
 import { DebugLogger } from "../utils/debug";
-import { Token, TokenType } from "../acorn";
+import { parseToTokens, Token } from "../acorn";
+import { beforeEach, describe, expect, it, jest } from "bun:test";
 
 // Mock Connection and DebugLogger
 const mockConnection = {
@@ -38,23 +39,7 @@ describe("DocumentValidator", () => {
         </scxml>`
       );
 
-      const tokens: Token[] = [
-        { type: TokenType.TagStart, startIndex: 0, endIndex: 6 },
-        { type: TokenType.TagName, startIndex: 1, endIndex: 5, value: "state" },
-        {
-          type: TokenType.AttributeName,
-          startIndex: 7,
-          endIndex: 9,
-          value: "id",
-        },
-        {
-          type: TokenType.AttributeString,
-          startIndex: 10,
-          endIndex: 17,
-          value: "state1",
-        },
-        // Add more tokens as needed
-      ];
+      const tokens = parseToTokens(document.getText());
 
       const stateIds = validator["findStateIds"](
         document,

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import type { RunEvent, APIStreamEvent } from "../types";
 import { ReplayableAsyncIterableStream } from "./streams";
 
@@ -51,7 +51,7 @@ describe("AsyncIterableStream", () => {
       for (const expectedEvent of expectedEvents) {
         const { value, done } = await reader.read();
 
-        expect(value).toBe(expectedEvent);
+        expect(value).toBe(expectedEvent as any);
         expect(done).toBe(false);
       }
 
@@ -72,7 +72,7 @@ describe("AsyncIterableStream", () => {
       const expectedEvents = ["event1", "event2", "event3"];
       for (const expectedEvent of expectedEvents) {
         const { value, done } = await reader.read();
-        expect(value).toBe(expectedEvent);
+        expect(value).toBe(expectedEvent as any);
         expect(done).toBe(false);
       }
 
@@ -85,7 +85,7 @@ describe("AsyncIterableStream", () => {
       for (const expectedEvent of [...expectedEvents, undefined]) {
         const { value, done } = await reader2.read();
 
-        expect(value).toBe(expectedEvent);
+        expect(value).toBe(expectedEvent as any);
         expect(done).toBe(expectedEvent === undefined);
       }
 
@@ -104,7 +104,7 @@ describe("AsyncIterableStream", () => {
         const readPromise = reader.read();
         await new Promise((resolve) => setTimeout(resolve, delay + 2));
         const { value, done } = await readPromise;
-        expect(value).toBe(expectedEvent);
+        expect(value).toBe(expectedEvent as any);
         expect(done).toBe(false);
       }
 

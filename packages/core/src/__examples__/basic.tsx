@@ -5,7 +5,7 @@ import { SCXML } from "../element/states/SCXMLElement";
 import { LLM } from "../element/ai/LLMElement";
 import { Final } from "../element/states/FinalElement";
 import { Runtime } from "../runtime";
-import { parseSpec } from "../parser";
+import { parseSpec } from "@fireworks/parser";
 import { Transition } from "../element/control-flow";
 import { Script } from "../element/actions/ScriptElement";
 
@@ -26,7 +26,7 @@ const basicWorkflow = (
   </SCXML>
 );
 const spec = await parseSpec(basicWorkflow);
-const runtime = new Runtime(spec);
+const runtime = new Runtime(spec as any);
 
 export const basic = runtime.workflow;
 

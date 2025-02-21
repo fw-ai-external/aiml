@@ -1,9 +1,9 @@
 import { describe, expect, it, beforeEach } from "bun:test";
 import { Final } from "./FinalElement";
-import { StepContext } from "../../runtime/StepContext";
+import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { z } from "zod";
 import { StepValue } from "../../runtime/StepValue";
-import { BaseElement } from "../BaseElement";
+import { BaseElement } from "../../runtime/BaseElement";
 
 const finalSchema = z.object({
   id: z.string().optional(),
@@ -12,7 +12,7 @@ const finalSchema = z.object({
 type FinalProps = z.infer<typeof finalSchema>;
 
 describe("FinalElement", () => {
-  let ctx: StepContext<FinalProps>;
+  let ctx: ElementExecutionContext<FinalProps>;
   let root: BaseElement;
 
   beforeEach(() => {
@@ -20,9 +20,11 @@ describe("FinalElement", () => {
       id: "root",
       elementType: "scxml",
       tag: "scxml",
+      role: "state",
+      key: "root",
     });
 
-    ctx = new StepContext({
+    ctx = new ElementExecutionContext({
       input: new StepValue({
         type: "text",
         text: "test",

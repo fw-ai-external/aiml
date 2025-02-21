@@ -1,6 +1,6 @@
 import React from "react";
 import { z } from "zod";
-import type { FireAgentNode } from "../parser/types";
+import type { FireAgentNode } from "@fireworks/parser";
 import { ElementExecutionContext } from "../runtime/ElementExecutionContext";
 import { BaseElement } from "../runtime/BaseElement";
 import { ExecutionGraphElement } from "../runtime/types";

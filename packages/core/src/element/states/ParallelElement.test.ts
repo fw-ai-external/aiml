@@ -1,9 +1,9 @@
 import { describe, expect, it, beforeEach } from "bun:test";
 import { Parallel } from "./ParallelElement";
 import { State } from "./StateElement";
-import { StepContext } from "../../runtime/StepContext";
+import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { z } from "zod";
-import { BaseElement } from "../BaseElement";
+import { BaseElement } from "@fireworks/core";
 import { StepValue } from "../../runtime/StepValue";
 
 const parallelSchema = z.object({
@@ -13,7 +13,7 @@ const parallelSchema = z.object({
 type ParallelProps = z.infer<typeof parallelSchema>;
 
 describe("ParallelElement", () => {
-  let ctx: StepContext<ParallelProps>;
+  let ctx: ElementExecutionContext<ParallelProps>;
   let root: BaseElement;
 
   beforeEach(() => {
@@ -21,9 +21,11 @@ describe("ParallelElement", () => {
       id: "root",
       elementType: "scxml",
       tag: "scxml",
+      role: "state",
+      key: "root",
     });
 
-    ctx = new StepContext({
+    ctx = new ElementExecutionContext({
       input: new StepValue({ type: "text", text: "" }),
       workflowInput: {
         userMessage: "",
@@ -56,10 +58,10 @@ describe("ParallelElement", () => {
         id: "parallel1",
       },
       [],
-      [root]
-    );
+      "spec"
+    ) as unknown as BaseElement;
 
-    expect((element as BaseElement).elementType).toBe("parallel");
+    expect(element.elementType).toBe("parallel");
   });
 
   it("should execute all child states in parallel", async () => {
@@ -68,26 +70,26 @@ describe("ParallelElement", () => {
         id: "state1",
       },
       [],
-      [root]
-    );
+      "spec"
+    ) as unknown as BaseElement;
 
     const state2 = State.initFromAttributesAndNodes(
       {
         id: "state2",
       },
       [],
-      [root]
-    );
+      "spec"
+    ) as unknown as BaseElement;
 
     const element = Parallel.initFromAttributesAndNodes(
       {
         id: "parallel1",
       },
-      [state1 as BaseElement, state2 as BaseElement],
-      [root]
-    );
+      [state1, state2],
+      "spec"
+    ) as unknown as BaseElement;
 
-    const result = await (element as BaseElement).execute(ctx as any);
+    const result = await element.execute(ctx as any);
     const value = await result?.value();
     expect(value).toEqual({
       type: "object",
@@ -102,26 +104,26 @@ describe("ParallelElement", () => {
         id: "state1",
       },
       [],
-      [root]
-    );
+      "spec"
+    ) as unknown as BaseElement;
 
     const state2 = State.initFromAttributesAndNodes(
       {
         id: "state2",
       },
       [],
-      [root]
-    );
+      "spec"
+    ) as unknown as BaseElement;
 
     const element = Parallel.initFromAttributesAndNodes(
       {
         id: "parallel1",
       },
-      [state1 as BaseElement, state2 as BaseElement],
-      [root]
-    );
+      [state1, state2],
+      "spec"
+    ) as unknown as BaseElement;
 
-    const result = await (element as BaseElement).execute(ctx as any);
+    const result = await element.execute(ctx as any);
     const value = await result?.value();
     expect(value).toEqual({
       type: "object",

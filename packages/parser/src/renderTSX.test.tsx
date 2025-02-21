@@ -1,18 +1,17 @@
 // biome-ignore lint: needed for our jsx
 import React from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { renderTSX } from "./renderTSX";
-import type { FireAgentSpecNode } from "../element/types";
+import type { FireAgentSpecNode } from "@fireworks/core";
 import { printConfigTree } from ".";
-import { SCXML, State, Final, Parallel } from "../element/states";
-import { OnEntry, Transition } from "../element/control-flow";
-import { Assign, Log, Script } from "../element/actions";
-import { Data, DataModel } from "../element/context";
-import { BaseElement } from "../runtime/BaseElement";
-import { Runtime } from "../runtime";
+import { SCXML, State, Final, Parallel } from "@fireworks/core";
+import { OnEntry, Transition } from "@fireworks/core";
+import { Assign, Log, Script } from "@fireworks/core";
+import { Data, DataModel } from "@fireworks/core";
+import { BaseElement } from "@fireworks/core";
+import { Runtime } from "@fireworks/core";
 import { parseSpec } from "../parser";
-import { SCXMLNodeTypes } from "../element";
-import { LLM } from "../element/ai";
+import { LLM } from "@fireworks/core";
 
 function isBaseElement(
   node: FireAgentSpecNode | undefined | false

@@ -1,7 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { Unkey } from "@unkey/api";
 import { streamObject, streamText, tool } from "ai";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { z } from "zod";
 import type { APIStreamEvent } from "../types";
 import { aiStreamToFireAgentStream } from "./ai";

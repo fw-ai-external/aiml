@@ -75,9 +75,9 @@ describe("LLM Element", () => {
     const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
-    expect(result.value).toEqual({
+    expect(await result.value()).toEqual({
       type: "text",
-      content: "Mock LLM response",
+      text: "Mock LLM response",
     });
   });
 
@@ -104,9 +104,9 @@ describe("LLM Element", () => {
     const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
-    expect(result.value).toEqual({
+    expect(await result.value()).toEqual({
       type: "text",
-      content: "Mock LLM response",
+      text: "Mock LLM response",
     });
   });
 
@@ -138,9 +138,9 @@ describe("LLM Element", () => {
     const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
-    expect(result.value).toEqual({
+    expect(await result.value()).toEqual({
       type: "text",
-      content: "Mock LLM response",
+      text: "Mock LLM response",
     });
   });
 
@@ -173,8 +173,8 @@ describe("LLM Element", () => {
     const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
-    expect(result.value.type).toBe("error");
-    expect(result.value.error).toBeDefined();
+    expect(await result.type()).toBe("error");
+    expect(await result.error()).toBeDefined();
   });
 
   it("should handle response format configuration", async () => {
@@ -208,9 +208,9 @@ describe("LLM Element", () => {
     const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
-    expect(result.value).toEqual({
+    expect(await result.value()).toEqual({
       type: "text",
-      content: "Mock LLM response",
+      text: "Mock LLM response",
     });
   });
 });

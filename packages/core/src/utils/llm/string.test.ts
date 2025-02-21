@@ -1,46 +1,46 @@
-import { describe, expect, test } from 'vitest';
-import { extractTemplateSchemaFromString } from './strings';
+import { describe, expect, test } from "bun:test";
+import { extractTemplateSchemaFromString } from "./strings";
 
 // TODO not yet working
-describe.skip('extractTemplateSchemaFromString', () => {
-  test('should extract template schema from string with input', async () => {
-    const template = 'Hello, ${input.name}!';
+describe.skip("extractTemplateSchemaFromString", () => {
+  test("should extract template schema from string with input", async () => {
+    const template = "Hello, ${input.name}!";
     const schema = await extractTemplateSchemaFromString(template);
     expect(schema).toEqual({
       input: {
-        type: 'object',
+        type: "object",
         properties: {
-          name: { type: 'string' },
+          name: { type: "string" },
         },
       },
       inputs: {
-        type: 'object',
+        type: "object",
         properties: {},
         required: [],
       },
       context: {
-        type: 'object',
+        type: "object",
         properties: {},
         required: [],
       },
     });
   }, 10_000);
 
-  test('should handle nested properties for inputs', async () => {
-    const template = 'Hello, ${inputs.user.profile.firstName}!';
+  test("should handle nested properties for inputs", async () => {
+    const template = "Hello, ${inputs.user.profile.firstName}!";
     const schema = await extractTemplateSchemaFromString(template);
-    console.log('schema', JSON.stringify(schema, null, 2));
+    console.log("schema", JSON.stringify(schema, null, 2));
     expect(schema).toEqual({
       inputs: {
-        type: 'object',
+        type: "object",
         properties: {
           user: {
-            type: 'object',
+            type: "object",
             properties: {
               profile: {
-                type: 'object',
+                type: "object",
                 properties: {
-                  firstName: { type: 'string' },
+                  firstName: { type: "string" },
                 },
               },
             },
@@ -48,130 +48,133 @@ describe.skip('extractTemplateSchemaFromString', () => {
         },
       },
       context: {
-        type: 'object',
+        type: "object",
         properties: {},
         required: [],
       },
       input: {
-        type: 'object',
+        type: "object",
         properties: {},
         required: [],
       },
     });
   }, 10_000);
 
-  test('should handle context variable', async () => {
-    const template = 'Current user: ${context.currentUser}';
+  test("should handle context variable", async () => {
+    const template = "Current user: ${context.currentUser}";
     const schema = await extractTemplateSchemaFromString(template);
     expect(schema).toEqual({
       context: {
-        type: 'object',
+        type: "object",
         properties: {
-          currentUser: { type: 'string' },
+          currentUser: { type: "string" },
         },
-        required: ['currentUser'],
+        required: ["currentUser"],
       },
       input: {
-        type: 'object',
+        type: "object",
         properties: {},
         required: [],
       },
       inputs: {
-        type: 'object',
+        type: "object",
         properties: {},
         required: [],
       },
     });
   }, 10_000);
 
-  test('should not throw error for invalid top-level variable', async () => {
-    const template = 'Hello, ${user.profile.firstName}!';
+  test("should not throw error for invalid top-level variable", async () => {
+    const template = "Hello, ${user.profile.firstName}!";
     const schema = await extractTemplateSchemaFromString(template);
     expect(schema).toEqual({});
   }, 10_000);
 
-  test('should handle multiple variables in one template', async () => {
-    const template = 'Hello, ${input.name}! Your score is ${inputs.game.score} and the date is ${context.currentDate}.';
+  test("should handle multiple variables in one template", async () => {
+    const template =
+      "Hello, ${input.name}! Your score is ${inputs.game.score} and the date is ${context.currentDate}.";
     const schema = await extractTemplateSchemaFromString(template);
     expect(schema).toEqual({
       input: {
-        type: 'object',
+        type: "object",
         properties: {
-          name: { type: 'string' },
+          name: { type: "string" },
         },
       },
       inputs: {
-        type: 'object',
+        type: "object",
         properties: {
           game: {
-            type: 'object',
+            type: "object",
             properties: {
-              score: { type: 'number' },
+              score: { type: "number" },
             },
           },
         },
       },
       context: {
-        type: 'object',
+        type: "object",
         properties: {
-          currentDate: { type: 'string' },
+          currentDate: { type: "string" },
         },
       },
     });
   }, 10_000);
 
-  test('should handle Object.keys expression', async () => {
-    const template = 'Keys: ${Object.keys(inputs)}';
+  test("should handle Object.keys expression", async () => {
+    const template = "Keys: ${Object.keys(inputs)}";
     const schema = await extractTemplateSchemaFromString(template);
     expect(schema).toEqual({
-      inputs: { type: 'object' },
+      inputs: { type: "object" },
     });
   }, 10_000);
 
-  test('should handle complex conditional expression', async () => {
-    const template = '${Array.isArray(inputs) ? inputs.map(i => i.text) : "foo" in inputs ? inputs.foo : input}';
+  test("should handle complex conditional expression", async () => {
+    const template =
+      '${Array.isArray(inputs) ? inputs.map(i => i.text) : "foo" in inputs ? inputs.foo : input}';
     const schema = await extractTemplateSchemaFromString(template);
     expect(schema).toEqual({
       inputs: {
         oneOf: [
           {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               properties: {
                 text: {
-                  type: 'string',
+                  type: "string",
                 },
               },
-              required: ['text'],
+              required: ["text"],
             },
           },
           {
-            type: 'object',
+            type: "object",
             properties: {
               foo: {
-                type: 'string',
+                type: "string",
               },
             },
           },
         ],
       },
       input: {
-        type: 'object',
+        type: "object",
       },
     });
   }, 10_000);
 
-  test('should handle nested object properties in complex expressions', async () => {
-    const template = '${inputs.users.filter(user => user.age > 18).map(user => user.name)}';
+  test("should handle nested object properties in complex expressions", async () => {
+    const template =
+      "${inputs.users.filter(user => user.age > 18).map(user => user.name)}";
     const schema = await extractTemplateSchemaFromString(template);
     expect(schema).toEqual({
       inputs: {
-        type: 'object',
+        type: "object",
         properties: {
           users: {
-            type: 'array',
-            items: { type: 'object', properties: { name: { type: 'string' } } },
+            type: "array",
+            items: { type: "object", properties: { name: { type: "string" } } },
           },
         },
       },
@@ -180,7 +183,7 @@ describe.skip('extractTemplateSchemaFromString', () => {
     });
   }, 10_000);
 
-  test('should handle multiple complex expressions in one template', async () => {
+  test("should handle multiple complex expressions in one template", async () => {
     const template = `
       Users: \${Object.keys(inputs.users)}
       Adult names: \${inputs.users.filter((user) => user.age >= 18).map((user) => user.name)}
@@ -189,20 +192,20 @@ describe.skip('extractTemplateSchemaFromString', () => {
     const schema = await extractTemplateSchemaFromString(template);
     expect(schema).toEqual({
       inputs: {
-        type: 'object',
+        type: "object",
         properties: {
           users: {
-            type: 'array',
-            items: { type: 'object', properties: { name: { type: 'string' } } },
+            type: "array",
+            items: { type: "object", properties: { name: { type: "string" } } },
           },
         },
       },
       context: {
-        type: 'object',
+        type: "object",
         properties: {
           currentUser: {
-            type: 'object',
-            properties: { name: { type: 'string' } },
+            type: "object",
+            properties: { name: { type: "string" } },
           },
         },
       },

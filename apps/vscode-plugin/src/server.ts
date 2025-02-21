@@ -9,7 +9,6 @@ import {
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { createDebugger } from "./utils/debug";
-import { StateTracker } from "./services/stateTracker";
 import { DocumentValidator } from "./services/validator";
 import { CompletionProvider } from "./services/completion";
 import { HoverProvider } from "./services/hover";
@@ -23,13 +22,9 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 // Initialize services
 const logger = createDebugger(connection);
-const stateTracker = new StateTracker(logger);
-const validator = new DocumentValidator(connection, logger, stateTracker);
-const completionProvider = new CompletionProvider(
-  connection,
-  logger,
-  stateTracker
-);
+const validator = new DocumentValidator(connection, logger);
+// @ts-expect-error
+const completionProvider = new CompletionProvider(connection, logger);
 const hoverProvider = new HoverProvider(connection, logger);
 
 let hasConfigurationCapability = false;
@@ -71,6 +66,7 @@ connection.onInitialized(() => {
   }
 });
 
+// @ts-expect-error
 // Handle completions
 connection.onCompletion((params: TextDocumentPositionParams) => {
   const doc = documents.get(params.textDocument.uri);

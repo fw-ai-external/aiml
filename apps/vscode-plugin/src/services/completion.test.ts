@@ -1,6 +1,5 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { CompletionProvider } from "./completion";
-import { StateTracker } from "./stateTracker";
 import { Connection, CompletionItemKind } from "vscode-languageserver";
 import { DebugLogger } from "../utils/debug";
 import { describe, expect, it, beforeEach, mock } from "bun:test";
@@ -33,10 +32,12 @@ const mockLogger: Partial<DebugLogger> = {
 
 describe("CompletionProvider", () => {
   let provider: CompletionProvider;
+  // @ts-expect-error
   let stateTracker: StateTracker;
 
   beforeEach(() => {
     mock.restore();
+    // @ts-expect-error
     stateTracker = new StateTracker(mockLogger as DebugLogger);
     provider = new CompletionProvider(
       mockConnection as Connection,

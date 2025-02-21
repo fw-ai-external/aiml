@@ -1,5 +1,5 @@
 import { Project, Node, SourceFile, JsxElement } from "ts-morph";
-import { BaseElement } from "@fireworks/core";
+import { BaseElement } from "@fireworks/core/baseElement";
 import { SCXMLNodeType } from "@fireworks/element-types";
 import {
   MDXParseContext,

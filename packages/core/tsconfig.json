@@ -1,6 +1,12 @@
 {
   "extends": "@fireworks/tsconfig/library.json",
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.d.ts"
+  ],
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
@@ -13,6 +19,7 @@
     "rootDir": "./src",
     "jsx": "react-jsx",
     "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,

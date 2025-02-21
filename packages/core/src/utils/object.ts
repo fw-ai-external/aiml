@@ -25,7 +25,7 @@ export function mapValues(
   return result;
 }
 
-export function atPath(obj: Record<string, any>, path: string[]) {
+export function atPath(obj: Record<string, any>, path: string[]): any {
   return path.reduce((acc, part) => {
     const value = acc && (acc["__NAMESPACED__" + part] || acc[part]);
     if (value === undefined && acc && Object.keys(acc).length > 0) {

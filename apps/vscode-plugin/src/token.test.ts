@@ -1,5 +1,6 @@
 import { describe, test, expect } from "bun:test";
-import { TokenType, getTokens } from "./utils/token";
+import { TokenType } from "./acorn";
+import { parseToTokens } from "./acorn";
 
 describe("parseMDXToTokens", () => {
   test("parses basic MDX content", async () => {
@@ -13,7 +14,7 @@ This is a paragraph with <CustomComponent prop={value}>JSX content</CustomCompon
 import { something } from 'somewhere';
     `;
 
-    const tokens = await getTokens(mdxContent);
+    const tokens = await parseToTokens(mdxContent);
 
     // Verify we got tokens
     expect(tokens.length).toBeGreaterThan(0);
@@ -28,7 +29,7 @@ import { something } from 'somewhere';
     expect(headingText.includes("Hello World")).toBe(true);
 
     // Verify paragraph token
-    const paragraphToken = tokens.find((t) => t.type === TokenType.String);
+    const paragraphToken = tokens.find((t) => t.type === TokenType.Paragraph);
     expect(paragraphToken).toBeDefined();
     const paragraphText = mdxContent.substring(
       paragraphToken!.startIndex,
@@ -46,7 +47,9 @@ import { something } from 'somewhere';
     expect(jsxText.includes("CustomComponent")).toBe(true);
 
     // Verify expression token
-    const exprToken = tokens.find((t) => t.type === TokenType.JSXValue);
+    const exprToken = tokens.find(
+      (t) => t.type === TokenType.AttributeExpression
+    );
     expect(exprToken).toBeDefined();
     const exprText = mdxContent.substring(
       exprToken!.startIndex,
@@ -56,7 +59,7 @@ import { something } from 'somewhere';
 
     // Verify import/export token
     const importToken = tokens.find(
-      (t) => t.type === TokenType.AttributeJSValue
+      (t) => t.type === TokenType.AttributeExpression
     );
     expect(importToken).toBeDefined();
     const importText = mdxContent.substring(
@@ -67,12 +70,12 @@ import { something } from 'somewhere';
   });
 
   test("handles empty content", async () => {
-    const tokens = await getTokens("");
+    const tokens = await parseToTokens("");
     expect(tokens).toEqual([]);
   });
 
   test("handles content with only whitespace", async () => {
-    const tokens = await getTokens("   \n   ");
+    const tokens = await parseToTokens("   \n   ");
     expect(tokens.length).toBe(0);
   });
 });

@@ -4,9 +4,8 @@ import { Diagnostic, Connection } from "vscode-languageserver/node";
 import { DebugLogger } from "../utils/debug";
 import { Token, TokenType } from "../acorn";
 import { getOwnerAttributeName, getOwnerTagName } from "../utils/token";
-import { DotObject } from "../utils/object";
 import { BaseElement } from "@fireworks/core";
-import { fromXML } from "@fireworks/core/parser";
+import { fromXML } from "@fireworks/parser";
 
 /**
  * Validates the document for errors and warnings.

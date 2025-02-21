@@ -6,7 +6,7 @@ import type {
 } from "ai";
 import { StepValue } from "./StepValue";
 import { type RunstepOutput, type Secrets } from "../types";
-import type { TagNodeDTO } from "../parser/types";
+import type { TagNodeDTO } from "@fireworks/parser";
 import { ChatCompletionMessageToolCall } from "../types/openai/chat";
 
 interface StepContext<T extends RunstepOutput> {

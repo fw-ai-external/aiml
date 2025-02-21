@@ -1,12 +1,12 @@
 import { describe, expect, it } from "bun:test";
 import { SCXML } from "./SCXMLElement";
-import { StepContext } from "../../runtime/StepContext";
 import { StepValue } from "../../runtime/StepValue";
-import { BaseElement } from "../BaseElement";
+import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
+import { BaseElement } from "../../runtime/BaseElement";
 
 describe("SCXMLElement", () => {
   const createMockContext = (attributes = {}) => {
-    return new StepContext({
+    return new ElementExecutionContext({
       input: new StepValue({
         type: "object",
         object: {},
@@ -37,10 +37,12 @@ describe("SCXMLElement", () => {
     constructor(id: string) {
       super({
         id,
+        tag: "state",
+        role: "state",
+        key: id,
         elementType: "state",
         attributes: { id },
-        tag: "state",
-        execute: async (ctx: StepContext<any>): Promise<StepValue | null> => {
+        execute: async (ctx) => {
           ctx.datamodel[`_state_${id}`] = { isActive: true };
           return new StepValue({
             type: "object",

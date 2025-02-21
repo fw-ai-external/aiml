@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test } from "bun:test";
 import { BaseElement } from "./BaseElement";
 import { ReplayableAsyncIterableStream } from "../utils/streams";
 import { StepValue } from "./StepValue";

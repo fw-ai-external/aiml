@@ -21,6 +21,7 @@
   "dependencies": {
     "@types/react": "^19.0.8",
     "@xyflow/react": "^12.4.2",
-    "micro-mdx-parser": "^1.1.24"
+    "micro-mdx-parser": "^1.1.24",
+    "zod-validation-error": "^3.4.0"
   }
 }

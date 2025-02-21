@@ -1,9 +1,9 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { findUpSync } from "find-up";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { fromXML } from "./fromXML";
-import { BaseElement } from "../runtime/BaseElement";
+import { BaseElement } from "@fireworks/core";
 
 describe("xml parser", () => {
   it("should parse scxml based XML", async () => {
@@ -50,7 +50,7 @@ describe("xml parser", () => {
       onentry?.children?.map(
         (child) => "elementType" in child && child.elementType
       )
-    ).toEqual([undefined, "assign", "assign"]);
+    ).toEqual([false, "assign", "assign"]);
 
     const assign1 = onentry?.children?.find(
       (child) => "elementType" in child && child.elementType === "assign"
@@ -220,7 +220,7 @@ describe("xml parser", () => {
       testState.children?.map(
         (child) => "elementType" in child && child.elementType
       )
-    ).toEqual(["GeneralAITask", "transition"]);
+    ).toEqual(["GeneralAITask" as any, "transition"]);
 
     const invokeTask = testState.children?.find(
       (child) => "tag" in child && child.tag === "GeneralAITask"

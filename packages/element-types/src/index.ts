@@ -1,6 +1,5 @@
 import type { LiteralUnion } from "type-fest";
-import zod, { z } from "zod";
-import { register } from "zod-metadata";
+import { z } from "zod";
 import {
   finalConfig,
   historyConfig,
@@ -133,13 +132,12 @@ export type ElementDefinition<
     | ((props: Props) => AllowedChildrenType);
 };
 
-register(zod);
-
 // Export all schemas and types
 export * from "./schemas/states";
 export * from "./schemas/actions";
 export * from "./schemas/control-flow";
 export * from "./schemas/specialized";
+export * from "./types";
 
 export const allElementConfigs: Record<string, BaseElementDefinition> = {
   scxml: scxmlConfig,

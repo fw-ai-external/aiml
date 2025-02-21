@@ -1,11 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
 import { type Element as XMLElement, xml2js } from "xml-js";
 import type { CommentNode, FireAgentNode, TextNode } from "./types";
-import { getNodeDefinitionClass, isSupportedNodeName } from "../element/index";
-import { ElementError } from "../errors";
-import { InternalError } from "../errors";
+import {
+  isSupportedNodeName,
+  ElementError,
+  InternalError,
+  BaseElement,
+} from "@fireworks/core";
 import { warnOnDuplicateKeys } from "./utils";
-import { BaseElement } from "../runtime/BaseElement";
 
 export async function fromXML(xml: string): Promise<BaseElement> {
   const parsedXml = await xml2js(xml);

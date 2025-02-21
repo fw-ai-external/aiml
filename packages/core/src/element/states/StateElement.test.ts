@@ -1,9 +1,9 @@
 import { describe, expect, it, beforeEach } from "bun:test";
 import { State } from "./StateElement";
-import { StepContext } from "../../runtime/StepContext";
 import { z } from "zod";
-import { BaseElement } from "../BaseElement";
 import { StepValue } from "../../runtime/StepValue";
+import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
+import { BaseElement } from "../../runtime/BaseElement";
 
 const stateSchema = z.object({
   id: z.string().optional(),
@@ -13,7 +13,7 @@ const stateSchema = z.object({
 type StateProps = z.infer<typeof stateSchema>;
 
 describe("StateElement", () => {
-  let ctx: StepContext<StateProps>;
+  let ctx: ElementExecutionContext<StateProps>;
   let root: BaseElement;
 
   beforeEach(() => {
@@ -21,9 +21,11 @@ describe("StateElement", () => {
       id: "root",
       elementType: "scxml",
       tag: "scxml",
+      role: "state",
+      key: "root",
     });
 
-    ctx = new StepContext({
+    ctx = new ElementExecutionContext({
       input: new StepValue({ type: "text", text: "" }),
       datamodel: {},
       workflowInput: {

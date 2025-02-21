@@ -1,10 +1,10 @@
 import React from "react";
-import { getNodeDefinitionClass, isSupportedNodeName } from "../element";
-import { CompositionError, ElementError, InternalError } from "../errors";
-import type { ReactTagNodeDefinition } from "../element/createElementDefinition";
+import { getNodeDefinitionClass, isSupportedNodeName } from "@fireworks/core";
+import { CompositionError, ElementError, InternalError } from "@fireworks/core";
+import type { ReactTagNodeDefinition } from "@fireworks/core";
 import type { FireAgentNode, TextNode } from "./types";
 import { warnOnDuplicateKeys } from "./utils";
-import { BaseElement } from "../runtime/BaseElement";
+import { BaseElement } from "@fireworks/core";
 
 export type ReactElements =
   | React.ReactElement<

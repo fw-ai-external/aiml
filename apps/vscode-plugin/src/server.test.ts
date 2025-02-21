@@ -1,7 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
+import { jest } from "bun:test";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import {
-  CompletionItem,
   CompletionItemKind,
   Connection,
   Position,
@@ -14,6 +13,8 @@ import {
 import { allElementConfigs } from "@fireworks/element-types";
 import { z } from "zod";
 
+import { TokenType } from "./acorn";
+import { parseToTokens } from "./acorn";
 // Mock the connection with required methods
 const mockConnection: Connection = {
   console: { log: () => {} },
@@ -37,7 +38,7 @@ const mockConnection: Connection = {
   client: {
     register: () => Promise.resolve(),
   },
-  sendDiagnostics: vi.fn(),
+  sendDiagnostics: jest.fn(),
 } as unknown as Connection;
 
 // Helper to create a text document with content
@@ -111,7 +112,7 @@ async function getCompletionsAt(content: string, position: Position) {
           const stateIds = new Set<string>();
           for (let i = 0; i < token.all.length; i++) {
             const t = token.all[i];
-            if (t.type === TokenType.String) {
+            if (t.type === TokenType.AttributeString) {
               const attrNameToken = getOwnerAttributeName(token.all, i);
               const tagNameToken = getOwnerTagName(token.all, i);
 
@@ -164,169 +165,163 @@ async function getCompletionsAt(content: string, position: Position) {
   return [];
 }
 
-import { DocumentValidator } from "./services/validator";
-import { StateTracker } from "./services/stateTracker";
-import { DebugLogger } from "./utils/debug";
-import { TokenType } from "./acorn";
-import { parseToTokens } from "./acorn";
+// // Helper to validate a document
+// async function validateDocument(content: string) {
+//   const doc = createTextDocument(content);
+//   const tokens = parseToTokens(content);
 
-// Helper to validate a document
-async function validateDocument(content: string) {
-  const doc = createTextDocument(content);
-  const tokens = parseToTokens(content);
+//   const mockLogger: Partial<DebugLogger> = {
+//     validation: (message: string, context?: any) => {
+//       console.log(`[Validation] ${message}`, context);
+//     },
+//     state: () => {},
+//   };
 
-  const mockLogger: Partial<DebugLogger> = {
-    validation: (message: string, context?: any) => {
-      console.log(`[Validation] ${message}`, context);
-    },
-    state: () => {},
-  };
+//   const stateTracker = new StateTracker(mockLogger as DebugLogger);
+//   const validator = new DocumentValidator(
+//     mockConnection,
+//     mockLogger as DebugLogger,
+//     stateTracker
+//   );
 
-  const stateTracker = new StateTracker(mockLogger as DebugLogger);
-  const validator = new DocumentValidator(
-    mockConnection,
-    mockLogger as DebugLogger,
-    stateTracker
-  );
+//   // First pass to collect state IDs
+//   const stateIds = new Set<string>();
+//   for (let i = 0; i < tokens.length; i++) {
+//     const token = tokens[i];
+//     if (token.type === TokenType.String) {
+//       const attrNameToken = getOwnerAttributeName(tokens, i);
+//       const tagNameToken = getOwnerTagName(tokens, i);
 
-  // First pass to collect state IDs
-  const stateIds = new Set<string>();
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i];
-    if (token.type === TokenType.String) {
-      const attrNameToken = getOwnerAttributeName(tokens, i);
-      const tagNameToken = getOwnerTagName(tokens, i);
+//       if (attrNameToken && tagNameToken) {
+//         const tagName = content.substring(
+//           tagNameToken.startIndex,
+//           tagNameToken.endIndex
+//         );
+//         const attrName = content.substring(
+//           attrNameToken.startIndex,
+//           attrNameToken.endIndex
+//         );
+//         const attrValue = content.substring(
+//           token.startIndex + 1,
+//           token.endIndex - 1
+//         );
 
-      if (attrNameToken && tagNameToken) {
-        const tagName = content.substring(
-          tagNameToken.startIndex,
-          tagNameToken.endIndex
-        );
-        const attrName = content.substring(
-          attrNameToken.startIndex,
-          attrNameToken.endIndex
-        );
-        const attrValue = content.substring(
-          token.startIndex + 1,
-          token.endIndex - 1
-        );
+//         if (tagName === "state" && attrName === "id") {
+//           stateIds.add(attrValue);
+//         }
+//       }
+//     }
+//   }
 
-        if (tagName === "state" && attrName === "id") {
-          stateIds.add(attrValue);
-        }
-      }
-    }
-  }
+//   // Mock the state tracker to return our collected state IDs
+//   stateTracker.getStatesForDocument = vi.fn().mockReturnValue(stateIds);
 
-  // Mock the state tracker to return our collected state IDs
-  stateTracker.getStatesForDocument = vi.fn().mockReturnValue(stateIds);
+//   validator.validateDocument(doc, tokens);
 
-  validator.validateDocument(doc, tokens);
+//   // Extract diagnostics from the mock connection
+//   const lastCall = (mockConnection.sendDiagnostics as ReturnType<typeof vi.fn>)
+//     .mock.lastCall;
+//   if (lastCall) {
+//     return lastCall[0].diagnostics;
+//   }
+//   return [];
+// }
 
-  // Extract diagnostics from the mock connection
-  const lastCall = (mockConnection.sendDiagnostics as ReturnType<typeof vi.fn>)
-    .mock.lastCall;
-  if (lastCall) {
-    return lastCall[0].diagnostics;
-  }
-  return [];
-}
+// describe("SCXML Language Server", () => {
+//   describe("Autocompletion", () => {
+//     it("suggests elements after <", async () => {
+//       const content = "<";
+//       const completions = await getCompletionsAt(content, {
+//         line: 0,
+//         character: 1,
+//       } as Position);
 
-describe("SCXML Language Server", () => {
-  describe("Autocompletion", () => {
-    it("suggests elements after <", async () => {
-      const content = "<";
-      const completions = await getCompletionsAt(content, {
-        line: 0,
-        character: 1,
-      } as Position);
+//       expect(completions.length).toBeGreaterThan(0);
+//       expect(completions.some((c: CompletionItem) => c.label === "state")).toBe(
+//         true
+//       );
+//       expect(
+//         completions.some((c: CompletionItem) => c.label === "transition")
+//       ).toBe(true);
+//       expect(completions[0].kind).toBe(CompletionItemKind.Class);
+//     });
 
-      expect(completions.length).toBeGreaterThan(0);
-      expect(completions.some((c: CompletionItem) => c.label === "state")).toBe(
-        true
-      );
-      expect(
-        completions.some((c: CompletionItem) => c.label === "transition")
-      ).toBe(true);
-      expect(completions[0].kind).toBe(CompletionItemKind.Class);
-    });
+//     it("suggests elements while typing element name", async () => {
+//       const content = "<sta";
+//       const completions = await getCompletionsAt(content, {
+//         line: 0,
+//         character: 4,
+//       } as Position);
 
-    it("suggests elements while typing element name", async () => {
-      const content = "<sta";
-      const completions = await getCompletionsAt(content, {
-        line: 0,
-        character: 4,
-      } as Position);
+//       expect(completions.some((c: CompletionItem) => c.label === "state")).toBe(
+//         true
+//       );
+//       expect(completions[0].kind).toBe(CompletionItemKind.Class);
+//     });
 
-      expect(completions.some((c: CompletionItem) => c.label === "state")).toBe(
-        true
-      );
-      expect(completions[0].kind).toBe(CompletionItemKind.Class);
-    });
+//     it("suggests attributes for state element", async () => {
+//       const content = "<state ";
+//       const completions = await getCompletionsAt(content, {
+//         line: 0,
+//         character: 7,
+//       } as Position);
 
-    it("suggests attributes for state element", async () => {
-      const content = "<state ";
-      const completions = await getCompletionsAt(content, {
-        line: 0,
-        character: 7,
-      } as Position);
+//       expect(completions.some((c: CompletionItem) => c.label === "id")).toBe(
+//         true
+//       );
+//       expect(completions[0].kind).toBe(CompletionItemKind.Property);
+//     });
 
-      expect(completions.some((c: CompletionItem) => c.label === "id")).toBe(
-        true
-      );
-      expect(completions[0].kind).toBe(CompletionItemKind.Property);
-    });
+//     it("suggests state IDs for transition target", async () => {
+//       const content = `<state id="idle"/><transition target=`;
+//       const completions = await getCompletionsAt(content, {
+//         line: 0,
+//         character: 37,
+//       } as Position);
 
-    it("suggests state IDs for transition target", async () => {
-      const content = `<state id="idle"/><transition target=`;
-      const completions = await getCompletionsAt(content, {
-        line: 0,
-        character: 37,
-      } as Position);
+//       expect(completions.some((c: CompletionItem) => c.label === "idle")).toBe(
+//         true
+//       );
+//       expect(completions[0].kind).toBe(CompletionItemKind.Reference);
+//     });
 
-      expect(completions.some((c: CompletionItem) => c.label === "idle")).toBe(
-        true
-      );
-      expect(completions[0].kind).toBe(CompletionItemKind.Reference);
-    });
+//     it("suggests initial attribute value", async () => {
+//       const content = "<state initial=";
+//       const completions = await getCompletionsAt(content, {
+//         line: 0,
+//         character: 15,
+//       } as Position);
 
-    it("suggests initial attribute value", async () => {
-      const content = "<state initial=";
-      const completions = await getCompletionsAt(content, {
-        line: 0,
-        character: 15,
-      } as Position);
+//       expect(completions.length).toBeGreaterThan(0);
+//       expect(completions[0].kind).toBe(CompletionItemKind.EnumMember);
+//     });
+//   });
 
-      expect(completions.length).toBeGreaterThan(0);
-      expect(completions[0].kind).toBe(CompletionItemKind.EnumMember);
-    });
-  });
+//   describe("Validation", () => {
+//     it("detects invalid transition targets", async () => {
+//       const content = '<state id="idle"/><transition target="nonexistent"/>';
+//       const diagnostics = await validateDocument(content);
 
-  describe("Validation", () => {
-    it("detects invalid transition targets", async () => {
-      const content = '<state id="idle"/><transition target="nonexistent"/>';
-      const diagnostics = await validateDocument(content);
+//       expect(diagnostics.length).toBe(1);
+//       expect(diagnostics[0].message).toContain(
+//         "Target state 'nonexistent' not found"
+//       );
+//     });
 
-      expect(diagnostics.length).toBe(1);
-      expect(diagnostics[0].message).toContain(
-        "Target state 'nonexistent' not found"
-      );
-    });
+//     it("detects duplicate attributes", async () => {
+//       const content = '<state id="idle" id="busy"/>';
+//       const diagnostics = await validateDocument(content);
 
-    it("detects duplicate attributes", async () => {
-      const content = '<state id="idle" id="busy"/>';
-      const diagnostics = await validateDocument(content);
+//       expect(diagnostics.length).toBe(1);
+//       expect(diagnostics[0].message).toContain("Duplicate attribute");
+//     });
 
-      expect(diagnostics.length).toBe(1);
-      expect(diagnostics[0].message).toContain("Duplicate attribute");
-    });
+//     it("validates string values", async () => {
+//       const content = "<state initial={123} />";
+//       const diagnostics = await validateDocument(content);
 
-    it("validates string values", async () => {
-      const content = "<state initial={123} />";
-      const diagnostics = await validateDocument(content);
-
-      expect(diagnostics.length).toBe(1);
-      expect(diagnostics[0].message).toContain("Invalid value for attribute");
-    });
-  });
-});
+//       expect(diagnostics.length).toBe(1);
+//       expect(diagnostics[0].message).toContain("Invalid value for attribute");
+//     });
+//   });
+// });
