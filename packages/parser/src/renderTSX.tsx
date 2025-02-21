@@ -1,7 +1,6 @@
 import React from "react";
 import { getNodeDefinitionClass, isSupportedNodeName } from "@fireworks/core";
 import { CompositionError, ElementError, InternalError } from "@fireworks/core";
-import type { ReactTagNodeDefinition } from "@fireworks/core";
 import type { FireAgentNode, TextNode } from "./types";
 import { warnOnDuplicateKeys } from "./utils";
 import { BaseElement } from "@fireworks/core";
@@ -19,7 +18,6 @@ export type ReactElements =
   | boolean
   | null
   | undefined
-  | ReactTagNodeDefinition
   | FireAgentNode
   | ReactElements[];
 

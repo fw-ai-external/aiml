@@ -47,7 +47,7 @@ function findUnreachableStates(element: FireAgentNode): ValidationError[] {
     }
 
     if (hasTagProperties(elem) && elem.nodes) {
-      elem.nodes.forEach((child) => {
+      elem.nodes.forEach((child: FireAgentNode) => {
         const childStateIds = collectStateIds(child);
         childStateIds.forEach((id) => stateIds.add(id));
       });
@@ -69,7 +69,7 @@ function findUnreachableStates(element: FireAgentNode): ValidationError[] {
       } else if (elem.nodes && elem.nodes.length > 0) {
         // If no initial attribute, first state child is initial
         const firstState = elem.nodes.find(
-          (child) =>
+          (child: FireAgentNode) =>
             hasTagProperties(child) &&
             child.name === "state" &&
             child.attributes?.id
@@ -95,7 +95,7 @@ function findUnreachableStates(element: FireAgentNode): ValidationError[] {
       } else if (elem.nodes) {
         // If no initial attribute, first state child is initial
         const firstState = elem.nodes.find(
-          (child) =>
+          (child: FireAgentNode) =>
             hasTagProperties(child) &&
             child.name === "state" &&
             child.attributes?.id
@@ -129,7 +129,7 @@ function findUnreachableStates(element: FireAgentNode): ValidationError[] {
     }
 
     if (hasTagProperties(elem) && elem.nodes) {
-      elem.nodes.forEach((child) => {
+      elem.nodes.forEach((child: FireAgentNode) => {
         const childTransitions = collectTransitionsAndInitials(child);
         childTransitions.forEach((targets, source) => {
           const existing = transitions.get(source) || [];

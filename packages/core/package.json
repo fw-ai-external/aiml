@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@fireworks/element-types": "workspace:*",
+    "@fireworks/parser": "workspace:*",
     "@fireworksai/sdk": "^0.24.7",
     "@mastra/core": "0.2.0-alpha.92",
     "@nyariv/sandboxjs": "^0.8.23",

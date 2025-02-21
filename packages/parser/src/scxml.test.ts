@@ -1,8 +1,16 @@
-import { describe, expect, it } from 'vitest';
-import { SimulatedClock, type SnapshotFrom, createActor, waitFor } from 'xstate';
-import { toMachine } from './scxml';
+import { describe, expect, it } from "bun:test";
+import {
+  SimulatedClock,
+  type SnapshotFrom,
+  createActor,
+  waitFor,
+} from "xstate";
+import { toMachine } from "./scxml";
 
-async function runActor(tree: string, subscribe: (state: SnapshotFrom<any>) => void) {
+async function runActor(
+  tree: string,
+  subscribe: (state: SnapshotFrom<any>) => void
+) {
   const machine = toMachine(tree);
   // console.log('machine', machine);
   const actor = createActor(machine, {
@@ -15,18 +23,18 @@ async function runActor(tree: string, subscribe: (state: SnapshotFrom<any>) => v
     actor,
     (state) => {
       //console.log('inspect state', Object.keys(state), state.output);
-      return state.value === 'finished';
+      return state.value === "finished";
     },
     {
       timeout: 3_000, // 3 seconds
-    },
+    }
   );
 
   return { snapshot, actor };
 }
 
-describe('scxml', () => {
-  it('test multiple', async () => {
+describe("scxml", () => {
+  it("test multiple", async () => {
     const tree = `
       <scxml name="test" initial="s1">
         <datamodel>
@@ -49,10 +57,10 @@ describe('scxml', () => {
     `;
 
     const { snapshot } = await runActor(tree, (state) => {});
-    expect(snapshot.value).toBe('finished');
+    expect(snapshot.value).toBe("finished");
   });
 
-  it('test multiple eventless transitions', async () => {
+  it("test multiple eventless transitions", async () => {
     const tree = `
       <scxml name="test" initial="s1">
         <datamodel>
@@ -82,10 +90,10 @@ describe('scxml', () => {
     `;
 
     const { snapshot } = await runActor(tree, (state) => {});
-    expect(snapshot.value).toBe('finished');
+    expect(snapshot.value).toBe("finished");
   });
 
-  it('test if else', async () => {
+  it("test if else", async () => {
     const tree = `
       <scxml name="test" initial="a"> 
         <datamodel>
@@ -111,7 +119,7 @@ describe('scxml', () => {
     `;
 
     const { snapshot } = await runActor(tree, (state) => {});
-    expect(snapshot.value).toBe('finished');
+    expect(snapshot.value).toBe("finished");
     expect(snapshot.context.x).toBe(30);
     expect(snapshot.context.y).toBe(40);
   });

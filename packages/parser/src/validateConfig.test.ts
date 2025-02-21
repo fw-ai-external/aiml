@@ -15,7 +15,7 @@ describe("validateConfig", () => {
     };
     expect(validateConfig(config as any)).toEqual({
       errors: [],
-      config,
+      config: config as any,
     });
   });
 });

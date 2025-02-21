@@ -3,14 +3,13 @@ import React from "react";
 import { describe, expect, it } from "bun:test";
 import { renderTSX } from "./renderTSX";
 import type { FireAgentSpecNode } from "@fireworks/core";
-import { printConfigTree } from ".";
-import { SCXML, State, Final, Parallel } from "@fireworks/core";
+import { parseSpec, printConfigTree } from ".";
+import { SCXML, State, Final, Parallel, SCXMLNodeTypes } from "@fireworks/core";
 import { OnEntry, Transition } from "@fireworks/core";
 import { Assign, Log, Script } from "@fireworks/core";
 import { Data, DataModel } from "@fireworks/core";
 import { BaseElement } from "@fireworks/core";
 import { Runtime } from "@fireworks/core";
-import { parseSpec } from "../parser";
 import { LLM } from "@fireworks/core";
 
 function isBaseElement(
@@ -357,7 +356,7 @@ describe("tsx parser", () => {
     );
 
     const spec = await parseSpec(fireAgentMachine);
-    const runtime = new Runtime(spec);
+    const runtime = new Runtime(spec as any);
     const result = await runtime.run({
       userInput: {
         text: "test",
@@ -398,10 +397,10 @@ describe("tsx parser", () => {
       (testState as BaseElement)?.children?.map(
         (child) => (child as BaseElement).elementType
       )
-    ).toEqual(["GeneralAITask", "transition"]);
+    ).toEqual(["llm", "transition"]);
 
     const invokeTask = (testState as BaseElement)?.children?.find(
-      (child) => (child as BaseElement).tag === "GeneralAITask"
+      (child) => (child as BaseElement).tag === "llm"
     )!;
     expect(invokeTask).toBeDefined();
     expect((invokeTask as BaseElement)?.children?.length).toBe(1);
@@ -442,7 +441,7 @@ describe("tsx parser", () => {
     );
 
     const spec = await parseSpec(fireAgentMachine);
-    const runtime = new Runtime(spec);
+    const runtime = new Runtime(spec as any);
     const result = await runtime.run({
       userInput: {
         text: "test",

@@ -57,3 +57,8 @@ export const SCXMLNodeTypes = [
   "finalize",
 ] as const;
 export type SCXMLNodeType = (typeof SCXMLNodeTypes)[number];
+export * from "./actions";
+export * from "./ai";
+export * from "./control-flow";
+export * from "./states";
+export * from "./context";

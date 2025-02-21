@@ -1,4 +1,4 @@
-import { BaseElement } from "@fireworks/core/baseElement";
+import { BaseElement } from "@fireworks/core";
 import { Node, SourceFile } from "ts-morph";
 import type { SCXMLNodeType } from "@fireworks/element-types";
 export interface InstructionNode {
