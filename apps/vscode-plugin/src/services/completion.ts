@@ -11,7 +11,7 @@ import {
   IActiveToken,
   getOwnerTagName,
 } from "../utils/token";
-import { allElementConfigs } from "@workflow/element-types";
+import { allElementConfigs } from "@fireworks/element-types";
 import { DebugLogger } from "../utils/debug";
 import { StateTracker } from "./stateTracker";
 import { parseToTokens, Token, TokenType } from "../acorn";

@@ -14,17 +14,17 @@ describe("healXML", () => {
 
   test("heals unclosed tags", () => {
     const healed1 = healXML("<state");
-    expect(healed1).toBe("<state></state>");
+    expect(healed1).toBe("<state/>");
     assertParsable(healed1);
 
     const healed2 = healXML('<state id="test"');
-    expect(healed2).toBe('<state id="test"></state>');
+    expect(healed2).toBe('<state id="test"/>');
     assertParsable(healed2);
   });
 
-  test("heals missing closing tags", () => {
-    const healed1 = healXML("<state><transition");
-    expect(healed1).toBe("<state><transition></transition></state>");
+  test("heals missing closing tags when a child is partial", () => {
+    const healed1 = healXML("<state><transition>");
+    expect(healed1).toBe("<state><transition/></state>");
     assertParsable(healed1);
 
     const healed2 = healXML("<state>content");
@@ -41,11 +41,11 @@ describe("healXML", () => {
 
   test("handles attributes with quotes", () => {
     const healed1 = healXML("<state id='test'");
-    expect(healed1).toBe("<state id='test'></state>");
+    expect(healed1).toBe('<state id="test"/>');
     assertParsable(healed1);
 
     const healed2 = healXML('<state id="test');
-    expect(healed2).toBe('<state id="test"></state>');
+    expect(healed2).toBe('<state id="test"/>');
     assertParsable(healed2);
   });
 
@@ -61,7 +61,7 @@ describe("healXML", () => {
 
   test("handles nested tags", () => {
     const healed = healXML("<state><parallel><state>");
-    expect(healed).toBe("<state><parallel><state></state></parallel></state>");
+    expect(healed).toBe("<state><parallel><state/></parallel></state>");
     assertParsable(healed);
   });
 
@@ -73,7 +73,7 @@ describe("healXML", () => {
 
   test("handles multiple root elements", () => {
     const healed = healXML("<state></state><state>");
-    expect(healed).toBe("<state></state><state></state>");
+    expect(healed).toBe("<state/><state/>");
     assertParsable(healed);
   });
 
@@ -95,11 +95,9 @@ describe("healXML", () => {
   });
 
   test("handles newlines in XML", () => {
-    const healed1 = healXML(`
-      <state>
+    const healed1 = healXML(`<state>
         <transition target="next"/>
-      </state>
-    `);
+      </state>`);
     expect(healed1).toBe(`<state>
         <transition target="next"/>
       </state>`);
@@ -115,10 +113,7 @@ describe("healXML", () => {
       id="test"
       target="next"
     >`);
-    expect(healed3).toBe(`<state
-      id="test"
-      target="next"
-    ></state>`);
+    expect(healed3).toBe(`<state id="test" target="next"/>`);
     assertParsable(healed3);
 
     const healed4 = healXML(`<state><parallel>

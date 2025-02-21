@@ -13,6 +13,8 @@ type OnEntryProps = z.infer<typeof onEntrySchema>;
 export const OnEntry = createElementDefinition({
   tag: "onentry",
   propsSchema: onEntrySchema,
+  role: "action",
+  elementType: "onentry",
   allowedChildren: "any",
 
   async execute(

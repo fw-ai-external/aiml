@@ -1,5 +1,5 @@
 {
-  "name": "@workflow/monorepo",
+  "name": "@fireworks/monorepo",
   "private": true,
   "scripts": {
     "build": "turbo run build",

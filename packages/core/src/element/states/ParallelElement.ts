@@ -13,7 +13,16 @@ export const Parallel = createElementDefinition({
   tag: "parallel",
   propsSchema: parallelSchema,
   role: "state",
-  allowedChildren: ["onentry", "onexit", "state", "parallel", "transition"],
+  elementType: "parallel",
+  allowedChildren: [
+    "onentry",
+    "onexit",
+    "transition",
+    "state",
+    "parallel",
+    "history",
+    "datamodel",
+  ],
   onExecutionGraphConstruction(buildContext) {
     // 1. Check cache to avoid building multiple times
     const cached = buildContext.getCachedGraphElement(

@@ -5,7 +5,8 @@ import { DebugLogger } from "../utils/debug";
 import { Token, TokenType } from "../acorn";
 import { getOwnerAttributeName, getOwnerTagName } from "../utils/token";
 import { DotObject } from "../utils/object";
-import { BaseElement } from "@workflow/core";
+import { BaseElement } from "@fireworks/core";
+import { fromXML } from "@fireworks/core/parser";
 
 /**
  * Validates the document for errors and warnings.
@@ -19,8 +20,7 @@ import { BaseElement } from "@workflow/core";
 export class DocumentValidator {
   private connection: Connection;
   private logger: DebugLogger;
-
-  private stateIds = new DotObject({});
+  private stateIds: Set<string> = new Set();
 
   constructor(connection: Connection, logger: DebugLogger) {
     this.connection = connection;
@@ -32,6 +32,8 @@ export class DocumentValidator {
     tokens: Token[],
     text: string
   ): Set<string> {
+    const stateIds = new Set<string>();
+
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
       if (token.type === TokenType.AttributeString) {
@@ -67,12 +69,13 @@ export class DocumentValidator {
       }
     }
 
+    this.stateIds = stateIds;
     this.logger.validation("Found state IDs", {
-      count: this.stateIds.size,
-      ids: Array.from(this.stateIds.get("")),
+      count: stateIds.size,
+      ids: Array.from(stateIds),
     });
 
-    return this.stateIds;
+    return stateIds;
   }
 
   public validateDocument(
@@ -99,12 +102,6 @@ export class DocumentValidator {
       diagnostics: diagnostics.map((d) => d.message),
     });
     return diagnostics;
-  }
-
-  healXML(document: TextDocument, tokens: Token[]): BaseElement {
-    //
-    const root = fromXML(document.getText());
-    return root;
   }
 
   documentToElementTree(document: TextDocument, tokens: Token[]): BaseElement {

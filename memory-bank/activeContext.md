@@ -10,24 +10,35 @@ Refactoring attribute schemas to avoid duplication in scxmlElements.
 2. Updated scxmlElements to use shared schemas
 3. Removed duplicate schema definitions
 4. Added descriptions to shared schemas
+5. Added new @scxml/parser package for XML parsing and validation
+   - Implemented schema-based validation
+   - Added parent-child relationship validation
+   - Created comprehensive error reporting
 
 ## Next Steps
 
-1. Schema Finalization:
+1. Parser Implementation:
+
+   - Complete XML parsing logic in @scxml/parser
+   - Add tokenization and AST generation
+   - Implement detailed error tracking
+   - Add unit tests for parser functionality
+
+2. Schema Finalization:
 
    - Finalize shared attribute schemas
    - Implement expression type validation
    - Add ID pattern validation
    - Create schema versioning system
 
-2. Performance Optimization:
+3. Performance Optimization:
 
    - Implement schema validation caching
    - Add incremental document parsing
    - Optimize parent-child validation
    - Benchmark validation speeds
 
-3. Documentation:
+4. Documentation:
    - Create schema reference guide
    - Add validation rule examples
    - Document error code system

@@ -1,9 +1,9 @@
 {
-  "extends": "@fireworks/tsconfig/node.json",
+  "extends": "@fireworks/tsconfig/library.json",
   "include": ["src"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"
   }
-} 
+}

@@ -1,5 +1,5 @@
 {
-  "name": "@workflow/api",
+  "name": "@fireworks/api",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,13 +12,13 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@workflow/core": "workspace:*",
+    "@fireworks/core": "workspace:*",
     "@hono/node-server": "^1.13.8",
     "hono": "^4.6.17",
     "superjson": "^2.2.2"
   },
   "devDependencies": {
-    "@workflow/tsconfig": "workspace:*",
+    "@fireworks/tsconfig": "workspace:*",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
   }

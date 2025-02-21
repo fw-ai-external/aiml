@@ -168,3 +168,9 @@ export const allElementConfigs: Record<string, BaseElementDefinition> = {
 export const allStateElementConfigs = Object.values(allElementConfigs).filter(
   (config) => config.role === "state"
 );
+
+export * from "./types";
+export * from "./schemas/states";
+export * from "./schemas/actions";
+export * from "./schemas/control-flow";
+export * from "./schemas/specialized";

@@ -1,4 +1,4 @@
-import { basic } from "@workflow/core/examples/basic";
+import { basic } from "@fireworks/core/examples/basic";
 import { Mastra } from "@mastra/core";
 import { createLogger } from "@mastra/core/logger";
 export const mastra = new Mastra({

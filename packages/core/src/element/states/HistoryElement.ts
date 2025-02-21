@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
+import { ExecutionGraphElement } from "../../runtime/types";
 import { BaseElement } from "../../runtime/BaseElement";
 
 const historySchema = z.object({
@@ -12,6 +13,7 @@ export const History = createElementDefinition({
   tag: "history",
   propsSchema: historySchema,
   role: "state",
+  elementType: "history",
   allowedChildren: ["onentry", "onexit"],
   onExecutionGraphConstruction(buildContext) {
     // Might have a single transition child or onentry blocks

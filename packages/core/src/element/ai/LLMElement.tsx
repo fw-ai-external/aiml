@@ -6,7 +6,7 @@ import { StepValue } from "../../runtime/StepValue";
 import { aiStreamToFireAgentStream } from "../../utils/ai";
 import { getProviderWithClient } from "../../utils/llm/provider";
 import { gbnf } from "../../utils/llm/grammar/grammar";
-import { llmConfig } from "@workflow/element-types";
+import { llmConfig } from "@fireworks/element-types";
 
 const llmSchema = z.object({
   id: z.string().optional(),

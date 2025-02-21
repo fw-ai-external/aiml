@@ -2,47 +2,42 @@ import React from "react";
 import { z } from "zod";
 import type { FireAgentNode } from "../parser/types";
 import { ElementExecutionContext } from "../runtime/ElementExecutionContext";
-import { StepValue } from "../runtime/StepValue";
-import type { Element } from "../types/jsx";
-import type { RunstepOutput } from "../types";
-import { BaseElement, StepCondition } from "../runtime/BaseElement";
+import { BaseElement } from "../runtime/BaseElement";
 import { ExecutionGraphElement } from "../runtime/types";
 import { BuildContext } from "../runtime/BuildContext";
 import { v4 as uuidv4 } from "uuid";
+import type { SCXMLNodeType } from "@fireworks/element-types";
 
-import type {
-  ElementDefinition as BaseElementDefinition,
-  AllowedChildrenType,
-  SCXMLNodeType,
-} from "@workflow/element-types";
+export type ElementProps = Record<string, any>;
+
+export type ElementConfig<T> = z.ZodObject<any>;
+
+export type AllowedChildrenType = string[] | "none" | "any";
 
 export type ElementDefinition<
-  Props extends { id?: string } & Record<string, any>,
-  Tag extends string,
-> = Omit<BaseElementDefinition, "tagName"> & {
-  tag: Tag;
+  Props extends ElementProps = ElementProps,
+  Result = any,
+> = {
+  tag: string;
+  role: "state" | "action" | "user-input" | "error" | "output";
+  elementType: SCXMLNodeType;
+  propsSchema: ElementConfig<Props>;
+  execute?: (
+    ctx: ElementExecutionContext<Props>,
+    childrenNodes: BaseElement[]
+  ) => Promise<Result>;
+  render?: (
+    ctx: ElementExecutionContext<Props>,
+    childrenNodes: BaseElement[]
+  ) => Promise<React.ReactNode>;
+  allowedChildren?: AllowedChildrenType | ((props: Props) => string[]);
   enter?: () => Promise<void>;
   exit?: () => Promise<void>;
-} & (
-    | {
-        render?: (
-          props: Props & { nodes?: FireAgentNode[] }
-        ) => React.JSX.Element;
-      }
-    | {
-        execute: (
-          ctx: ElementExecutionContext<
-            Props & { children?: Element[] },
-            RunstepOutput
-          >,
-          childrenNodes: BaseElement[]
-        ) => Promise<StepValue | null>;
-        onExecutionGraphConstruction?: (
-          buildContext: BuildContext
-        ) => ExecutionGraphElement;
-        elementShouldRun?: StepCondition;
-      }
-  );
+  scxmlType?: SCXMLNodeType;
+  onExecutionGraphConstruction?: (
+    buildContext: BuildContext
+  ) => ExecutionGraphElement;
+};
 
 export type ReactTagNodeDefinition<
   Props extends { id?: string } & Record<string, any> = Record<string, any>,
@@ -60,20 +55,19 @@ export type ReactTagNodeDefinition<
 
 export type ReactTagNodeType<
   Props extends { id?: string } & Record<string, any> = any,
-> = ReturnType<typeof createElementDefinition<Props, string>>;
+> = ReturnType<typeof createElementDefinition<Props>>;
 
 export const createElementDefinition = <
   Props extends { id?: string } & Record<string, any>,
-  Tag extends string,
 >(
-  config: ElementDefinition<Props, Tag>
+  config: ElementDefinition<Props>
 ) => {
   const ReactTagNode = function (
     props: Props & { children?: Element | Element[] }
   ) {
     const render = () => {
       if ("render" in config && config.render) {
-        return config.render(props as any);
+        return config.render(props as any, [] as any);
       }
       return null;
     };
@@ -99,7 +93,6 @@ export const createElementDefinition = <
           })
           .or(
             z.object({
-              // TODO: improve type validation when dealing with react elements
               children:
                 allowedChildren !== "none" ? z.array(z.any()) : z.never(),
             })
@@ -108,7 +101,6 @@ export const createElementDefinition = <
       .safeParse(props);
 
     if (verifiedProps && !verifiedProps.success) {
-      // TODO: improve error message
       throw new Error(
         `Invalid props for the "${config.tag}" element: ${JSON.stringify(
           verifiedProps.error.errors
@@ -131,12 +123,8 @@ export const createElementDefinition = <
 
     const allowedChildren = Array.isArray(config.allowedChildren)
       ? config.allowedChildren
-      : (config.allowedChildren as (props: Props) => AllowedChildrenType)(
-          {} as Props
-        );
-    return children.every(
-      (child) => !child || allowedChildren.includes(child as any)
-    );
+      : (config.allowedChildren as (props: Props) => string[])({} as Props);
+    return children.every((child) => !child || allowedChildren.includes(child));
   };
 
   const defaultExecutionGraphConstruction = (
@@ -157,10 +145,7 @@ export const createElementDefinition = <
       subType: config.tag as SCXMLNodeType,
       attributes: buildContext.attributes,
     };
-    console.log(
-      "=-------------------- adding to cache",
-      buildContext.attributes.id || llmNode.id
-    );
+
     // store it in the cache
     buildContext.setCachedGraphElement(
       [buildContext.attributes.id || llmNode.id, llmNode.key].filter(Boolean),
@@ -204,7 +189,7 @@ export const createElementDefinition = <
           ? config.onExecutionGraphConstruction
           : defaultExecutionGraphConstruction,
     });
-    console.log("tagNode", tagNode.tag);
+
     return tagNode;
   };
 

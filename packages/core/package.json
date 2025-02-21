@@ -1,5 +1,5 @@
 {
-  "name": "@workflow/core",
+  "name": "@fireworks/core",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -29,7 +29,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@workflow/element-types": "workspace:*",
+    "@fireworks/element-types": "workspace:*",
     "@fireworksai/sdk": "^0.24.7",
     "@mastra/core": "0.2.0-alpha.92",
     "@nyariv/sandboxjs": "^0.8.23",
@@ -45,7 +45,7 @@
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.14",
     "@types/node": "^20.0.0",
-    "@workflow/tsconfig": "workspace:*",
+    "@fireworks/tsconfig": "workspace:*",
     "cli-highlight": "^2.1.11",
     "cli-spinners": "^3.2.0",
     "ink": "^5.1.0",

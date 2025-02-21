@@ -6,7 +6,7 @@ import { z } from "zod";
 import { BuildContext } from "./BuildContext";
 import { ExecutionGraphElement } from "./types";
 
-import type { SCXMLNodeType } from "@workflow/element-types";
+import type { SCXMLNodeType } from "@fireworks/element-types";
 
 /** Represents a single SCXML element. */
 export type Component<P> = BaseElement; // (props: P, context: ComponentContext) => Renderable;

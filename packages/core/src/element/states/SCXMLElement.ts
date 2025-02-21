@@ -19,6 +19,7 @@ export const SCXML = createElementDefinition({
   tag: "scxml",
   propsSchema: scxmlSchema,
   role: "user-input",
+  elementType: "state",
   allowedChildren: ["state", "parallel", "final", "datamodel", "script"],
   onExecutionGraphConstruction(buildContext) {
     // Convert all child elements into ExecutionGraphElements

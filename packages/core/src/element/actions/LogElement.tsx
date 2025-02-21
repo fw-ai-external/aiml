@@ -1,6 +1,6 @@
 import { createElementDefinition } from "../createElementDefinition";
 import { StepValue } from "../../runtime/StepValue";
-import { logConfig } from "@workflow/element-types";
+import { logConfig } from "@fireworks/element-types";
 
 export const Log = createElementDefinition({
   ...logConfig,

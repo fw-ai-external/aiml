@@ -1,5 +1,5 @@
 {
-  "extends": "@workflow/tsconfig/library.json",
+  "extends": "@fireworks/tsconfig/library.json",
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"],
   "include": [
     "src/**/*.ts",

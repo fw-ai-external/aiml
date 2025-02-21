@@ -1,5 +1,5 @@
 import type { BaseElement } from "../runtime/BaseElement";
-import type { SCXMLNodeType } from "@workflow/element-types";
+import type { SCXMLNodeType } from "@fireworks/element-types";
 export interface InstructionNode {
   kind: "instruction";
 

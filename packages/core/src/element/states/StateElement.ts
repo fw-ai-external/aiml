@@ -14,6 +14,7 @@ export const State = createElementDefinition({
   tag: "state",
   propsSchema: stateSchema,
   role: "state",
+  elementType: "state",
   allowedChildren: [
     "onentry",
     "onexit",

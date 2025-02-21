@@ -11,7 +11,7 @@ import {
   getOwnerAttributeName,
   getOwnerTagName,
 } from "./utils/token";
-import { allElementConfigs } from "@workflow/element-types";
+import { allElementConfigs } from "@fireworks/element-types";
 import { z } from "zod";
 
 // Mock the connection with required methods
