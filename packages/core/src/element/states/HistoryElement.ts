@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import { ExecutionGraphElement } from "../../runtime/types";
 import { BaseElement } from "../../runtime/BaseElement";
 
 const historySchema = z.object({

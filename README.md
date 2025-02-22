@@ -82,15 +82,12 @@ A comprehensive toolset for working with AIML based workflows, both familiar, ye
    bun run migrate
    ```
 
-5. Get everything running:
+5. Get everything running (except the vscode plugin.... see below):
    ```bash
+   # CD to the toot of the project
    cd ../..
-   bun run build
+   bun run dev
    ```
-
-## Development
-
-This is a monorepo managed with Turborepo. Here's how to work with different components:
 
 ### VSCode Extension
 
@@ -99,17 +96,6 @@ cd apps/vscode-plugin
 bun run dev        # Watch mode for development
 bun run test       # Run tests
 bun run package    # Build VSIX package
-```
-
-### All Components
-
-From the root directory:
-
-```bash
-bun run build      # Build all packages
-bun run dev        # Start all development servers
-bun run test       # Run all tests
-bun run lint       # Lint all code
 ```
 
 ## Project Structure
