@@ -8,7 +8,9 @@ export function usePromptVersions(agentId: string, instructions?: string) {
     {}
   );
   const [isUpdating, setIsUpdating] = useState(false);
-  const [versionToDelete, setVersionToDelete] = useState<number | null>(null);
+  const [versionToDelete, setVersionToDelete] = useState<PromptVersion | null>(
+    null
+  );
 
   // Fetch eval results for a version
   const fetchEvalResults = async (): Promise<EvalResult[]> => {
@@ -53,6 +55,7 @@ export function usePromptVersions(agentId: string, instructions?: string) {
 
           const newVersions: PromptVersion[] = [
             {
+              id: crypto.randomUUID(),
               content: instructions,
               timestamp: new Date(),
               analysis: "Original instructions",
@@ -94,6 +97,7 @@ export function usePromptVersions(agentId: string, instructions?: string) {
       } else if (instructions) {
         const initialVersions: PromptVersion[] = [
           {
+            id: crypto.randomUUID(),
             content: instructions,
             timestamp: new Date(),
             analysis: "Original instructions",
@@ -183,8 +187,8 @@ export function usePromptVersions(agentId: string, instructions?: string) {
     }
   };
 
-  const deleteVersion = (index: number) => {
-    setVersions((prev) => prev.filter((_, i) => i !== index));
+  const deleteVersion = (version: PromptVersion) => {
+    setVersions((prev) => prev.filter((v) => v.id !== version.id));
     setVersionToDelete(null);
   };
 

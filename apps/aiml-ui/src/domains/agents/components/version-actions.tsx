@@ -34,7 +34,7 @@ export function VersionActions({
           className="h-6 px-2 hover:bg-aimlg-3 relative group"
           onClick={(e) => {
             e.stopPropagation();
-            onDelete(index);
+            onDelete(version, index);
           }}
         >
           <Trash2 className="h-3 w-3 text-red-400 hover:text-red-500" />

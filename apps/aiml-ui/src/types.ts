@@ -14,6 +14,7 @@ export interface ChatProps {
 }
 
 export interface PromptVersion {
+  id: string;
   content: string;
   timestamp: Date;
   status: "original" | "active" | "published" | "draft";
@@ -35,4 +36,12 @@ export interface EvalResult {
       reason: string;
     };
   };
+}
+
+export interface VersionActionsProps {
+  version: PromptVersion;
+  index: number;
+  isUpdating: boolean;
+  onSetActive: (version: PromptVersion, index: number) => void;
+  onDelete: (version: PromptVersion, index: number) => void;
 }

@@ -20,7 +20,7 @@ interface VersionItemProps {
   onToggleAnalysis: () => void;
   onCopy: (content: string, key: string | number) => Promise<void>;
   onSetActive: (version: PromptVersion, index: number) => Promise<void>;
-  onDelete: (index: number) => void;
+  onDelete: (version: PromptVersion, index: number) => void;
 }
 
 export function VersionItem({
@@ -88,10 +88,8 @@ export function VersionItem({
           version={version}
           index={index}
           isUpdating={isUpdating}
-          isAnalysisExpanded={isAnalysisExpanded === index}
           onSetActive={onSetActive}
           onDelete={onDelete}
-          onToggleAnalysis={onToggleAnalysis}
         />
       </div>
       {isExpanded && (

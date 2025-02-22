@@ -12,7 +12,7 @@ interface VersionHistoryProps {
   copiedVersions: Record<string | number, boolean>;
   onCopy: (content: string, key: string | number) => Promise<void>;
   onSetActive: (version: PromptVersion, index: number) => Promise<void>;
-  onDelete: (index: number) => void;
+  onDelete: (version: PromptVersion, index: number) => void;
 }
 
 export function VersionHistory({

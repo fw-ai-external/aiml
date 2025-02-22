@@ -86,6 +86,7 @@ export function usePromptEnhancer({
     if (draftIndex !== -1) {
       // Update the draft version
       onVersionUpdate(draftIndex, {
+        id: versions[draftIndex].id,
         content: enhancedPrompt,
         analysis: explanation,
         status: "published" as const,
@@ -94,6 +95,7 @@ export function usePromptEnhancer({
     } else {
       // Create a new published version
       const newVersion = {
+        id: crypto.randomUUID(),
         content: enhancedPrompt,
         timestamp: new Date(),
         analysis: explanation,

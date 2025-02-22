@@ -1,9 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function WorkflowPage({
-  params,
-}: {
-  params: { workflowId: string };
-}) {
-  redirect(`/workflows/${params.workflowId}/graph`);
+export default function WorkflowPage({ params }: any) {
+  redirect(`/workflows/${(params as any).workflowId}/graph`);
 }

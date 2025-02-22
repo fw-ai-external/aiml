@@ -18,3 +18,4 @@ export async function POST(
       output: "Workflow resumed successfully",
     },
   });
+}
