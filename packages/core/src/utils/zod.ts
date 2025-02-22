@@ -10,7 +10,7 @@ import {
   type objectInputType,
   type objectOutputType,
 } from "zod";
-import { fromError } from "zod-validation-error";
+import { fromZodError } from "zod-validation-error";
 
 export const mergeWithEffect = <
   Incoming extends AnyZodObject,
@@ -81,19 +81,19 @@ export function formatZodError(error: ZodError) {
         if (err.code === "unrecognized_keys") {
           return `Unrecognized keys in element's props: ${err.keys.join(", ")}`;
         }
-        let errorString = fromError(error).toString();
+        let errorString = fromZodError(error).toString();
         if (errorString === "Unknown error") {
           errorString = JSON.stringify(error);
         }
         return errorString;
       });
     } else {
-      let errorString = fromError(error).toString();
+      let errorString = fromZodError(error).toString();
       if (errorString === "Unknown error") {
         errorString = JSON.stringify(error);
       }
 
-      return [fromError(error).toString()];
+      return [fromZodError(error).toString()];
     }
   } catch (e) {
     console.error("formatZodError", e);

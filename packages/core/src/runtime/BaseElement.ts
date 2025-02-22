@@ -109,7 +109,7 @@ export class BaseElement implements IBaseElement {
   protected _eventQueue: Array<{ name: string; data: unknown }> = [];
   protected _parent?: BaseElement;
   public readonly attributes: Record<string, any>;
-  public readonly children: IBaseElement[] = [];
+  public readonly children: BaseElement[] = [];
   public readonly onExecutionGraphConstruction?: (
     buildContext: BuildContext
   ) => ExecutionGraphElement;
@@ -132,7 +132,7 @@ export class BaseElement implements IBaseElement {
     elementType: SCXMLNodeType;
     attributes?: Record<string, any>;
     parent?: BaseElement;
-    children?: IBaseElement[];
+    children?: BaseElement[];
     onExecutionGraphConstruction?: (
       buildContext: BuildContext
     ) => ExecutionGraphElement;

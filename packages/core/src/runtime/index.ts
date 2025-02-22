@@ -1,44 +1,10 @@
 // Define a simplified local Workflow type to avoid deep type instantiation
-export class Workflow {
-  constructor(config: { name: string; triggerSchema: z.ZodType<any> }) {}
-
-  after(steps: any[]): any {}
-  step(
-    step: any,
-    options?: { when?: (context: any) => Promise<boolean> }
-  ): any {}
-  then(
-    step: any,
-    options?: { when?: (context: any) => Promise<boolean> }
-  ): any {}
-  commit(): any {
-    return this;
-  }
-  createRun(): {
-    runId: string;
-    start: (params: any) => Promise<{ results: any }>;
-  } {
-    return {
-      runId: "",
-      start: async () => ({ results: {} }),
-    };
-  }
-  watch(
-    runId: string,
-    options: { onTransition: (state: any) => void }
-  ): Promise<void> {
-    return Promise.resolve();
-  }
-
-  getState(): { context: Record<string, { isActive?: boolean }> } {
-    return { context: {} };
-  }
-}
 import { BaseElement } from "./BaseElement";
 import { z } from "zod";
 import { BuildContext } from "./BuildContext";
 import { StepValue } from "./StepValue";
 import { ExecutionGraphElement } from "./types";
+import { Workflow } from "@mastra/core";
 
 type WorkflowRunState = Awaited<ReturnType<Workflow["getState"]>>;
 
@@ -64,8 +30,8 @@ export class Runtime<
       new Workflow({
         name: "workflow",
         triggerSchema: z.object({}),
-      })
-    );
+      }) as unknown as any
+    ) as unknown as any;
   }
 
   // Walks the spec and its children and builds the workflow tree of steps
