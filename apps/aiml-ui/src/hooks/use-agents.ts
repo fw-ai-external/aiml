@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface PlaygroundAgent extends Agent {
+  name: string;
   provider: string;
   modelId?: string;
 }

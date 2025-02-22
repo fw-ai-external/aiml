@@ -65,7 +65,7 @@ const TableRow = React.forwardRef<
 ));
 TableRow.displayName = "TableRow";
 
-const MotionTableRow = motion(TableRow);
+const MotionTableRow = motion.create(TableRow);
 MotionTableRow.displayName = "MotionTableRow";
 
 const TableHead = React.forwardRef<

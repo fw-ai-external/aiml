@@ -1,11 +1,9 @@
-import type { Tool } from "@mastra/core/tools";
+import type { ToolResponse } from "@/types/tool";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export const useTools = () => {
-  const [tools, setTools] = useState<Record<string, Tool<any, any, any, any>>>(
-    {}
-  );
+  const [tools, setTools] = useState<Record<string, ToolResponse>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -38,7 +36,7 @@ export const useTools = () => {
 };
 
 export const useTool = (toolId: string) => {
-  const [tool, setTool] = useState<Tool<any, any, any, any> | null>(null);
+  const [tool, setTool] = useState<ToolResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

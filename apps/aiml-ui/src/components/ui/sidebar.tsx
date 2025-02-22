@@ -1,5 +1,6 @@
 import { Bot, DraftingCompass, Workflow } from "lucide-react";
-import { useLocation, Link } from "react-router";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { cn } from "../../lib/utils";
 
@@ -22,7 +23,7 @@ const links = [
 ];
 
 export const Sidebar = () => {
-  const { pathname: path } = useLocation();
+  const path = usePathname();
 
   return (
     <div className="relative z-20 h-full text-aimll-6">
@@ -46,7 +47,8 @@ export const Sidebar = () => {
                 pagePath === lowercasedPagePath;
               return (
                 <Link
-                  to={link.url}
+                  key={link.name}
+                  href={link.url}
                   className={cn(
                     "flex cursor-pointer w-full px-2 items-center focus-visible:outline-none transition-colors focus-visible:ring-1 focus-visible:ring-aimlorder-4 gap-3 rounded-xs group text-small hover:bg-aiaiml6/5",
                     isActive ? "bg-aimll-6/5" : ""

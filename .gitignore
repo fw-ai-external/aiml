@@ -17,7 +17,7 @@ pr_msg*.txt
 /coverage
 
 # next.js
-/.next/
+**/.next/
 /out/
 **/dist/
 **/.dist/

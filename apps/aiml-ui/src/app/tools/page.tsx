@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Header } from "@/components/ui/header";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,15 +11,14 @@ import { cn } from "@/lib/utils";
 import { useAgent, useAgents } from "@/hooks/use-agents";
 import { useTools } from "@/hooks/use-all-tools";
 
-const Tools = () => {
+export default function Tools() {
   const { agents, isLoading: isLoadingAgents } = useAgents();
   const { tools, isLoading: isLoadingTools } = useTools();
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [isAllTools, setIsAllTools] = useState(true);
 
   const { agent, isLoading: isLoadingAgent } = useAgent(selectedAgentId!);
-
-  const navigate = useNavigate();
+  const router = useRouter();
 
   if (isLoadingAgents) {
     return (
@@ -66,7 +67,7 @@ const Tools = () => {
   if (isLoadingTools || isLoadingAgent) {
     return (
       <div className="flex flex-col h-full w-full ">
-        <Header title={`Tools`} />
+        <Header title="Tools" />
         <div className="w-full h-full grid grid-cols-[300px_1fr] ">
           <div className="w-full h-full border-r-[0.5px] border-aiml-border-1 py-6 px-4">
             <Skeleton className="h-full w-full rounded-md" />
@@ -78,10 +79,10 @@ const Tools = () => {
 
   return (
     <div className="flex flex-col h-full w-full ">
-      <Header title={`Tools`} />
+      <Header title="Tools" />
       <div className="w-full h-full grid grid-cols-[300px_1fr]  ">
         <div className="w-full h-full border-r-[0.5px] border-aiml-border-1 py-6 px-4">
-          <ul className=" flex flex-col gap-4">
+          <ul className="flex flex-col gap-4">
             {Object.keys(tools).length > 0 && (
               <li
                 className={cn(
@@ -164,10 +165,10 @@ const Tools = () => {
               Object.entries(tools).map(([name, tool], index) => (
                 <div
                   onClick={() => {
-                    navigate(`/tools/all/${tool.id}`);
+                    router.push(`/tools/all/${tool.id}`);
                   }}
                   key={index}
-                  className=" hover:bg-aiml-bg-4/80 transition-colors flex flex-col  gap-[0.62rem] bg-aiml-bg-13 px-[0.62rem] py-2 rounded-[0.375rem] cursor-pointer border-[0.5px] border-aiml-border-1"
+                  className="hover:bg-aiml-bg-4/80 transition-colors flex flex-col gap-[0.62rem] bg-aiml-bg-13 px-[0.62rem] py-2 rounded-[0.375rem] cursor-pointer border-[0.5px] border-aiml-border-1"
                 >
                   <h3 className="text-small text-aiml-el-6">{name}</h3>
                   <p className="text-small text-aiml-el-2">
@@ -179,10 +180,10 @@ const Tools = () => {
               Object.entries(agent?.tools ?? {}).map(([name, tool], index) => (
                 <div
                   onClick={() => {
-                    navigate(`/tools/${selectedAgentId}/${tool.id}`);
+                    router.push(`/tools/${selectedAgentId}/${tool.id}`);
                   }}
                   key={index}
-                  className=" hover:bg-aiml-bg-4/80 transition-colors flex flex-col  gap-[0.62rem] bg-aiml-bg-13 px-[0.62rem] py-2 rounded-[0.375rem] cursor-pointer border-[0.5px] border-aiml-border-1"
+                  className="hover:bg-aiml-bg-4/80 transition-colors flex flex-col gap-[0.62rem] bg-aiml-bg-13 px-[0.62rem] py-2 rounded-[0.375rem] cursor-pointer border-[0.5px] border-aiml-border-1"
                 >
                   <h3 className="text-small text-aiml-el-6">{name}</h3>
                   <p className="text-small text-aiml-el-2">
@@ -196,6 +197,4 @@ const Tools = () => {
       </div>
     </div>
   );
-};
-
-export default Tools;
+}

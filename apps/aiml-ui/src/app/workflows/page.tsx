@@ -1,5 +1,7 @@
+"use client";
+
 import { Workflow } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/ui/header";
@@ -16,9 +18,9 @@ import {
 
 import { useWorkflows } from "@/hooks/use-workflows";
 
-function Workflows() {
+export default function Workflows() {
   const { workflows, isLoading } = useWorkflows();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div className="flex flex-col h-full relative overflow-hidden">
@@ -63,7 +65,7 @@ function Workflows() {
                     <TableCell className="text-aimll-5 text-sm">
                       <span
                         onClick={() => {
-                          navigate(`/workflows/${key}/graph`);
+                          router.push(`/workflows/${key}/graph`);
                         }}
                         className="hover:no-underline"
                       >
@@ -83,5 +85,3 @@ function Workflows() {
     </div>
   );
 }
-
-export default Workflows;

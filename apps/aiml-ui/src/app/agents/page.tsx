@@ -1,5 +1,7 @@
+"use client";
+
 import { Bot, BotMessageSquare } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/ui/header";
@@ -16,9 +18,9 @@ import {
 
 import { useAgents } from "@/hooks/use-agents";
 
-function Agents() {
+export default function Agents() {
   const { agents, isLoading } = useAgents();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div className="flex flex-col h-full relative overflow-hidden">
@@ -80,7 +82,7 @@ function Agents() {
                     <TableCell className="text-aimll-5 text-sm">
                       <span
                         onClick={() => {
-                          navigate(`/agents/${key}/chat`);
+                          router.push(`/agents/${key}/chat`);
                         }}
                         className="hover:no-underline"
                       >
@@ -100,5 +102,3 @@ function Agents() {
     </div>
   );
 }
-
-export default Agents;
