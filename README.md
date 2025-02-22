@@ -2,6 +2,9 @@
 
 ## Modern MDX flavored SCXML, designed for an Agentic world!
 
+> [!IMPORTANT]  
+> This repository is in a high state of flux, and might not build correctly at this moment, please be patient as rapid progress is made :)
+
 A comprehensive toolset for working with AIML based workflows, both familiar, yet totally new! featuring a VSCode extension for enhanced development experience, a runtime enviorment, an API server, and a web based management UI!
 
 ## Features
