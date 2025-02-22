@@ -1,5 +1,5 @@
 {
-  "name": "vscode-scxml",
+  "name": "fireagent-plugin-vscode",
   "displayName": "SCXML Language Support",
   "repository": {
     "type": "git",

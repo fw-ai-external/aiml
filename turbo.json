@@ -22,7 +22,7 @@
       "dependsOn": ["@fireworks/types#build", "@fireworks/element-types#build", "@fireworks/core#build"],
       "outputs": ["dist/**"]
     },
-    "vscode-scxml#build": {
+    "fireagent-plugin-vscode#build": {
       "dependsOn": [
         "@fireworks/types#build",
         "@fireworks/element-types#build",
