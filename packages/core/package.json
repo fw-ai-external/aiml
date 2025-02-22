@@ -21,6 +21,7 @@
     "@fireworks/element-types": "workspace:*",
     "@fireworks/types": "workspace:*",
     "@fireworksai/sdk": "^0.24.7",
+    "@mastra/core": "^0.3.0",
     "@nyariv/sandboxjs": "^0.8.23",
     "@stdlib/nlp-sentencize": "^0.0.x",
     "cli-highlight": "^2.1.11",

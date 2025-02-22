@@ -26,19 +26,20 @@ export class Runtime<
     private options?: RuntimeOptions
   ) {
     this.rootElement = spec;
-    this.workflow = this.buildWorkflowTree(
-      new Workflow({
-        name: "workflow",
-        triggerSchema: z.object({}),
-      }) as unknown as any
-    ) as unknown as any;
+
+    this.workflow = new Workflow({
+      name: "workflow",
+      triggerSchema: z.object({}),
+    });
+
+    this.buildWorkflowTree();
   }
 
   // Walks the spec and its children and builds the workflow tree of steps
-  private buildWorkflowTree(workflow: Workflow): Workflow {
+  private buildWorkflowTree() {
     // Add the root spec and let it add its children
     const buildContext = new BuildContext(
-      workflow,
+      this.workflow,
       this.spec.key,
       this.spec.children,
       this.spec.attributes,
@@ -51,69 +52,67 @@ export class Runtime<
     if (!executionGraph) {
       throw new Error("Execution graph construction returned undefined");
     }
-    function addGraphElementToWorkflow(
-      element: ExecutionGraphElement,
-      parallel: boolean = false
-    ) {
-      if (element.runAfter) {
-        console.log(
-          "=-------------------- runAfter",
-          element.runAfter,
-          element.key
-        );
-        workflow.after(
-          element.runAfter.map((key) =>
-            buildContext.getElementByKey(key)
-          ) as any
-        ) as any;
-      }
-      // Add the current element to the workflow
+
+    // Start with the root execution graph element and add all elements recursively
+    this.addGraphElementToWorkflow(buildContext, executionGraph, true);
+  }
+
+  private addGraphElementToWorkflow(
+    buildContext: BuildContext,
+    element: ExecutionGraphElement,
+    parallel: boolean = false
+  ) {
+    if (element.runAfter) {
       console.log(
-        "=-------------------- addGraphElementToWorkflow",
-        element.subType,
+        "=-------------------- runAfter",
+        element.runAfter,
         element.key
       );
-      const step = buildContext.getElementByKey(element.key);
-      if (step) {
-        console.log("=-------------------- getElementById", step.tag);
-        if (parallel) {
-          workflow.step(step, {
-            // create a function that evaluates the when expression
-            // this serves as a guard for the step
-            // TODO use Step context here
-            when: async ({ context }) =>
-              element.when ? eval(element.when) : true,
-          });
-        } else {
-          console.log("=-------------------- then", step.tag);
-          workflow.then(step, {
-            // create a function that evaluates the when expression
-            // this serves as a guard for the step
-            // TODO use Step context here
-            when: async ({ context }) =>
-              element.when ? eval(element.when) : true,
-          });
-        }
-      }
-
-      // Recursively add all child elements
-      if (element.next) {
-        for (const child of element.next) {
-          addGraphElementToWorkflow(child);
-        }
-      }
-
-      if (element.parallel) {
-        for (const child of element.parallel) {
-          addGraphElementToWorkflow(child, true);
-        }
+      this.workflow.after(
+        element.runAfter.map((key) => buildContext.getElementByKey(key)) as any
+      ) as any;
+    }
+    // Add the current element to the workflow
+    console.log(
+      "=-------------------- addGraphElementToWorkflow",
+      element.subType,
+      element.key
+    );
+    const step = buildContext.getElementByKey(element.key);
+    if (step) {
+      console.log("=-------------------- getElementById", step.tag);
+      if (parallel) {
+        this.workflow.step(step, {
+          // create a function that evaluates the when expression
+          // this serves as a guard for the step
+          // TODO use Step context here
+          when: async ({ context }) =>
+            element.when ? eval(element.when) : true,
+        });
+      } else {
+        console.log("=-------------------- then", step.tag);
+        this.workflow.then(step, {
+          // create a function that evaluates the when expression
+          // this serves as a guard for the step
+          // TODO use Step context here
+          when: async ({ context }) =>
+            element.when ? eval(element.when) : true,
+        });
       }
     }
 
-    // Start with the root execution graph element and add all elements recursively
-    addGraphElementToWorkflow(executionGraph, true);
+    // Recursively add all child elements
+    if (element.next) {
+      for (const child of element.next) {
+        this.addGraphElementToWorkflow(buildContext, child);
+      }
+    }
 
-    return workflow.commit();
+    if (element.parallel) {
+      for (const child of element.parallel) {
+        this.addGraphElementToWorkflow(buildContext, child, true);
+      }
+    }
   }
 
   private async handleStateTransition(state: WorkflowRunState) {
@@ -164,14 +163,11 @@ export class Runtime<
     const { runId, start } = this.workflow.createRun();
 
     // Set up state transition monitoring
-    this.workflow
-      .watch(runId, {
-        onTransition: (state) => this.handleStateTransition(state as any),
-      })
-      .catch((error) => {
-        console.error("error", error);
-        this.options?.onError?.(error as Error);
-      });
+    this.workflow.watch((state) => this.handleStateTransition(state as any));
+    // .catch((error) => {
+    //   console.error("error", error);
+    //   this.options?.onError?.(error as Error);
+    // });
 
     try {
       const { results } = await start({
