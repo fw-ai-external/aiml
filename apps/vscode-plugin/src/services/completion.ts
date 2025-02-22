@@ -11,7 +11,7 @@ import {
   IActiveToken,
   getOwnerTagName,
 } from "../utils/token";
-import { allElementConfigs } from "@fireworks/element-types";
+import { allElementConfigs } from "@fireworks/element-config";
 import { DebugLogger } from "../utils/debug";
 import { parseToTokens, Token, TokenType } from "../acorn";
 

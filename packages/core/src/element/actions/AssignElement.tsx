@@ -1,7 +1,7 @@
 import { createElementDefinition } from "../createElementDefinition";
 import { StepValue } from "../../runtime/StepValue";
 import { v4 as uuidv4 } from "uuid";
-import { assignConfig, AssignProps } from "@fireworks/element-types";
+import { assignConfig, AssignProps } from "@fireworks/element-config";
 
 export const Assign = createElementDefinition<AssignProps>({
   ...assignConfig,

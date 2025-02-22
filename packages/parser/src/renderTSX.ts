@@ -2,7 +2,7 @@ import React from "react";
 import {
   getNodeDefinitionClass,
   isSupportedNodeName,
-} from "@fireworks/element-types";
+} from "@fireworks/element-config";
 import type {
   FireAgentNode,
   IBaseElement,

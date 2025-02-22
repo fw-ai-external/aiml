@@ -1,7 +1,7 @@
 import { createElementDefinition } from "../createElementDefinition";
 import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
-import { scriptConfig, ScriptProps } from "@fireworks/element-types";
+import { scriptConfig, ScriptProps } from "@fireworks/element-config";
 
 export const Script = createElementDefinition<ScriptProps>({
   ...scriptConfig,

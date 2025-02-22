@@ -1,6 +1,6 @@
 import { createElementDefinition } from "../createElementDefinition";
 import { StepValue } from "../../runtime/StepValue";
-import { sendConfig, SendProps } from "@fireworks/element-types";
+import { sendConfig, SendProps } from "@fireworks/element-config";
 
 export const Send = createElementDefinition<SendProps>({
   ...sendConfig,

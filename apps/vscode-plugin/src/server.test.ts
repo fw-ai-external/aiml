@@ -10,7 +10,7 @@ import {
   getOwnerAttributeName,
   getOwnerTagName,
 } from "./utils/token";
-import { allElementConfigs } from "@fireworks/element-types";
+import { allElementConfigs } from "@fireworks/element-config";
 import { z } from "zod";
 
 import { TokenType } from "./acorn";

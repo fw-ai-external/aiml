@@ -10,22 +10,22 @@
       "outputs": ["dist/**"],
       "cache": false
     },
-    "@fireworks/element-types#build": {
+    "@fireworks/element-config#build": {
       "dependsOn": ["@fireworks/types#build"],
       "outputs": ["dist/**"]
     },
     "@fireworks/core#build": {
-      "dependsOn": ["@fireworks/types#build", "@fireworks/element-types#build"],
+      "dependsOn": ["@fireworks/types#build", "@fireworks/element-config#build"],
       "outputs": ["dist/**"]
     },
     "@fireworks/parser#build": {
-      "dependsOn": ["@fireworks/types#build", "@fireworks/element-types#build", "@fireworks/core#build"],
+      "dependsOn": ["@fireworks/types#build", "@fireworks/element-config#build", "@fireworks/core#build"],
       "outputs": ["dist/**"]
     },
     "fireagent-plugin-vscode#build": {
       "dependsOn": [
         "@fireworks/types#build",
-        "@fireworks/element-types#build",
+        "@fireworks/element-config#build",
         "@fireworks/core#build",
         "@fireworks/parser#build"
       ],

@@ -1,6 +1,6 @@
 import { createElementDefinition } from "../createElementDefinition";
 import { StepValue } from "../../runtime/StepValue";
-import { cancelConfig, CancelProps } from "@fireworks/element-types";
+import { cancelConfig, CancelProps } from "@fireworks/element-config";
 
 export const Cancel = createElementDefinition<CancelProps>({
   ...cancelConfig,

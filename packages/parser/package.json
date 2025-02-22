@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@fireworks/types": "workspace:*",
-    "@fireworks/element-types": "workspace:*",
+    "@fireworks/element-config": "workspace:*",
     "@fireworks/core": "workspace:*",
     "ts-morph": "^21.0.1",
     "uuid": "^9.0.1",

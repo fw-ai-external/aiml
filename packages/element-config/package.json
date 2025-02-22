@@ -1,5 +1,5 @@
 {
-  "name": "@fireworks/element-types",
+  "name": "@fireworks/element-config",
   "version": "0.0.1",
   "private": true,
   "type": "module",

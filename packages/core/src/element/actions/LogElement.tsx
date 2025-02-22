@@ -1,6 +1,6 @@
 import { createElementDefinition } from "../createElementDefinition";
 import { StepValue } from "../../runtime/StepValue";
-import { logConfig, LogProps } from "@fireworks/element-types";
+import { logConfig, LogProps } from "@fireworks/element-config";
 
 export const Log = createElementDefinition<LogProps>({
   ...logConfig,

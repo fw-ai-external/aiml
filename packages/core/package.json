@@ -18,7 +18,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@fireworks/element-types": "workspace:*",
+    "@fireworks/element-config": "workspace:*",
     "@fireworks/types": "workspace:*",
     "@fireworksai/sdk": "^0.24.7",
     "@mastra/core": "^0.3.0",

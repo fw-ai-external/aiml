@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import { llmConfig } from "@fireworks/element-types";
+import { llmConfig } from "@fireworks/element-config";
 import { StepValue } from "../../runtime/StepValue";
 import { getProviderWithClient } from "../../utils/llm/provider";
 import { ErrorCode } from "../../utils/errorCodes";

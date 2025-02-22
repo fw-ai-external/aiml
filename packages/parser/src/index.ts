@@ -9,7 +9,7 @@ import format, { type XMLFormatterOptions } from "xml-formatter";
 import { fromXML } from "./fromXML";
 import { renderTSX } from "./renderTSX";
 import type { FireAgentNode } from "./types";
-import { type BaseElementDefinition } from "@fireworks/element-types";
+import { type BaseElementDefinition } from "@fireworks/element-config";
 import { z } from "zod";
 
 function convertToBaseElementDefinition(

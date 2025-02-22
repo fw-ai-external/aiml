@@ -42,7 +42,7 @@ describe("HoverProvider", () => {
   describe("getHover", () => {
     it("should provide hover information for elements", () => {
       // Set up element types mock
-      mock.module("@fireworks/element-types", () => ({
+      mock.module("@fireworks/element-config", () => ({
         allElementConfigs: {
           state: {
             documentation: "State element documentation",
@@ -85,7 +85,7 @@ describe("HoverProvider", () => {
     });
 
     it("should provide hover information for attributes", () => {
-      mock.module("@fireworks/element-types", () => ({
+      mock.module("@fireworks/element-config", () => ({
         allElementConfigs: {
           state: {
             documentation: "State element documentation",
@@ -188,7 +188,7 @@ describe("HoverProvider", () => {
     });
 
     it("should handle unknown elements", () => {
-      mock.module("@fireworks/element-types", () => ({
+      mock.module("@fireworks/element-config", () => ({
         allElementConfigs: {
           state: {
             documentation: "State element documentation",
@@ -210,7 +210,7 @@ describe("HoverProvider", () => {
     });
 
     it("should handle errors gracefully", () => {
-      mock.module("@fireworks/element-types", () => ({
+      mock.module("@fireworks/element-config", () => ({
         get allElementConfigs() {
           throw new Error("Test error");
         },
@@ -233,7 +233,7 @@ describe("HoverProvider", () => {
     });
 
     it("should handle unknown attributes", () => {
-      mock.module("@fireworks/element-types", () => ({
+      mock.module("@fireworks/element-config", () => ({
         allElementConfigs: {
           state: {
             documentation: "State element documentation",

@@ -4,7 +4,7 @@ import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 import { v4 as uuidv4 } from "uuid";
 import type { RunstepOutput } from "../../types";
-import { onEntryConfig, OnEntryProps } from "@fireworks/element-types";
+import { onEntryConfig, OnEntryProps } from "@fireworks/element-config";
 
 export const OnEntry = createElementDefinition<OnEntryProps>({
   ...onEntryConfig,

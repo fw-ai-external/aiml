@@ -1,6 +1,6 @@
 import { createElementDefinition } from "../createElementDefinition";
 import { StepValue } from "../../runtime/StepValue";
-import { raiseConfig, RaiseProps } from "@fireworks/element-types";
+import { raiseConfig, RaiseProps } from "@fireworks/element-config";
 
 export const Raise = createElementDefinition<RaiseProps>({
   ...raiseConfig,

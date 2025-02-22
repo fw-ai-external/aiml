@@ -54,7 +54,7 @@
     "@fireworks/core": "workspace:*",
     "@fireworks/parser": "workspace:*",
     "@fireworks/types": "workspace:*",
-    "@fireworks/element-types": "workspace:*",
+    "@fireworks/element-config": "workspace:*",
     "dot-object": "^2.1.5",
     "find-up": "^7.0.0",
     "load-plugin": "^6.0.3",
