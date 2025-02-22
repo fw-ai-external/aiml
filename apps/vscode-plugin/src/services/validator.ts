@@ -103,10 +103,12 @@ export class DocumentValidator {
     return diagnostics;
   }
 
-  documentToElementTree(document: TextDocument, tokens: Token[]): BaseElement {
-    //
-    const root = fromXML(document.getText());
-    return root;
+  async documentToElementTree(
+    document: TextDocument,
+    tokens: Token[]
+  ): Promise<BaseElement> {
+    const root = await fromXML(document.getText());
+    return root as BaseElement;
   }
 
   /**
