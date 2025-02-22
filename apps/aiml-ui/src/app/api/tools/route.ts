@@ -7,6 +7,8 @@ export async function GET() {
       id: "tool1",
       name: "Test Tool",
       description: "A test tool",
+      type: "default",
+      config: {},
     },
   });
 }

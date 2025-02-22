@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { AgentInformation } from "@/domains/agents/agent-information";
@@ -10,9 +12,10 @@ import { useAgent } from "@/hooks/use-agents";
 export default function AgentTracesPage({
   params,
 }: {
-  params: { agentId: string };
+  params: Promise<{ agentId: string }>;
 }) {
-  const { agent, isLoading: isAgentLoading } = useAgent(params.agentId);
+  const resolvedParams = React.use(params);
+  const { agent, isLoading: isAgentLoading } = useAgent(resolvedParams.agentId);
 
   if (isAgentLoading) {
     return (
@@ -21,7 +24,7 @@ export default function AgentTracesPage({
           <Skeleton className="h-[600px]" />
         </div>
         <div className="flex flex-col">
-          <AgentInformation agentId={params.agentId} />
+          <AgentInformation agentId={resolvedParams.agentId} />
         </div>
       </main>
     );
@@ -29,7 +32,7 @@ export default function AgentTracesPage({
 
   return (
     <TraceProvider>
-      <AgentTraces agentId={params.agentId} agentName={agent?.name!} />
+      <AgentTraces agentId={resolvedParams.agentId} agentName={agent?.name!} />
     </TraceProvider>
   );
 }

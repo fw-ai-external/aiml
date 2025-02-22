@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+
 import { Skeleton } from "@/components/ui/skeleton";
 
 import WorkflowGraph from "@/domains/workflows/workflow-graph";
@@ -9,10 +11,11 @@ import { useWorkflow } from "@/hooks/use-workflows";
 export default function WorkflowGraphPage({
   params,
 }: {
-  params: { workflowId: string };
+  params: Promise<{ workflowId: string }>;
 }) {
+  const resolvedParams = React.use(params);
   const { workflow, isLoading: isWorkflowLoading } = useWorkflow(
-    params.workflowId
+    resolvedParams.workflowId
   );
 
   if (isWorkflowLoading) {
@@ -22,7 +25,7 @@ export default function WorkflowGraphPage({
           <Skeleton className="h-[600px]" />
         </div>
         <div className="flex flex-col">
-          <WorkflowInformation workflowId={params.workflowId} />
+          <WorkflowInformation workflowId={resolvedParams.workflowId} />
         </div>
       </main>
     );
@@ -32,7 +35,7 @@ export default function WorkflowGraphPage({
     <main className="flex-1 relative grid grid-cols-[1fr_400px] divide-x">
       <WorkflowGraph workflow={workflow!} />
       <div className="flex flex-col">
-        <WorkflowInformation workflowId={params.workflowId} />
+        <WorkflowInformation workflowId={resolvedParams.workflowId} />
       </div>
     </main>
   );

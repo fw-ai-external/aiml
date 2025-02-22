@@ -2,7 +2,8 @@
 
 import { PanelLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import * as React from "react";
+import { useState } from "react";
 
 import { Chat } from "@/components/Chat";
 import { Button } from "@/components/ui/button";
@@ -19,24 +20,27 @@ import type { Message } from "@/types";
 export default function AgentChat({
   params,
 }: {
-  params: { agentId: string; threadId?: string[] };
+  params: Promise<{ agentId: string; threadId?: string[] }>;
 }) {
   const router = useRouter();
-  const threadId = params.threadId?.[0];
-  const { agent, isLoading: isAgentLoading } = useAgent(params.agentId);
-  const { memory } = useMemory(params.agentId);
+  const resolvedParams = React.use(params);
+  const threadId = resolvedParams.threadId?.[0];
+  const { agent, isLoading: isAgentLoading } = useAgent(resolvedParams.agentId);
+  const { memory } = useMemory(resolvedParams.agentId);
   const { messages, isLoading: isMessagesLoading } = useMessages({
-    agentId: params.agentId,
+    agentId: resolvedParams.agentId,
     threadId: threadId!,
     memory: !!memory?.result,
   });
   const [sidebar, setSidebar] = useState(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (memory?.result && !threadId) {
-      router.push(`/agents/${params.agentId}/chat/${crypto.randomUUID()}`);
+      router.push(
+        `/agents/${resolvedParams.agentId}/chat/${crypto.randomUUID()}`
+      );
     }
-  }, [memory?.result, threadId, params.agentId, router]);
+  }, [memory?.result, threadId, resolvedParams.agentId, router]);
 
   if (isAgentLoading) {
     return (
@@ -45,7 +49,7 @@ export default function AgentChat({
           <Skeleton className="h-[600px]" />
         </div>
         <div className="flex flex-col">
-          <AgentInformation agentId={params.agentId} />
+          <AgentInformation agentId={resolvedParams.agentId} />
         </div>
       </main>
     );
@@ -61,7 +65,7 @@ export default function AgentChat({
       )}
     >
       {sidebar && memory?.result ? (
-        <AgentSidebar agentId={params.agentId} threadId={threadId!} />
+        <AgentSidebar agentId={resolvedParams.agentId} threadId={threadId!} />
       ) : null}
       <div className="relative">
         {memory?.result ? (
@@ -75,7 +79,7 @@ export default function AgentChat({
           </Button>
         ) : null}
         <Chat
-          agentId={params.agentId}
+          agentId={resolvedParams.agentId}
           agentName={agent?.name}
           threadId={threadId!}
           initialMessages={
@@ -85,7 +89,7 @@ export default function AgentChat({
         />
       </div>
       <div className="flex flex-col">
-        <AgentInformation agentId={params.agentId} />
+        <AgentInformation agentId={resolvedParams.agentId} />
       </div>
     </main>
   );

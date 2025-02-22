@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { useRouter } from "next/navigation";
 
 import { Header } from "@/components/ui/header";
@@ -10,9 +11,10 @@ import { useAgent } from "@/hooks/use-agents";
 export default function AgentToolPage({
   params,
 }: {
-  params: { agentId: string; toolId: string };
+  params: Promise<{ agentId: string; toolId: string }>;
 }) {
-  const { agent, isLoading } = useAgent(params.agentId);
+  const resolvedParams = React.use(params);
+  const { agent, isLoading } = useAgent(resolvedParams.agentId);
   const router = useRouter();
 
   if (isLoading) {
@@ -26,7 +28,7 @@ export default function AgentToolPage({
     );
   }
 
-  const tool = agent?.tools?.[params.toolId];
+  const tool = agent?.tools?.[resolvedParams.toolId];
 
   if (!tool) {
     router.push("/tools");

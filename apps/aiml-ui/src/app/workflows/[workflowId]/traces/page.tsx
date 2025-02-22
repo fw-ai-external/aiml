@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { TraceProvider } from "@/domains/traces/context/trace-context";
@@ -10,10 +12,11 @@ import { useWorkflow } from "@/hooks/use-workflows";
 export default function WorkflowTracesPage({
   params,
 }: {
-  params: { workflowId: string };
+  params: Promise<{ workflowId: string }>;
 }) {
+  const resolvedParams = React.use(params);
   const { workflow, isLoading: isWorkflowLoading } = useWorkflow(
-    params.workflowId
+    resolvedParams.workflowId
   );
 
   if (isWorkflowLoading) {
@@ -23,7 +26,7 @@ export default function WorkflowTracesPage({
           <Skeleton className="h-[600px]" />
         </div>
         <div className="flex flex-col">
-          <WorkflowInformation workflowId={params.workflowId} />
+          <WorkflowInformation workflowId={resolvedParams.workflowId} />
         </div>
       </main>
     );
@@ -32,7 +35,7 @@ export default function WorkflowTracesPage({
   return (
     <TraceProvider>
       <WorkflowTraces
-        workflowId={params.workflowId}
+        workflowId={resolvedParams.workflowId}
         workflowName={workflow?.name!}
       />
     </TraceProvider>

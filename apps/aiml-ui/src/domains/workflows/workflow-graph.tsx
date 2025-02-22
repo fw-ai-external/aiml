@@ -15,8 +15,10 @@ import { WorkflowConditionNode } from "./workflow-condition-node";
 import { WorkflowDefaultNode } from "./workflow-default-node";
 
 function WorkflowGraph({ workflow }: { workflow: Workflow }) {
-  const { nodes: initialNodes, edges: initialEdges } =
-    contructNodesAndEdges(workflow);
+  const { nodes: initialNodes, edges: initialEdges } = contructNodesAndEdges({
+    stepGraph: workflow.stepGraph,
+    stepSubscriberGraph: workflow.stepSubscriberGraph,
+  });
   const [nodes, _, onNodesChange] = useNodesState(initialNodes);
   const [edges] = useEdgesState(initialEdges);
 

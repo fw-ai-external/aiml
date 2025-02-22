@@ -1,49 +1,58 @@
-import { useMatch, useNavigate } from 'react-router';
+"use client";
 
-import Breadcrumb from '@/components/ui/breadcrumbs';
-import { Button } from '@/components/ui/button';
-import { Header } from '@/components/ui/header';
+import { usePathname, useRouter } from "next/navigation";
 
-export function AgentHeader({ agentName, agentId }: { agentName: string; agentId: string }) {
-  const isEvalsPage = useMatch(`/agents/${agentId}/evals`);
-  const isChatPage = useMatch(`/agents/${agentId}/chat`);
-  const isTracesPage = useMatch(`/agents/${agentId}/traces`);
-  const navigate = useNavigate();
+export function AgentHeader({
+  agentName,
+  agentId,
+}: {
+  agentName: string;
+  agentId: string;
+}) {
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const breadcrumbItems = [
-    {
-      label: 'Agents',
-      href: '/agents',
-    },
-    {
-      label: agentName,
-      href: `/agents/${agentId}`,
-      isCurrent: true,
-    },
-  ];
+  const isEvalsPage = pathname === `/agents/${agentId}/evals`;
+  const isChatPage = pathname.startsWith(`/agents/${agentId}/chat`);
+  const isTracesPage = pathname === `/agents/${agentId}/traces`;
+
   return (
-    <Header title={<Breadcrumb items={breadcrumbItems} />}>
-      <Button
-        variant={isChatPage ? 'primary' : 'outline'}
-        size="slim"
-        onClick={() => navigate(`/agents/${agentId}/chat`)}
-      >
-        Chat
-      </Button>
-      <Button
-        variant={isTracesPage ? 'primary' : 'outline'}
-        size="slim"
-        onClick={() => navigate(`/agents/${agentId}/traces`)}
-      >
-        Traces
-      </Button>
-      <Button
-        variant={isEvalsPage ? 'primary' : 'outline'}
-        size="slim"
-        onClick={() => navigate(`/agents/${agentId}/evals`)}
-      >
-        Evals
-      </Button>
-    </Header>
+    <div className="flex items-center justify-between px-4 py-2 border-b">
+      <div className="flex items-center gap-4">
+        <h1 className="text-lg font-medium">{agentName}</h1>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.push(`/agents/${agentId}/chat`)}
+            className={`px-3 py-1 rounded-md text-sm ${
+              isChatPage
+                ? "bg-aiml-bg-4/70 text-aiml-el-1"
+                : "hover:bg-aiml-bg-4/30 text-aiml-el-2"
+            }`}
+          >
+            Chat
+          </button>
+          <button
+            onClick={() => router.push(`/agents/${agentId}/evals`)}
+            className={`px-3 py-1 rounded-md text-sm ${
+              isEvalsPage
+                ? "bg-aiml-bg-4/70 text-aiml-el-1"
+                : "hover:bg-aiml-bg-4/30 text-aiml-el-2"
+            }`}
+          >
+            Evals
+          </button>
+          <button
+            onClick={() => router.push(`/agents/${agentId}/traces`)}
+            className={`px-3 py-1 rounded-md text-sm ${
+              isTracesPage
+                ? "bg-aiml-bg-4/70 text-aiml-el-1"
+                : "hover:bg-aiml-bg-4/30 text-aiml-el-2"
+            }`}
+          >
+            Traces
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

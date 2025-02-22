@@ -1,41 +1,47 @@
-import { useMatch, useNavigate } from 'react-router';
+"use client";
 
-import Breadcrumb from '@/components/ui/breadcrumbs';
-import { Button } from '@/components/ui/button';
-import { Header } from '@/components/ui/header';
+import { usePathname, useRouter } from "next/navigation";
 
-export function WorkflowHeader({ workflowName, workflowId }: { workflowName: string; workflowId: string }) {
-  const isGraphPage = useMatch(`/workflows/${workflowId}/graph`);
-  const isTracesPage = useMatch(`/workflows/${workflowId}/traces`);
-  const navigate = useNavigate();
+export function WorkflowHeader({
+  workflowName,
+  workflowId,
+}: {
+  workflowName: string;
+  workflowId: string;
+}) {
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const breadcrumbItems = [
-    {
-      label: 'Workflows',
-      href: '/workflows',
-    },
-    {
-      label: workflowName,
-      href: `/workflows/${workflowId}`,
-      isCurrent: true,
-    },
-  ];
+  const isGraphPage = pathname === `/workflows/${workflowId}/graph`;
+  const isTracesPage = pathname === `/workflows/${workflowId}/traces`;
+
   return (
-    <Header title={<Breadcrumb items={breadcrumbItems} />}>
-      <Button
-        variant={isGraphPage ? 'primary' : 'outline'}
-        size="slim"
-        onClick={() => navigate(`/workflows/${workflowId}/graph`)}
-      >
-        Graph
-      </Button>
-      <Button
-        variant={isTracesPage ? 'primary' : 'outline'}
-        size="slim"
-        onClick={() => navigate(`/workflows/${workflowId}/traces`)}
-      >
-        Traces
-      </Button>
-    </Header>
+    <div className="flex items-center justify-between px-4 py-2 border-b">
+      <div className="flex items-center gap-4">
+        <h1 className="text-lg font-medium">{workflowName}</h1>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.push(`/workflows/${workflowId}/graph`)}
+            className={`px-3 py-1 rounded-md text-sm ${
+              isGraphPage
+                ? "bg-aiml-bg-4/70 text-aiml-el-1"
+                : "hover:bg-aiml-bg-4/30 text-aiml-el-2"
+            }`}
+          >
+            Graph
+          </button>
+          <button
+            onClick={() => router.push(`/workflows/${workflowId}/traces`)}
+            className={`px-3 py-1 rounded-md text-sm ${
+              isTracesPage
+                ? "bg-aiml-bg-4/70 text-aiml-el-1"
+                : "hover:bg-aiml-bg-4/30 text-aiml-el-2"
+            }`}
+          >
+            Traces
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

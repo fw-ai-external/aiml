@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+
 import { Header } from "@/components/ui/header";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -11,10 +13,11 @@ export default function WorkflowLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { workflowId: string };
+  params: Promise<{ workflowId: string }>;
 }) {
+  const resolvedParams = React.use(params);
   const { workflow, isLoading: isWorkflowLoading } = useWorkflow(
-    params.workflowId
+    resolvedParams.workflowId
   );
 
   return (
@@ -24,7 +27,7 @@ export default function WorkflowLayout({
       ) : (
         <WorkflowHeader
           workflowName={workflow?.name!}
-          workflowId={params.workflowId}
+          workflowId={resolvedParams.workflowId}
         />
       )}
       {children}

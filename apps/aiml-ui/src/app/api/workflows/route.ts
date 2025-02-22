@@ -7,6 +7,17 @@ export async function GET() {
       id: "workflow1",
       name: "Test Workflow",
       description: "A test workflow",
+      stepGraph: {
+        initial: [
+          {
+            step: {
+              id: "step1",
+              description: "First step",
+            },
+          },
+        ],
+      },
+      stepSubscriberGraph: {},
     },
   });
 }
