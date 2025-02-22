@@ -1,10 +1,11 @@
 {
-  "name": "fireworks",
+  "name": "aiml-prompting-language",
   "private": true,
   "packageManager": "bun@1.1.42",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:watch": "turbo run build && bun --watch turbo run dev",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
     "test": "turbo run test"
