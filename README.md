@@ -16,22 +16,22 @@ A comprehensive toolset for working with AIML based workflows, both familiar, ye
   - PostgreSQL backend for workflow state management
   - Drizzle ORM for type-safe database operations
   - Event subscription system
-- 📊 Performance Monitoring & Analytics
+- 📊 Performance Monitoring & Analytics (TO BE BUILT)
   - Real-time metrics dashboard for accuracy, costs, and latency
   - Token usage tracking and optimization suggestions
   - Response quality evaluation with configurable criteria
   - A/B testing capabilities for prompt variations
-- 🔬 Evaluation Framework
+- 🔬 Agent / Workflow Evaluation UI (TO BE BUILT)
   - Rule-based evaluation of agent outputs
   - Statistical analysis of response patterns
   - Custom evaluation pipelines
   - Automated regression testing
-- 🔍 Observability
+- 🔍 Observability (TO BE BUILT)
   - OpenTelemetry integration for distributed tracing
   - Detailed execution logs with context
   - Performance bottleneck identification
   - Error rate monitoring and alerting
-- 🎨 Visual Workflow Editor
+- 🎨 Visual Workflow Editor (TO BE BUILT)
   - Drag-and-drop workflow creation
   - Real-time preview and testing
   - Version control integration
@@ -49,7 +49,7 @@ A comprehensive toolset for working with AIML based workflows, both familiar, ye
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/fwai/aiml.git
+   git clone https://github.com/fw-ai/aiml.git
    cd workflow
    ```
 
