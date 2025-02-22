@@ -13,9 +13,9 @@ import {
 } from "../utils/token";
 import { allElementConfigs } from "@fireworks/element-types";
 import { DebugLogger } from "../utils/debug";
-import { StateTracker } from "./stateTracker";
 import { parseToTokens, Token, TokenType } from "../acorn";
 
+type StateTracker = any;
 export class CompletionProvider {
   private connection: Connection;
   private logger: DebugLogger;
@@ -196,7 +196,8 @@ export class CompletionProvider {
 
   private getAttributeCompletions(tagName: string): CompletionItem[] {
     this.logger.completion("Providing attribute completions", { tagName });
-    const elementConfig = allElementConfigs[tagName];
+    const elementConfig =
+      allElementConfigs[tagName as keyof typeof allElementConfigs];
     if (!elementConfig) {
       return [];
     }
@@ -262,7 +263,8 @@ export class CompletionProvider {
 
     const attrName = attrNameToken.text;
 
-    const elementConfig = allElementConfigs[tagName];
+    const elementConfig =
+      allElementConfigs[tagName as keyof typeof allElementConfigs];
     if (!elementConfig) {
       this.logger.completion("No element config found", { tagName });
       return [];
@@ -288,7 +290,7 @@ export class CompletionProvider {
         label: id,
         kind: CompletionItemKind.Reference,
         documentation: `Reference to state with id="${id}"`,
-      }));
+      })) as CompletionItem[];
     }
 
     // For boolean attributes

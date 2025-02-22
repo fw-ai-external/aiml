@@ -3,7 +3,11 @@ import {
   getNodeDefinitionClass,
   isSupportedNodeName,
 } from "@fireworks/element-types";
-import type { FireAgentNode, IBaseElement } from "@fireworks/types";
+import type {
+  FireAgentNode,
+  IBaseElement,
+  SCXMLNodeType,
+} from "@fireworks/types";
 import {
   ElementError,
   InternalError,

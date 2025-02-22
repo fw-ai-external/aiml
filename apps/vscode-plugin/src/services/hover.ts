@@ -57,7 +57,8 @@ export class HoverProvider {
         tagNameToken.startIndex,
         tagNameToken.endIndex
       );
-      const elementConfig = allElementConfigs[tagName];
+      const elementConfig =
+        allElementConfigs[tagName as keyof typeof allElementConfigs];
 
       if (!elementConfig) {
         this.logger.info(`No element config found for tag: ${tagName}`);

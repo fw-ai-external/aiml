@@ -22,14 +22,9 @@
       "dependsOn": ["@fireworks/types#build", "@fireworks/element-types#build", "@fireworks/core#build"],
       "outputs": ["dist/**"]
     },
-    "@fireworks/examples#build": {
-      "dependsOn": [
-        "@fireworks/types#build",
-        "@fireworks/element-types#build",
-        "@fireworks/core#build",
-        "@fireworks/parser#build"
-      ],
-      "outputs": ["dist/**"]
+    "vscode-scxml#build": {
+      "dependsOn": ["@fireworks/parser#build"],
+      "outputs": [".dist/**"]
     },
     "lint": {
       "outputs": []

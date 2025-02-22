@@ -79,7 +79,8 @@ async function getCompletionsAt(content: string, position: Position) {
 
   // Attribute completions
   if (tagName && token.prevToken?.type === TokenType.Whitespace) {
-    const elementConfig = allElementConfigs[tagName];
+    const elementConfig =
+      allElementConfigs[tagName as keyof typeof allElementConfigs];
     if (elementConfig) {
       return Object.keys(elementConfig.propsSchema.shape).map((attr) => ({
         label: attr,
@@ -101,7 +102,8 @@ async function getCompletionsAt(content: string, position: Position) {
         attrNameToken.startIndex,
         attrNameToken.endIndex
       );
-      const elementConfig = allElementConfigs[tagName];
+      const elementConfig =
+        allElementConfigs[tagName as keyof typeof allElementConfigs];
 
       if (elementConfig) {
         const schema = elementConfig.propsSchema.shape[attrName];
