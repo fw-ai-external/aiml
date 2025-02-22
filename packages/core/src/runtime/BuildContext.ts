@@ -1,96 +1,63 @@
-import type { Workflow } from "./index";
-
-type StepConfig<T = any, U = any, V = any, W = any> = Record<string, any>;
 import { BaseElement } from "./BaseElement";
-import { FireAgentSpecNode } from "../element/types";
 import { ExecutionGraphElement } from "./types";
 
 export class BuildContext {
-  /**
-   * A cache of already-constructed ExecutionGraphElements,
-   * keyed by their SCXML element's 'id'.
-   */
-  private graphCache = new Map<string, ExecutionGraphElement>();
-  public children: BaseElement[];
+  private readonly elementCache = new Map<string, ExecutionGraphElement>();
+  private readonly elementKeyCache = new Map<string, ExecutionGraphElement>();
+  private readonly elementIdCache = new Map<string, ExecutionGraphElement>();
+
   constructor(
-    public workflow: Workflow,
-    public readonly elementKey: string,
-    children: BaseElement[],
     public readonly attributes: Record<string, any>,
-    public readonly conditions: StepConfig<any, any, any, any>,
-    public readonly spec: BaseElement
-  ) {
-    this.children = children;
+    public readonly elementKey: string,
+    public readonly parents: BaseElement[] = []
+  ) {}
+
+  public getCachedGraphElement(key: string): ExecutionGraphElement | undefined {
+    return (
+      this.elementCache.get(key) ||
+      this.elementKeyCache.get(key) ||
+      this.elementIdCache.get(key)
+    );
   }
 
-  private findElementByKey(
-    node: FireAgentSpecNode,
+  public setCachedGraphElement(keys: string[], element: ExecutionGraphElement) {
+    keys.forEach((key) => {
+      this.elementCache.set(key, element);
+      this.elementKeyCache.set(key, element);
+      this.elementIdCache.set(key, element);
+    });
+  }
+
+  public findElementByKey(
+    element: BaseElement,
     targetKey: string
   ): BaseElement | undefined {
-    if (node instanceof BaseElement) {
-      if (node.key === targetKey) {
-        return node;
-      }
+    if (element.key === targetKey) {
+      return element;
+    }
 
-      for (const child of node.children) {
+    for (const child of element.children) {
+      if (child instanceof BaseElement) {
         const found = this.findElementByKey(child, targetKey);
         if (found) {
           return found;
         }
       }
     }
+
     return undefined;
   }
 
-  public getElementByKey(
-    key: string,
-    childOf?: BaseElement
-  ): BaseElement | null {
-    const element = this.findElementByKey(childOf ?? this.spec, key);
-    if (!element) {
-      return null;
+  public buildExecutionGraph(
+    element: BaseElement,
+    children: BaseElement[]
+  ): ExecutionGraphElement {
+    if (element.onExecutionGraphConstruction) {
+      return element.onExecutionGraphConstruction(this);
     }
-    return element;
-  }
 
-  /**
-   * Check if we have a cached ExecutionGraphElement for `elementId`.
-   * If found, return it. If not found, returns undefined.
-   */
-  public getCachedGraphElement(
-    elementId: string
-  ): ExecutionGraphElement | undefined {
-    return this.graphCache.get(elementId);
-  }
-
-  /**
-   * Store a newly built ExecutionGraphElement in the cache,
-   * keyed by the elementId (unique SCXML ID).
-   */
-  public setCachedGraphElement(
-    elementId: string | string[],
-    ege: ExecutionGraphElement
-  ): void {
-    if (Array.isArray(elementId)) {
-      elementId.forEach((id) => this.graphCache.set(id, ege));
-    } else {
-      this.graphCache.set(elementId, ege);
-    }
-  }
-
-  public createNewContextForChild(child: FireAgentSpecNode): BuildContext {
-    if (child instanceof BaseElement) {
-      return new BuildContext(
-        this.workflow,
-        child.key,
-        child.children,
-        child.attributes,
-        this.conditions,
-        child
-      );
-    }
     throw new Error(
-      "Child passed to createNewContextForChild is not a BaseElement"
+      `Element ${element.tag} does not have an execution graph construction method`
     );
   }
 }

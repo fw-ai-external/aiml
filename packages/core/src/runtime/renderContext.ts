@@ -1,70 +1,42 @@
-import { Node, BaseElement, ElementPredicate } from "./BaseElement";
+import { BaseElement } from "./BaseElement";
 
-export interface RenderContext {
-  render: (
-    node: Node,
-    options: {
-      stop: ElementPredicate;
-      map: (frame: Node) => string;
-    }
-  ) => AsyncGenerator<Node, Node, unknown>;
-  memo: (node: Node) => Node;
+function stringifyNode(node: BaseElement): string {
+  if (!node) return "";
+  if (node.attributes.text) {
+    return String(node.attributes.text);
+  }
+  return node.children
+    .filter((child): child is BaseElement => child instanceof BaseElement)
+    .map(stringifyNode)
+    .join("");
 }
 
-export function createRenderContext(): RenderContext {
-  const memoizedNodes = new Map<string, Node>();
+export interface IRenderContext {
+  readonly attributes: Record<string, any>;
+  readonly children: BaseElement[];
+  toString(): string;
+}
 
-  return {
-    memo(node: Node): Node {
-      if (!node) return "";
-      const key = isBaseElement(node) ? node.id : String(node);
-      if (!memoizedNodes.has(key)) {
-        memoizedNodes.set(key, node);
-      }
-      return memoizedNodes.get(key) ?? node;
-    },
+export class RenderContext implements IRenderContext {
+  private readonly memoizedNodes = new Map<string, string>();
 
-    async *render(
-      node: Node,
-      options: {
-        stop: ElementPredicate;
-        map: (frame: Node) => string;
-      }
-    ): AsyncGenerator<Node, Node, unknown> {
-      const { stop, map } = options;
+  constructor(
+    public readonly attributes: Record<string, any>,
+    public readonly children: BaseElement[]
+  ) {}
 
-      // Convert node to string representation
-      const stringifyNode = (n: Node): string => {
-        if (!n) return "";
-        if (typeof n === "string") return n;
-        if (typeof n === "number" || typeof n === "boolean") return String(n);
-        if (Array.isArray(n)) return n.map(stringifyNode).join("");
-        if (isBaseElement(n)) {
-          const attrs = Object.entries(n.attributes || {})
-            .map(([key, value]) => ` ${key}="${value}"`)
-            .join("");
-          const children = Array.isArray(n.children)
-            ? n.children.map(stringifyNode).join("")
-            : stringifyNode(n.children);
-          return `<${n.tag}${attrs}>${children}</${n.tag}>`;
+  public toString(): string {
+    return this.children
+      .filter((child): child is BaseElement => child instanceof BaseElement)
+      .map((node) => {
+        const key = node.id;
+        if (this.memoizedNodes.has(key)) {
+          return this.memoizedNodes.get(key)!;
         }
-        return "";
-      };
-
-      // If stop is provided and returns true, stop traversal
-      if (stop(node)) {
-        map(stringifyNode(node));
-        return node;
-      }
-
-      // Process node
-      map(stringifyNode(node));
-      yield node;
-      return node;
-    },
-  };
-}
-
-function isBaseElement(value: unknown): value is BaseElement {
-  return value !== null && typeof value === "object" && "tag" in value;
+        const result = stringifyNode(node);
+        this.memoizedNodes.set(key, result);
+        return result;
+      })
+      .join("");
+  }
 }

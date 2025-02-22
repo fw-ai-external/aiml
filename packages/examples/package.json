@@ -1,5 +1,5 @@
 {
-  "name": "@fireworks/parser",
+  "name": "@fireworks/examples",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -18,20 +18,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fireworks/types": "workspace:*",
-    "@fireworks/element-types": "workspace:*",
     "@fireworks/core": "workspace:*",
-    "ts-morph": "^21.0.1",
-    "uuid": "^9.0.1",
-    "zod": "^3.22.4",
-    "xml-js": "^1.6.11",
-    "xml-formatter": "^3.6.2"
+    "@fireworks/parser": "workspace:*",
+    "@fireworks/types": "workspace:*",
+    "react": "^18.2.0"
   },
   "devDependencies": {
     "@fireworks/tsconfig": "workspace:*",
     "@types/node": "^20.11.5",
-    "@types/uuid": "^9.0.8",
-    "@types/xml-formatter": "^2.1.1",
+    "@types/react": "^18.2.48",
     "typescript": "^5.3.3"
   }
 }

@@ -1,6 +1,9 @@
 import { Project, Node, SourceFile, JsxElement } from "ts-morph";
-import { BaseElement } from "@fireworks/core/baseElement";
-import { SCXMLNodeType } from "@fireworks/element-types";
+import type {
+  SCXMLNodeType,
+  IBaseElement,
+  ElementRole,
+} from "@fireworks/types";
 import {
   MDXParseContext,
   MDXParseError,
@@ -8,20 +11,25 @@ import {
   MDXParserOptions,
 } from "./types";
 import { v4 as uuidv4 } from "uuid";
+import { BaseElement } from "./BaseElement";
+import type { Element as XMLElement } from "xml-js";
+import { z } from "zod";
 
 export class MDXParser {
   private project: Project;
   private errors: MDXParseError[] = [];
   private options: Required<MDXParserOptions>;
+  private sourceFile: SourceFile;
 
-  constructor(options: MDXParserOptions = {}) {
+  constructor(sourceCode: string) {
     this.project = new Project({
       useInMemoryFileSystem: true,
       skipFileDependencyResolution: true,
     });
+    this.sourceFile = this.project.createSourceFile("temp.tsx", sourceCode);
     this.options = {
-      strict: options.strict ?? true,
-      validateSchema: options.validateSchema ?? true,
+      strict: true,
+      validateSchema: true,
     };
   }
 
@@ -36,7 +44,7 @@ export class MDXParser {
     };
   }
 
-  private parseMDX(sourceFile: SourceFile): BaseElement {
+  private parseMDX(sourceFile: SourceFile): IBaseElement {
     const context: MDXParseContext = {
       sourceFile,
       currentNode: sourceFile,
@@ -65,7 +73,7 @@ export class MDXParser {
   private parseJsxElement(
     node: JsxElement,
     context: MDXParseContext
-  ): BaseElement {
+  ): IBaseElement {
     const openingElement = node.getOpeningElement();
 
     if (!openingElement) {
@@ -103,7 +111,7 @@ export class MDXParser {
     });
 
     // Parse children
-    const children: BaseElement[] = [];
+    const children: IBaseElement[] = [];
     node.getJsxChildren().forEach((child) => {
       if (Node.isJsxElement(child)) {
         children.push(this.parseJsxElement(child, context));
@@ -132,7 +140,7 @@ export class MDXParser {
       role = "output";
     }
 
-    const element = new BaseElement({
+    return new BaseElement({
       id,
       key,
       tag: tagName,
@@ -141,9 +149,9 @@ export class MDXParser {
       attributes,
       children,
       parent: context.parents[context.parents.length - 1],
+      allowedChildren: "any",
+      schema: z.object({}),
     });
-
-    return element;
   }
 
   private addError(error: MDXParseError): void {
@@ -154,4 +162,78 @@ export class MDXParser {
       );
     }
   }
+
+  private createElementFromNode(
+    node: JsxElement,
+    context: MDXParseContext
+  ): IBaseElement {
+    const id = uuidv4();
+    const key = uuidv4();
+    const role: ElementRole = "state";
+    const tagName = node.getOpeningElement().getTagNameNode().getText();
+
+    return new BaseElement({
+      id,
+      key,
+      tag: tagName,
+      role,
+      elementType: tagName as SCXMLNodeType,
+      attributes: this.getNodeAttributes(node),
+      children: [],
+      parent: context.parents[context.parents.length - 1],
+      allowedChildren: "any",
+      schema: z.object({}),
+    });
+  }
+
+  private getNodeAttributes(node: JsxElement): Record<string, string> {
+    const attributes: Record<string, string> = {};
+    const openingElement = node.getOpeningElement();
+
+    openingElement.getAttributes().forEach((attr) => {
+      if (Node.isJsxAttribute(attr)) {
+        const name = attr.getNameNode().getText();
+        const initializer = attr.getInitializer();
+        if (initializer && Node.isStringLiteral(initializer)) {
+          attributes[name] = initializer.getText().slice(1, -1); // Remove quotes
+        }
+      }
+    });
+
+    return attributes;
+  }
+}
+
+export function parseNode(
+  node: Node,
+  context: MDXParseContext
+): IBaseElement | undefined {
+  if (Node.isJsxElement(node)) {
+    const parser = new MDXParser(node.getText());
+    return parser.parse(node.getText()).ast;
+  }
+  return undefined;
+}
+
+function createElementFromNode(
+  node: XMLElement,
+  context: MDXParseContext
+): IBaseElement {
+  const attributes = node.attributes || {};
+  const id = String(attributes.id || attributes.key || uuidv4());
+  const key = String(attributes.key || attributes.id || uuidv4());
+  const role: ElementRole = "state";
+
+  return new BaseElement({
+    id,
+    key,
+    tag: node.name as string,
+    role,
+    elementType: node.name as SCXMLNodeType,
+    attributes,
+    children: [],
+    parent: context.parents[context.parents.length - 1],
+    allowedChildren: "any",
+    schema: z.object({}),
+  });
 }

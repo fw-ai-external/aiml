@@ -1,99 +1,115 @@
 import { v4 as uuidv4 } from "uuid";
 import { type Element as XMLElement, xml2js } from "xml-js";
-import type { CommentNode, FireAgentNode, TextNode } from "./types";
 import {
-  isSupportedNodeName,
   ElementError,
   InternalError,
-  BaseElement,
-} from "@fireworks/core";
+  isSupportedNodeName,
+  type SCXMLNodeType,
+  type IBaseElement,
+} from "@fireworks/types";
 import { warnOnDuplicateKeys } from "./utils";
+import { BaseElement } from "./BaseElement";
+import { z } from "zod";
 
-export async function fromXML(xml: string): Promise<BaseElement> {
+export async function fromXML(xml: string): Promise<IBaseElement> {
   const parsedXml = await xml2js(xml);
   const machineElement = parsedXml.elements.find((element: XMLElement) =>
     isSupportedNodeName(element.name || "")
   );
 
-  // Parse into TagNode (which extends SCXMLState)
-  const rootNode = parseNode(machineElement, []);
-
-  if (!rootNode) {
+  if (!machineElement) {
     throw new InternalError("Root node not found");
   }
+
+  // Parse into TagNode (which extends SCXMLState)
+  const rootNode = parseNode(machineElement, []);
 
   // Validate the state machine
   warnOnDuplicateKeys(new Set<string>(), rootNode);
 
-  return rootNode as BaseElement;
+  return rootNode;
 }
 
-function parseNode(node: XMLElement, parents: BaseElement[]): FireAgentNode {
+function parseNode(node: XMLElement, parents: IBaseElement[]): IBaseElement {
   if (node.type === "comment") {
-    return {
-      kind: "comment",
-      comment: node.comment,
-    } as CommentNode;
+    return createCommentElement(node.comment);
   }
+
   if (node.type === "text") {
-    return {
-      kind: "text",
-      text: node.text,
-    } as TextNode;
+    return createTextElement(node.text);
   }
+
   const nodeName = node.name;
   if (!nodeName) {
-    throw new ElementError("Node name is missing", node.type || "");
+    throw new ElementError(
+      `Node name is missing (type: ${node.type || "unknown"})`
+    );
   }
+
   if (!node.attributes?.id && !node.attributes?.key) {
     if (!node.attributes) {
       node.attributes = {};
     }
-    node.attributes.key = uuidv4();
-  }
-  const ElementClass = getNodeDefinitionClass(nodeName);
-
-  // Convert attributes to proper format
-  const attributes = Object.entries(node.attributes || {}).reduce(
-    (acc, [key, value]) => {
-      acc[key] = value?.toString() || "";
-      return acc;
-    },
-    {} as Record<string, string>
-  );
-
-  // Parse child nodes first
-  const childNodes: FireAgentNode[] = [];
-  let textValue: string | undefined;
-
-  if (node.elements) {
-    const parsedChildren = node.elements.map((child) =>
-      parseNode(child, parents)
-    );
-
-    // Check if all children are text nodes
-    const allTextNodes = parsedChildren.every(
-      (node) => "kind" in node && node.kind === "text"
-    );
-
-    if (allTextNodes) {
-      textValue = parsedChildren
-        .map((node) => ("text" in node ? node.text : ""))
-        .join("");
-    } else {
-      childNodes.push(...parsedChildren);
-    }
+    node.attributes.id = uuidv4();
   }
 
-  // If we found text content, add it as a value prop
-  if (textValue !== undefined) {
-    attributes.value = textValue;
-  }
+  const children =
+    node.elements?.map((element) => parseNode(element, [...parents])) ?? [];
 
-  // Create BaseElement instance with children
-  return ElementClass.initFromAttributesAndNodes(
+  return createElementFromNode(node, parents, children);
+}
+
+function createCommentElement(comment: string | undefined): IBaseElement {
+  return new BaseElement({
+    id: uuidv4(),
+    key: uuidv4(),
+    tag: "comment",
+    role: "state",
+    elementType: "state",
+    attributes: { comment },
+    children: [],
+    allowedChildren: "none",
+    schema: z.object({ comment: z.string().optional() }),
+  });
+}
+
+function createTextElement(
+  text: string | number | boolean | undefined
+): IBaseElement {
+  return new BaseElement({
+    id: uuidv4(),
+    key: uuidv4(),
+    tag: "text",
+    role: "state",
+    elementType: "state",
+    attributes: { text },
+    children: [],
+    allowedChildren: "none",
+    schema: z.object({
+      text: z.union([z.string(), z.number(), z.boolean()]).optional(),
+    }),
+  });
+}
+
+function createElementFromNode(
+  node: XMLElement,
+  parents: IBaseElement[],
+  children: IBaseElement[]
+): IBaseElement {
+  const attributes = node.attributes || {};
+  const id = String(attributes.id || attributes.key || uuidv4());
+  const key = String(attributes.key || attributes.id || uuidv4());
+
+  return new BaseElement({
+    id,
+    key,
+    tag: node.name as string,
+    role: "state",
+    elementType: node.name as SCXMLNodeType,
     attributes,
-    childNodes as BaseElement[],
-    parents
-  ) as BaseElement;
+    children,
+    parent: parents[parents.length - 1],
+    allowedChildren: "any",
+    schema: z.object({}),
+  });
 }

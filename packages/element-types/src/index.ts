@@ -1,5 +1,9 @@
-import type { LiteralUnion } from "type-fest";
 import { z } from "zod";
+import type {
+  SCXMLNodeType,
+  ElementRole,
+  AllowedChildrenType,
+} from "@fireworks/types";
 import {
   finalConfig,
   historyConfig,
@@ -29,55 +33,9 @@ import {
   llmConfig,
   scxmlConfig,
 } from "./schemas/specialized";
-/**
- * Core Types
- */
-/**
- * All possible SCXML node types.
- * This must match exactly with BaseElement.ts's definition.
- */
-export type SCXMLNodeType =
-  | "scxml"
-  | "state"
-  | "parallel"
-  | "transition"
-  | "initial"
-  | "final"
-  | "onentry"
-  | "onexit"
-  | "on"
-  | "history"
-  | "datamodel"
-  | "data"
-  | "assign"
-  | "invoke"
-  | "send"
-  | "cancel"
-  | "script"
-  | "log"
-  | "raise"
-  | "if"
-  | "elseif"
-  | "else"
-  | "foreach"
-  | "finalize"
-  | "llm";
-
-export type AllowedChildrenType =
-  | "any"
-  | "none"
-  | "text"
-  | LiteralUnion<SCXMLNodeType, string>[];
 
 // Helper type for element definitions to ensure type safety with allowed children
 export type AllowedChildrenLiteral = AllowedChildrenType;
-
-export type ElementRole =
-  | "state"
-  | "action"
-  | "error"
-  | "user-input"
-  | "output";
 
 export interface BaseElementDefinition {
   /**
@@ -139,7 +97,7 @@ export * from "./schemas/control-flow";
 export * from "./schemas/specialized";
 export * from "./types";
 
-export const allElementConfigs: Record<string, BaseElementDefinition> = {
+export const allElementConfigs = {
   scxml: scxmlConfig,
   state: stateConfig,
   parallel: parallelConfig,
@@ -172,3 +130,15 @@ export * from "./schemas/states";
 export * from "./schemas/actions";
 export * from "./schemas/control-flow";
 export * from "./schemas/specialized";
+
+// Export prop types
+export type AssignProps = z.infer<typeof assignConfig.propsSchema>;
+export type CancelProps = z.infer<typeof cancelConfig.propsSchema>;
+export type LogProps = z.infer<typeof logConfig.propsSchema>;
+export type RaiseProps = z.infer<typeof raiseConfig.propsSchema>;
+export type ScriptProps = z.infer<typeof scriptConfig.propsSchema>;
+export type SendProps = z.infer<typeof sendConfig.propsSchema>;
+export type OnEntryProps = z.infer<typeof onEntryConfig.propsSchema>;
+export type OnExitProps = z.infer<typeof onExitConfig.propsSchema>;
+
+export * from "./nodeDefinitions";

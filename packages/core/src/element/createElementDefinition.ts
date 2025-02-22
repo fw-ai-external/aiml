@@ -1,18 +1,80 @@
 import React from "react";
 import { z } from "zod";
-import type { FireAgentNode } from "@fireworks/parser";
+import type {
+  FireAgentNode,
+  IBaseElement,
+  SCXMLNodeType,
+} from "@fireworks/types";
 import { ElementExecutionContext } from "../runtime/ElementExecutionContext";
 import { BaseElement } from "../runtime/BaseElement";
 import { ExecutionGraphElement } from "../runtime/types";
 import { BuildContext } from "../runtime/BuildContext";
 import { v4 as uuidv4 } from "uuid";
-import type { SCXMLNodeType } from "@fireworks/element-types";
 
 export type ElementProps = Record<string, any>;
 
 export type ElementConfig<T> = z.ZodObject<any>;
 
 export type AllowedChildrenType = string[] | "none" | "any" | "text";
+
+function isBaseElement(node: FireAgentNode): node is IBaseElement {
+  return (
+    "elementType" in node &&
+    "tag" in node &&
+    "role" in node &&
+    !("kind" in node)
+  );
+}
+
+function convertToBaseElement(node: FireAgentNode): BaseElement {
+  if (isBaseElement(node)) {
+    return new BaseElement({
+      id: node.id,
+      key: node.key,
+      tag: node.tag,
+      role: node.role,
+      elementType: node.elementType,
+      attributes: node.attributes,
+      children: node.children.map((child) =>
+        child instanceof BaseElement
+          ? child
+          : convertToBaseElement(child as FireAgentNode)
+      ),
+    });
+  }
+
+  if ("kind" in node && node.kind === "tag") {
+    return new BaseElement({
+      id: node.key,
+      key: node.key,
+      tag: node.name,
+      role: "state",
+      elementType: node.scxmlType,
+      attributes: node.attributes as Record<string, any>,
+      children: node.nodes?.map(convertToBaseElement) || [],
+    });
+  }
+
+  // For text, comment, and instruction nodes, create a minimal BaseElement
+  return new BaseElement({
+    id: node.key || uuidv4(),
+    key: node.key || uuidv4(),
+    tag: "text",
+    role: "state",
+    elementType: "text" as SCXMLNodeType,
+    attributes: {
+      text:
+        "text" in node
+          ? String(node.text)
+          : "comment" in node
+            ? node.comment
+            : "instruction" in node
+              ? node.instruction
+              : "",
+    },
+    children: [],
+  });
+}
 
 export type ElementDefinition<
   Props extends ElementProps = ElementProps,
@@ -48,89 +110,29 @@ export type ReactTagNodeDefinition<
   initFromAttributesAndNodes: (
     props: Props,
     nodes: FireAgentNode[],
-    initiatedfrom?: "render" | "spec"
+    parentsOrMode?: BaseElement[] | "render" | "spec"
   ) => BaseElement | BaseElement[];
   areChildrenAllowed(children: string[]): boolean;
 };
 
 export type ReactTagNodeType<
   Props extends { id?: string } & Record<string, any> = any,
-> = ReturnType<typeof createElementDefinition<Props>>;
+> = React.FC<Props & { children?: React.ReactNode }> & {
+  tag: string;
+  validateProps: (props: Props) => Props;
+  areChildrenAllowed: (children: string[]) => boolean;
+  initFromAttributesAndNodes: (
+    props: Props,
+    nodes: FireAgentNode[],
+    parentsOrMode?: BaseElement[] | "render" | "spec"
+  ) => BaseElement | BaseElement[];
+};
 
 export const createElementDefinition = <
   Props extends { id?: string } & Record<string, any>,
 >(
   config: ElementDefinition<Props>
 ) => {
-  const ReactTagNode = function (
-    props: Props & {
-      children?: any;
-    }
-  ) {
-    const render = () => {
-      if ("render" in config && config.render) {
-        return config.render(props as any, [] as any);
-      }
-      return null;
-    };
-
-    return render();
-  };
-
-  // Static properties and methods
-  ReactTagNode.tag = config.tag;
-  ReactTagNode.prototype.tag = config.tag;
-  ReactTagNode.prototype.public = true;
-
-  // Static methods
-  ReactTagNode.validateProps = (props: Props) => {
-    const propsSchema = config.propsSchema || z.object({});
-
-    const allowedChildren = config.allowedChildren || "none";
-    const verifiedProps = propsSchema
-      .and(
-        z
-          .object({
-            children: z.any(),
-          })
-          .or(
-            z.object({
-              children:
-                allowedChildren !== "none" ? z.array(z.any()) : z.never(),
-            })
-          )
-      )
-      .safeParse(props);
-
-    if (verifiedProps && !verifiedProps.success) {
-      throw new Error(
-        `Invalid props for the "${config.tag}" element: ${JSON.stringify(
-          verifiedProps.error.errors
-        )}`
-      );
-    }
-    return verifiedProps.data as Props;
-  };
-
-  ReactTagNode.areChildrenAllowed = (children: string[]): boolean => {
-    if (children.length === 0) {
-      return true;
-    }
-    if (config.allowedChildren === "any" || config.allowedChildren === "text") {
-      return true;
-    }
-    if (config.allowedChildren === "none") {
-      return false;
-    }
-
-    const allowedChildren = Array.isArray(config.allowedChildren)
-      ? config.allowedChildren
-      : typeof config.allowedChildren === "function"
-        ? config.allowedChildren({} as Props)
-        : [];
-    return children.every((child) => !child || allowedChildren.includes(child));
-  };
-
   const defaultExecutionGraphConstruction = (
     buildContext: BuildContext
   ): ExecutionGraphElement => {
@@ -159,57 +161,114 @@ export const createElementDefinition = <
     return llmNode;
   };
 
-  ReactTagNode.initFromAttributesAndNodes = (
-    props: Props,
-    nodes: BaseElement[],
-    parents: BaseElement[]
-  ): BaseElement | BaseElement[] => {
-    const validatedProps = ReactTagNode.validateProps(props) as Props & {
-      children?: BaseElement[];
-    };
-    if (!("onExecutionGraphConstruction" in config) && "render" in config) {
-      return nodes as BaseElement[];
-    }
+  const ReactTagNode = Object.assign(
+    (props: Props & { children?: React.ReactNode }) => {
+      const render = () => {
+        if ("render" in config && config.render) {
+          return config.render(props as any, [] as any);
+        }
+        return React.createElement(config.tag, props, props.children);
+      };
 
-    // Merge validated props with nodes as children
-    const propsWithChildren = {
-      ...validatedProps,
-      children: nodes,
-    };
-
-    const tagNode = new BaseElement({
-      id: config.tag === "scxml" ? "Incoming Request" : props.id || uuidv4(),
-      key: uuidv4(),
+      return render();
+    },
+    {
       tag: config.tag,
-      role: config.role || "action",
-      elementType: config.scxmlType || (config.tag as SCXMLNodeType),
-      attributes: propsWithChildren,
-      children: nodes,
-      parent: parents[parents.length - 1],
-      enter: config.enter,
-      exit: config.exit,
-      onExecutionGraphConstruction:
-        "onExecutionGraphConstruction" in config
-          ? config.onExecutionGraphConstruction
-          : defaultExecutionGraphConstruction,
-    });
+      validateProps: (props: Props) => {
+        const propsSchema = config.propsSchema || z.object({});
 
-    return tagNode;
-  };
+        const allowedChildren = config.allowedChildren || "none";
+        const verifiedProps = propsSchema
+          .and(
+            z
+              .object({
+                children: z.any(),
+              })
+              .or(
+                z.object({
+                  children:
+                    allowedChildren !== "none" ? z.array(z.any()) : z.never(),
+                })
+              )
+          )
+          .safeParse(props);
 
-  // Instance methods
-  ReactTagNode.prototype.initFromAttributesAndNodes = (
-    props: Props,
-    nodes: BaseElement[],
-    initiatedfrom?: "render" | "spec"
-  ): BaseElement | BaseElement[] => {
-    return ReactTagNode.initFromAttributesAndNodes(props, nodes, []);
-  };
+        if (verifiedProps && !verifiedProps.success) {
+          throw new Error(
+            `Invalid props for the "${config.tag}" element: ${JSON.stringify(
+              verifiedProps.error.errors
+            )}`
+          );
+        }
+        return verifiedProps.data as Props;
+      },
+      areChildrenAllowed: (children: string[]): boolean => {
+        if (children.length === 0) {
+          return true;
+        }
+        if (
+          config.allowedChildren === "any" ||
+          config.allowedChildren === "text"
+        ) {
+          return true;
+        }
+        if (config.allowedChildren === "none") {
+          return false;
+        }
 
-  ReactTagNode.prototype.areChildrenAllowed = (children: string[]): boolean => {
-    return ReactTagNode.areChildrenAllowed(children);
-  };
+        const allowedChildren = Array.isArray(config.allowedChildren)
+          ? config.allowedChildren
+          : typeof config.allowedChildren === "function"
+            ? config.allowedChildren({} as Props)
+            : [];
+        return children.every(
+          (child) => !child || allowedChildren.includes(child)
+        );
+      },
+      initFromAttributesAndNodes: (
+        props: Props,
+        nodes: FireAgentNode[],
+        parentsOrMode?: BaseElement[] | "render" | "spec"
+      ): BaseElement | BaseElement[] => {
+        const validatedProps = ReactTagNode.validateProps(props) as Props & {
+          children?: BaseElement[];
+        };
+        if (!("onExecutionGraphConstruction" in config) && "render" in config) {
+          return nodes.map(convertToBaseElement);
+        }
 
-  return ReactTagNode as unknown as typeof ReactTagNode &
-    ReactTagNodeDefinition<Props>;
+        // Merge validated props with nodes as children
+        const propsWithChildren = {
+          ...validatedProps,
+          children: nodes,
+        };
+
+        const parent = Array.isArray(parentsOrMode)
+          ? parentsOrMode[parentsOrMode.length - 1]
+          : undefined;
+
+        const tagNode = new BaseElement({
+          id:
+            config.tag === "scxml" ? "Incoming Request" : props.id || uuidv4(),
+          key: uuidv4(),
+          tag: config.tag,
+          role: config.role || "action",
+          elementType: config.scxmlType || (config.tag as SCXMLNodeType),
+          attributes: propsWithChildren,
+          children: nodes.map(convertToBaseElement),
+          parent,
+          enter: config.enter,
+          exit: config.exit,
+          onExecutionGraphConstruction:
+            "onExecutionGraphConstruction" in config
+              ? config.onExecutionGraphConstruction
+              : defaultExecutionGraphConstruction,
+        });
+
+        return tagNode;
+      },
+    }
+  ) as ReactTagNodeType<Props>;
+
+  return ReactTagNode;
 };

@@ -1,5 +1,5 @@
 {
-  "name": "@fireworks/element-types",
+  "name": "@fireworks/types",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -16,10 +16,6 @@
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@fireworks/types": "workspace:*",
-    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@fireworks/tsconfig": "workspace:*",

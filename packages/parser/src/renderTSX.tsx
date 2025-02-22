@@ -1,43 +1,50 @@
 import React from "react";
-import { getNodeDefinitionClass, isSupportedNodeName } from "@fireworks/core";
-import { CompositionError, ElementError, InternalError } from "@fireworks/core";
-import type { FireAgentNode, TextNode } from "./types";
+import {
+  getNodeDefinitionClass,
+  isSupportedNodeName,
+} from "@fireworks/element-types";
+import type { FireAgentNode, IBaseElement } from "@fireworks/types";
+import {
+  ElementError,
+  InternalError,
+  CompositionError,
+} from "@fireworks/types";
 import { warnOnDuplicateKeys } from "./utils";
-import { BaseElement } from "@fireworks/core";
+import { v4 as uuidv4 } from "uuid";
+import { BaseElement } from "./BaseElement";
+import { z } from "zod";
+
+type ReactElementType = React.ReactElement<{
+  children?: React.ReactNode;
+  [key: string]: any;
+}>;
 
 export type ReactElements =
-  | React.ReactElement<
-      {
-        children?: React.ReactElement | React.ReactElement[];
-        [key: string]: any;
-      },
-      any
-    >
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
+  | ReactElementType
+  | React.ReactNode
   | FireAgentNode
   | ReactElements[];
 
 const isReactTagElement = (
   element: ReactElements
-): element is React.ReactElement<any, any> => {
+): element is ReactElementType => {
   return (
     typeof element === "object" &&
     element !== null &&
+    !Array.isArray(element) &&
     "type" in element &&
-    "props" in element
+    "props" in element &&
+    typeof element.type !== "undefined" &&
+    typeof element.props === "object"
   );
 };
 
-export function renderTSX(rootElement: ReactElements): BaseElement {
+export function renderTSX(rootElement: ReactElements): IBaseElement {
   if (!rootElement) {
     throw new InternalError("Root element is required");
   }
 
-  const rootNode = instanciateNode(rootElement, []);
+  const rootNode = instanciateNode(rootElement);
 
   if (!rootNode) {
     throw new InternalError("Root node not found");
@@ -52,134 +59,103 @@ export function renderTSX(rootElement: ReactElements): BaseElement {
     );
   }
 
-  // check for duplicate ids
+  // Validate the state machine
   warnOnDuplicateKeys(new Set<string>(), rootNode);
 
-  return rootNode as BaseElement;
+  return rootNode;
 }
 
 export function instanciateNode(
   element: ReactElements,
-  parents: BaseElement[]
-): FireAgentNode | FireAgentNode[] | null {
+  parents: BaseElement[] = []
+): IBaseElement | IBaseElement[] | null {
+  // Handle null/undefined
   if (!element) {
     return null;
-  }
-
-  if (typeof element !== "object") {
-    // Handle primitives (string, number, boolean)
-    return {
-      kind: "text",
-      text: String(element),
-    } as TextNode;
   }
 
   // Handle arrays
   if (Array.isArray(element)) {
     return element
       .map((child) => instanciateNode(child, parents))
-      .flat()
-      .filter(Boolean) as FireAgentNode[];
+      .filter((node): node is IBaseElement | IBaseElement[] => node !== null)
+      .flat();
+  }
+
+  // Handle primitive values
+  if (
+    typeof element === "string" ||
+    typeof element === "number" ||
+    typeof element === "boolean"
+  ) {
+    return new BaseElement({
+      id: uuidv4(),
+      key: uuidv4(),
+      tag: "text",
+      role: "state",
+      elementType: "state",
+      attributes: { text: String(element) },
+      children: [],
+      allowedChildren: "none",
+      schema: z.object({}),
+    });
+  }
+
+  // Handle FireAgentNode
+  if (
+    typeof element === "object" &&
+    "kind" in element &&
+    (element.kind === "text" ||
+      element.kind === "comment" ||
+      element.kind === "instruction")
+  ) {
+    return new BaseElement({
+      id: element.key || uuidv4(),
+      key: element.key || uuidv4(),
+      tag: element.kind,
+      role: "state",
+      elementType: "state",
+      attributes:
+        element.kind === "text"
+          ? { text: String(element.text) }
+          : element.kind === "comment"
+            ? { comment: String(element.comment) }
+            : { instruction: String(element.instruction) },
+      children: [],
+      allowedChildren: "none",
+      schema: z.object({}),
+    });
   }
 
   // Handle React elements
-  if (isReactTagElement(element)) {
-    // const props: Record<string, any> = element.props as Record<string, any>;
-    const { children, ...props } = element.props as any as {
-      children: FireAgentNode[];
-      [key: string]: any;
-    };
-    if (element.type === React.Fragment && children) {
-      // const children = props.children as ReactElements[] | undefined;
-
-      // Handle React.Fragment
-      return children
-        ?.map((child: ReactElements) => instanciateNode(child, parents))
-        .flat()
-        .filter(Boolean) as FireAgentNode[];
-    }
-
-    const nodeName = element.type?.tag || element.type;
-    if (!nodeName || !isSupportedNodeName(nodeName)) {
-      throw new ElementError(
-        `Unsupported node type: ${String(nodeName)}`,
-        String(nodeName)
-      );
-    }
-
-    const ElementClass = getNodeDefinitionClass(nodeName);
-    // Process children
-    let childNodes: FireAgentNode[] = [];
-    let textValue: string | undefined;
-
-    if (children !== undefined) {
-      // Handle text content directly
-      if (
-        typeof children === "string" ||
-        typeof children === "number" ||
-        typeof children === "boolean"
-      ) {
-        textValue = String(children);
-      } else {
-        // Handle nested children
-        const parsedChildren = instanciateNode(children, [...parents]);
-
-        if (parsedChildren == null) {
-          childNodes = [];
-        } else if (Array.isArray(parsedChildren)) {
-          // Check if all children are text nodes
-          const allTextNodes = parsedChildren.every(
-            (node) => "kind" in node && node.kind === "text"
-          );
-          if (allTextNodes) {
-            textValue = parsedChildren
-              .map((node) => ("text" in node ? node.text : ""))
-              .join("");
-          } else {
-            childNodes = parsedChildren;
-          }
-        } else if ("kind" in parsedChildren && parsedChildren.kind === "text") {
-          textValue = String(parsedChildren.text);
-        } else {
-          childNodes = [parsedChildren];
-        }
-      }
-    }
-
-    // Validate children
-    childNodes.forEach((childNode) => {
-      if (!(childNode instanceof BaseElement)) {
-        return;
-      }
-      const childName = childNode.elementType;
-      if (!childName) return; // comment or text node
-
-      if (!ElementClass.areChildrenAllowed([childName])) {
-        throw new CompositionError(
-          `Element type "${nodeName}" does not allow children of type ${childNode.elementType}`,
-          {
-            childrenError: [nodeName, childNode.elementType],
-          }
-        );
-      }
-    });
-
-    // If we found text content, add it as a value prop
-    if (textValue !== undefined) {
-      props.value = textValue;
-    }
-
-    return ElementClass.initFromAttributesAndNodes(
-      props,
-      childNodes as BaseElement[],
-      parents
-    );
+  if (!isReactTagElement(element)) {
+    return null;
   }
 
-  // Handle pre-existing FireAgentNodes
-  if ("kind" in element) {
-    return element as FireAgentNode;
+  const tagName = element.type.toString();
+
+  if (!isSupportedNodeName(tagName)) {
+    throw new ElementError(`Unsupported element type: ${tagName}`);
   }
 
-  return null;
+  const ElementClass = getNodeDefinitionClass(tagName);
+
+  // Convert children to BaseElement instances
+  const childNodes = React.Children.toArray(element.props.children)
+    .map((child) => instanciateNode(child as ReactElements, parents))
+    .filter((node): node is IBaseElement | IBaseElement[] => node !== null)
+    .flat();
+
+  // Create BaseElement instance with children
+  return new BaseElement({
+    id: element.props.id || uuidv4(),
+    key: element.props.key?.toString() || uuidv4(),
+    tag: tagName,
+    role: ElementClass.role || "state",
+    elementType: ElementClass.scxmlType || (tagName as SCXMLNodeType),
+    attributes: element.props,
+    children: childNodes,
+    allowedChildren: ElementClass.allowedChildren || "any",
+    schema: ElementClass.propsSchema || z.object({}),
+  });
 }

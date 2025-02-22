@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { AllowedChildrenType } from "..";
-import { BaseElementDefinition } from "../index";
+import type { AllowedChildrenType } from "@fireworks/types";
+import type { BaseElementDefinition } from "../types";
 
 /**
  * Action Elements

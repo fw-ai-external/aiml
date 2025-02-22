@@ -1,19 +1,7 @@
 {
   "extends": "@fireworks/tsconfig/base.json",
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.d.ts"
-  ],
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.mts",
-    "src/**/*.mtsx",
-    "src/**/*.json"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist"],
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
@@ -25,4 +13,4 @@
     "skipLibCheck": true,
     "moduleResolution": "Node"
   }
-}
+} 

@@ -42,17 +42,6 @@ describe("SCXMLElement", () => {
         key: id,
         elementType: "state",
         attributes: { id },
-        execute: async (ctx) => {
-          ctx.datamodel[`_state_${id}`] = { isActive: true };
-          return new StepValue({
-            type: "object",
-            object: { id },
-            raw: JSON.stringify({ id }),
-            id: ctx.state.id,
-            _stats: {},
-            _inputValue: null,
-          });
-        },
       });
     }
   }

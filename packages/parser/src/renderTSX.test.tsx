@@ -2,7 +2,7 @@
 import React from "react";
 import { describe, expect, it } from "bun:test";
 import { renderTSX } from "./renderTSX";
-import type { FireAgentSpecNode } from "@fireworks/core";
+import type { FireAgentNode } from "@fireworks/types";
 import { parseSpec, printConfigTree } from ".";
 import { SCXML, State, Final, Parallel, SCXMLNodeTypes } from "@fireworks/core";
 import { OnEntry, Transition } from "@fireworks/core";
@@ -13,7 +13,7 @@ import { Runtime } from "@fireworks/core";
 import { LLM } from "@fireworks/core";
 
 function isBaseElement(
-  node: FireAgentSpecNode | undefined | false
+  node: FireAgentNode | undefined | false
 ): node is BaseElement {
   return node instanceof BaseElement;
 }
@@ -296,7 +296,7 @@ describe("tsx parser", () => {
     expect(result).toBeDefined();
     expect(isBaseElement(result) && result.elementType).toBe("scxml");
 
-    function expectSyncSCXMLNode(node: FireAgentSpecNode | undefined) {
+    function expectSyncSCXMLNode(node: FireAgentNode | undefined) {
       if (!node) {
         return;
       }
@@ -307,7 +307,7 @@ describe("tsx parser", () => {
       expect(name).toBeDefined();
       expect(name! in SCXMLNodeTypes).toBe(true);
       if (node.children) {
-        node.children.forEach((child: FireAgentSpecNode) =>
+        node.children.forEach((child: FireAgentNode) =>
           expectSyncSCXMLNode(child)
         );
       }

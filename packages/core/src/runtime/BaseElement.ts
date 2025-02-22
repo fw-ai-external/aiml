@@ -4,7 +4,11 @@ import type { RunstepOutput } from "../types";
 import { z } from "zod";
 import { BuildContext } from "./BuildContext";
 import { ExecutionGraphElement } from "./types";
-import type { SCXMLNodeType } from "@fireworks/element-types";
+import type {
+  SCXMLNodeType,
+  AllowedChildrenType,
+  IBaseElement,
+} from "@fireworks/types";
 import { ErrorCode } from "../utils/errorCodes";
 
 /** Represents a single SCXML element. */
@@ -97,18 +101,20 @@ export type StepResult =
       results: StepResultItem[];
     };
 
-export class BaseElement {
+export class BaseElement implements IBaseElement {
   readonly elementType: SCXMLNodeType;
   readonly tag: string;
   readonly role: "state" | "action" | "user-input" | "error" | "output";
   protected _dataModel: Record<string, unknown> = {};
   protected _eventQueue: Array<{ name: string; data: unknown }> = [];
-  protected parent?: BaseElement;
-  public readonly attributes: Record<string, string>;
-  public readonly children: BaseElement[] = [];
+  protected _parent?: BaseElement;
+  public readonly attributes: Record<string, any>;
+  public readonly children: IBaseElement[] = [];
   public readonly onExecutionGraphConstruction?: (
     buildContext: BuildContext
   ) => ExecutionGraphElement;
+  public readonly allowedChildren: AllowedChildrenType = "any";
+  public readonly schema: z.ZodType<any> = z.object({});
 
   public enter?: () => Promise<void>;
   public exit?: () => Promise<void>;
@@ -124,19 +130,17 @@ export class BaseElement {
     role: "state" | "action" | "user-input" | "error" | "output";
     key: string;
     elementType: SCXMLNodeType;
-    attributes?: Record<string, string>;
+    attributes?: Record<string, any>;
     parent?: BaseElement;
-    children?: BaseElement[];
+    children?: IBaseElement[];
     onExecutionGraphConstruction?: (
       buildContext: BuildContext
     ) => ExecutionGraphElement;
-    execute?: (
-      ctx: ElementExecutionContext<any, RunstepOutput>,
-      childrenNodes: BaseElement[]
-    ) => Promise<StepValue<StepResult>>;
     enter?: () => Promise<void>;
     exit?: () => Promise<void>;
     stepConditions?: StepCondition;
+    allowedChildren?: AllowedChildrenType;
+    schema?: z.ZodType<any>;
   }) {
     this.id = config.id;
     this.role = config.role;
@@ -144,7 +148,7 @@ export class BaseElement {
     this.tag = config.tag;
     this.key = config.key;
     this.attributes = config.attributes ?? {};
-    this.parent = config.parent;
+    this._parent = config.parent;
     this.children = config.children ?? [];
     this.enter = config.enter;
     this.exit = config.exit;
@@ -152,6 +156,48 @@ export class BaseElement {
       this.onExecutionGraphConstruction = config.onExecutionGraphConstruction;
     }
     this.stepConditions = config.stepConditions;
+    if (config.allowedChildren) {
+      this.allowedChildren = config.allowedChildren;
+    }
+    if (config.schema) {
+      this.schema = config.schema;
+    }
+  }
+
+  get parent(): BaseElement | undefined {
+    return this._parent;
+  }
+
+  get isActive(): boolean {
+    return this._isActive;
+  }
+
+  set isActive(value: boolean) {
+    this._isActive = value;
+  }
+
+  get dataModel(): Record<string, unknown> {
+    return this._dataModel;
+  }
+
+  set dataModel(value: Record<string, unknown>) {
+    this._dataModel = value;
+  }
+
+  get eventQueue(): Array<{ name: string; data: unknown }> {
+    return this._eventQueue;
+  }
+
+  set eventQueue(value: Array<{ name: string; data: unknown }>) {
+    this._eventQueue = value;
+  }
+
+  get conditions(): StepCondition | undefined {
+    return this.stepConditions;
+  }
+
+  set conditions(value: StepCondition | undefined) {
+    this.stepConditions = value;
   }
 
   public async execute(
@@ -211,14 +257,6 @@ export class BaseElement {
     return this.stepConditions ?? this.getDefaultStepConditions();
   }
 
-  get dataModel(): Record<string, unknown> {
-    return this.getRootElement()._dataModel;
-  }
-
-  set dataModel(value: Record<string, unknown>) {
-    this.getRootElement()._dataModel = value;
-  }
-
   protected evaluateExpr(expr: string, context: unknown): unknown {
     const fnBody = `with(_data) { with(context) { return ${expr}; } }`;
     return new Function("context", "_data", fnBody)(context, this.dataModel);
@@ -243,10 +281,6 @@ export class BaseElement {
       current = current.parent;
     }
     return current;
-  }
-
-  get eventQueue(): Array<{ name: string; data: unknown }> {
-    return this.getRootElement()._eventQueue;
   }
 
   protected enqueueEvent(name: string, data?: unknown): void {

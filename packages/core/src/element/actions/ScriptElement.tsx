@@ -7,6 +7,7 @@ export const Script = createElementDefinition<ScriptProps>({
   ...scriptConfig,
   role: "action",
   elementType: "script",
+  allowedChildren: "text",
   async execute(ctx, children): Promise<StepValue> {
     const { src } = ctx.attributes;
     const content = children[0]?.toString();

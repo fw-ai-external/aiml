@@ -1,6 +1,6 @@
-import { BaseElement } from "@fireworks/core";
 import { Node, SourceFile } from "ts-morph";
-import type { SCXMLNodeType } from "@fireworks/element-types";
+import type { SCXMLNodeType, IBaseElement } from "@fireworks/types";
+
 export interface InstructionNode {
   kind: "instruction";
 
@@ -77,7 +77,7 @@ export type FireAgentNode =
   | (TextNode & NonDTO)
   | (CommentNode & NonDTO)
   | (InstructionNode & NonDTO)
-  | BaseElement;
+  | IBaseElement;
 export type FireAgentNodeDTO =
   | TextNode
   | CommentNode
@@ -90,7 +90,7 @@ export interface MDXParserOptions {
 }
 
 export interface MDXParseResult {
-  ast: BaseElement;
+  ast: IBaseElement;
   errors: MDXParseError[];
 }
 
@@ -115,5 +115,5 @@ export interface MDXParseContext {
   sourceFile: SourceFile;
   currentNode: Node;
   errors: MDXParseError[];
-  parents: BaseElement[];
+  parents: IBaseElement[];
 }

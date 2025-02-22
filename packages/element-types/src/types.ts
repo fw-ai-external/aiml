@@ -1,31 +1,10 @@
 import { z } from "zod";
 import type { ReactNode } from "react";
-
-export type SCXMLNodeType =
-  | "state"
-  | "parallel"
-  | "transition"
-  | "final"
-  | "history"
-  | "datamodel"
-  | "data"
-  | "assign"
-  | "donedata"
-  | "content"
-  | "param"
-  | "script"
-  | "raise"
-  | "if"
-  | "elseif"
-  | "else"
-  | "foreach"
-  | "log"
-  | "send"
-  | "cancel"
-  | "invoke"
-  | "finalize"
-  | "onentry"
-  | "onexit";
+import type {
+  SCXMLNodeType,
+  ElementRole,
+  AllowedChildrenType,
+} from "@fireworks/types";
 
 export type ElementProps = Record<string, any>;
 
@@ -81,4 +60,57 @@ export type StepValue<
   type: Type;
   value: T;
   raw?: string;
+};
+
+export interface BaseElementDefinition {
+  /**
+   * The actual tag name used in the config/tsx
+   */
+  tag: string;
+  /**
+   * The type of the element
+   */
+  scxmlType?: SCXMLNodeType;
+  /**
+   * The role of the element
+   */
+  role?: ElementRole;
+  /**
+   * The allowed children for this element as an array of tags or a function that returns an array of tags
+   */
+  allowedChildren?: AllowedChildrenType;
+  /**
+   * The props/options exposed to the schema by this element
+   */
+  propsSchema: z.ZodObject<any>;
+
+  /**
+   * Human-readable description of the element
+   */
+  description: string;
+
+  /**
+   * The documentation for the element in markdown format
+   */
+  documentation: string;
+
+  /**
+   * Array of parent elements that this element can be nested under
+   */
+  requiredParent?: string[];
+  /**
+   * Whether this element can be used as a root element
+   */
+  isRoot?: boolean;
+}
+
+export type ElementDefinition<
+  Props = any,
+  Tag extends string = string,
+> = BaseElementDefinition & {
+  tag: Tag;
+  propsSchema?: z.ZodType<Props>;
+  allowedChildren?:
+    | AllowedChildrenType
+    | ((props: Props) => AllowedChildrenType);
 };
