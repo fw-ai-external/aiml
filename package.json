@@ -13,5 +13,8 @@
   "devDependencies": {
     "turbo": "latest"
   },
-  "workspaces": ["packages/*", "apps/*"]
+  "workspaces": ["packages/*", "apps/*"],
+  "dependencies": {
+    "human-regex": "^2.1.5"
+  }
 }

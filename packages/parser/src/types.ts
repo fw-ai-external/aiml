@@ -117,3 +117,48 @@ export interface MDXParseContext {
   errors: MDXParseError[];
   parents: IBaseElement[];
 }
+
+export class JSXPreprocessError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "JSXPreprocessError";
+  }
+}
+
+export class MDXParseError extends Error {
+  public line: number;
+  public column: number;
+  public code: string;
+
+  constructor(
+    message: string,
+    line: number = 1,
+    column: number = 1,
+    code: string = "parse_error"
+  ) {
+    super(message);
+    this.name = "MDXParseError";
+    this.line = line;
+    this.column = column;
+    this.code = code;
+  }
+}
+
+export type CompilerOptions = {
+  jsx: 1;
+  allowJs: boolean;
+  allowJsx: boolean;
+  moduleResolution: 2;
+  noImplicitAny: boolean;
+  skipLibCheck: boolean;
+  noResolve: boolean;
+  types: string[];
+  jsxFactory: string;
+  jsxFragmentFactory: string;
+  target: 6;
+  module: 99;
+  esModuleInterop: boolean;
+  resolveJsonModule: boolean;
+  noLib: boolean;
+  skipDefaultLibCheck: boolean;
+};

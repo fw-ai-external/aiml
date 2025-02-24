@@ -1,6 +1,6 @@
 export * from "./BaseElement";
 export * from "./fromXML";
-export * from "./parser";
+export * from "./mdx";
 export * from "./renderTSX";
 export * from "./types";
 
