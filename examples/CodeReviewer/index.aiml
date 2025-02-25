@@ -85,7 +85,6 @@ import TestingTools from "./testingtools.js"
   </state>
 
   <state id="securityAnalysis">
-    <onentry>
       <script>
         // Load security rules
         const securityRules = JSON.parse(SecurityRules);
@@ -135,11 +134,9 @@ import TestingTools from "./testingtools.js"
       </script>
       <log value={(ctx) => 'Security analysis complete. Found ' + ctx.datamodel.securityFindings.length + ' potential issues'} />
       <transition target="codeQualityAnalysis" />
-    </onentry>
   </state>
 
   <state id="codeQualityAnalysis">
-    <onentry>
       <script>
         // Load code quality rules
         const qualityRules = JSON.parse(CodeQualityRules);
@@ -185,11 +182,9 @@ import TestingTools from "./testingtools.js"
       </script>
       <log value={(ctx) => 'Code quality analysis complete. Found ' + ctx.datamodel.qualityIssues.length + ' issues'} />
       <transition target="performanceAnalysis" />
-    </onentry>
   </state>
 
   <state id="performanceAnalysis">
-    <onentry>
       <script>
         // Functions to analyze performance
         function analyzeComplexity(code) {
@@ -274,11 +269,9 @@ import TestingTools from "./testingtools.js"
       </script>
       <log value={(ctx) => 'Test coverage analysis complete. Overall coverage: ' + (ctx.datamodel.testCoverage.overall || 0) + '%'} />
       <transition target="synthesizeFindings" />
-    </onentry>
   </state>
 
   <state id="synthesizeFindings">
-    <onentry>
       <llm model="gpt-4o" temperature={0.1}>
         <prompt>
           You are a professional code reviewer who specializes in providing actionable feedback. 
@@ -327,11 +320,9 @@ import TestingTools from "./testingtools.js"
       </llm>
       <assign location="reviewSummary" value={(ctx) => ctx.lastElement.output} />
       <transition target="generateRecommendations" />
-    </onentry>
   </state>
 
   <state id="generateRecommendations">
-    <onentry>
       <llm model="gpt-4o" temperature={0.2}>
         <prompt>
           Based on the analysis of this pull request, generate specific, actionable recommendations 
@@ -395,11 +386,9 @@ import TestingTools from "./testingtools.js"
       </script>
       <log value={(ctx) => 'Generated ' + ctx.datamodel.recommendations.length + ' recommendations'} />
       <transition target="generateDetailedComments" />
-    </onentry>
   </state>
 
   <state id="generateDetailedComments">
-    <onentry>
       <llm model="gpt-4o" temperature={0.2}>
         <prompt>
           You are an experienced code reviewer. You need to generate specific comments for files 
@@ -477,12 +466,10 @@ import TestingTools from "./testingtools.js"
       </script>
       <log value={(ctx) => 'Generated comments for ' + Object.keys(ctx.datamodel.reviewComments).length + ' files'} />
       <transition target="complete" />
-    </onentry>
   </state>
 
-  <state id="complete" final="true">
-    <onentry>
-      <sendObject>
+  <final id="complete"  >
+      <sendObject value={ctx => (
         {
           "summary": ctx.datamodel.reviewSummary,
           "recommendations": ctx.datamodel.recommendations,
@@ -498,6 +485,5 @@ import TestingTools from "./testingtools.js"
           }
         }
       </sendObject>
-    </onentry>
-  </state>
+  </final>
 </workflow>

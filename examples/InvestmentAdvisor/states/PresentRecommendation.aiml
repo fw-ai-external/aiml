@@ -1,0 +1,19 @@
+---
+name: PresentRecommendation
+---
+
+{/* 
+This AIML defines the PresentRecommendation state for the InvestmentAdvisor workflow.
+It is the final state that assembles and returns the complete investment recommendation.
+*/}
+
+<final id="presentRecommendation">
+    <sendObject value={ctx => (
+      {
+        "profile": ctx.datamodel.profile,
+        "marketAnalysis": ctx.datamodel.marketAnalysis,
+        "assetAllocation": ctx.datamodel.assetAllocation,
+        "recommendation": ctx.datamodel.portfolioRecommendation
+      }
+    )} />
+</final> 

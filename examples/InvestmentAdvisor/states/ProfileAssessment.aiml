@@ -1,0 +1,20 @@
+---
+name: ProfileAssessment
+---
+
+{/* 
+This AIML defines the ProfileAssessment state for the InvestmentAdvisor workflow.
+It categorizes the investor based on their time horizon, investment capacity, and goal type.
+*/}
+
+<state id="profileAssessment">
+    <script>
+        ctx.datamodel.profile.investorCategory = ctx.datamodel.timeHorizon > 10 ? "long-term" : ctx.datamodel.timeHorizon > 5 ? "medium-term" : "short-term";
+        ctx.datamodel.profile.investmentCapacity = ctx.datamodel.initialInvestment > 100000 ? "high" : ctx.datamodel.initialInvestment > 10000 ? "medium" : "limited";
+        ctx.datamodel.profile.goalType = ctx.datamodel.investmentGoal.toLowerCase().includes("retirement") ? "retirement" : 
+                            ctx.datamodel.investmentGoal.toLowerCase().includes("education") ? "education" : 
+                            ctx.datamodel.investmentGoal.toLowerCase().includes("house") ? "major purchase" : "growth";
+    </script>
+    <log value={(ctx) => 'Investor profile assessed: ' + JSON.stringify(ctx.datamodel.profile)} />
+  <transition target="marketAnalysis" />
+</state> 

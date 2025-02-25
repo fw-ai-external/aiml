@@ -1,0 +1,54 @@
+---
+name: AssetAllocation
+---
+
+{/* 
+This AIML defines the AssetAllocation state for the InvestmentAdvisor workflow.
+It calculates appropriate asset allocation percentages based on the investor's risk tolerance and time horizon.
+*/}
+
+<state id="assetAllocation">
+<script>
+    // Base allocations depending on risk tolerance
+    if (ctx.datamodel.riskTolerance === "low") {
+    ctx.datamodel.assetAllocation.stocks = 20;
+    ctx.datamodel.assetAllocation.bonds = 60;
+    ctx.datamodel.assetAllocation.cash = 15;
+    ctx.datamodel.assetAllocation.alternatives = 5;
+    } else if (ctx.datamodel.riskTolerance === "medium") {
+    ctx.datamodel.assetAllocation.stocks = 50;
+    ctx.datamodel.assetAllocation.bonds = 30;
+    ctx.datamodel.assetAllocation.cash = 10;
+    ctx.datamodel.assetAllocation.alternatives = 10;
+    } else { // high
+    ctx.datamodel.assetAllocation.stocks = 70;
+    ctx.datamodel.assetAllocation.bonds = 15;
+    ctx.datamodel.assetAllocation.cash = 5;
+    ctx.datamodel.assetAllocation.alternatives = 10;
+    }
+    
+    // Adjust based on time horizon
+    if (ctx.datamodel.timeHorizon > 10) {
+    ctx.datamodel.assetAllocation.stocks += 10;
+    ctx.datamodel.assetAllocation.bonds -= 5;
+    ctx.datamodel.assetAllocation.cash -= 5;
+    } else if (ctx.datamodel.timeHorizon < 5) {
+    ctx.datamodel.assetAllocation.stocks -= 10;
+    ctx.datamodel.assetAllocation.bonds += 5;
+    ctx.datamodel.assetAllocation.cash += 5;
+    }
+    
+    // Ensure allocations don't go negative and sum to 100%
+    Object.keys(ctx.datamodel.assetAllocation).forEach(key => {
+    ctx.datamodel.assetAllocation[key] = Math.max(0, ctx.datamodel.assetAllocation[key]);
+    });
+    
+    // Normalize to ensure sum is 100%
+    const sum = Object.values(ctx.datamodel.assetAllocation).reduce((a, b) => a + b, 0);
+    Object.keys(ctx.datamodel.assetAllocation).forEach(key => {
+    ctx.datamodel.assetAllocation[key] = Math.round((ctx.datamodel.assetAllocation[key] / sum) * 100);
+    });
+</script>
+<log value={(ctx) => 'Asset allocation completed: ' + JSON.stringify(ctx.datamodel.assetAllocation)} />
+  <transition target="portfolioRecommendation" />
+</state> 

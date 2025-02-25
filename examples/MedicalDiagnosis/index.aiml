@@ -42,21 +42,50 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
 
 <workflow initial="emergencyCheck">
   <datamodel>
-    <data id="symptoms" type="array">{ctx.workflowInput.symptoms}</data>
-    <data id="duration" type="integer">{ctx.workflowInput.duration}</data>
-    <data id="patientAge" type="integer">{ctx.workflowInput.patientAge}</data>
-    <data id="patientGender" type="string">{ctx.workflowInput.patientGender}</data>
-    <data id="medicalHistory" type="array">{ctx.workflowInput.medicalHistory}</data>
+    <data id="symptoms" type="array">{ctx => ctx.workflowInput.symptoms}</data>
+    <data id="duration" type="integer">{ctx => ctx.workflowInput.duration}</data>
+    <data id="patientAge" type="integer">{ctx => ctx.workflowInput.patientAge}</data>
+    <data id="patientGender" type="string">{ctx => ctx.workflowInput.patientGender}</data>
+    <data id="medicalHistory" type="array">{ctx => ctx.workflowInput.medicalHistory}</data>
     <data id="isEmergency" type="boolean" value={false} />
     <data id="emergencyReason" type="string" value={""} />
-    <data id="symptomGroups" type="json" value={{}} />
-    <data id="potentialDiagnoses" type="array" value={[]} />
+    <data id="symptomGroups" type="json" value={{}} schema={{
+        type: "object",
+        properties: {
+          respiratory: { type: "array" },
+          cardiovascular: { type: "array" },
+          gastrointestinal: { type: "array" },
+          neurological: { type: "array" },
+          musculoskeletal: { type: "array" },
+          dermatological: { type: "array" },
+          general: { type: "array" }
+        },
+        required: ["respiratory", "cardiovascular", "gastrointestinal", "neurological", "musculoskeletal", "dermatological", "general"]
+    }} />
+    <data id="potentialDiagnoses" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "object", properties: {
+          diagnosis: { type: "string" },
+          likelihood: { type: "string" },
+          explanation: { type: "string" },
+          keySymptoms: { type: "array", items: { type: "string" } }
+        },
+        required: ["diagnosis", "likelihood", "explanation", "keySymptoms"]
+    }} />
     <data id="diagnosticReasoning" type="string" value={""} />
-    <data id="recommendations" type="array" value={[]} />
+    <data id="recommendations" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "object", properties: {
+          type: { type: "string" },
+          urgency: { type: "string" },
+          recommendation: { type: "string" },
+          rationale: { type: "string" }
+        },
+        required: ["type", "urgency", "recommendation", "rationale"]
+    }} />
   </datamodel>
 
   <state id="emergencyCheck">
-    <onentry>
       <script>
         // Check if any symptoms match emergency symptoms
         const emergencySymptoms = JSON.parse(EmergencySymptoms);
@@ -91,17 +120,12 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
         }
       </script>
       <log value={(ctx) => 'Emergency check completed: ' + (ctx.datamodel.isEmergency ? 'YES - ' + ctx.datamodel.emergencyReason : 'No')} />
-    </onentry>
     
-    <if cond={(ctx) => ctx.datamodel.isEmergency}>
-      <transition target="emergencyResponse" />
-    <else />
+      <transition cond={(ctx) => ctx.datamodel.isEmergency} target="emergencyResponse" />
       <transition target="symptomAnalysis" />
-    </if>
   </state>
 
-  <state id="emergencyResponse">
-    <onentry>
+  <final id="emergencyResponse">
       <sendText>
         ⚠️ EMERGENCY WARNING ⚠️
         
@@ -114,11 +138,9 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
         
         This is an automated assessment and is not a substitute for professional medical advice.
       </sendText>
-    </onentry>
-  </state>
+  </final>
 
   <state id="symptomAnalysis">
-    <onentry>
       <script>
         // Group symptoms by body system
         const bodySystems = {
@@ -154,11 +176,9 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
       </script>
       <log value={(ctx) => 'Symptom analysis complete. Identified ' + Object.keys(ctx.datamodel.symptomGroups).length + ' affected body systems'} />
       <transition target="generateDiagnoses" />
-    </onentry>
   </state>
 
   <state id="generateDiagnoses">
-    <onentry>
       <llm model="gpt-4o" temperature={0.3}>
         <prompt>
           You are an AI medical diagnostic assistant. Based on the following patient information, 
@@ -217,11 +237,9 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
         }
       </script>
       <transition target="generateReasoning" />
-    </onentry>
   </state>
 
   <state id="generateReasoning">
-    <onentry>
       <llm model="gpt-4o" temperature={0.2}>
         <prompt>
           Generate a clinical reasoning explanation based on this patient's presentation.
@@ -255,11 +273,9 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
       </llm>
       <assign location="diagnosticReasoning" value={(ctx) => ctx.lastElement.output} />
       <transition target="generateRecommendations" />
-    </onentry>
   </state>
 
   <state id="generateRecommendations">
-    <onentry>
       <llm model="gpt-4o" temperature={0.2}>
         <prompt>
           Based on the patient information and possible diagnoses, generate clinical recommendations.
@@ -328,19 +344,16 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
         }
       </script>
       <transition target="presentResults" />
-    </onentry>
   </state>
 
-  <state id="presentResults" final="true">
-    <onentry>
-      <sendObject>
+  <final id="presentResults" final="true">
+      <sendObject value={ctx => (
         {
           "diagnoses": ctx.datamodel.potentialDiagnoses,
           "reasoning": ctx.datamodel.diagnosticReasoning,
           "recommendations": ctx.datamodel.recommendations,
           "disclaimer": "This analysis is for informational purposes only and does not constitute medical advice. Always consult with a qualified healthcare provider for proper diagnosis and treatment."
         }
-      </sendObject>
-    </onentry>
-  </state>
+      )} />
+  </final>
 </workflow>

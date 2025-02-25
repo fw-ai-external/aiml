@@ -1,0 +1,60 @@
+---
+name: PortfolioRecommendation
+---
+
+{/* 
+This AIML defines the PortfolioRecommendation state for the InvestmentAdvisor workflow.
+It generates detailed investment portfolio recommendations based on investor profile and asset allocation.
+*/}
+
+<state id="portfolioRecommendation">
+  <onentry>
+    <llm model="gpt-4o" temperature={0.1}>
+      <prompt>
+        Create a detailed investment portfolio recommendation with specific investment vehicles based on:
+        
+        INVESTOR PROFILE:
+        - Goal: {ctx.datamodel.investmentGoal}
+        - Risk Tolerance: {ctx.datamodel.riskTolerance}
+        - Time Horizon: {ctx.datamodel.timeHorizon} years
+        - Initial Investment: ${ctx.datamodel.initialInvestment}
+        - Investor Category: {ctx.datamodel.profile.investorCategory}
+        
+        RECOMMENDED ASSET ALLOCATION:
+        - Stocks: {ctx.datamodel.assetAllocation.stocks}%
+        - Bonds: {ctx.datamodel.assetAllocation.bonds}%
+        - Cash: {ctx.datamodel.assetAllocation.cash}%
+        - Alternative Investments: {ctx.datamodel.assetAllocation.alternatives}%
+        
+        MARKET ANALYSIS:
+        {ctx.datamodel.marketAnalysis}
+        
+        Provide specific investment vehicles (ETFs, index funds, etc.) for each asset class with approximate dollar amounts based on the allocation percentages and initial investment. Include ticker symbols where appropriate.
+        
+        Format your response as JSON with the following structure:
+        {
+          "summary": "Brief overview of the strategy",
+          "investments": [
+            {"type": "asset class", "percentage": X, "amount": $Y, "vehicles": [{"name": "Fund Name", "ticker": "XYZ", "allocation": $Amount}]}
+          ],
+          "rationale": "Brief explanation of why this portfolio suits their needs",
+          "nextSteps": "Specific actions the investor should take"
+        }
+      </prompt>
+       
+    </llm>
+    <script>
+      try {
+        ctx.datamodel.portfolioRecommendation = JSON.parse(ctx.lastElement.output);
+      } catch(e) {
+        ctx.log("Error parsing portfolio recommendation: " + e.message);
+        ctx.datamodel.portfolioRecommendation = {
+          "error": true,
+          "message": "Failed to generate structured recommendation. Please try again."
+        };
+      }
+    </script>
+    <log value="Portfolio recommendation completed" />
+  </onentry>
+  <transition target="presentRecommendation" />
+</state> 

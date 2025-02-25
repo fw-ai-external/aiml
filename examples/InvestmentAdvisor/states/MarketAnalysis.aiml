@@ -1,0 +1,26 @@
+---
+name: MarketAnalysis
+---
+
+{/* 
+This AIML defines the MarketAnalysis state for the InvestmentAdvisor workflow.
+It generates a market analysis relevant to the investor's profile using an LLM.
+*/}
+
+<state id="marketAnalysis">
+  <llm model="gpt-4o" temperature={0.2}>
+    <prompt>
+      Generate a concise market analysis relevant to an investor with the following profile:
+      - Investment Goal: {ctx.datamodel.investmentGoal}
+      - Risk Tolerance: {ctx.datamodel.riskTolerance}
+      - Time Horizon: {ctx.datamodel.timeHorizon} years
+      - Investment Category: {ctx.datamodel.profile.investorCategory}
+      
+      Focus on current market conditions, trends, and potential investment opportunities or risks.
+      Keep your analysis under 300 words.
+    </prompt>
+  </llm>
+  <assign location="marketAnalysis" value={(ctx) => ctx.lastElement.output} />
+  <log value="Market analysis completed" />
+  <transition target="assetAllocation" />
+</state> 

@@ -45,388 +45,388 @@ Finally, assemble all elements into a comprehensive character persona that write
 or developers can immediately use in their creative projects.
 */}
 
-<datamodel>
-  <data id="genre" type="string">{ctx.workflowInput.genre}</data>
-  <data id="archetype" type="string">{ctx.workflowInput.archetype}</data>
-  <data id="complexity" type="integer">{ctx.workflowInput.complexity || 3}</data>
-  <data id="characterName" type="string" value={""} />
-  <data id="personalityTraits" type="array" value={[]} />
-  <data id="backstory" type="string" value={""} />
-  <data id="appearance" type="string" value={""} />
-  <data id="motivations" type="array" value={[]} />
-  <data id="flaws" type="array" value={[]} />
-  <data id="strengths" type="array" value={[]} />
-  <data id="relationships" type="array" value={[]} />
-  <data id="characterVoice" type="string" value={""} />
-  <data id="plotHooks" type="array" value={[]} />
-</datamodel>
+<workflow runInOrder={true}>
+    <datamodel>
+    <data id="genre" type="string">{ctx => ctx.workflowInput.genre}</data>
+    <data id="archetype" type="string">{ctx => ctx.workflowInput.archetype}</data>
+    <data id="complexity" type="integer">{ctx => ctx.workflowInput.complexity || 3}</data>
+    <data id="characterName" type="string" value={""} />
+    <data id="personalityTraits" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "string" }
+    }} />
+    <data id="backstory" type="string" value={""} />
+    <data id="appearance" type="string" value={""} />
+    <data id="motivations" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "string" }
+    }} />
+    <data id="flaws" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "string" }
+    }} />
+    <data id="strengths" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "string" }
+    }} />
+    <data id="relationships" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "string" }
+    }} />
+    <data id="characterVoice" type="string" value={""} />
+    <data id="plotHooks" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "string" }
+    }} />
+    </datamodel>
 
-<state id="generateName" description="Generate a character name appropriate for the genre and archetype">
-  <onentry>
-    <llm model="gpt-4o" temperature={0.7}>
-      <prompt>
-        Generate a character name appropriate for the {ctx.datamodel.genre} genre and {ctx.datamodel.archetype} archetype.
-        The name should feel authentic to the genre while being memorable and pronounceable.
+    <state id="generateName" description="Generate a character name appropriate for the genre and archetype">
+        <llm model="gpt-4o" temperature={0.7}>
+        <prompt>
+            Generate a character name appropriate for the {ctx.datamodel.genre} genre and {ctx.datamodel.archetype} archetype.
+            The name should feel authentic to the genre while being memorable and pronounceable.
+            
+            If the genre is fantasy, consider using linguistic patterns common in fantasy naming conventions.
+            If sci-fi, the name might reflect future naming trends or alien cultures.
+            If historical, ensure the name is period-appropriate.
+            
+            Return just the name without explanation or additional text.
+        </prompt>
+
+        </llm>
+        <assign location="characterName" value={(ctx) => ctx.lastElement.output.trim()} />
+        <log value={(ctx) => 'Generated character name: ' + ctx.datamodel.characterName} />
+    </state>
+
+    <state id="definePersonality" description="Define the character's personality traits">
+        <script>
+        // Load appropriate personality traits based on archetype
+        const traitsData = JSON.parse(PersonalityTraits);
+        let archetypeTraits = traitsData[ctx.datamodel.archetype] || traitsData.default;
         
-        If the genre is fantasy, consider using linguistic patterns common in fantasy naming conventions.
-        If sci-fi, the name might reflect future naming trends or alien cultures.
-        If historical, ensure the name is period-appropriate.
+        // Scale number of traits based on complexity
+        const traitsToSelect = Math.max(3, ctx.datamodel.complexity + 2);
         
-        Return just the name without explanation or additional text.
-      </prompt>
-
-    </llm>
-    <assign location="characterName" value={(ctx) => ctx.lastElement.output.trim()} />
-    <log value={(ctx) => 'Generated character name: ' + ctx.datamodel.characterName} />
-  </onentry>
-</state>
-
-<state id="definePersonality" description="Define the character's personality traits">
-  <onentry>
-    <script>
-      // Load appropriate personality traits based on archetype
-      const traitsData = JSON.parse(PersonalityTraits);
-      let archetypeTraits = traitsData[ctx.datamodel.archetype] || traitsData.default;
-      
-      // Scale number of traits based on complexity
-      const traitsToSelect = Math.max(3, ctx.datamodel.complexity + 2);
-      
-      // Select primary traits associated with archetype
-      const primaryTraits = archetypeTraits.primary || [];
-      
-      // Select some contradictory traits for complexity
-      const contradictoryTraits = archetypeTraits.contradictory || [];
-      
-      // Select secondary traits for flavor
-      const secondaryTraits = traitsData.common || [];
-      
-      // Determine how many contradictory traits to include based on complexity
-      let contradictoryCount = 0;
-      if (ctx.datamodel.complexity >= 4) {
-        contradictoryCount = 2;
-      } else if (ctx.datamodel.complexity >= 2) {
-        contradictoryCount = 1;
-      }
-      
-      // Build personality trait set
-      let selectedTraits = [];
-      
-      // Always include at least 1-2 primary traits
-      const primaryCount = Math.min(2, primaryTraits.length);
-      for (let i = 0; i < primaryCount; i++) {
-        if (primaryTraits[i]) {
-          selectedTraits.push(primaryTraits[i]);
+        // Select primary traits associated with archetype
+        const primaryTraits = archetypeTraits.primary || [];
+        
+        // Select some contradictory traits for complexity
+        const contradictoryTraits = archetypeTraits.contradictory || [];
+        
+        // Select secondary traits for flavor
+        const secondaryTraits = traitsData.common || [];
+        
+        // Determine how many contradictory traits to include based on complexity
+        let contradictoryCount = 0;
+        if (ctx.datamodel.complexity >= 4) {
+            contradictoryCount = 2;
+        } else if (ctx.datamodel.complexity >= 2) {
+            contradictoryCount = 1;
         }
-      }
-      
-      // Add contradictory traits for complexity
-      for (let i = 0; i < contradictoryCount; i++) {
-        if (contradictoryTraits[i]) {
-          selectedTraits.push(contradictoryTraits[i]);
+        
+        // Build personality trait set
+        let selectedTraits = [];
+        
+        // Always include at least 1-2 primary traits
+        const primaryCount = Math.min(2, primaryTraits.length);
+        for (let i = 0; i < primaryCount; i++) {
+            if (primaryTraits[i]) {
+            selectedTraits.push(primaryTraits[i]);
+            }
         }
-      }
-      
-      // Fill remaining slots with secondary traits
-      while (selectedTraits.length < traitsToSelect && secondaryTraits.length > 0) {
-        const randomIndex = Math.floor(Math.random() * secondaryTraits.length);
-        selectedTraits.push(secondaryTraits[randomIndex]);
-        secondaryTraits.splice(randomIndex, 1); // Remove selected trait
-      }
-      
-      ctx.datamodel.personalityTraits = selectedTraits;
-    </script>
-    <log value={(ctx) => 'Defined ' + ctx.datamodel.personalityTraits.length + ' personality traits'} />
-  </onentry>
-</state>
+        
+        // Add contradictory traits for complexity
+        for (let i = 0; i < contradictoryCount; i++) {
+            if (contradictoryTraits[i]) {
+            selectedTraits.push(contradictoryTraits[i]);
+            }
+        }
+        
+        // Fill remaining slots with secondary traits
+        while (selectedTraits.length < traitsToSelect && secondaryTraits.length > 0) {
+            const randomIndex = Math.floor(Math.random() * secondaryTraits.length);
+            selectedTraits.push(secondaryTraits[randomIndex]);
+            secondaryTraits.splice(randomIndex, 1); // Remove selected trait
+        }
+        
+        ctx.datamodel.personalityTraits = selectedTraits;
+        </script>
+        <log value={(ctx) => 'Defined ' + ctx.datamodel.personalityTraits.length + ' personality traits'} />
+    </state>
 
-<state id="createBackstory" description="Create a backstory that explains the character's development">
-  <onentry>
-    <script>
-      // Get backstory template based on genre and archetype
-      const backstoryTemplates = JSON.parse(BackstoryTemplates);
-      
-      // Find template matching genre and archetype
-      let template = backstoryTemplates.find(t => 
-        t.genre.toLowerCase() === ctx.datamodel.genre.toLowerCase() && 
-        t.archetype.toLowerCase() === ctx.datamodel.archetype.toLowerCase()
-      );
-      
-      // If no exact match, find a template matching just the archetype
-      if (!template) {
-        template = backstoryTemplates.find(t => 
-          t.archetype.toLowerCase() === ctx.datamodel.archetype.toLowerCase()
+    <state id="createBackstory" description="Create a backstory that explains the character's development">
+        <script>
+        // Get backstory template based on genre and archetype
+        const backstoryTemplates = JSON.parse(BackstoryTemplates);
+        
+        // Find template matching genre and archetype
+        let template = backstoryTemplates.find(t => 
+            t.genre.toLowerCase() === ctx.datamodel.genre.toLowerCase() && 
+            t.archetype.toLowerCase() === ctx.datamodel.archetype.toLowerCase()
         );
-      }
-      
-      // If still no match, use a generic template
-      if (!template) {
-        template = backstoryTemplates.find(t => 
-          t.archetype.toLowerCase() === "generic"
-        );
-      }
-      
-      // Prepare context for backstory generation
-      ctx.datamodel.backstoryTemplate = template ? template.template : "A character with an intriguing past";
-      ctx.datamodel.backstoryElements = template ? template.elements : ["childhood", "defining moment", "motivation"];
-    </script>
-  
-    <llm model="gpt-4o" temperature={0.6}>
-      <prompt>
-        Create a backstory for {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
         
-        Their personality traits include: {ctx.datamodel.personalityTraits.join(", ")}.
-        
-        Use this template as inspiration: {ctx.datamodel.backstoryTemplate}
-        
-        Include these elements: {ctx.datamodel.backstoryElements.join(", ")}
-        
-        The backstory should:
-        - Explain how the character developed their personality traits
-        - Have a complexity level of {ctx.datamodel.complexity}/5 (higher means more nuanced with conflicting elements)
-        - Contain approximately {200 + (ctx.datamodel.complexity * 100)} words
-        - Feel authentic to the {ctx.datamodel.genre} genre
-        - Provide hooks for character motivations and relationships
-        
-        Write the backstory as a cohesive narrative paragraph (or paragraphs for higher complexity).
-      </prompt>
-
-    </llm>
-    <assign location="backstory" value={(ctx) => ctx.lastElement.output.trim()} />
-    <log value={(ctx) => 'Created backstory of ' + ctx.datamodel.backstory.split(' ').length + ' words'} />
-  </onentry>
-</state>
-
-<state id="describeAppearance" description="Describe the character's physical appearance">
-  <onentry>
-    <llm model="gpt-4o" temperature={0.5}>
-      <prompt>
-        Describe the physical appearance of {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
-        
-        Their personality traits include: {ctx.datamodel.personalityTraits.join(", ")}.
-        
-        Elements from their backstory to consider:
-        {ctx.datamodel.backstory.substring(0, 200)}...
-        
-        The description should:
-        - Reflect their personality traits and experiences
-        - Include distinctive physical features that make them memorable
-        - Describe their typical attire and presentation
-        - Consider genre-appropriate elements
-        - Be approximately 100-150 words
-        
-        Focus on visual elements that a reader, player, or audience would notice about the character.
-      </prompt>
-
-    </llm>
-    <assign location="appearance" value={(ctx) => ctx.lastElement.output.trim()} />
-    <log value={(ctx) => 'Created appearance description of ' + ctx.datamodel.appearance.split(' ').length + ' words'} />
-  </onentry>
-</state>
-
-<state id="defineMotivationsAndTraits" description="Define the character's motivations, flaws, and strengths">
-  <onentry>
-    <llm model="gpt-4o" temperature={0.4}>
-      <prompt>
-        Based on {ctx.datamodel.characterName}'s personality traits and backstory, define their:
-        
-        1. Primary motivations (what drives them)
-        2. Significant character flaws
-        3. Notable strengths
-        
-        Personality traits: {ctx.datamodel.personalityTraits.join(", ")}
-        
-        Backstory summary: 
-        {ctx.datamodel.backstory.substring(0, 300)}...
-        
-        For a complexity level of {ctx.datamodel.complexity}/5:
-        - Include {Math.max(1, Math.min(3, ctx.datamodel.complexity))} motivations
-        - Include {Math.max(2, Math.min(4, ctx.datamodel.complexity))} flaws
-        - Include {Math.max(2, Math.min(4, ctx.datamodel.complexity))} strengths
-        
-        These should feel cohesive with the character's established traits and history.
-        
-        Respond with a JSON object containing arrays for "motivations", "flaws", and "strengths".
-        Each item should be a phrase with a brief explanation.
-      </prompt>
-
-    </llm>
-    <script>
-      try {
-        const parsedTraits = JSON.parse(ctx.lastElement.output);
-        ctx.datamodel.motivations = parsedTraits.motivations || [];
-        ctx.datamodel.flaws = parsedTraits.flaws || [];
-        ctx.datamodel.strengths = parsedTraits.strengths || [];
-      } catch (e) {
-        ctx.log("Error parsing traits: " + e.message);
-        // Default values if parsing fails
-        ctx.datamodel.motivations = ["Seek purpose"];
-        ctx.datamodel.flaws = ["Reluctant to trust others", "Impulsive under pressure"];
-        ctx.datamodel.strengths = ["Resourceful", "Determined"];
-      }
-    </script>
-    <log value={(ctx) => 'Defined ' + ctx.datamodel.motivations.length + ' motivations, ' + 
-                ctx.datamodel.flaws.length + ' flaws, and ' + 
-                ctx.datamodel.strengths.length + ' strengths'} />
-  </onentry>
-</state>
-
-<state id="createRelationships" description="Define key relationships that shaped the character">
-  <onentry>
-    <llm model="gpt-4o" temperature={0.6}>
-      <prompt>
-        Create {Math.max(2, ctx.datamodel.complexity)} key relationships that have shaped {ctx.datamodel.characterName}'s life.
-        
-        These relationships should:
-        - Connect to elements in their backstory
-        - Include both positive and negative influences
-        - Reflect the character's {ctx.datamodel.genre} genre and {ctx.datamodel.archetype} archetype
-        - Provide potential story hooks and character development opportunities
-        - Range in relationship types (family, mentors, friends, rivals, enemies, romantic)
-        
-        Personality traits: {ctx.datamodel.personalityTraits.join(", ")}
-        Motivations: {ctx.datamodel.motivations.join(", ")}
-        
-        Format as a JSON array of relationship objects, each with:
-        - "name": Name of the related character
-        - "relationship": Type of relationship
-        - "description": Brief description of the relationship and its impact
-        - "status": Current status (e.g., "close ally", "estranged", "deceased", "rival")
-      </prompt>
-
-    </llm>
-    <script>
-      try {
-        ctx.datamodel.relationships = JSON.parse(ctx.lastElement.output);
-        if (!Array.isArray(ctx.datamodel.relationships)) {
-          throw new Error("Relationships not in array format");
+        // If no exact match, find a template matching just the archetype
+        if (!template) {
+            template = backstoryTemplates.find(t => 
+            t.archetype.toLowerCase() === ctx.datamodel.archetype.toLowerCase()
+            );
         }
-      } catch (e) {
-        ctx.log("Error parsing relationships: " + e.message);
-        // Default relationships if parsing fails
-        ctx.datamodel.relationships = [
-          {
-            name: "Unknown mentor figure",
-            relationship: "Mentor",
-            description: "Taught the character valuable skills",
-            status: "Unknown"
-          },
-          {
-            name: "Childhood friend",
-            relationship: "Friend",
-            description: "Shared formative experiences",
-            status: "Distant"
-          }
-        ];
-      }
-    </script>
-    <log value={(ctx) => 'Created ' + ctx.datamodel.relationships.length + ' character relationships'} />
-  </onentry>
-</state>
-
-<state id="developCharacterVoice" description="Develop a distinctive voice with speech patterns">
-  <onentry>
-    <llm model="gpt-4o" temperature={0.5}>
-      <prompt>
-        Develop a distinctive voice and speech pattern for {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
         
-        Character traits:
-        - Personality: {ctx.datamodel.personalityTraits.join(", ")}
-        - Flaws: {ctx.datamodel.flaws.join(", ")}
-        - Strengths: {ctx.datamodel.strengths.join(", ")}
-        
-        Consider:
-        - Vocabulary and word choice
-        - Sentence structure (short and clipped vs. flowery and elaborate)
-        - Use of slang, technical terms, or genre-specific language
-        - Speech quirks, catchphrases, or verbal tics
-        - Level of formality and how it might change in different situations
-        
-        First, describe their speech pattern in 3-5 sentences.
-        
-        Then, provide 3 sample dialogue snippets that demonstrate their voice in different situations:
-        1. The character introducing themselves
-        2. The character in a tense/conflict situation
-        3. The character discussing something they're passionate about
-        
-        Each dialogue sample should clearly demonstrate the distinctive elements of their speech pattern.
-      </prompt>
-
-    </llm>
-    <assign location="characterVoice" value={(ctx) => ctx.lastElement.output.trim()} />
-    <log value={(ctx) => 'Developed character voice description of ' + ctx.datamodel.characterVoice.split(' ').length + ' words'} />
-  </onentry>
-</state>
-
-<state id="generatePlotHooks" description="Generate plot hooks involving the character">
-  <onentry>
-    <llm model="gpt-4o" temperature={0.7}>
-      <prompt>
-        Generate {Math.max(2, ctx.datamodel.complexity)} plot hooks or story ideas featuring {ctx.datamodel.characterName}.
-        
-        These plot hooks should:
-        - Leverage the character's established traits, relationships, and backstory
-        - Be appropriate for the {ctx.datamodel.genre} genre
-        - Provide opportunities to showcase the character's strengths and challenge their flaws
-        - Include interesting conflicts or goals
-        - Be open-ended enough to spark creative development
-        
-        Consider these character elements:
-        - Motivations: {ctx.datamodel.motivations.join(", ")}
-        - Key relationships: {ctx.datamodel.relationships.map(r => r.name + " (" + r.relationship + ")").join(", ")}
-        - Flaws to challenge: {ctx.datamodel.flaws.join(", ")}
-        
-        Format as a JSON array of plot hook objects, each with:
-        - "title": A catchy title for the plot hook
-        - "premise": Brief description of the setup and conflict (2-3 sentences)
-        - "relevance": How it connects to the character's established traits or backstory
-      </prompt>
-
-    </llm>
-    <script>
-      try {
-        ctx.datamodel.plotHooks = JSON.parse(ctx.lastElement.output);
-        if (!Array.isArray(ctx.datamodel.plotHooks)) {
-          throw new Error("Plot hooks not in array format");
+        // If still no match, use a generic template
+        if (!template) {
+            template = backstoryTemplates.find(t => 
+            t.archetype.toLowerCase() === "generic"
+            );
         }
-      } catch (e) {
-        ctx.log("Error parsing plot hooks: " + e.message);
-        // Default plot hooks if parsing fails
-        ctx.datamodel.plotHooks = [
-          {
-            title: "Character's Journey",
-            premise: "A basic plot involving the character's primary motivation",
-            relevance: "Directly builds on character's core traits"
-          },
-          {
-            title: "Confronting the Past",
-            premise: "The character must face an element from their backstory",
-            relevance: "Explores character's history and flaws"
-          }
-        ];
-      }
-    </script>
-    <log value={(ctx) => 'Generated ' + ctx.datamodel.plotHooks.length + ' plot hooks'} />
-  </onentry>
-</state>
+        
+        // Prepare context for backstory generation
+        ctx.datamodel.backstoryTemplate = template ? template.template : "A character with an intriguing past";
+        ctx.datamodel.backstoryElements = template ? template.elements : ["childhood", "defining moment", "motivation"];
+        </script>
+    
+        <llm model="gpt-4o" temperature={0.6}>
+        <prompt>
+            Create a backstory for {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
+            
+            Their personality traits include: {ctx.datamodel.personalityTraits.join(", ")}.
+            
+            Use this template as inspiration: {ctx.datamodel.backstoryTemplate}
+            
+            Include these elements: {ctx.datamodel.backstoryElements.join(", ")}
+            
+            The backstory should:
+            - Explain how the character developed their personality traits
+            - Have a complexity level of {ctx.datamodel.complexity}/5 (higher means more nuanced with conflicting elements)
+            - Contain approximately {200 + (ctx.datamodel.complexity * 100)} words
+            - Feel authentic to the {ctx.datamodel.genre} genre
+            - Provide hooks for character motivations and relationships
+            
+            Write the backstory as a cohesive narrative paragraph (or paragraphs for higher complexity).
+        </prompt>
 
-<state id="assembleCharacterPersona" description="Assemble the complete character persona" final="true">
-  <onentry>
-    <sendObject>
-      {
-        "name": ctx.datamodel.characterName,
-        "genre": ctx.datamodel.genre,
-        "archetype": ctx.datamodel.archetype,
-        "complexity": ctx.datamodel.complexity,
-        "personalityTraits": ctx.datamodel.personalityTraits,
-        "backstory": ctx.datamodel.backstory,
-        "appearance": ctx.datamodel.appearance,
-        "motivations": ctx.datamodel.motivations,
-        "flaws": ctx.datamodel.flaws,
-        "strengths": ctx.datamodel.strengths,
-        "relationships": ctx.datamodel.relationships,
-        "characterVoice": ctx.datamodel.characterVoice,
-        "plotHooks": ctx.datamodel.plotHooks
-      }
-    </sendObject>
-  </onentry>
-</state>
+        </llm>
+        <assign location="backstory" value={(ctx) => ctx.lastElement.output.trim()} />
+        <log value={(ctx) => 'Created backstory of ' + ctx.datamodel.backstory.split(' ').length + ' words'} />
+    </state>
+
+    <state id="describeAppearance" description="Describe the character's physical appearance">
+        <llm model="gpt-4o" temperature={0.5}>
+        <prompt>
+            Describe the physical appearance of {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
+            
+            Their personality traits include: {ctx.datamodel.personalityTraits.join(", ")}.
+            
+            Elements from their backstory to consider:
+            {ctx.datamodel.backstory.substring(0, 200)}...
+            
+            The description should:
+            - Reflect their personality traits and experiences
+            - Include distinctive physical features that make them memorable
+            - Describe their typical attire and presentation
+            - Consider genre-appropriate elements
+            - Be approximately 100-150 words
+            
+            Focus on visual elements that a reader, player, or audience would notice about the character.
+        </prompt>
+
+        </llm>
+        <assign location="appearance" value={(ctx) => ctx.lastElement.output.trim()} />
+        <log value={(ctx) => 'Created appearance description of ' + ctx.datamodel.appearance.split(' ').length + ' words'} />
+    </state>
+
+    <state id="defineMotivationsAndTraits" description="Define the character's motivations, flaws, and strengths">
+        <llm model="gpt-4o" temperature={0.4}>
+        <prompt>
+            Based on {ctx.datamodel.characterName}'s personality traits and backstory, define their:
+            
+            1. Primary motivations (what drives them)
+            2. Significant character flaws
+            3. Notable strengths
+            
+            Personality traits: {ctx.datamodel.personalityTraits.join(", ")}
+            
+            Backstory summary: 
+            {ctx.datamodel.backstory.substring(0, 300)}...
+            
+            For a complexity level of {ctx.datamodel.complexity}/5:
+            - Include {Math.max(1, Math.min(3, ctx.datamodel.complexity))} motivations
+            - Include {Math.max(2, Math.min(4, ctx.datamodel.complexity))} flaws
+            - Include {Math.max(2, Math.min(4, ctx.datamodel.complexity))} strengths
+            
+            These should feel cohesive with the character's established traits and history.
+            
+            Respond with a JSON object containing arrays for "motivations", "flaws", and "strengths".
+            Each item should be a phrase with a brief explanation.
+        </prompt>
+
+        </llm>
+        <script>
+        try {
+            const parsedTraits = JSON.parse(ctx.lastElement.output);
+            ctx.datamodel.motivations = parsedTraits.motivations || [];
+            ctx.datamodel.flaws = parsedTraits.flaws || [];
+            ctx.datamodel.strengths = parsedTraits.strengths || [];
+        } catch (e) {
+            ctx.log("Error parsing traits: " + e.message);
+            // Default values if parsing fails
+            ctx.datamodel.motivations = ["Seek purpose"];
+            ctx.datamodel.flaws = ["Reluctant to trust others", "Impulsive under pressure"];
+            ctx.datamodel.strengths = ["Resourceful", "Determined"];
+        }
+        </script>
+        <log value={(ctx) => 'Defined ' + ctx.datamodel.motivations.length + ' motivations, ' + 
+                    ctx.datamodel.flaws.length + ' flaws, and ' + 
+                    ctx.datamodel.strengths.length + ' strengths'} />
+    </state>
+
+    <state id="createRelationships" description="Define key relationships that shaped the character">
+        <llm model="gpt-4o" temperature={0.6}>
+        <prompt>
+            Create {Math.max(2, ctx.datamodel.complexity)} key relationships that have shaped {ctx.datamodel.characterName}'s life.
+            
+            These relationships should:
+            - Connect to elements in their backstory
+            - Include both positive and negative influences
+            - Reflect the character's {ctx.datamodel.genre} genre and {ctx.datamodel.archetype} archetype
+            - Provide potential story hooks and character development opportunities
+            - Range in relationship types (family, mentors, friends, rivals, enemies, romantic)
+            
+            Personality traits: {ctx.datamodel.personalityTraits.join(", ")}
+            Motivations: {ctx.datamodel.motivations.join(", ")}
+            
+            Format as a JSON array of relationship objects, each with:
+            - "name": Name of the related character
+            - "relationship": Type of relationship
+            - "description": Brief description of the relationship and its impact
+            - "status": Current status (e.g., "close ally", "estranged", "deceased", "rival")
+        </prompt>
+
+        </llm>
+        <script>
+        try {
+            ctx.datamodel.relationships = JSON.parse(ctx.lastElement.output);
+            if (!Array.isArray(ctx.datamodel.relationships)) {
+            throw new Error("Relationships not in array format");
+            }
+        } catch (e) {
+            ctx.log("Error parsing relationships: " + e.message);
+            // Default relationships if parsing fails
+            ctx.datamodel.relationships = [
+            {
+                name: "Unknown mentor figure",
+                relationship: "Mentor",
+                description: "Taught the character valuable skills",
+                status: "Unknown"
+            },
+            {
+                name: "Childhood friend",
+                relationship: "Friend",
+                description: "Shared formative experiences",
+                status: "Distant"
+            }
+            ];
+        }
+        </script>
+        <log value={(ctx) => 'Created ' + ctx.datamodel.relationships.length + ' character relationships'} />
+    </state>
+
+    <state id="developCharacterVoice" description="Develop a distinctive voice with speech patterns">
+        <llm model="gpt-4o" temperature={0.5}>
+        <prompt>
+            Develop a distinctive voice and speech pattern for {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
+            
+            Character traits:
+            - Personality: {ctx.datamodel.personalityTraits.join(", ")}
+            - Flaws: {ctx.datamodel.flaws.join(", ")}
+            - Strengths: {ctx.datamodel.strengths.join(", ")}
+            
+            Consider:
+            - Vocabulary and word choice
+            - Sentence structure (short and clipped vs. flowery and elaborate)
+            - Use of slang, technical terms, or genre-specific language
+            - Speech quirks, catchphrases, or verbal tics
+            - Level of formality and how it might change in different situations
+            
+            First, describe their speech pattern in 3-5 sentences.
+            
+            Then, provide 3 sample dialogue snippets that demonstrate their voice in different situations:
+            1. The character introducing themselves
+            2. The character in a tense/conflict situation
+            3. The character discussing something they're passionate about
+            
+            Each dialogue sample should clearly demonstrate the distinctive elements of their speech pattern.
+        </prompt>
+
+        </llm>
+        <assign location="characterVoice" value={(ctx) => ctx.lastElement.output.trim()} />
+        <log value={(ctx) => 'Developed character voice description of ' + ctx.datamodel.characterVoice.split(' ').length + ' words'} />
+    </state>
+
+    <state id="generatePlotHooks" description="Generate plot hooks involving the character">
+        <llm model="gpt-4o" temperature={0.7}>
+        <prompt>
+            Generate {Math.max(2, ctx.datamodel.complexity)} plot hooks or story ideas featuring {ctx.datamodel.characterName}.
+            
+            These plot hooks should:
+            - Leverage the character's established traits, relationships, and backstory
+            - Be appropriate for the {ctx.datamodel.genre} genre
+            - Provide opportunities to showcase the character's strengths and challenge their flaws
+            - Include interesting conflicts or goals
+            - Be open-ended enough to spark creative development
+            
+            Consider these character elements:
+            - Motivations: {ctx.datamodel.motivations.join(", ")}
+            - Key relationships: {ctx.datamodel.relationships.map(r => r.name + " (" + r.relationship + ")").join(", ")}
+            - Flaws to challenge: {ctx.datamodel.flaws.join(", ")}
+            
+            Format as a JSON array of plot hook objects, each with:
+            - "title": A catchy title for the plot hook
+            - "premise": Brief description of the setup and conflict (2-3 sentences)
+            - "relevance": How it connects to the character's established traits or backstory
+        </prompt>
+
+        </llm>
+        <script>
+        try {
+            ctx.datamodel.plotHooks = JSON.parse(ctx.lastElement.output);
+            if (!Array.isArray(ctx.datamodel.plotHooks)) {
+            throw new Error("Plot hooks not in array format");
+            }
+        } catch (e) {
+            ctx.log("Error parsing plot hooks: " + e.message);
+            // Default plot hooks if parsing fails
+            ctx.datamodel.plotHooks = [
+            {
+                title: "Character's Journey",
+                premise: "A basic plot involving the character's primary motivation",
+                relevance: "Directly builds on character's core traits"
+            },
+            {
+                title: "Confronting the Past",
+                premise: "The character must face an element from their backstory",
+                relevance: "Explores character's history and flaws"
+            }
+            ];
+        }
+        </script>
+        <log value={(ctx) => 'Generated ' + ctx.datamodel.plotHooks.length + ' plot hooks'} />
+    </state>
+
+    <final id="assembleCharacterPersona">
+        <sendObject value={ctx => ({
+            "name": ctx.datamodel.characterName,
+            "genre": ctx.datamodel.genre,
+            "archetype": ctx.datamodel.archetype,
+            "complexity": ctx.datamodel.complexity,
+            "personalityTraits": ctx.datamodel.personalityTraits,
+            "backstory": ctx.datamodel.backstory,
+            "appearance": ctx.datamodel.appearance,
+            "motivations": ctx.datamodel.motivations,
+            "flaws": ctx.datamodel.flaws,
+            "strengths": ctx.datamodel.strengths,
+            "relationships": ctx.datamodel.relationships,
+            "characterVoice": ctx.datamodel.characterVoice,
+            "plotHooks": ctx.datamodel.plotHooks
+        })} />
+    </final>
+</workflow>

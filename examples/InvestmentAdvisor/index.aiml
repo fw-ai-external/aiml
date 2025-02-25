@@ -19,172 +19,54 @@ inputSchema:
 root: true
 ---
 
+import ProfileAssessment from "./states/ProfileAssessment.aiml"
+import MarketAnalysis from "./states/MarketAnalysis.aiml"
+import AssetAllocation from "./states/AssetAllocation.aiml"
+import PortfolioRecommendation from "./states/PortfolioRecommendation.aiml"
+import PresentRecommendation from "./states/PresentRecommendation.aiml"
+
 {/* 
 This AIML implements a financial investment advisor workflow that analyzes user inputs
 about their investment goals, risk tolerance, time horizon, and initial investment amount.
 It guides users through a step-by-step process from profile assessment to final recommendation,
 using a structured approach to ensure comprehensive financial advice.
 
-The workflow separates concerns into distinct states to progressively refine the investment
-strategy based on the user's specific criteria and market conditions.
+The workflow has been split into modular components where each state is defined in its own file
+and imported as a custom element. This makes the workflow more maintainable and easier to update
+individual steps without affecting the entire process.
 */}
 
 <workflow initial="profileAssessment">
   <datamodel>
-    <data id="investmentGoal" type="string">{ctx.workflowInput.investmentGoal}</data>
-    <data id="riskTolerance" type="string">{ctx.workflowInput.riskTolerance}</data>
-    <data id="timeHorizon" type="integer">{ctx.workflowInput.timeHorizon}</data>
-    <data id="initialInvestment" type="number">{ctx.workflowInput.initialInvestment}</data>
+    <data id="investmentGoal" type="string">{ctx => ctx.workflowInput.investmentGoal}</data>
+    <data id="riskTolerance" type="string">{ctx => ctx.workflowInput.riskTolerance}</data>
+    <data id="timeHorizon" type="integer">{ctx => ctx.workflowInput.timeHorizon}</data>
+    <data id="initialInvestment" type="number">{ctx => ctx.workflowInput.initialInvestment}</data>
     <data id="profile" type="json" value={{}} />
-    <data id="assetAllocation" type="json" value={{}} />
-    <data id="portfolioRecommendation" type="json" value={{}} />
+    <data id="assetAllocation" type="json" value={{}} schema={{
+      type: "object",
+      properties: {
+        stocks: { type: "number" },
+        bonds: { type: "number" },
+        cash: { type: "number" }
+      },
+      required: ["stocks", "bonds", "cash"]
+    }} />
+    <data id="portfolioRecommendation" type="json" value={{}} schema={{
+      type: "object",
+      properties: {
+        stocks: { type: "number" },
+        bonds: { type: "number" },
+        cash: { type: "number" }
+      },
+      required: ["stocks", "bonds", "cash"]
+    }} />
     <data id="marketAnalysis" type="string" value={""} />
   </datamodel>
 
-  <state id="profileAssessment">
-    <onentry>
-      <script>
-        ctx.datamodel.profile.investorCategory = ctx.datamodel.timeHorizon > 10 ? "long-term" : ctx.datamodel.timeHorizon > 5 ? "medium-term" : "short-term";
-        ctx.datamodel.profile.investmentCapacity = ctx.datamodel.initialInvestment > 100000 ? "high" : ctx.datamodel.initialInvestment > 10000 ? "medium" : "limited";
-        ctx.datamodel.profile.goalType = ctx.datamodel.investmentGoal.toLowerCase().includes("retirement") ? "retirement" : 
-                           ctx.datamodel.investmentGoal.toLowerCase().includes("education") ? "education" : 
-                           ctx.datamodel.investmentGoal.toLowerCase().includes("house") ? "major purchase" : "growth";
-      </script>
-      <log value={(ctx) => 'Investor profile assessed: ' + JSON.stringify(ctx.datamodel.profile)} />
-    </onentry>
-    <transition target="marketAnalysis" />
-  </state>
-
-  <state id="marketAnalysis">
-    <onentry>
-      <llm model="gpt-4o" temperature={0.2}>
-        <prompt>
-          Generate a concise market analysis relevant to an investor with the following profile:
-          - Investment Goal: {ctx.datamodel.investmentGoal}
-          - Risk Tolerance: {ctx.datamodel.riskTolerance}
-          - Time Horizon: {ctx.datamodel.timeHorizon} years
-          - Investment Category: {ctx.datamodel.profile.investorCategory}
-          
-          Focus on current market conditions, trends, and potential investment opportunities or risks.
-          Keep your analysis under 300 words.
-        </prompt>
-      </llm>
-      <assign location="marketAnalysis" value={(ctx) => ctx.lastElement.output} />
-      <log value="Market analysis completed" />
-    </onentry>
-    <transition target="assetAllocation" />
-  </state>
-
-  <state id="assetAllocation">
-    <onentry>
-      <script>
-        // Base allocations depending on risk tolerance
-        if (ctx.datamodel.riskTolerance === "low") {
-          ctx.datamodel.assetAllocation.stocks = 20;
-          ctx.datamodel.assetAllocation.bonds = 60;
-          ctx.datamodel.assetAllocation.cash = 15;
-          ctx.datamodel.assetAllocation.alternatives = 5;
-        } else if (ctx.datamodel.riskTolerance === "medium") {
-          ctx.datamodel.assetAllocation.stocks = 50;
-          ctx.datamodel.assetAllocation.bonds = 30;
-          ctx.datamodel.assetAllocation.cash = 10;
-          ctx.datamodel.assetAllocation.alternatives = 10;
-        } else { // high
-          ctx.datamodel.assetAllocation.stocks = 70;
-          ctx.datamodel.assetAllocation.bonds = 15;
-          ctx.datamodel.assetAllocation.cash = 5;
-          ctx.datamodel.assetAllocation.alternatives = 10;
-        }
-        
-        // Adjust based on time horizon
-        if (ctx.datamodel.timeHorizon > 10) {
-          ctx.datamodel.assetAllocation.stocks += 10;
-          ctx.datamodel.assetAllocation.bonds -= 5;
-          ctx.datamodel.assetAllocation.cash -= 5;
-        } else if (ctx.datamodel.timeHorizon < 5) {
-          ctx.datamodel.assetAllocation.stocks -= 10;
-          ctx.datamodel.assetAllocation.bonds += 5;
-          ctx.datamodel.assetAllocation.cash += 5;
-        }
-        
-        // Ensure allocations don't go negative and sum to 100%
-        Object.keys(ctx.datamodel.assetAllocation).forEach(key => {
-          ctx.datamodel.assetAllocation[key] = Math.max(0, ctx.datamodel.assetAllocation[key]);
-        });
-        
-        // Normalize to ensure sum is 100%
-        const sum = Object.values(ctx.datamodel.assetAllocation).reduce((a, b) => a + b, 0);
-        Object.keys(ctx.datamodel.assetAllocation).forEach(key => {
-          ctx.datamodel.assetAllocation[key] = Math.round((ctx.datamodel.assetAllocation[key] / sum) * 100);
-        });
-      </script>
-      <log value={(ctx) => 'Asset allocation completed: ' + JSON.stringify(ctx.datamodel.assetAllocation)} />
-    </onentry>
-    <transition target="portfolioRecommendation" />
-  </state>
-
-  <state id="portfolioRecommendation">
-    <onentry>
-      <llm model="gpt-4o" temperature={0.1}>
-        <prompt>
-          Create a detailed investment portfolio recommendation with specific investment vehicles based on:
-          
-          INVESTOR PROFILE:
-          - Goal: {ctx.datamodel.investmentGoal}
-          - Risk Tolerance: {ctx.datamodel.riskTolerance}
-          - Time Horizon: {ctx.datamodel.timeHorizon} years
-          - Initial Investment: ${ctx.datamodel.initialInvestment}
-          - Investor Category: {ctx.datamodel.profile.investorCategory}
-          
-          RECOMMENDED ASSET ALLOCATION:
-          - Stocks: {ctx.datamodel.assetAllocation.stocks}%
-          - Bonds: {ctx.datamodel.assetAllocation.bonds}%
-          - Cash: {ctx.datamodel.assetAllocation.cash}%
-          - Alternative Investments: {ctx.datamodel.assetAllocation.alternatives}%
-          
-          MARKET ANALYSIS:
-          {ctx.datamodel.marketAnalysis}
-          
-          Provide specific investment vehicles (ETFs, index funds, etc.) for each asset class with approximate dollar amounts based on the allocation percentages and initial investment. Include ticker symbols where appropriate.
-          
-          Format your response as JSON with the following structure:
-          {
-            "summary": "Brief overview of the strategy",
-            "investments": [
-              {"type": "asset class", "percentage": X, "amount": $Y, "vehicles": [{"name": "Fund Name", "ticker": "XYZ", "allocation": $Amount}]}
-            ],
-            "rationale": "Brief explanation of why this portfolio suits their needs",
-            "nextSteps": "Specific actions the investor should take"
-          }
-        </prompt>
-         
-      </llm>
-      <script>
-        try {
-          ctx.datamodel.portfolioRecommendation = JSON.parse(ctx.lastElement.output);
-        } catch(e) {
-          ctx.log("Error parsing portfolio recommendation: " + e.message);
-          ctx.datamodel.portfolioRecommendation = {
-            "error": true,
-            "message": "Failed to generate structured recommendation. Please try again."
-          };
-        }
-      </script>
-      <log value="Portfolio recommendation completed" />
-    </onentry>
-    <transition target="presentRecommendation" />
-  </state>
-
-  <state id="presentRecommendation" final="true">
-    <onentry>
-      <sendObject>
-        {
-          "profile": ctx.datamodel.profile,
-          "marketAnalysis": ctx.datamodel.marketAnalysis,
-          "assetAllocation": ctx.datamodel.assetAllocation,
-          "recommendation": ctx.datamodel.portfolioRecommendation
-        }
-      </sendObject>
-    </onentry>
-  </state>
+  <ProfileAssessment />
+  <MarketAnalysis />
+  <AssetAllocation />
+  <PortfolioRecommendation />
+  <PresentRecommendation />
 </workflow>

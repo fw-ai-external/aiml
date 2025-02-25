@@ -54,400 +54,396 @@ For optimal results, the system should prioritize:
 The final recipe should be comprehensive, realistic, and adaptable to different skill levels.
 */}
 
-<datamodel>
-  <data id="ingredients" type="array">{ctx.workflowInput.ingredients}</data>
-  <data id="dietaryRestrictions" type="array">{ctx.workflowInput.dietaryRestrictions || []}</data>
-  <data id="mealType" type="string">{ctx.workflowInput.mealType}</data>
-  <data id="cuisinePreference" type="string">{ctx.workflowInput.cuisinePreference || ""}</data>
-  <data id="cookingTime" type="integer">{ctx.workflowInput.cookingTime || 60}</data>
-  <data id="filteredIngredients" type="array" value={[]} />
-  <data id="recipeType" type="string" value={""} />
-  <data id="recipeTitle" type="string" value={""} />
-  <data id="recipeIngredients" type="array" value={[]} />
-  <data id="prepSteps" type="array" value={[]} />
-  <data id="cookingSteps" type="array" value={[]} />
-  <data id="nutritionalInfo" type="json" value={{}} />
-  <data id="totalTime" type="json" value={{}} />
-  <data id="tips" type="array" value={[]} />
-  <data id="variations" type="array" value={[]} />
-</datamodel>
+<workflow runInOrder={true}>
+    <datamodel>
+    <data id="ingredients" type="array">{ctx => ctx.workflowInput.ingredients}</data>
+    <data id="dietaryRestrictions" type="array">{ctx => ctx.workflowInput.dietaryRestrictions || []}</data>
+    <data id="mealType" type="string">{ctx => ctx.workflowInput.mealType}</data>
+    <data id="cuisinePreference" type="string">{ctx => ctx.workflowInput.cuisinePreference || ""}</data>
+    <data id="cookingTime" type="integer">{ctx => ctx.workflowInput.cookingTime || 60}</data>
+    <data id="filteredIngredients" type="array" value={[]} />
+    <data id="recipeType" type="string" value={""} />
+    <data id="recipeTitle" type="string" value={""} />
+    <data id="recipeIngredients" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "string" }
+    }} />
+    <data id="prepSteps" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "string" }
+    }} />
+    <data id="cookingSteps" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "string" }
+    }} />
+    <data id="totalTime" type="json" value={{}} />
+    <data id="tips" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "string" }
+    }} />
+    <data id="variations" type="array" value={[]} schema={{
+        type: "array",
+        items: { type: "string" }
+    }} />
+    </datamodel>
 
-<state id="filterIngredients" description="Filter ingredients based on dietary restrictions">
-  <onentry>
-    <script>
-      // Function to check if an ingredient matches restrictions
-      function matchesRestriction(ingredient, restriction) {
-        // In a real system, this would check against a database
-        // For demo purposes, we'll use simple substring matching
-        const restrictedIngredients = {
-          "vegan": ["meat", "chicken", "beef", "pork", "fish", "egg", "milk", "cream", "cheese", "butter", "honey"],
-          "vegetarian": ["meat", "chicken", "beef", "pork", "fish"],
-          "gluten-free": ["wheat", "barley", "rye", "flour", "pasta", "bread", "cereal"],
-          "dairy-free": ["milk", "cream", "cheese", "butter", "yogurt"],
-          "nut-free": ["nut", "almond", "walnut", "pecan", "cashew", "pistachio", "hazelnut"],
-          "keto": ["sugar", "flour", "rice", "potato", "pasta", "bread", "cereal"]
-        };
-        
-        const forbiddenItems = restrictedIngredients[restriction.toLowerCase()] || [];
-        return forbiddenItems.some(item => 
-          ingredient.toLowerCase().includes(item.toLowerCase())
-        );
-      }
-      
-      // Filter ingredients based on dietary restrictions
-      ctx.datamodel.filteredIngredients = [...ctx.datamodel.ingredients];
-      
-      if (ctx.datamodel.dietaryRestrictions && ctx.datamodel.dietaryRestrictions.length > 0) {
-        for (const restriction of ctx.datamodel.dietaryRestrictions) {
-          ctx.datamodel.filteredIngredients = ctx.datamodel.filteredIngredients.filter(ingredient => 
-            !matchesRestriction(ingredient, restriction)
-          );
-        }
-      }
-    </script>
-    <log value={(ctx) => 'Filtered ingredients: ' + ctx.datamodel.filteredIngredients.join(', ')} />
-  </onentry>
-</state>
-
-<state id="determineRecipeType" description="Determine the type of recipe based on ingredients and meal type">
-  <onentry>
-    <llm model="gpt-4o" temperature={0.4}>
-      <prompt>
-        Based on these available ingredients:
-        {ctx.datamodel.filteredIngredients.join(', ')}
-        
-        And the meal type: {ctx.datamodel.mealType}
-        
-        Generate a specific type of dish that would work well with these ingredients.
-        For example, if the meal type is "dinner" and ingredients include chicken and rice,
-        you might suggest "Chicken Stir Fry" or "One-Pot Chicken and Rice".
-        
-        Consider these factors:
-        - The meal should be appropriate for {ctx.datamodel.mealType}
-        - The meal should use several of the available ingredients
-        - If a cuisine preference was provided ({ctx.datamodel.cuisinePreference}), incorporate that style
-        - The dish should be feasible to prepare in {ctx.datamodel.cookingTime} minutes
-        - Any dietary restrictions: {ctx.datamodel.dietaryRestrictions.join(', ')}
-        
-        Respond with just the specific name of the recipe type, nothing else.
-      </prompt>
-
-    </llm>
-    <assign location="recipeType" value={(ctx) => ctx.lastElement.output.trim()} />
-
-    <log value={(ctx) => 'Determined recipe type: ' + ctx.datamodel.recipeType} />
-  </onentry>
-</state>
-
-<state id="createRecipeTitle" description="Create an appealing title for the recipe">
-  <onentry>
-    <llm model="gpt-4o" temperature={0.6}>
-      <prompt>
-        Create an appealing and descriptive title for this recipe:
-        
-        Recipe type: {ctx.datamodel.recipeType}
-        Available ingredients: {ctx.datamodel.filteredIngredients.join(', ')}
-        Cuisine style (if specified): {ctx.datamodel.cuisinePreference}
-        Dietary restrictions: {ctx.datamodel.dietaryRestrictions.join(', ')}
-        
-        The title should be enticing and highlight key ingredients or preparation methods.
-        Keep it under 60 characters and don't include preparation time in the title.
-        
-        Return only the title, nothing else.
-      </prompt>
-    </llm>
-    <assign location="recipeTitle" value={(ctx) => ctx.lastElement.output.trim()} />
-
-    <log value={(ctx) => 'Created recipe title: ' + ctx.datamodel.recipeTitle} />
-  </onentry>
-</state>
-
-<state id="determineIngredients" description="Determine exact ingredients and quantities for the recipe">
-  <onentry>
-    <llm model="gpt-4o" temperature={0.3}>
-      <prompt>
-        Create a detailed ingredients list for: {ctx.datamodel.recipeTitle} ({ctx.datamodel.recipeType})
-        
-        Available ingredients: {ctx.datamodel.filteredIngredients.join(', ')}
-        
-        For each ingredient, specify:
-        1. Precise quantity with both metric and imperial measurements where appropriate
-        2. Any preparation instructions (e.g., "diced", "finely chopped")
-        3. Mark optional ingredients clearly
-        
-        The recipe should:
-        - Serve 2-4 people (standard portion size)
-        - Prioritize using ingredients from the available list
-        - Include basic pantry staples that aren't listed (salt, pepper, oil, etc.)
-        - Comply with these dietary restrictions: {ctx.datamodel.dietaryRestrictions.join(', ')}
-        - Fit the {ctx.datamodel.cuisinePreference} cuisine style (if specified)
-        
-        Format your response as a JSON array of objects with "ingredient", "quantity", and "preparation" properties.
-      </prompt>
-    
-    </llm>
-    <script>
-      try {
-        ctx.datamodel.recipeIngredients = JSON.parse(ctx.lastElement.output);
-        // Validate the structure
-        if (!Array.isArray(ctx.datamodel.recipeIngredients)) {
-          throw new Error("Ingredients not in array format");
-        }
-      } catch(e) {
-        ctx.log("Error parsing ingredients: " + e.message);
-        // Fallback to simple ingredients list
-        ctx.datamodel.recipeIngredients = ctx.datamodel.filteredIngredients.map(ingredient => ({
-          ingredient: ingredient,
-          quantity: "to taste",
-          preparation: ""
-        }));
-      }
-    </script>
-    <log value={(ctx) => 'Determined ' + ctx.datamodel.recipeIngredients.length + ' ingredients with quantities'} />
-  </onentry>
-</state>
-
-<state id="createPrepSteps" description="Create preparation steps for the recipe">
-  <onentry>
-    <llm model="gpt-4o" temperature={0.3}>
-      <prompt>
-        Create detailed preparation steps for: {ctx.datamodel.recipeTitle}
-        
-        Ingredients:
-        {ctx.datamodel.recipeIngredients.map(item => `- ${item.quantity} ${item.ingredient} ${item.preparation}`).join('\n')}
-        
-        These steps should cover all preparation work before cooking begins, such as:
-        - Washing, peeling, chopping ingredients
-        - Marinating or soaking
-        - Measuring and combining ingredients
-        - Preparing cooking vessels or equipment
-        
-        For each step:
-        1. Be specific about techniques and why they're important
-        2. Include approximate time for each preparatory task
-        3. Mention any tools needed
-        
-        The total preparation time should be appropriate for a {ctx.datamodel.recipeType} and consider the {ctx.datamodel.cookingTime} minute total time constraint.
-        
-        Format your response as a JSON array of objects with "step" (description) and "time" (in minutes) properties.
-      </prompt>
-
-    </llm>
-    <script>
-      try {
-        ctx.datamodel.prepSteps = JSON.parse(ctx.lastElement.output);
-        // Validate the structure
-        if (!Array.isArray(ctx.datamodel.prepSteps)) {
-          throw new Error("Prep steps not in array format");
-        }
-      } catch(e) {
-        ctx.log("Error parsing prep steps: " + e.message);
-        ctx.datamodel.prepSteps = [
-          { step: "Prepare all ingredients as listed", time: 10 }
-        ];
-      }
-    </script>
-    <log value={(ctx) => 'Created ' + ctx.datamodel.prepSteps.length + ' preparation steps'} />
-  </onentry>
-</state>
-
-<state id="createCookingSteps" description="Create cooking steps for the recipe">
-  <onentry>
-    <llm model="gpt-4o" temperature={0.3}>
-      <prompt>
-        Create detailed cooking instructions for: {ctx.datamodel.recipeTitle}
-        
-        Ingredients:
-        {ctx.datamodel.recipeIngredients.map(item => `- ${item.quantity} ${item.ingredient} ${item.preparation}`).join('\n')}
-        
-        Preparation completed:
-        {ctx.datamodel.prepSteps.map(step => step.step).join('\n')}
-        
-        For each cooking step:
-        1. Provide precise instructions with cooking techniques, temperatures, and times
-        2. Explain what to look for to know when to proceed to the next step
-        3. Include any safety tips if relevant
-        4. Note how the dish should look, smell, or taste at key points
-        
-        The total cooking time should fit within the {ctx.datamodel.cookingTime} minute constraint (minus prep time).
-        The instructions should be appropriate for home cooks of various skill levels.
-        
-        Format your response as a JSON array of objects with "step" (description), "time" (in minutes), and "techniqueType" (e.g., "sauté", "boil", "bake") properties.
-      </prompt>
-
-    </llm>
-    <script>
-      try {
-        ctx.datamodel.cookingSteps = JSON.parse(ctx.lastElement.output);
-      } catch(e) {
-        console.log("Error parsing cooking steps: " + e.message);
-        ctx.datamodel.cookingSteps = [
-          { step: "Cook ingredients to proper temperatures for food safety", time: 10 }
-        ];
-      }
-    </script>
-  </onentry>
-</state>
-
-<state id="calculateNutritionalInfo" description="Calculate approximate nutritional information">
-  <onentry>
-    <script>
-      // In a real system, this would look up values in a database
-      // For demo purposes, we'll simulate nutrition calculation
-      
-      try {
-        // Parse nutritional data
-        const nutritionalDb = JSON.parse(NutritionalData);
-        
-        // Initialize nutritional totals
-        const nutrition = {
-          calories: 0,
-          protein: 0,
-          carbs: 0,
-          fat: 0,
-          fiber: 0
-        };
-        
-        // Calculate totals based on ingredients
-        for (const item of ctx.datamodel.recipeIngredients) {
-          const ingredient = item.ingredient.toLowerCase();
-          
-          // Find matching ingredient in database
-          const match = Object.keys(nutritionalDb).find(key => 
-            ingredient.includes(key.toLowerCase())
-          );
-          
-          if (match) {
-            const data = nutritionalDb[match];
+    <state id="filterIngredients" description="Filter ingredients based on dietary restrictions">
+        <script>
+        // Function to check if an ingredient matches restrictions
+        function matchesRestriction(ingredient, restriction) {
+            // In a real system, this would check against a database
+            // For demo purposes, we'll use simple substring matching
+            const restrictedIngredients = {
+            "vegan": ["meat", "chicken", "beef", "pork", "fish", "egg", "milk", "cream", "cheese", "butter", "honey"],
+            "vegetarian": ["meat", "chicken", "beef", "pork", "fish"],
+            "gluten-free": ["wheat", "barley", "rye", "flour", "pasta", "bread", "cereal"],
+            "dairy-free": ["milk", "cream", "cheese", "butter", "yogurt"],
+            "nut-free": ["nut", "almond", "walnut", "pecan", "cashew", "pistachio", "hazelnut"],
+            "keto": ["sugar", "flour", "rice", "potato", "pasta", "bread", "cereal"]
+            };
             
-            // Extract quantity for calculation
-            let quantity = 1; // default to 1 unit
-            const qtyString = item.quantity.toLowerCase();
+            const forbiddenItems = restrictedIngredients[restriction.toLowerCase()] || [];
+            return forbiddenItems.some(item => 
+            ingredient.toLowerCase().includes(item.toLowerCase())
+            );
+        }
+        
+        // Filter ingredients based on dietary restrictions
+        ctx.datamodel.filteredIngredients = [...ctx.datamodel.ingredients];
+        
+        if (ctx.datamodel.dietaryRestrictions && ctx.datamodel.dietaryRestrictions.length > 0) {
+            for (const restriction of ctx.datamodel.dietaryRestrictions) {
+            ctx.datamodel.filteredIngredients = ctx.datamodel.filteredIngredients.filter(ingredient => 
+                !matchesRestriction(ingredient, restriction)
+            );
+            }
+        }
+        </script>
+        <log value={(ctx) => 'Filtered ingredients: ' + ctx.datamodel.filteredIngredients.join(', ')} />
+    </state>
+
+    <state id="determineRecipeType" description="Determine the type of recipe based on ingredients and meal type">
+        <llm model="gpt-4o" temperature={0.4}>
+        <prompt>
+            Based on these available ingredients:
+            {ctx.datamodel.filteredIngredients.join(', ')}
             
-            // Simple quantity parser - in reality this would be more sophisticated
-            const numMatch = qtyString.match(/(\d+(\.\d+)?)/);
-            if (numMatch) {
-              quantity = parseFloat(numMatch[1]);
+            And the meal type: {ctx.datamodel.mealType}
+            
+            Generate a specific type of dish that would work well with these ingredients.
+            For example, if the meal type is "dinner" and ingredients include chicken and rice,
+            you might suggest "Chicken Stir Fry" or "One-Pot Chicken and Rice".
+            
+            Consider these factors:
+            - The meal should be appropriate for {ctx.datamodel.mealType}
+            - The meal should use several of the available ingredients
+            - If a cuisine preference was provided ({ctx.datamodel.cuisinePreference}), incorporate that style
+            - The dish should be feasible to prepare in {ctx.datamodel.cookingTime} minutes
+            - Any dietary restrictions: {ctx.datamodel.dietaryRestrictions.join(', ')}
+            
+            Respond with just the specific name of the recipe type, nothing else.
+        </prompt>
+
+        </llm>
+        <assign location="recipeType" value={(ctx) => ctx.lastElement.output.trim()} />
+
+        <log value={(ctx) => 'Determined recipe type: ' + ctx.datamodel.recipeType} />
+    </state>
+
+    <state id="createRecipeTitle" description="Create an appealing title for the recipe">
+        <llm model="gpt-4o" temperature={0.6}>
+        <prompt>
+            Create an appealing and descriptive title for this recipe:
+            
+            Recipe type: {ctx.datamodel.recipeType}
+            Available ingredients: {ctx.datamodel.filteredIngredients.join(', ')}
+            Cuisine style (if specified): {ctx.datamodel.cuisinePreference}
+            Dietary restrictions: {ctx.datamodel.dietaryRestrictions.join(', ')}
+            
+            The title should be enticing and highlight key ingredients or preparation methods.
+            Keep it under 60 characters and don't include preparation time in the title.
+            
+            Return only the title, nothing else.
+        </prompt>
+        </llm>
+        <assign location="recipeTitle" value={(ctx) => ctx.lastElement.output.trim()} />
+
+        <log value={(ctx) => 'Created recipe title: ' + ctx.datamodel.recipeTitle} />
+    </state>
+
+    <state id="determineIngredients" description="Determine exact ingredients and quantities for the recipe">
+        <llm model="gpt-4o" temperature={0.3}>
+        <prompt>
+            Create a detailed ingredients list for: {ctx.datamodel.recipeTitle} ({ctx.datamodel.recipeType})
+            
+            Available ingredients: {ctx.datamodel.filteredIngredients.join(', ')}
+            
+            For each ingredient, specify:
+            1. Precise quantity with both metric and imperial measurements where appropriate
+            2. Any preparation instructions (e.g., "diced", "finely chopped")
+            3. Mark optional ingredients clearly
+            
+            The recipe should:
+            - Serve 2-4 people (standard portion size)
+            - Prioritize using ingredients from the available list
+            - Include basic pantry staples that aren't listed (salt, pepper, oil, etc.)
+            - Comply with these dietary restrictions: {ctx.datamodel.dietaryRestrictions.join(', ')}
+            - Fit the {ctx.datamodel.cuisinePreference} cuisine style (if specified)
+            
+            Format your response as a JSON array of objects with "ingredient", "quantity", and "preparation" properties.
+        </prompt>
+        
+        </llm>
+        <script>
+        try {
+            ctx.datamodel.recipeIngredients = JSON.parse(ctx.lastElement.output);
+            // Validate the structure
+            if (!Array.isArray(ctx.datamodel.recipeIngredients)) {
+            throw new Error("Ingredients not in array format");
+            }
+        } catch(e) {
+            ctx.log("Error parsing ingredients: " + e.message);
+            // Fallback to simple ingredients list
+            ctx.datamodel.recipeIngredients = ctx.datamodel.filteredIngredients.map(ingredient => ({
+            ingredient: ingredient,
+            quantity: "to taste",
+            preparation: ""
+            }));
+        }
+        </script>
+        <log value={(ctx) => 'Determined ' + ctx.datamodel.recipeIngredients.length + ' ingredients with quantities'} />
+    </state>
+
+    <state id="createPrepSteps" description="Create preparation steps for the recipe">
+        <llm model="gpt-4o" temperature={0.3}>
+        <prompt>
+            Create detailed preparation steps for: {ctx.datamodel.recipeTitle}
+            
+            Ingredients:
+            {ctx.datamodel.recipeIngredients.map(item => `- ${item.quantity} ${item.ingredient} ${item.preparation}`).join('\n')}
+            
+            These steps should cover all preparation work before cooking begins, such as:
+            - Washing, peeling, chopping ingredients
+            - Marinating or soaking
+            - Measuring and combining ingredients
+            - Preparing cooking vessels or equipment
+            
+            For each step:
+            1. Be specific about techniques and why they're important
+            2. Include approximate time for each preparatory task
+            3. Mention any tools needed
+            
+            The total preparation time should be appropriate for a {ctx.datamodel.recipeType} and consider the {ctx.datamodel.cookingTime} minute total time constraint.
+            
+            Format your response as a JSON array of objects with "step" (description) and "time" (in minutes) properties.
+        </prompt>
+
+        </llm>
+        <script>
+        try {
+            ctx.datamodel.prepSteps = JSON.parse(ctx.lastElement.output);
+            // Validate the structure
+            if (!Array.isArray(ctx.datamodel.prepSteps)) {
+            throw new Error("Prep steps not in array format");
+            }
+        } catch(e) {
+            ctx.log("Error parsing prep steps: " + e.message);
+            ctx.datamodel.prepSteps = [
+            { step: "Prepare all ingredients as listed", time: 10 }
+            ];
+        }
+        </script>
+        <log value={(ctx) => 'Created ' + ctx.datamodel.prepSteps.length + ' preparation steps'} />
+    </state>
+
+    <state id="createCookingSteps" description="Create cooking steps for the recipe">
+        <llm model="gpt-4o" temperature={0.3}>
+        <prompt>
+            Create detailed cooking instructions for: {ctx.datamodel.recipeTitle}
+            
+            Ingredients:
+            {ctx.datamodel.recipeIngredients.map(item => `- ${item.quantity} ${item.ingredient} ${item.preparation}`).join('\n')}
+            
+            Preparation completed:
+            {ctx.datamodel.prepSteps.map(step => step.step).join('\n')}
+            
+            For each cooking step:
+            1. Provide precise instructions with cooking techniques, temperatures, and times
+            2. Explain what to look for to know when to proceed to the next step
+            3. Include any safety tips if relevant
+            4. Note how the dish should look, smell, or taste at key points
+            
+            The total cooking time should fit within the {ctx.datamodel.cookingTime} minute constraint (minus prep time).
+            The instructions should be appropriate for home cooks of various skill levels.
+            
+            Format your response as a JSON array of objects with "step" (description), "time" (in minutes), and "techniqueType" (e.g., "sauté", "boil", "bake") properties.
+        </prompt>
+
+        </llm>
+        <script>
+        try {
+            ctx.datamodel.cookingSteps = JSON.parse(ctx.lastElement.output);
+        } catch(e) {
+            console.log("Error parsing cooking steps: " + e.message);
+            ctx.datamodel.cookingSteps = [
+            { step: "Cook ingredients to proper temperatures for food safety", time: 10 }
+            ];
+        }
+        </script>
+    </state>
+
+    <state id="calculateNutritionalInfo" description="Calculate approximate nutritional information">
+        <script>
+        // In a real system, this would look up values in a database
+        // For demo purposes, we'll simulate nutrition calculation
+        
+        try {
+            // Parse nutritional data
+            const nutritionalDb = JSON.parse(NutritionalData);
+            
+            // Initialize nutritional totals
+            const nutrition = {
+            calories: 0,
+            protein: 0,
+            carbs: 0,
+            fat: 0,
+            fiber: 0
+            };
+            
+            // Calculate totals based on ingredients
+            for (const item of ctx.datamodel.recipeIngredients) {
+            const ingredient = item.ingredient.toLowerCase();
+            
+            // Find matching ingredient in database
+            const match = Object.keys(nutritionalDb).find(key => 
+                ingredient.includes(key.toLowerCase())
+            );
+            
+            if (match) {
+                const data = nutritionalDb[match];
+                
+                // Extract quantity for calculation
+                let quantity = 1; // default to 1 unit
+                const qtyString = item.quantity.toLowerCase();
+                
+                // Simple quantity parser - in reality this would be more sophisticated
+                const numMatch = qtyString.match(/(\d+(\.\d+)?)/);
+                if (numMatch) {
+                quantity = parseFloat(numMatch[1]);
+                }
+                
+                // Add nutritional values based on approximate quantity
+                nutrition.calories += data.calories * quantity;
+                nutrition.protein += data.protein * quantity;
+                nutrition.carbs += data.carbs * quantity;
+                nutrition.fat += data.fat * quantity;
+                nutrition.fiber += data.fiber * quantity;
+            }
             }
             
-            // Add nutritional values based on approximate quantity
-            nutrition.calories += data.calories * quantity;
-            nutrition.protein += data.protein * quantity;
-            nutrition.carbs += data.carbs * quantity;
-            nutrition.fat += data.fat * quantity;
-            nutrition.fiber += data.fiber * quantity;
-          }
-        }
-        
-        // Round values to reasonable precision
-        Object.keys(nutrition).forEach(key => {
-          nutrition[key] = Math.round(nutrition[key]);
-        });
-        
-        // Calculate per serving (assume 4 servings)
-        const perServing = {};
-        Object.keys(nutrition).forEach(key => {
-          perServing[key] = Math.round(nutrition[key] / 4);
-        });
-        
-        ctx.datamodel.nutritionalInfo = {
-          totalRecipe: nutrition,
-          perServing: perServing
-        };
-      } catch(e) {
-        ctx.log("Error calculating nutrition: " + e.message);
-        ctx.datamodel.nutritionalInfo = {
-          note: "Nutritional information could not be calculated accurately."
-        };
-      }
-    </script>
-    <log value={(ctx) => 'Calculated nutritional information'} />
-  </onentry>
-</state>
-
-<state id="calculateTimes" description="Calculate preparation and cooking times">
-  <onentry>
-    <script>
-      // Calculate prep time
-      const prepTime = ctx.datamodel.prepSteps.reduce((total, step) => total + (step.time || 0), 0);
-      
-      // Calculate cooking time
-      const cookTime = ctx.datamodel.cookingSteps.reduce((total, step) => total + (step.time || 0), 0);
-      
-      // Calculate total time (with some buffer)
-      const totalTimeCalc = prepTime + cookTime + 5; // 5-minute buffer
-      
-      ctx.datamodel.totalTime = {
-        prep: prepTime,
-        cooking: cookTime,
-        total: totalTimeCalc
-      };
-    </script>
-    <log value={(ctx) => 'Calculated times: Prep=' + ctx.datamodel.totalTime.prep + 'm, Cooking=' + ctx.datamodel.totalTime.cooking + 'm, Total=' + ctx.datamodel.totalTime.total + 'm'} />
-  </onentry>
-</state>
-
-<state id="generateTipsAndVariations" description="Generate cooking tips and recipe variations">
-  <onentry>
-    <llm model="gpt-4o" temperature={0.5}>
-      <prompt>
-        Generate helpful cooking tips and variations for: {ctx.datamodel.recipeTitle}
-        
-        Recipe details:
-        - Meal type: {ctx.datamodel.mealType}
-        - Cuisine: {ctx.datamodel.cuisinePreference || "Not specified"}
-        - Dietary restrictions: {ctx.datamodel.dietaryRestrictions.join(', ') || "None"}
-        
-        Based on these ingredients and cooking steps:
-        
-        Ingredients:
-        {ctx.datamodel.recipeIngredients.map(item => `- ${item.quantity} ${item.ingredient} ${item.preparation}`).join('\n')}
-        
-        Key cooking techniques:
-        {ctx.datamodel.cookingSteps.map(step => step.techniqueType).filter((v, i, a) => a.indexOf(v) === i).join(', ')}
-        
-        Provide:
-        1. 3-5 practical cooking tips to improve results or make preparation easier
-        2. 2-3 recipe variations (ingredient substitutions, flavor variations, or serving suggestions)
-        
-        Format your response as a JSON object with "tips" and "variations" arrays.
-      </prompt>
-
-    </llm>
-     <script>
-        try {
-        const tipsAndVariations = JSON.parse(ctx.lastElement.output);
-        ctx.datamodel.tips = tipsAndVariations.tips || [];
-        ctx.datamodel.variations = tipsAndVariations.variations || [];
+            // Round values to reasonable precision
+            Object.keys(nutrition).forEach(key => {
+            nutrition[key] = Math.round(nutrition[key]);
+            });
+            
+            // Calculate per serving (assume 4 servings)
+            const perServing = {};
+            Object.keys(nutrition).forEach(key => {
+            perServing[key] = Math.round(nutrition[key] / 4);
+            });
+            
+            ctx.datamodel.nutritionalInfo = {
+            totalRecipe: nutrition,
+            perServing: perServing
+            };
         } catch(e) {
-        ctx.log("Error parsing tips and variations: " + e.message);
-        ctx.datamodel.tips = ["Cook ingredients to proper temperatures for food safety"];
-        ctx.datamodel.variations = ["Try adding different seasonings to vary the flavor"];
+            ctx.log("Error calculating nutrition: " + e.message);
+            ctx.datamodel.nutritionalInfo = {
+            note: "Nutritional information could not be calculated accurately."
+            };
         }
-    </script>
-    <log value={(ctx) => 'Generated ' + ctx.datamodel.tips.length + ' tips and ' + ctx.datamodel.variations.length + ' variations'} />
-  </onentry>
-</state>
+        </script>
+        <log value={(ctx) => 'Calculated nutritional information'} />
+    </state>
 
-<state id="assembleRecipe" description="Assemble the final recipe">
-  <onentry>
-    <sendObject>
-      {
-        "title": ctx.datamodel.recipeTitle,
-        "recipeType": ctx.datamodel.recipeType,
-        "mealType": ctx.datamodel.mealType,
-        "cuisine": ctx.datamodel.cuisinePreference,
-        "dietaryInfo": {
-          "restrictions": ctx.datamodel.dietaryRestrictions,
-          "nutritionalInfo": ctx.datamodel.nutritionalInfo
-        },
-        "time": ctx.datamodel.totalTime,
-        "ingredients": ctx.datamodel.recipeIngredients,
-        "preparation": ctx.datamodel.prepSteps,
-        "cooking": ctx.datamodel.cookingSteps,
-        "tips": ctx.datamodel.tips,
-        "variations": ctx.datamodel.variations
-      }
-    </sendObject>
-  </onentry>
-</state>
+    <state id="calculateTimes" description="Calculate preparation and cooking times">
+        <script>
+        // Calculate prep time
+        const prepTime = ctx.datamodel.prepSteps.reduce((total, step) => total + (step.time || 0), 0);
+        
+        // Calculate cooking time
+        const cookTime = ctx.datamodel.cookingSteps.reduce((total, step) => total + (step.time || 0), 0);
+        
+        // Calculate total time (with some buffer)
+        const totalTimeCalc = prepTime + cookTime + 5; // 5-minute buffer
+        
+        ctx.datamodel.totalTime = {
+            prep: prepTime,
+            cooking: cookTime,
+            total: totalTimeCalc
+        };
+        </script>
+        <log value={(ctx) => 'Calculated times: Prep=' + ctx.datamodel.totalTime.prep + 'm, Cooking=' + ctx.datamodel.totalTime.cooking + 'm, Total=' + ctx.datamodel.totalTime.total + 'm'} />
+    </state>
+
+    <state id="generateTipsAndVariations" description="Generate cooking tips and recipe variations">
+        <llm model="gpt-4o" temperature={0.5}>
+        <prompt>
+            Generate helpful cooking tips and variations for: {ctx.datamodel.recipeTitle}
+            
+            Recipe details:
+            - Meal type: {ctx.datamodel.mealType}
+            - Cuisine: {ctx.datamodel.cuisinePreference || "Not specified"}
+            - Dietary restrictions: {ctx.datamodel.dietaryRestrictions.join(', ') || "None"}
+            
+            Based on these ingredients and cooking steps:
+            
+            Ingredients:
+            {ctx.datamodel.recipeIngredients.map(item => `- ${item.quantity} ${item.ingredient} ${item.preparation}`).join('\n')}
+            
+            Key cooking techniques:
+            {ctx.datamodel.cookingSteps.map(step => step.techniqueType).filter((v, i, a) => a.indexOf(v) === i).join(', ')}
+            
+            Provide:
+            1. 3-5 practical cooking tips to improve results or make preparation easier
+            2. 2-3 recipe variations (ingredient substitutions, flavor variations, or serving suggestions)
+            
+            Format your response as a JSON object with "tips" and "variations" arrays.
+        </prompt>
+
+        </llm>
+        <script>
+            try {
+            const tipsAndVariations = JSON.parse(ctx.lastElement.output);
+            ctx.datamodel.tips = tipsAndVariations.tips || [];
+            ctx.datamodel.variations = tipsAndVariations.variations || [];
+            } catch(e) {
+            ctx.log("Error parsing tips and variations: " + e.message);
+            ctx.datamodel.tips = ["Cook ingredients to proper temperatures for food safety"];
+            ctx.datamodel.variations = ["Try adding different seasonings to vary the flavor"];
+            }
+        </script>
+        <log value={(ctx) => 'Generated ' + ctx.datamodel.tips.length + ' tips and ' + ctx.datamodel.variations.length + ' variations'} />
+    </state>
+
+    <final id="assembleRecipe" description="Assemble the final recipe">
+        <sendObject value={ctx => (
+        {
+            "title": ctx.datamodel.recipeTitle,
+            "recipeType": ctx.datamodel.recipeType,
+            "mealType": ctx.datamodel.mealType,
+            "cuisine": ctx.datamodel.cuisinePreference,
+            "dietaryInfo": {
+            "restrictions": ctx.datamodel.dietaryRestrictions,
+            "nutritionalInfo": ctx.datamodel.nutritionalInfo
+            },
+            "time": ctx.datamodel.totalTime,
+            "ingredients": ctx.datamodel.recipeIngredients,
+            "preparation": ctx.datamodel.prepSteps,
+            "cooking": ctx.datamodel.cookingSteps,
+            "tips": ctx.datamodel.tips,
+            "variations": ctx.datamodel.variations
+        }
+        )} />
+    </final>
+</workflow>
