@@ -362,29 +362,27 @@ or developers can immediately use in their creative projects.
         <log value={(ctx) => 'Developed character voice description of ' + ctx.datamodel.characterVoice.split(' ').length + ' words'} />
     </state>
 
-    <state id="generatePlotHooks" description="Generate plot hooks involving the character">
+    <state id="generatePlotHooks" description="Generate story plot hooks that involve this character">
         <llm model="gpt-4o" temperature={0.7}>
         <prompt>
-            Generate {Math.max(2, ctx.datamodel.complexity)} plot hooks or story ideas featuring {ctx.datamodel.characterName}.
+            Create 3-5 engaging plot hooks or story prompts featuring this character:
             
-            These plot hooks should:
-            - Leverage the character's established traits, relationships, and backstory
-            - Be appropriate for the {ctx.datamodel.genre} genre
-            - Provide opportunities to showcase the character's strengths and challenge their flaws
-            - Include interesting conflicts or goals
-            - Be open-ended enough to spark creative development
+            Character name: {ctx.datamodel.characterName}
+            Genre: {ctx.datamodel.genre}
+            Archetype: {ctx.datamodel.archetype}
             
-            Consider these character elements:
-            - Motivations: {ctx.datamodel.motivations.join(", ")}
-            - Key relationships: {ctx.datamodel.relationships.map(r => r.name + " (" + r.relationship + ")").join(", ")}
-            - Flaws to challenge: {ctx.datamodel.flaws.join(", ")}
+            Personality: {ctx.datamodel.personalityTraits.join(', ')}
+            Key motivation: {ctx.datamodel.motivations[0]}
+            Key flaw: {ctx.datamodel.flaws[0]}
             
-            Format as a JSON array of plot hook objects, each with:
-            - "title": A catchy title for the plot hook
-            - "premise": Brief description of the setup and conflict (2-3 sentences)
-            - "relevance": How it connects to the character's established traits or backstory
+            Each plot hook should:
+            1. Present an intriguing situation or conflict
+            2. Relate specifically to this character's traits, motivations, or flaws
+            3. Offer potential for character development
+            4. Suggest a direction for storytelling without being prescriptive
+            
+            Format as a JSON array of strings.
         </prompt>
-
         </llm>
         <script>
         try {
@@ -392,41 +390,34 @@ or developers can immediately use in their creative projects.
             if (!Array.isArray(ctx.datamodel.plotHooks)) {
             throw new Error("Plot hooks not in array format");
             }
-        } catch (e) {
-            ctx.log("Error parsing plot hooks: " + e.message);
-            // Default plot hooks if parsing fails
+        } catch(e) {
+            console.log("Error parsing plot hooks: " + e.message);
             ctx.datamodel.plotHooks = [
-            {
-                title: "Character's Journey",
-                premise: "A basic plot involving the character's primary motivation",
-                relevance: "Directly builds on character's core traits"
-            },
-            {
-                title: "Confronting the Past",
-                premise: "The character must face an element from their backstory",
-                relevance: "Explores character's history and flaws"
-            }
+            "A mysterious figure from the character's past reappears, threatening to reveal a long-buried secret."
             ];
         }
         </script>
         <log value={(ctx) => 'Generated ' + ctx.datamodel.plotHooks.length + ' plot hooks'} />
+        
+        <script>
+            // Prepare the final character persona object that will be automatically sent when reaching the final state
+            ctx.datamodel.finalCharacterPersona = {
+                "name": ctx.datamodel.characterName,
+                "genre": ctx.datamodel.genre,
+                "archetype": ctx.datamodel.archetype,
+                "complexity": ctx.datamodel.complexity,
+                "personalityTraits": ctx.datamodel.personalityTraits,
+                "backstory": ctx.datamodel.backstory,
+                "appearance": ctx.datamodel.appearance,
+                "motivations": ctx.datamodel.motivations,
+                "flaws": ctx.datamodel.flaws,
+                "strengths": ctx.datamodel.strengths,
+                "relationships": ctx.datamodel.relationships,
+                "characterVoice": ctx.datamodel.characterVoice,
+                "plotHooks": ctx.datamodel.plotHooks
+            };
+        </script>
     </state>
 
-    <final id="assembleCharacterPersona">
-        <sendObject value={ctx => ({
-            "name": ctx.datamodel.characterName,
-            "genre": ctx.datamodel.genre,
-            "archetype": ctx.datamodel.archetype,
-            "complexity": ctx.datamodel.complexity,
-            "personalityTraits": ctx.datamodel.personalityTraits,
-            "backstory": ctx.datamodel.backstory,
-            "appearance": ctx.datamodel.appearance,
-            "motivations": ctx.datamodel.motivations,
-            "flaws": ctx.datamodel.flaws,
-            "strengths": ctx.datamodel.strengths,
-            "relationships": ctx.datamodel.relationships,
-            "characterVoice": ctx.datamodel.characterVoice,
-            "plotHooks": ctx.datamodel.plotHooks
-        })} />
-    </final>
+    <final id="assembleCharacterPersona" />
 </workflow>

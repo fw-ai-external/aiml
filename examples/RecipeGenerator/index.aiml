@@ -424,26 +424,27 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             }
         </script>
         <log value={(ctx) => 'Generated ' + ctx.datamodel.tips.length + ' tips and ' + ctx.datamodel.variations.length + ' variations'} />
+        
+        <script>
+            // Prepare the final recipe object that will be automatically sent when reaching the final state
+            ctx.datamodel.finalRecipe = {
+                "title": ctx.datamodel.recipeTitle,
+                "recipeType": ctx.datamodel.recipeType,
+                "mealType": ctx.datamodel.mealType,
+                "cuisine": ctx.datamodel.cuisinePreference,
+                "dietaryInfo": {
+                    "restrictions": ctx.datamodel.dietaryRestrictions,
+                    "nutritionalInfo": ctx.datamodel.nutritionalInfo
+                },
+                "time": ctx.datamodel.totalTime,
+                "ingredients": ctx.datamodel.recipeIngredients,
+                "preparation": ctx.datamodel.prepSteps,
+                "cooking": ctx.datamodel.cookingSteps,
+                "tips": ctx.datamodel.tips,
+                "variations": ctx.datamodel.variations
+            };
+        </script>
     </state>
 
-    <final id="assembleRecipe" description="Assemble the final recipe">
-        <sendObject value={ctx => (
-        {
-            "title": ctx.datamodel.recipeTitle,
-            "recipeType": ctx.datamodel.recipeType,
-            "mealType": ctx.datamodel.mealType,
-            "cuisine": ctx.datamodel.cuisinePreference,
-            "dietaryInfo": {
-            "restrictions": ctx.datamodel.dietaryRestrictions,
-            "nutritionalInfo": ctx.datamodel.nutritionalInfo
-            },
-            "time": ctx.datamodel.totalTime,
-            "ingredients": ctx.datamodel.recipeIngredients,
-            "preparation": ctx.datamodel.prepSteps,
-            "cooking": ctx.datamodel.cookingSteps,
-            "tips": ctx.datamodel.tips,
-            "variations": ctx.datamodel.variations
-        }
-        )} />
-    </final>
+    <final id="assembleRecipe" />
 </workflow>

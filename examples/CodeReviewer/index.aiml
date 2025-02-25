@@ -56,12 +56,10 @@ import TestingTools from "./testingtools.js"
   </datamodel>
 
   <state id="fetchCode">
-    <onentry>
-      <script>
-        // Prepare for fetching code
-        ctx.log("Preparing to fetch code from repository");
-      </script>
-    </onentry>
+    <script>
+      // Prepare for fetching code
+      ctx.log("Preparing to fetch code from repository");
+    </script>
       
     <toolcall name="gitFetch">
       <param name="repoUrl" value={(ctx) => ctx.datamodel.repositoryUrl} />
@@ -240,35 +238,33 @@ import TestingTools from "./testingtools.js"
       </script>
       <log value={(ctx) => 'Performance analysis complete. Found ' + ctx.datamodel.performanceIssues.length + ' issues'} />
       <transition target="testCoverageAnalysis" />
-    </onentry>
   </state>
 
   <state id="testCoverageAnalysis">
-    <onentry>
-      <script>
-        // Mock test coverage analysis
-        try {
-          const testingToolCode = TestingTools;
-          // Execute the code
-          const mockTestAnalyzer = eval(`(${testingToolCode})`);
-          ctx.datamodel.testCoverage = mockTestAnalyzer.analyzeCoverage(ctx.datamodel.codeFiles);
-        } catch (e) {
-          ctx.log("Error analyzing test coverage: " + e.message);
-          ctx.datamodel.testCoverage = {
-            overall: 0,
-            byFile: {},
-            issues: [
-              { 
-                description: "Error analyzing test coverage", 
-                severity: "medium",
-                suggestion: "Ensure test files are properly formatted and located"
-              }
-            ]
-          };
-        }
-      </script>
-      <log value={(ctx) => 'Test coverage analysis complete. Overall coverage: ' + (ctx.datamodel.testCoverage.overall || 0) + '%'} />
-      <transition target="synthesizeFindings" />
+    <script>
+      // Mock test coverage analysis
+      try {
+        const testingToolCode = TestingTools;
+        // Execute the code
+        const mockTestAnalyzer = eval(`(${testingToolCode})`);
+        ctx.datamodel.testCoverage = mockTestAnalyzer.analyzeCoverage(ctx.datamodel.codeFiles);
+      } catch (e) {
+        ctx.log("Error analyzing test coverage: " + e.message);
+        ctx.datamodel.testCoverage = {
+          overall: 0,
+          byFile: {},
+          issues: [
+            { 
+              description: "Error analyzing test coverage", 
+              severity: "medium",
+              suggestion: "Ensure test files are properly formatted and located"
+            }
+          ]
+        };
+      }
+    </script>
+    <log value={(ctx) => 'Test coverage analysis complete. Overall coverage: ' + (ctx.datamodel.testCoverage.overall || 0) + '%'} />
+    <transition target="synthesizeFindings" />
   </state>
 
   <state id="synthesizeFindings">
@@ -385,92 +381,75 @@ import TestingTools from "./testingtools.js"
         }
       </script>
       <log value={(ctx) => 'Generated ' + ctx.datamodel.recommendations.length + ' recommendations'} />
-      <transition target="generateDetailedComments" />
+      <transition target="generateFileComments" />
   </state>
 
-  <state id="generateDetailedComments">
-      <llm model="gpt-4o" temperature={0.2}>
-        <prompt>
-          You are an experienced code reviewer. You need to generate specific comments for files 
-          in this pull request. Focus on the most important files and the most serious issues.
-          
-          For each file that needs comments, provide:
-          1. Specific line-level comments when possible
-          2. File-level comments for more general issues
-          3. Constructive suggestions with examples when appropriate
-          
-          Here are the top security issues:
-          {ctx.datamodel.securityFindings.slice(0, 3).map(issue => 
-            `- ${issue.severity.toUpperCase()}: ${issue.description} in ${issue.filename} (line ${issue.line})`
-          ).join('\n')}
-          
-          Here are the top code quality issues:
-          {ctx.datamodel.qualityIssues.slice(0, 3).map(issue => 
-            `- ${issue.severity.toUpperCase()}: ${issue.description} in ${issue.filename} (line ${issue.line})`
-          ).join('\n')}
-          
-          Here are the top performance issues:
-          {ctx.datamodel.performanceIssues.slice(0, 3).map(issue => 
-            `- ${issue.severity.toUpperCase()}: ${issue.description} in ${issue.filename}`
-          ).join('\n')}
-          
-          Format your response as a JSON object where keys are filenames and values are arrays of comment objects.
-          Each comment should have:
-          - "line": Line number (or null for file-level comments)
-          - "type": Comment type (suggestion, issue, praise)
-          - "content": The actual comment
-          - "severity": priority level (high, medium, low)
-          
-          Example:
-          {
-            "src/auth/login.js": [
-              {
-                "line": 42,
-                "type": "issue",
-                "content": "This input is not sanitized, which could lead to XSS attacks. Consider using the sanitizeInput helper.",
-                "severity": "high"
-              },
-              {
-                "line": null,
-                "type": "suggestion",
-                "content": "This file would benefit from additional error handling, especially for network failures.",
-                "severity": "medium"
-              }
-            ]
+  <state id="generateFileComments">
+      <forEach item="file" array={ctx => ctx.datamodel.filesToReview}>
+        <script>
+          const fileContent = ctx.datamodel.codeContent[file] || "File content not available";
+          const fileChanges = ctx.datamodel.diffContent[file] || "Diff not available";
+          ctx.datamodel.currentFile = file;
+        </script>
+        
+        <llm model="gpt-4o" temperature={0.3}>
+          <prompt>
+            Review the following code file changes:
+            
+            File: {ctx.datamodel.currentFile}
+            
+            Original changes:
+            ```diff
+            {ctx.datamodel.diffContent[ctx.datamodel.currentFile]}
+            ```
+            
+            Full file content:
+            ```
+            {ctx.datamodel.codeContent[ctx.datamodel.currentFile]}
+            ```
+            
+            Please provide review comments for this file considering:
+            
+            1. Code quality issues (readability, maintainability, etc.)
+            2. Potential bugs or errors
+            3. Performance considerations
+            4. Security vulnerabilities
+            5. Test coverage needs
+            
+            Also consider the review context:
+            - Security Findings: {JSON.stringify(ctx.datamodel.securityFindings)}
+            - Quality Issues: {JSON.stringify(ctx.datamodel.qualityIssues)}
+            - Performance Issues: {JSON.stringify(ctx.datamodel.performanceIssues)}
+            
+            Format your response as a JSON object with:
+            - summary: Brief summary of changes in the file
+            - comments: Array of comment objects with:
+              - lineNumber: Line number the comment applies to
+              - severity: "high", "medium", or "low"
+              - message: The comment text
+              - type: "security", "quality", "performance", "testing", or "suggestion"
+              - suggestedFix: Code snippet showing how to fix (if applicable)
+          </prompt>
+        </llm>
+        
+        <script>
+          try {
+            const reviewResult = JSON.parse(ctx.lastElement.output);
+            ctx.datamodel.reviewComments[ctx.datamodel.currentFile] = reviewResult;
+          } catch (e) {
+            ctx.log(`Error parsing review result for ${ctx.datamodel.currentFile}: ${e.message}`);
+            ctx.datamodel.reviewComments[ctx.datamodel.currentFile] = {
+              summary: "Error processing review for this file",
+              comments: []
+            };
           }
-          
-          Focus only on the most significant files and issues (limit to 3-5 files and 2-3 comments per file).
-        </prompt>
-      </llm>
-      <script>
-        try {
-          ctx.datamodel.reviewComments = JSON.parse(ctx.lastElement.output);
-          
-          // Validate format
-          if (typeof ctx.datamodel.reviewComments !== 'object') {
-            throw new Error("Comments not in expected format");
-          }
-        } catch (e) {
-          ctx.log("Error parsing review comments: " + e.message);
-          ctx.datamodel.reviewComments = {
-            "general": [
-              {
-                line: null,
-                type: "suggestion",
-                content: "Please review the issues highlighted in the summary",
-                severity: "medium"
-              }
-            ]
-          };
-        }
-      </script>
+        </script>
+      </forEach>
       <log value={(ctx) => 'Generated comments for ' + Object.keys(ctx.datamodel.reviewComments).length + ' files'} />
-      <transition target="complete" />
-  </state>
-
-  <final id="complete"  >
-      <sendObject value={ctx => (
-        {
+      
+      <script>
+        // Prepare the final code review object that will be automatically sent when reaching the final state
+        ctx.datamodel.finalReview = {
           "summary": ctx.datamodel.reviewSummary,
           "recommendations": ctx.datamodel.recommendations,
           "detailedComments": ctx.datamodel.reviewComments,
@@ -483,7 +462,11 @@ import TestingTools from "./testingtools.js"
             "performanceIssues": ctx.datamodel.performanceIssues.length,
             "testCoverage": ctx.datamodel.testCoverage.overall
           }
-        }
-      </sendObject>
-  </final>
+        };
+      </script>
+      
+      <transition target="complete" />
+  </state>
+
+  <final id="complete" />
 </workflow>

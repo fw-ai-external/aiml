@@ -7,13 +7,19 @@ This AIML defines the PresentRecommendation state for the InvestmentAdvisor work
 It is the final state that assembles and returns the complete investment recommendation.
 */}
 
-<final id="presentRecommendation">
-    <sendObject value={ctx => (
-      {
+<>
+    <state id="prepareRecommendation">
+    <script>
+        // Prepare the final investment recommendation that will be automatically sent when reaching the final state
+        ctx.datamodel.finalRecommendation = {
         "profile": ctx.datamodel.profile,
         "marketAnalysis": ctx.datamodel.marketAnalysis,
         "assetAllocation": ctx.datamodel.assetAllocation,
         "recommendation": ctx.datamodel.portfolioRecommendation
-      }
-    )} />
-</final> 
+        };
+    </script>
+    <transition target="presentRecommendation" />
+    </state>
+
+    <final id="presentRecommendation" /> 
+</>

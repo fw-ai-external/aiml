@@ -278,88 +278,65 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
         </prompt>
       </llm>
       <assign location="diagnosticReasoning" value={(ctx) => ctx.lastElement.output} />
-      <transition target="generateRecommendations" />
+      <transition target="formRecommendations" />
   </state>
 
-  <state id="generateRecommendations">
-      <llm model="gpt-4o" temperature={0.2}>
+  <state id="formRecommendations">
+      <llm model="gpt-4o" temperature={0.3}>
         <prompt>
-          Based on the patient information and possible diagnoses, generate clinical recommendations.
-          These should be practical next steps for the patient, emphasizing when medical attention is needed.
+          Based on the following potential diagnoses:
+          {JSON.stringify(ctx.datamodel.potentialDiagnoses)}
           
-          Patient Information:
-          - Age: {ctx.datamodel.patientAge}
-          - Gender: {ctx.datamodel.patientGender}
-          - Symptom Duration: {ctx.datamodel.duration} days
+          And the diagnostic reasoning:
+          {ctx.datamodel.diagnosticReasoning}
           
-          Potential Diagnoses:
-          {ctx.datamodel.potentialDiagnoses.map(d => 
-            `- ${d.diagnosis} (${d.likelihood} likelihood)`
-          ).join("\n")}
+          Generate practical recommendations for the patient. These should include:
+          1. General advice based on symptoms
+          2. When to seek medical attention (urgent, soon, routine)
+          3. Lifestyle modifications that may help
+          4. Information on what to discuss with healthcare providers
+          5. Reliable resources for further patient education
           
-          Provide recommendations in JSON format:
-          [
-            {
-              "type": "medical_attention|testing|home_care|monitoring|medication|lifestyle",
-              "urgency": "immediate|urgent|soon|routine",
-              "recommendation": "Clear description of the recommendation",
-              "rationale": "Brief explanation of why this is recommended"
-            }
-          ]
+          Remember that these recommendations:
+          - Should NOT prescribe specific medications
+          - Should emphasize the importance of consultation with healthcare providers
+          - Should be clear, actionable, and evidence-based
+          - Should acknowledge the limitations of this analysis
           
-          Include at least one recommendation from each of these categories:
-          1. Whether and when to seek medical attention
-          2. Tests or examinations that might be helpful
-          3. Home care measures that might relieve symptoms
-          4. Warning signs that would require immediate medical attention
-          
-          Recommendations should be aligned with standard medical guidelines.
+          Format your response as a JSON array of recommendation objects, each with:
+          - "type": Category of recommendation (e.g., "general", "medicalCare", "lifestyle", "resources")
+          - "recommendation": The specific advice
+          - "urgency": For medical care recommendations, indicate "emergency", "urgent", "soon", or "routine"
+          - "rationale": Brief explanation of why this recommendation is important
         </prompt>
       </llm>
       <script>
         try {
           ctx.datamodel.recommendations = JSON.parse(ctx.lastElement.output);
-          
-          // Validate structure
           if (!Array.isArray(ctx.datamodel.recommendations)) {
             throw new Error("Recommendations not in array format");
           }
-          
-          // Sort by urgency
-          const urgencyOrder = { 'immediate': 0, 'urgent': 1, 'soon': 2, 'routine': 3 };
-          ctx.datamodel.recommendations.sort((a, b) => 
-            urgencyOrder[a.urgency] - urgencyOrder[b.urgency]
-          );
         } catch (e) {
           ctx.log("Error parsing recommendations: " + e.message);
-          // Create fallback recommendations
           ctx.datamodel.recommendations = [
             {
-              type: "medical_attention",
-              urgency: "soon",
-              recommendation: "Consult with a healthcare provider",
-              rationale: "A proper medical evaluation is needed for accurate diagnosis"
-            },
-            {
-              type: "monitoring",
-              urgency: "routine",
-              recommendation: "Monitor symptoms and note any changes",
-              rationale: "Changes in symptoms can help with diagnosis"
+              type: "general",
+              recommendation: "Consult with a healthcare provider for proper evaluation",
+              rationale: "A professional medical assessment is needed for accurate diagnosis and treatment"
             }
           ];
         }
-      </script>
-      <transition target="presentResults" />
-  </state>
-
-  <final id="presentResults" final="true">
-      <sendObject value={ctx => (
-        {
+        
+        // Prepare the final diagnosis results that will be automatically sent when reaching the final state
+        ctx.datamodel.finalDiagnosis = {
           "diagnoses": ctx.datamodel.potentialDiagnoses,
           "reasoning": ctx.datamodel.diagnosticReasoning,
           "recommendations": ctx.datamodel.recommendations,
           "disclaimer": "This analysis is for informational purposes only and does not constitute medical advice. Always consult with a qualified healthcare provider for proper diagnosis and treatment."
-        }
-      )} />
-  </final>
+        };
+      </script>
+      <transition target="presentResults" />
+  </state>
+
+  <final id="presentResults" />
 </workflow>
