@@ -1,9 +1,4 @@
 ---
-description: Core AIML Spec
-globs: 
-alwaysApply: false
----
----
 description: Core AIML SpecStates can only be activ
 globs: 
 alwaysApply: false
@@ -503,10 +498,9 @@ Executes JavaScript code.
 
 #### `<llm>`
 
-Configures and executes an LLM call. The `<llm>` element supports multiple ways to provide input to the model:
+Configures and executes an LLM call.
 
 ```mdx
-{/* Option 1: Using prompt child element */}
 <llm model="gpt-4o" temperature={0.7} max_tokens={1000}>
   <prompt>
     Generate a creative story about:
@@ -518,31 +512,6 @@ Configures and executes an LLM call. The `<llm>` element supports multiple ways 
   </prompt>
 </llm>
 
-{/* Option 2: Using both prompt and instructions (system message) */}
-<llm model="gpt-4o" temperature={0.7}>
-  <instructions>
-    You are a creative storyteller who specializes in crafting engaging narratives.
-    Focus on vivid descriptions and natural dialogue.
-    Keep the story concise and aligned with the theme.
-  </instructions>
-  <prompt>
-    Write a story about {ctx.datamodel.theme} featuring {ctx.datamodel.characters.join(', ')}.
-  </prompt>
-</llm>
-
-{/* Option 3: Using messages array as a prop */}
-<llm 
-  model="gpt-4o" 
-  temperature={0.7}
-  messages={(ctx) => [
-    { role: "system", content: "You are a helpful assistant specializing in data analysis." },
-    { role: "user", content: `Analyze this data: ${ctx.datamodel.data}` },
-    { role: "assistant", content: "I'll analyze this data carefully." },
-    { role: "user", content: "Focus on identifying patterns and anomalies." }
-  ]}
-/>
-```
-
 <script>
   // Access the LLM response
   ctx.datamodel.story = ctx.lastElement.output;
@@ -550,17 +519,10 @@ Configures and executes an LLM call. The `<llm>` element supports multiple ways 
 ```
 
 Attributes:
-- `model`: The LLM model to use (e.g., "gpt-4o", "claude-3-opus")
+- `model`: The LLM model to use
 - `temperature`: Creativity control (0.0-1.0)
 - `max_tokens`: Maximum response length
-- `messages`: Alternative to using child elements, allows direct passing of a message array
-- Other model-specific parameters can be added (top_p, frequency_penalty, etc.)
-
-Child Elements:
-- `<prompt>`: The primary input to the model (user message)
-- `<instructions>`: System instructions to guide the model's behavior (system message)
-
-The output from the LLM call can be accessed via `ctx.lastElement.output` in a subsequent script element.
+- More model-specific parameters can be added
 
 #### `<toolcall>`
 
