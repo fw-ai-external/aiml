@@ -1,9 +1,4 @@
----
-description: Runtime Execution Flow for the MDX based SCXML flavor called AIML
-globs: packages/core/**, apps/vscode-plugin/**
-alwaysApply: false
----
-## SCXML / MDX Runtime Execution Flow
+## Runtime Execution Flow
 
 ### SCXML Element
 
