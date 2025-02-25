@@ -20,7 +20,13 @@ export class ElementBuilder {
   static parseAttributes(
     attributes: JsxAttributeLike[]
   ): Record<string, string> {
+    // Initialize with an empty object
     const result: Record<string, string> = {};
+
+    // If no attributes, return early to avoid issues with length property
+    if (!attributes || attributes.length === 0) {
+      return result;
+    }
 
     attributes.forEach((attr) => {
       if (Node.isJsxAttribute(attr)) {
