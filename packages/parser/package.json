@@ -15,7 +15,9 @@
     "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "test:e2e": "bun test e2e/"
   },
   "dependencies": {
     "@fireworks/types": "workspace:*",

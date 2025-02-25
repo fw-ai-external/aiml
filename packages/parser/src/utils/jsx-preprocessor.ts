@@ -1,5 +1,4 @@
 import { JSXPreprocessError } from "../types";
-import { createRegex } from "human-regex";
 
 export class JSXPreprocessor {
   // HTML tags that should be self-closing
@@ -28,47 +27,11 @@ export class JSXPreprocessor {
    * Trims outer whitespace and validates the input is valid JSX
    */
   static validateAndPreprocess(input: string): string {
-    const trimRegex = createRegex()
-      .startAnchor()
-      .whitespace()
-      .oneOrMore()
-      .or()
-      .whitespace()
-      .oneOrMore()
-      .endAnchor()
-      .global()
-      .toRegExp();
-
-    const processed = input.replace(trimRegex, "");
-
-    // Create regex for JSX element validation
-    const jsxElementRegex = createRegex()
-      .startAnchor()
-      .literal("<")
-      .letter()
-      .startGroup()
-      .word()
-      .zeroOrMore()
-      .endGroup()
-      .startGroup()
-      .whitespace()
-      .startGroup()
-      .notRange(">")
-      .zeroOrMore()
-      .endGroup()
-      .endGroup()
-      .optional()
-      .startGroup()
-      .literal(">")
-      .or()
-      .literal("/>")
-      .endGroup()
-      .toRegExp();
-
-    if (!processed.match(jsxElementRegex)) {
+    const processed = input.trim();
+    // Simple check: if there's a '<' followed by an alphabet character
+    if (!processed.match(/<\s*[A-Za-z]/)) {
       throw new JSXPreprocessError("No JSX element found in MDX file");
     }
-
     return processed;
   }
 
@@ -148,6 +111,11 @@ export class JSXPreprocessor {
       if (this.isComplexNestedStructure(input)) {
         const runtime = this.createJSXRuntime();
         return `${runtime}<div><span><input/><br/></span></div>`;
+      }
+
+      // Handle empty or whitespace-only input
+      if (!input.trim()) {
+        throw new JSXPreprocessError("No JSX element found in MDX file");
       }
 
       const validated = this.validateAndPreprocess(input);

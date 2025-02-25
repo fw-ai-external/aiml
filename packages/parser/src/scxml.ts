@@ -151,7 +151,7 @@ function delayToMs(delay?: string | number): number | undefined {
 
 const evaluateExecutableContent = <
   TContext extends object,
-  TEvent extends EventObject
+  TEvent extends EventObject,
 >(
   context: TContext,
   event: TEvent,
@@ -180,7 +180,7 @@ with (context) {
 
 function createGuard<
   TContext extends object,
-  TEvent extends EventObject = EventObject
+  TEvent extends EventObject = EventObject,
 >(guard: string) {
   return ({
     context,
@@ -503,7 +503,7 @@ function toConfig(nodeJson: XMLElement, id: string): AnyStateNodeConfig {
           ...(!internal && { reenter: true }),
         };
 
-        if (eventType === null) {
+        if (!eventType) {
           always.push(transitionConfig);
         } else {
           if (/^done\.state(\.|$)/.test(eventType)) {
@@ -598,22 +598,25 @@ function scxmlToMachine(scxmlJson: XMLElement): AnyStateMachine {
   const context = dataModelEl
     ? dataModelEl
         .elements!.filter((element) => element.name === "data")
-        .reduce((acc, element) => {
-          const { src, expr, id } = element.attributes!;
-          if (src) {
-            throw new Error(
-              "Conversion of `src` attribute on datamodel's <data> elements is not supported."
-            );
-          }
+        .reduce(
+          (acc, element) => {
+            const { src, expr, id } = element.attributes!;
+            if (src) {
+              throw new Error(
+                "Conversion of `src` attribute on datamodel's <data> elements is not supported."
+              );
+            }
 
-          if (expr === "_sessionid") {
-            acc[id!] = undefined;
-          } else {
-            acc[id!] = eval(`(${expr})`);
-          }
+            if (expr === "_sessionid") {
+              acc[id!] = undefined;
+            } else {
+              acc[id!] = eval(`(${expr})`);
+            }
 
-          return acc;
-        }, {} as Record<string, unknown>)
+            return acc;
+          },
+          {} as Record<string, unknown>
+        )
     : undefined;
 
   const machine = createMachine({
