@@ -3,11 +3,6 @@ description: Core AIML Spec
 globs: 
 alwaysApply: false
 ---
----
-description: Core AIML SpecStates can only be activ
-globs: 
-alwaysApply: false
----
 # AIML: AI Markup Language
 
 AIML is a powerful MDX-based markup language for defining AI agent workflows. It combines the expressiveness of MDX with a structured state machine approach inspired by SCXML, allowing you to create sophisticated AI agents with deterministic flows.
@@ -307,16 +302,41 @@ Data can be accessed and modified through:
 
 #### `<workflow>`
 
-Defines a complete workflow with states and transitions. It is optional, and exists to provide a more controlled generation flow
+Defines a complete workflow with states and transitions. The workflow can be configured in two distinct ways:
 
 ```mdx
+{/* Option 1: Using initial state (traditional approach) */}
 <workflow initial="firstState">
-  {/* Workflow content */}
+  {/* Workflow content with states that use transitions */}
+  <state id="firstState">
+    {/* State content */}
+    <transition target="secondState" />
+  </state>
+  <state id="secondState">
+    {/* State content */}
+  </state>
+</workflow>
+
+{/* Option 2: Using runInOrder for sequential execution */}
+<workflow runInOrder={true}>
+  {/* States will be executed in document order without transitions */}
+  <state id="first">
+    {/* Will execute first */}
+  </state>
+  <state id="second">
+    {/* Will execute second */}
+  </state>
+  <state id="third">
+    {/* Will execute third */}
+  </state>
 </workflow>
 ```
 
 Attributes:
-- `initial`: ID of the starting state
+- `initial`: ID of the starting state (use when you want explicit transition control)
+- `runInOrder`: When set to `true`, executes all top-level states sequentially in document order
+  
+> Note: Use either `initial` or `runInOrder`, but not both. The `runInOrder` approach is useful for simpler linear workflows where states should execute in a predetermined sequence without explicit transitions.
 
 #### `<state>`
 
@@ -357,8 +377,7 @@ Marks a terminal state in the workflow.
   <onentry>
     <sendObject>
       {
-        "result": "success",
-        "data": ctx.datamodel.output
+        "result": ctx.datamodel.output
       }
     </sendObject>
   </onentry>
@@ -414,7 +433,7 @@ Contains actions to execute when entering a state.
 
 ```mdx
 <onentry>
-  <log expr="'Entered state'" />
+  <log value="Entered state" />
   <script>
     ctx.datamodel.startTime = Date.now();
   </script>
@@ -427,8 +446,8 @@ Contains actions to execute when exiting a state.
 
 ```mdx
 <onexit>
-  <log expr="'Exiting state'" />
-  <assign location="processingTime" expr={(ctx) => Date.now() - ctx.datamodel.startTime} />
+  <log value="Exiting state" />
+  <assign location="processingTime" value={(ctx) => Date.now() - ctx.datamodel.startTime} />
 </onexit>
 ```
 
@@ -568,7 +587,7 @@ Executes a specific tool call.
 
 ```mdx
 <toolcall name="searchDatabase">
-  <param name="query" expr={(ctx) => "user:" + ctx.datamodel.userId} />
+  <param name="query" value={(ctx) => "user:" + ctx.datamodel.userId} />
   <param name="limit" value={10} />
 </toolcall>
 
