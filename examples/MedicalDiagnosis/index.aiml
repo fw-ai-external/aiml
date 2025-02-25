@@ -42,11 +42,17 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
 
 <workflow initial="emergencyCheck">
   <datamodel>
-    <data id="symptoms" type="array">{ctx => ctx.workflowInput.symptoms}</data>
+    <data id="symptoms" type="array" schema={{
+        type: "array",
+        items: { type: "string" }
+    }}>{ctx => ctx.workflowInput.symptoms}</data>
     <data id="duration" type="integer">{ctx => ctx.workflowInput.duration}</data>
     <data id="patientAge" type="integer">{ctx => ctx.workflowInput.patientAge}</data>
     <data id="patientGender" type="string">{ctx => ctx.workflowInput.patientGender}</data>
-    <data id="medicalHistory" type="array">{ctx => ctx.workflowInput.medicalHistory}</data>
+    <data id="medicalHistory" type="array" schema={{
+        type: "array",
+        items: { type: "string" }
+    }}>{ctx => ctx.workflowInput.medicalHistory}</data>
     <data id="isEmergency" type="boolean" value={false} />
     <data id="emergencyReason" type="string" value={""} />
     <data id="symptomGroups" type="json" value={{}} schema={{
