@@ -83,6 +83,7 @@ describe("StateElement", () => {
       type: "object",
       object: { id: "state1", isActive: true },
       raw: JSON.stringify({ id: "state1", isActive: true }),
+      wasHealed: false,
     });
   });
 
@@ -110,6 +111,7 @@ describe("StateElement", () => {
       type: "object",
       object: { id: "state1", isActive: true },
       raw: JSON.stringify({ id: "state1", isActive: true }),
+      wasHealed: false,
     });
   });
 });

@@ -1,36 +1,38 @@
+---
+description: Core instructions for project
+globs: 
+alwaysApply: false
+---
 # Project Guidelines
+
+# Codeing best practices
+
+- Keep classes and functions small and tested individually
+- Always ensure tests are realistic, and comprehensive
 
 ## Documentation Requirements
 
-- Update relevant documentation in /docs when modifying features
+- Update relevant documentation in <project_root>/.cursor/rules when modifying features
 - Keep README.md in sync with new capabilities
 - Maintain changelog entries in CHANGELOG.md
 
 ## Architecture Decision Records
 
-Create ADRs in /docs/adr for:
+Create ADRs in <project_root>/.cursor/rules/adr for:
 
 - Major dependency changes
 - Architectural pattern changes
 - New integration patterns
 - Database schema changes
-  Follow template in /docs/adr/template.md
-
-## Code Style & Patterns
-
-- Generate API clients using OpenAPI Generator
-- Use TypeScript axios template
-- Place generated code in /src/generated
-- Prefer composition over inheritance
-- Use repository pattern for data access
-- Follow error handling pattern in /src/utils/errors.ts
+- Follow template in <project_root>/.cursor/rules/adr/template.md
 
 ## Testing Standards
 
 - Unit tests required for business logic
 - Integration tests for API endpoints
 - E2E tests for critical user flows
-- Prefer bun and vitest
+- Prefer `bun test` and the `bun:test` package for testing
+- Use as few mocks as possible
 
 # Security
 

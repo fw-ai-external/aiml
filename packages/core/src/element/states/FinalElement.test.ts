@@ -91,6 +91,7 @@ describe("FinalElement", () => {
       type: "object",
       object: { id: "final1", isActive: true },
       raw: JSON.stringify({ id: "final1", isActive: true }),
+      wasHealed: false,
     });
   });
 
@@ -117,6 +118,7 @@ describe("FinalElement", () => {
       type: "object",
       object: { id: "final1", isActive: true },
       raw: JSON.stringify({ id: "final1", isActive: true }),
+      wasHealed: false,
     });
   });
 });

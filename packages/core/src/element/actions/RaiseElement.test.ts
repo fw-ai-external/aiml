@@ -69,6 +69,7 @@ describe("RaiseElement", () => {
       type: "object",
       object: { event: "test.event" },
       raw: JSON.stringify({ event: "test.event" }),
+      wasHealed: false,
     });
     expect(mockSendEvent).toHaveBeenCalledWith("test.event");
   });

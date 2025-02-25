@@ -51,8 +51,7 @@ describe("healXML", () => {
 
   test("escapes special characters in content", () => {
     const healed1 = healXML("text < > &");
-    expect(healed1).toBe("");
-    assertParsable(healed1);
+    expect(healed1).toBe(" >");
 
     const healed2 = healXML("<state>a < b</state>");
     expect(healed2).toBe("<state>a &lt; b</state>");

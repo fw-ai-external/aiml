@@ -30,6 +30,17 @@ export class ElementExecutionContext<
   PropValues extends {},
   InputValue extends RunstepOutput = RunstepOutput,
 > {
+  // Static property for built-in keys that should match the serialized output
+  static builtinKeys = [
+    "input",
+    "workflowInput",
+    "datamodel",
+    "attributes",
+    "state",
+    "run",
+    "context",
+  ];
+
   // Input into the active element via the output of the last
   input: StepValue<InputValue>;
   // Input into the machine from the Request
@@ -125,7 +136,7 @@ export class ElementExecutionContext<
         attributes: this.state.attributes,
         input: await this.state.input.simpleValue(),
       },
-      runId: this.runId,
+      run: this.run,
       context: this.context,
     };
   }

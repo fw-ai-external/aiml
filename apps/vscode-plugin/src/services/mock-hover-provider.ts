@@ -7,48 +7,31 @@ import {
   getOwnerTagName,
 } from "../utils/token";
 import { parseToTokens } from "../acorn";
-import {
-  generateElementHover,
-  generateAttributeHover,
-  getTextFromToken,
-} from "./hover-utils";
-
-// Import element config at the end to make mocking easier
-let elementConfigModule: any;
-try {
-  elementConfigModule = require("@fireworks/element-config");
-} catch (error) {
-  console.error("Error loading element-config module:", error);
-  elementConfigModule = {
-    allElementConfigs: {},
-  };
-}
 
 /**
- * Server-side hover provider that generates hover content for SCXML elements.
- * Works with LSP types and provides hover information for elements and attributes.
+ * Mock implementation of the hover provider for testing.
+ * This version doesn't depend on the element-config module.
  */
-export class HoverProvider {
+export class MockHoverProvider {
+  private mockElementConfigs = {
+    state: {
+      documentation: "State element documentation",
+      propsSchema: {
+        shape: {
+          id: {
+            type: "string",
+            description: "State identifier (unique within a workflow)",
+            constructor: { name: "Object" },
+          },
+        },
+      },
+    },
+  };
+
   constructor(
     private connection: Connection,
     private logger: DebugLogger
   ) {}
-
-  /**
-   * Get the element config for a specific tag name
-   * Isolates the element-config dependency to make it easier to mock
-   */
-  private getElementConfig(tagName: string) {
-    try {
-      const { allElementConfigs } = elementConfigModule;
-      return allElementConfigs[tagName as keyof typeof allElementConfigs];
-    } catch (error) {
-      this.logger.error(
-        `Error getting element config for ${tagName}: ${error}`
-      );
-      return null;
-    }
-  }
 
   /**
    * Gets hover information for a given position in a document.
@@ -84,8 +67,14 @@ export class HoverProvider {
         return null;
       }
 
-      const tagName = getTextFromToken(content, tagNameToken);
-      const elementConfig = this.getElementConfig(tagName);
+      const tagName = content.substring(
+        tagNameToken.startIndex,
+        tagNameToken.endIndex
+      );
+      const elementConfig =
+        this.mockElementConfigs[
+          tagName as keyof typeof this.mockElementConfigs
+        ];
 
       if (!elementConfig) {
         this.logger.info(`No element config found for tag: ${tagName}`);
@@ -94,40 +83,48 @@ export class HoverProvider {
 
       this.logger.info(`Found element config for hover - tagName: ${tagName}`);
 
-      // Document position range for hover
-      const range = {
-        start: document.positionAt(token.token.startIndex),
-        end: document.positionAt(token.token.endIndex),
-      };
-
       // If hovering over an attribute
       if (attrNameToken) {
-        const attrName = getTextFromToken(content, attrNameToken);
-        const schema = elementConfig.propsSchema.shape[attrName];
-
-        return generateAttributeHover(
-          tagName,
-          attrName,
-          elementConfig,
-          schema,
-          {
-            start: document.positionAt(attrNameToken.startIndex),
-            end: document.positionAt(attrNameToken.endIndex),
-          },
-          this.logger
+        const attrName = content.substring(
+          attrNameToken.startIndex,
+          attrNameToken.endIndex
         );
+        const schema =
+          elementConfig.propsSchema.shape[
+            attrName as keyof typeof elementConfig.propsSchema.shape
+          ];
+
+        if (schema) {
+          this.logger.info(
+            `Found attribute schema for hover - attrName: ${attrName}`
+          );
+          return {
+            contents: {
+              kind: "markdown",
+              value: `**${tagName}.${attrName}**\n\n${elementConfig.documentation || ""}\n\nAttribute type: ${schema.constructor.name}`,
+            },
+            range: {
+              start: document.positionAt(attrNameToken.startIndex),
+              end: document.positionAt(attrNameToken.endIndex),
+            },
+          };
+        }
+
+        this.logger.info(`No schema found for attribute: ${attrName}`);
+        return null;
       }
 
       // If hovering over the element name
-      return generateElementHover(
-        tagName,
-        elementConfig,
-        {
+      return {
+        contents: {
+          kind: "markdown",
+          value: `**${tagName}**\n\n${elementConfig.documentation || `${tagName} element`}`,
+        },
+        range: {
           start: document.positionAt(tagNameToken.startIndex),
           end: document.positionAt(tagNameToken.endIndex),
         },
-        this.logger
-      );
+      };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);

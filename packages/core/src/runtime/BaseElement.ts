@@ -224,11 +224,22 @@ export class BaseElement implements IBaseElement {
       await this.enter?.();
     }
 
+    // Prepare result object based on element type
+    let resultObject = {};
+
+    // For state-like elements, include id and isActive
+    if (["state", "parallel", "final", "scxml"].includes(this.elementType)) {
+      resultObject = {
+        id: this.id,
+        isActive: this._isActive,
+      };
+    }
+
     // Default result
     const result = new StepValue<StepResult>({
       type: "object",
-      object: {},
-      raw: "{}",
+      object: resultObject,
+      raw: JSON.stringify(resultObject),
       wasHealed: false,
     });
 

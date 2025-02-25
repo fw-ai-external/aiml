@@ -1,3 +1,8 @@
+---
+description: Mapping SCXML Elements in MDX/AIML files to Mastra Workflow API
+globs: packages/**
+alwaysApply: false
+---
 ## Mapping SCXML Elements to Mastra Workflow API
 
 Each SCXML element can be represented using Mastra's workflow API. Here's how to implement each element type:

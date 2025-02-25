@@ -1,3 +1,8 @@
+---
+description: How the core dependency of the project, Mastra, works
+globs: packages/core/**
+alwaysApply: false
+---
 ## Workflows
 
 Workflows in Mastra help you orchestrate complex sequences of operations with features like branching, parallel execution, resource suspension, and more.

@@ -1,3 +1,8 @@
+---
+description: SCXML inspired api
+globs: packages/core/**, apps/vscode-plugin/**
+alwaysApply: false
+---
 # SCXML Implementation Plan Using Extended Mastra Elements
 
 ## Overview

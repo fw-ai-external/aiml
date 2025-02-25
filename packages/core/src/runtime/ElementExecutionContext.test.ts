@@ -7,7 +7,7 @@ describe("ElementExecutionContext", () => {
     const builtinKeys = (ElementExecutionContext as any).builtinKeys.toSorted();
     const context = new ElementExecutionContext({
       input: new StepValue({ type: "text", text: "" }),
-      datamodel: {},
+      datamodel: { values: {} },
       workflowInput: {
         userMessage: "Hello, world!",
         systemMessage: "",
@@ -16,10 +16,15 @@ describe("ElementExecutionContext", () => {
       },
       attributes: {},
       run: { id: "run_0" },
-      state: { id: "rs_0", name: "step_0" } as any,
+      state: {
+        id: "rs_0",
+        name: "step_0",
+        attributes: {},
+        input: new StepValue({ type: "text", text: "" }),
+      } as any,
       machine: { id: "machine_0", secrets: { system: {} } },
     });
-    const serialized = context.serialize();
+    const serialized = await context.serialize();
     const serializedKeys = Object.keys(serialized).toSorted();
     expect(serializedKeys).toEqual(builtinKeys);
   });

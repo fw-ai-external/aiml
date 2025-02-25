@@ -141,47 +141,54 @@ export class RunValue {
    * Note that even if StateMachine Actor is finished, the values inside RunValue still may not be final.
    */
   public async finalize() {
-    await Promise.race([
-      this.waitForStateStreamsToFinish(),
-      new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(true);
-        }, 100);
-      }),
-    ]);
-
+    // Set the finished state immediately
     this._finished = true;
-    const nonFinalValues = this._generatedValues.filter(
-      (value) => value.id !== this._finalOutput?.id
-    );
 
-    if (nonFinalValues.length === 1) {
-      const stepValue = nonFinalValues[0];
-      const stats = stepValue?.stats;
-      this.totalPromptTokens += stats?.tokenUsage?.promptTokens ?? 0;
-      this.totalCompletionTokens += stats?.tokenUsage?.completionTokens ?? 0;
-      // no reasoning tokens for a single step
-    } else {
-      for (const stepValue of nonFinalValues) {
-        // attribute the first stepValue's prompt token that is not filtered out to this.promptTokens
-        // and the last stepValue's completion tokens that is not filtered out to this.completionTokens
+    try {
+      await Promise.race([
+        this.waitForStateStreamsToFinish(),
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(true);
+          }, 100);
+        }),
+      ]);
+
+      const nonFinalValues = this._generatedValues.filter(
+        (value) => value.id !== this._finalOutput?.id
+      );
+
+      if (nonFinalValues.length === 1) {
+        const stepValue = nonFinalValues[0];
         const stats = stepValue?.stats;
+        this.totalPromptTokens += stats?.tokenUsage?.promptTokens ?? 0;
+        this.totalCompletionTokens += stats?.tokenUsage?.completionTokens ?? 0;
+        // no reasoning tokens for a single step
+      } else {
+        for (const stepValue of nonFinalValues) {
+          // attribute the first stepValue's prompt token that is not filtered out to this.promptTokens
+          // and the last stepValue's completion tokens that is not filtered out to this.completionTokens
+          const stats = stepValue?.stats;
 
-        if (nonFinalValues.indexOf(stepValue) === 0) {
-          this.totalPromptTokens += stats?.tokenUsage?.promptTokens ?? 0;
-          this.reasoningTokens += stats?.tokenUsage?.completionTokens ?? 0;
-        } else if (
-          nonFinalValues.indexOf(stepValue) ===
-          nonFinalValues.length - 1
-        ) {
-          this.totalCompletionTokens +=
-            stats?.tokenUsage?.completionTokens ?? 0;
-          this.reasoningTokens += stats?.tokenUsage?.promptTokens ?? 0;
-        } else {
-          this.reasoningTokens += stats?.tokenUsage?.promptTokens ?? 0;
-          this.reasoningTokens += stats?.tokenUsage?.completionTokens ?? 0;
+          if (nonFinalValues.indexOf(stepValue) === 0) {
+            this.totalPromptTokens += stats?.tokenUsage?.promptTokens ?? 0;
+            this.reasoningTokens += stats?.tokenUsage?.completionTokens ?? 0;
+          } else if (
+            nonFinalValues.indexOf(stepValue) ===
+            nonFinalValues.length - 1
+          ) {
+            this.totalCompletionTokens +=
+              stats?.tokenUsage?.completionTokens ?? 0;
+            this.reasoningTokens += stats?.tokenUsage?.promptTokens ?? 0;
+          } else {
+            this.reasoningTokens += stats?.tokenUsage?.promptTokens ?? 0;
+            this.reasoningTokens += stats?.tokenUsage?.completionTokens ?? 0;
+          }
         }
       }
+    } catch (error) {
+      // If there was an error, we still want to ensure the RunValue is marked as finished
+      this._finished = true;
     }
   }
 
@@ -261,72 +268,185 @@ export class RunValue {
     const textEncoder = new TextEncoder();
     const stream = new ReadableStream({
       start: async (controller) => {
-        for await (const chunk of await this.responseIterator()) {
+        try {
+          for await (const chunk of await this.responseIterator()) {
+            controller.enqueue(
+              textEncoder.encode(`[data] ${JSON.stringify(chunk)}`)
+            );
+          }
+        } catch (error) {
+          // If there's an error, send an error message
           controller.enqueue(
-            textEncoder.encode(`[data] ${JSON.stringify(chunk)}`)
+            textEncoder.encode(
+              `[data] ${JSON.stringify({
+                type: "error",
+                error:
+                  error instanceof Error
+                    ? error.message
+                    : "Unknown error in response stream",
+              })}`
+            )
           );
+        } finally {
+          // Always send the done message and close the stream
+          controller.enqueue(textEncoder.encode("[done]"));
+          controller.close();
         }
-        controller.enqueue(textEncoder.encode("[done]"));
-        controller.close();
       },
     });
     return stream;
   }
 
   public async *responseIterator(): AsyncIterableIterator<APIStreamEvent> {
-    const finalOutput = await this.waitForFinalOutput();
+    try {
+      const finalOutput = await this.waitForFinalOutput();
 
-    const responseStream = finalOutput.streamIterator();
-
-    for await (const chunk of responseStream) {
-      if (chunk.type !== "step-complete") {
-        yield chunk;
-      } else {
-        while (!this._finished) {
-          await new Promise((resolve) => setTimeout(resolve, 2));
-        }
-
-        return yield {
-          type: "step-complete",
-          finishReason: (chunk as any).finishReason,
-          usage: this.getTotalTokens(),
+      // If we don't have a proper final output, create a fallback
+      if (!finalOutput) {
+        yield {
+          type: "text",
+          text: "No valid output available",
         };
+        return;
       }
+
+      // Check for error type
+      const outputType = await finalOutput.type();
+      if (outputType === "error") {
+        const errorValue = await finalOutput.error();
+        yield {
+          type: "error",
+          error: errorValue?.error || "Unknown error",
+        } as APIStreamEvent;
+        return;
+      }
+
+      const responseStream = finalOutput.streamIterator();
+
+      for await (const chunk of responseStream) {
+        if (chunk.type !== "step-complete") {
+          yield chunk;
+        } else {
+          // Ensure we're properly finished
+          if (!this._finished) {
+            await this.finalize();
+          }
+
+          return yield {
+            type: "step-complete",
+            finishReason: (chunk as any).finishReason,
+            usage: this.getTotalTokens(),
+          };
+        }
+      }
+    } catch (error) {
+      // If there's an error, yield an error message
+      yield {
+        type: "error",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown error in response iterator",
+      } as APIStreamEvent;
     }
   }
 
   public async responseValue(): Promise<RunstepOutput> {
-    const finalOutput = await this.waitForFinalOutput();
+    try {
+      const finalOutput = await this.waitForFinalOutput();
 
-    const outputType = await finalOutput.type();
-    if (outputType === "error") {
-      return finalOutput.error() as any;
+      // If we don't have a final output, return a default value
+      if (!finalOutput) {
+        return {
+          type: "text",
+          text: "No output available",
+        };
+      }
+
+      const outputType = await finalOutput.type();
+      if (outputType === "error") {
+        const errorValue = await finalOutput.error();
+        return {
+          type: "error",
+          error: errorValue?.error || "Unknown error",
+          code: errorValue?.code || ErrorCode.SERVER_ERROR,
+        };
+      }
+
+      return await finalOutput.value();
+    } catch (error) {
+      // If there's an error, return an error object
+      return {
+        type: "error",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown error in responseValue",
+        code: ErrorCode.SERVER_ERROR,
+      };
     }
-
-    const responseValue = finalOutput.value();
-
-    return responseValue as any;
   }
 
   private async waitForFinalOutput(
     timeout: number = 15_000
   ): Promise<StepValue> {
-    while (!this._finalOutput) {
-      await new Promise((resolve) =>
-        setTimeout(() => {
-          timeout -= 2;
-          if (timeout <= 0) {
-            this._finalOutput = new StepValue({
-              type: "error",
-              error: "Timeout waiting for final output",
-              code: ErrorCode.SERVER_ERROR,
-            });
-          }
-          resolve(true);
-        }, 2)
-      );
+    if (this._finalOutput) {
+      return this._finalOutput;
     }
 
+    // If we're already finished but don't have a final output, create a default one
+    if (
+      this._finished &&
+      !this._finalOutput &&
+      this._generatedValues.length > 0
+    ) {
+      this._finalOutput =
+        this._generatedValues[this._generatedValues.length - 1];
+      return this._finalOutput;
+    }
+
+    // Create a timeout promise that resolves after the timeout period
+    const timeoutPromise = new Promise<StepValue>((resolve) => {
+      setTimeout(() => {
+        resolve(
+          new StepValue({
+            type: "error",
+            error: "Timeout waiting for final output",
+            code: ErrorCode.SERVER_ERROR,
+          })
+        );
+      }, timeout);
+    });
+
+    // Create a wait promise that polls for the final output
+    const waitPromise = new Promise<StepValue>(async (resolve) => {
+      while (!this._finalOutput && !this._finished) {
+        await new Promise((r) => setTimeout(r, 10));
+      }
+
+      // If we're finished but don't have a final output, use the last generated value
+      if (
+        this._finished &&
+        !this._finalOutput &&
+        this._generatedValues.length > 0
+      ) {
+        this._finalOutput =
+          this._generatedValues[this._generatedValues.length - 1];
+      }
+
+      // If we still don't have a final output, create a default one
+      if (!this._finalOutput) {
+        this._finalOutput = new StepValue({
+          type: "text",
+          text: "No output",
+        });
+      }
+
+      resolve(this._finalOutput);
+    });
+
+    // Race the timeout promise against the wait promise
+    this._finalOutput = await Promise.race([waitPromise, timeoutPromise]);
     return this._finalOutput;
   }
 

@@ -95,6 +95,7 @@ describe("ParallelElement", () => {
       type: "object",
       object: { id: "parallel1", isActive: true },
       raw: JSON.stringify({ id: "parallel1", isActive: true }),
+      wasHealed: false,
     });
   });
 
@@ -129,6 +130,7 @@ describe("ParallelElement", () => {
       type: "object",
       object: { id: "parallel1", isActive: true },
       raw: JSON.stringify({ id: "parallel1", isActive: true }),
+      wasHealed: false,
     });
   });
 });

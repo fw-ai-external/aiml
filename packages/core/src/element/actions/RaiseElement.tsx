@@ -10,15 +10,21 @@ export const Raise = createElementDefinition<RaiseProps>({
   async execute(ctx) {
     const { event } = ctx.attributes;
 
+    if (!event) {
+      throw new Error("Raise element requires an 'event' attribute");
+    }
+
     try {
       // Send the event using the context's sendEvent method
       // @ts-expect-error until we fix it lol
       ctx.sendEvent(event);
 
+      const resultObject = { event };
+
       return new StepValue({
         type: "object",
-        object: { event },
-        raw: JSON.stringify({ event }),
+        object: resultObject,
+        raw: JSON.stringify(resultObject),
       });
     } catch (error) {
       console.error(`Error in raise element (${event}):`, error);

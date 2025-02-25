@@ -96,6 +96,7 @@ describe("TransitionElement", () => {
         target: "state2",
         conditionMet: true,
       }),
+      wasHealed: false,
     });
   });
 
@@ -121,6 +122,7 @@ describe("TransitionElement", () => {
         target: "state2",
         conditionMet: true,
       }),
+      wasHealed: false,
     });
   });
 
@@ -146,6 +148,7 @@ describe("TransitionElement", () => {
         target: "state2",
         conditionMet: false,
       }),
+      wasHealed: false,
     });
   });
 });
