@@ -385,23 +385,21 @@ or developers can immediately use in their creative projects.
         </prompt>
         </llm>
         <script>
-        try {
-            ctx.datamodel.plotHooks = JSON.parse(ctx.lastElement.output);
-            if (!Array.isArray(ctx.datamodel.plotHooks)) {
-            throw new Error("Plot hooks not in array format");
+            let plotHooks = [];
+            try {
+                plotHooks = JSON.parse(ctx.lastElement.output);
+                if (!Array.isArray(plotHooks)) {
+                    throw new Error("Plot hooks not in array format");
+                }
+            } catch(e) {
+                console.log("Error parsing plot hooks: " + e.message);
+                plotHooks = [
+                    "A mysterious figure from the character's past reappears, threatening to reveal a long-buried secret."
+                ];
             }
-        } catch(e) {
-            console.log("Error parsing plot hooks: " + e.message);
-            ctx.datamodel.plotHooks = [
-            "A mysterious figure from the character's past reappears, threatening to reveal a long-buried secret."
-            ];
-        }
-        </script>
-        <log value={(ctx) => 'Generated ' + ctx.datamodel.plotHooks.length + ' plot hooks'} />
-        
-        <script>
-            // Prepare the final character persona object that will be automatically sent when reaching the final state
-            ctx.datamodel.finalCharacterPersona = {
+            
+            // Prepare the final character persona object
+            const finalCharacterPersona = {
                 "name": ctx.datamodel.characterName,
                 "genre": ctx.datamodel.genre,
                 "archetype": ctx.datamodel.archetype,
@@ -414,9 +412,20 @@ or developers can immediately use in their creative projects.
                 "strengths": ctx.datamodel.strengths,
                 "relationships": ctx.datamodel.relationships,
                 "characterVoice": ctx.datamodel.characterVoice,
-                "plotHooks": ctx.datamodel.plotHooks
+                "plotHooks": plotHooks
+            };
+            
+            // Store the results to be assigned to the datamodel
+            return {
+                plotHooks,
+                finalCharacterPersona
             };
         </script>
+        
+        <assign location="plotHooks" value={(ctx) => ctx.lastElement.output.plotHooks} />
+        <assign location="finalCharacterPersona" value={(ctx) => ctx.lastElement.output.finalCharacterPersona} />
+        
+        <log value={(ctx) => 'Generated ' + ctx.datamodel.plotHooks.length + ' plot hooks'} />
     </state>
 
     <final id="assembleCharacterPersona" />

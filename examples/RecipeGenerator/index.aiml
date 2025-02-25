@@ -413,21 +413,21 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
 
         </llm>
         <script>
+            let tips = [];
+            let variations = [];
+            
             try {
-            const tipsAndVariations = JSON.parse(ctx.lastElement.output);
-            ctx.datamodel.tips = tipsAndVariations.tips || [];
-            ctx.datamodel.variations = tipsAndVariations.variations || [];
+                const tipsAndVariations = JSON.parse(ctx.lastElement.output);
+                tips = tipsAndVariations.tips || [];
+                variations = tipsAndVariations.variations || [];
             } catch(e) {
-            ctx.log("Error parsing tips and variations: " + e.message);
-            ctx.datamodel.tips = ["Cook ingredients to proper temperatures for food safety"];
-            ctx.datamodel.variations = ["Try adding different seasonings to vary the flavor"];
+                ctx.log("Error parsing tips and variations: " + e.message);
+                tips = ["Cook ingredients to proper temperatures for food safety"];
+                variations = ["Try adding different seasonings to vary the flavor"];
             }
-        </script>
-        <log value={(ctx) => 'Generated ' + ctx.datamodel.tips.length + ' tips and ' + ctx.datamodel.variations.length + ' variations'} />
-        
-        <script>
-            // Prepare the final recipe object that will be automatically sent when reaching the final state
-            ctx.datamodel.finalRecipe = {
+            
+            // Prepare the final recipe object
+            const finalRecipe = {
                 "title": ctx.datamodel.recipeTitle,
                 "recipeType": ctx.datamodel.recipeType,
                 "mealType": ctx.datamodel.mealType,
@@ -440,10 +440,23 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
                 "ingredients": ctx.datamodel.recipeIngredients,
                 "preparation": ctx.datamodel.prepSteps,
                 "cooking": ctx.datamodel.cookingSteps,
-                "tips": ctx.datamodel.tips,
-                "variations": ctx.datamodel.variations
+                "tips": tips,
+                "variations": variations
+            };
+            
+            // Store the results to be assigned to the datamodel
+            ctx.scriptResults = {
+                tips,
+                variations,
+                finalRecipe
             };
         </script>
+        
+        <assign location="tips" value={(ctx) => ctx.scriptResults.tips} />
+        <assign location="variations" value={(ctx) => ctx.scriptResults.variations} />
+        <assign location="finalRecipe" value={(ctx) => ctx.scriptResults.finalRecipe} />
+        
+        <log value={(ctx) => 'Generated ' + ctx.datamodel.tips.length + ' tips and ' + ctx.datamodel.variations.length + ' variations'} />
     </state>
 
     <final id="assembleRecipe" />

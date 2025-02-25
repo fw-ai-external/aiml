@@ -95,14 +95,17 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
       <script>
         // Check if any symptoms match emergency symptoms
         const emergencySymptoms = JSON.parse(EmergencySymptoms);
+        let isEmergency = false;
+        let emergencyReason = "";
+        
         for (const symptom of ctx.datamodel.symptoms) {
           const matchedEmergency = emergencySymptoms.find(es => 
             symptom.toLowerCase().includes(es.keyword.toLowerCase())
           );
           
           if (matchedEmergency) {
-            ctx.datamodel.isEmergency = true;
-            ctx.datamodel.emergencyReason = matchedEmergency.reason;
+            isEmergency = true;
+            emergencyReason = matchedEmergency.reason;
             break;
           }
         }
@@ -112,8 +115,8 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
           s.toLowerCase().includes("fever") || 
           s.toLowerCase().includes("rash") || 
           s.toLowerCase().includes("not eating"))) {
-          ctx.datamodel.isEmergency = true;
-          ctx.datamodel.emergencyReason = "Infants under 2 years with persistent symptoms require immediate medical attention";
+          isEmergency = true;
+          emergencyReason = "Infants under 2 years with persistent symptoms require immediate medical attention";
         }
         
         // Check for elderly with certain symptoms
@@ -121,10 +124,20 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
           s.toLowerCase().includes("confusion") || 
           s.toLowerCase().includes("severe pain") || 
           s.toLowerCase().includes("shortness of breath"))) {
-          ctx.datamodel.isEmergency = true;
-          ctx.datamodel.emergencyReason = "Elderly patients with these symptoms should seek immediate medical care";
+          isEmergency = true;
+          emergencyReason = "Elderly patients with these symptoms should seek immediate medical care";
         }
+        
+        // Store the results to be assigned to the datamodel
+        return {
+          isEmergency,
+          emergencyReason
+        };
       </script>
+      
+      <assign location="isEmergency" value={(ctx) => ctx.lastElement.output.isEmergency} />
+      <assign location="emergencyReason" value={(ctx) => ctx.lastElement.output.emergencyReason} />
+      
       <log value={(ctx) => 'Emergency check completed: ' + (ctx.datamodel.isEmergency ? 'YES - ' + ctx.datamodel.emergencyReason : 'No')} />
     
       <transition cond={(ctx) => ctx.datamodel.isEmergency} target="emergencyResponse" />
@@ -159,27 +172,35 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
           general: ["fever", "fatigue", "weight loss", "weight gain", "night sweats"]
         };
         
-        ctx.datamodel.symptomGroups = {};
+        let symptomGroups = {};
         for (const [system, keywords] of Object.entries(bodySystems)) {
           const matchedSymptoms = ctx.datamodel.symptoms.filter(symptom => 
             keywords.some(keyword => symptom.toLowerCase().includes(keyword))
           );
           
           if (matchedSymptoms.length > 0) {
-            ctx.datamodel.symptomGroups[system] = matchedSymptoms;
+            symptomGroups[system] = matchedSymptoms;
           }
         }
         
         // Assign any unmatched symptoms to "other"
-        const allGroupedSymptoms = Object.values(ctx.datamodel.symptomGroups).flat();
+        const allGroupedSymptoms = Object.values(symptomGroups).flat();
         const ungroupedSymptoms = ctx.datamodel.symptoms.filter(symptom => 
           !allGroupedSymptoms.includes(symptom)
         );
         
         if (ungroupedSymptoms.length > 0) {
-          ctx.datamodel.symptomGroups.other = ungroupedSymptoms;
+          symptomGroups.other = ungroupedSymptoms;
         }
+        
+        // Store the results to be assigned to the datamodel
+        return {
+          symptomGroups
+        };
       </script>
+      
+      <assign location="symptomGroups" value={(ctx) => ctx.lastElement.output.symptomGroups} />
+      
       <log value={(ctx) => 'Symptom analysis complete. Identified ' + Object.keys(ctx.datamodel.symptomGroups).length + ' affected body systems'} />
       <transition target="generateDiagnoses" />
   </state>
@@ -217,22 +238,23 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
         </prompt>
       </llm>
       <script>
+        let potentialDiagnoses;
         try {
-          ctx.datamodel.potentialDiagnoses = JSON.parse(ctx.lastElement.output);
+          potentialDiagnoses = JSON.parse(ctx.lastElement.output);
           
           // Validate structure
-          if (!Array.isArray(ctx.datamodel.potentialDiagnoses)) {
+          if (!Array.isArray(potentialDiagnoses)) {
             throw new Error("Diagnoses not in array format");
           }
           
           // Ensure we have at least one diagnosis
-          if (ctx.datamodel.potentialDiagnoses.length === 0) {
+          if (potentialDiagnoses.length === 0) {
             throw new Error("No diagnoses generated");
           }
         } catch (e) {
           ctx.log("Error parsing diagnoses: " + e.message);
           // Create a fallback diagnosis
-          ctx.datamodel.potentialDiagnoses = [
+          potentialDiagnoses = [
             {
               diagnosis: "Insufficient information for accurate assessment",
               likelihood: "medium",
@@ -241,7 +263,15 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
             }
           ];
         }
+        
+        // Store the results to be assigned to the datamodel
+        return {
+          potentialDiagnoses
+        };
       </script>
+      
+      <assign location="potentialDiagnoses" value={(ctx) => ctx.lastElement.output.potentialDiagnoses} />
+      
       <transition target="generateReasoning" />
   </state>
 
@@ -311,14 +341,15 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
         </prompt>
       </llm>
       <script>
+        let recommendations;
         try {
-          ctx.datamodel.recommendations = JSON.parse(ctx.lastElement.output);
-          if (!Array.isArray(ctx.datamodel.recommendations)) {
+          recommendations = JSON.parse(ctx.lastElement.output);
+          if (!Array.isArray(recommendations)) {
             throw new Error("Recommendations not in array format");
           }
         } catch (e) {
           ctx.log("Error parsing recommendations: " + e.message);
-          ctx.datamodel.recommendations = [
+          recommendations = [
             {
               type: "general",
               recommendation: "Consult with a healthcare provider for proper evaluation",
@@ -327,14 +358,24 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
           ];
         }
         
-        // Prepare the final diagnosis results that will be automatically sent when reaching the final state
-        ctx.datamodel.finalDiagnosis = {
+        // Prepare the final diagnosis results
+        const finalDiagnosis = {
           "diagnoses": ctx.datamodel.potentialDiagnoses,
           "reasoning": ctx.datamodel.diagnosticReasoning,
-          "recommendations": ctx.datamodel.recommendations,
+          "recommendations": recommendations,
           "disclaimer": "This analysis is for informational purposes only and does not constitute medical advice. Always consult with a qualified healthcare provider for proper diagnosis and treatment."
         };
+        
+        // Store the results to be assigned to the datamodel
+        return {
+          recommendations,
+          finalDiagnosis
+        };
       </script>
+      
+      <assign location="recommendations" value={(ctx) => ctx.lastElement.output.recommendations} />
+      <assign location="finalDiagnosis" value={(ctx) => ctx.lastElement.output.finalDiagnosis} />
+      
       <transition target="presentResults" />
   </state>
 
