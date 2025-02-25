@@ -374,13 +374,11 @@ Marks a terminal state in the workflow.
 
 ```mdx
 <final id="complete">
-  <onentry>
     <sendObject>
       {
         "result": ctx.datamodel.output
       }
     </sendObject>
-  </onentry>
 </final>
 ```
 
@@ -664,10 +662,7 @@ Contains error handling logic.
 ```mdx
 <onerror>
   <log value={(ctx) => `Error occurred: "${ctx._event.data.message}"`/>
-  <sendText>
-    I apologize, but an error occurred while processing your request.
-    Error details: {ctx._event.data.message}
-  </sendText>
+  <transition target"error">
 </onerror>
 ```
 
@@ -847,17 +842,18 @@ Implement robust error handling:
   </if>
 </state>
 
-<state id="handleError">
+<final id="handleError">
   <onentry>
     <log value={(ctx) => 'Error occurred: ' + ctx.datamodel.error.message} />
-    <sendText>
+    
+  </onentry>
+  <sendText>
       I encountered an error while processing your request: 
       {ctx.datamodel.error.message}
       
       Please try again with different inputs.
     </sendText>
-  </onentry>
-</state>
+</final>
 ```
 
 ## Debugging Tips
