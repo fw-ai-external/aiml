@@ -1,0 +1,146 @@
+[
+  {
+    "id": "SEC001",
+    "description": "SQL injection vulnerability through concatenated queries",
+    "severity": "critical",
+    "pattern": "SELECT.*\\+.*|SELECT.*\\|\\|.*|SELECT.*concat\\(.*\\)|execute\\s*\\(.*\\$|\\bexec\\s*\\(.*user",
+    "fileTypes": ["js", "php", "py", "java", "rb", "cs"],
+    "categories": ["security", "injection"],
+    "remediation": "Use parameterized queries or prepared statements instead of concatenating user input into SQL queries."
+  },
+  {
+    "id": "SEC002",
+    "description": "Cross-site scripting (XSS) vulnerability",
+    "severity": "high",
+    "pattern": "innerHTML\\s*=|document\\.write\\s*\\(|\\$\\(.*\\)\\.html\\(|eval\\s*\\(",
+    "fileTypes": ["js", "html", "jsx", "tsx", "vue"],
+    "categories": ["security", "xss"],
+    "remediation": "Use safe methods like textContent instead of innerHTML, or implement proper output encoding."
+  },
+  {
+    "id": "SEC003",
+    "description": "Hard-coded credentials",
+    "severity": "high",
+    "pattern": "password\\s*=\\s*['\\\"].*['\\\"]|apiKey\\s*=\\s*['\\\"].*['\\\"]|secret\\s*=\\s*['\\\"].*['\\\"]|pwd\\s*=\\s*['\\\"].*['\\\"]",
+    "fileTypes": ["js", "py", "java", "rb", "cs", "php", "ts", "go", "config", "xml", "json", "yaml", "yml"],
+    "categories": ["security", "credentials"],
+    "remediation": "Store credentials in secure environment variables or a secrets management system."
+  },
+  {
+    "id": "SEC004",
+    "description": "Insecure direct object reference (IDOR)",
+    "severity": "high",
+    "pattern": "findById\\s*\\(.*req\\.params|getById\\s*\\(.*req\\.params|findOne\\s*\\(.*req\\.params",
+    "fileTypes": ["js", "ts", "php", "py", "rb"],
+    "categories": ["security", "authorization"],
+    "remediation": "Implement proper authorization checks before accessing or modifying objects by ID."
+  },
+  {
+    "id": "SEC005",
+    "description": "Command injection vulnerability",
+    "severity": "critical",
+    "pattern": "exec\\s*\\(.*\\$|execSync\\s*\\(.*\\$|spawn\\s*\\(.*\\$|system\\s*\\(.*\\$|subprocess\\.call\\s*\\(.*\\$|eval\\s*\\(.*\\$",
+    "fileTypes": ["js", "php", "py", "rb", "sh", "bash"],
+    "categories": ["security", "injection"],
+    "remediation": "Use allowlists for command arguments, avoid passing user input to system commands."
+  },
+  {
+    "id": "SEC006",
+    "description": "Insecure file operations",
+    "severity": "high",
+    "pattern": "readFile\\s*\\(.*req\\.params|readFile\\s*\\(.*req\\.query|writeFile\\s*\\(.*req\\.body|open\\s*\\(.*request\\.args",
+    "fileTypes": ["js", "ts", "php", "py", "rb", "java"],
+    "categories": ["security", "file-operations"],
+    "remediation": "Validate and sanitize file paths, use path traversal prevention, and implement proper access controls."
+  },
+  {
+    "id": "SEC007",
+    "description": "Missing CSRF protection",
+    "severity": "medium",
+    "pattern": "app\\.post\\s*\\(|router\\.post\\s*\\(|app\\.put\\s*\\(|router\\.put\\s*\\(|app\\.delete\\s*\\(|router\\.delete\\s*\\(",
+    "fileTypes": ["js", "ts"],
+    "categories": ["security", "csrf"],
+    "remediation": "Implement CSRF tokens for state-changing operations in web applications."
+  },
+  {
+    "id": "SEC008",
+    "description": "Weak cryptography",
+    "severity": "high",
+    "pattern": "MD5|SHA1|createCipher\\s*\\(|DES|RC4|createHash\\s*\\(['\\\"]md5['\\\"]|createHash\\s*\\(['\\\"]sha1['\\\"]",
+    "fileTypes": ["js", "py", "java", "rb", "cs", "php", "go"],
+    "categories": ["security", "cryptography"],
+    "remediation": "Use strong, modern cryptographic algorithms (e.g., SHA-256, AES-GCM) and secure key management."
+  },
+  {
+    "id": "SEC009",
+    "description": "JWT without verification",
+    "severity": "high",
+    "pattern": "jwt\\.sign\\s*\\(|verify:\\s*false|jwt\\.decode\\s*\\(.*\\{\\s*verify:\\s*false",
+    "fileTypes": ["js", "ts"],
+    "categories": ["security", "authentication"],
+    "remediation": "Always verify JWT signatures and validate claims before trusting token contents."
+  },
+  {
+    "id": "SEC010",
+    "description": "Insecure cookie settings",
+    "severity": "medium",
+    "pattern": "cookie\\s*\\(.*\\{\\s*(?!.*secure).*\\}|cookie\\s*\\(.*\\{\\s*(?!.*httpOnly).*\\}|Set-Cookie:[^;](?!.*secure)|Set-Cookie:[^;](?!.*httpOnly)",
+    "fileTypes": ["js", "ts", "php", "py", "rb", "java"],
+    "categories": ["security", "cookies"],
+    "remediation": "Set secure and httpOnly flags for sensitive cookies, and use SameSite attribute."
+  },
+  {
+    "id": "SEC011",
+    "description": "Missing rate limiting",
+    "severity": "medium",
+    "pattern": "app\\.post\\s*\\(['\\\"]\\/?login['\\\"]|app\\.post\\s*\\(['\\\"]\\/?authenticate['\\\"]|app\\.post\\s*\\(['\\\"]\\/?register['\\\"]",
+    "fileTypes": ["js", "ts", "php", "py", "rb"],
+    "categories": ["security", "rate-limiting"],
+    "remediation": "Implement rate limiting for authentication endpoints to prevent brute force attacks."
+  },
+  {
+    "id": "SEC012",
+    "description": "Path traversal vulnerability",
+    "severity": "high",
+    "pattern": "path\\.join\\s*\\([^,]*,\\s*req\\.|path\\.resolve\\s*\\([^,]*,\\s*req\\.|fs\\.readFile\\s*\\(.*req\\.|fs\\.readFileSync\\s*\\(.*req\\.",
+    "fileTypes": ["js", "ts", "php", "py", "rb", "java"],
+    "categories": ["security", "file-operations"],
+    "remediation": "Validate and sanitize file paths, use absolute paths, and implement proper access controls."
+  },
+  {
+    "id": "SEC013",
+    "description": "Insufficient logging of security events",
+    "severity": "low",
+    "pattern": "authenticate\\s*\\(|authorization\\s*\\(|login\\s*\\((?!.*log)|register\\s*\\((?!.*log)",
+    "fileTypes": ["js", "ts", "php", "py", "rb", "java"],
+    "categories": ["security", "logging"],
+    "remediation": "Implement proper logging for security-relevant events with appropriate detail."
+  },
+  {
+    "id": "SEC014",
+    "description": "Potential DoS through regular expression",
+    "severity": "medium",
+    "pattern": "\\.\\.+\\*|\\*\\.\\.+|\\{\\d+,\\}|\\+\\+|\\*\\*",
+    "fileTypes": ["js", "ts", "php", "py", "rb", "java"],
+    "categories": ["security", "performance"],
+    "remediation": "Avoid potentially catastrophic backtracking in regular expressions, use limited repetition."
+  },
+  {
+    "id": "SEC015",
+    "description": "Use of unsafe JavaScript function eval()",
+    "severity": "high",
+    "pattern": "eval\\s*\\(|new\\s+Function\\s*\\(|setTimeout\\s*\\(['\\\"]|setInterval\\s*\\(['\\\"]",
+    "fileTypes": ["js", "ts", "html"],
+    "categories": ["security", "injection"],
+    "remediation": "Avoid using eval() and other dynamic code execution functions. Use safer alternatives."
+  },
+  {
+    "id": "SEC016",
+    "description": "XML External Entity (XXE) vulnerability",
+    "severity": "high",
+    "pattern": "parseXml\\s*\\(|DOMDocument|SAXParser|XMLReader|simplexml_load_string\\s*\\(|libxml_disable_entity_loader\\s*\\(false",
+    "fileTypes": ["php", "xml", "html", "js", "ts", "py", "rb", "java"],
+    "categories": ["security", "xml"],
+    "remediation": "Use XML parsers with entity loading disabled, or implement proper input validation and sanitization."
+  }
+]

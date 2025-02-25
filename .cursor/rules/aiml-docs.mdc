@@ -1,0 +1,162 @@
+---
+description: aiml / mdx syntax docs, features, and flows
+globs: packages/core/**, apps/vscode-plugin/**
+alwaysApply: false
+---
+## Header syntax
+Headers are used to define if the file is an AIML root, the name of AIML, the input schema, and the output schema using json schema.
+If the file is an AIML root, the input schema is used to define the input expected in the API call to the FireAgent.
+If the file is not an AIML root, the input schema is used to define the props that are accepted when it is imported by another AIML file.
+
+```mdx
+---
+name: ReasoningChainExample
+inputSchema:
+  type: object
+  properties:
+    problem:
+      type: string
+      description: The problem to solve
+root: true
+---
+```
+
+# Imports
+
+Imports are used to import other AIML files, JSON, markdown, Jsvascript, Typescript and Python files. All files except AIML and JSON are imported and treated as strings.
+
+As such, named imports/exports are not supported.
+
+```mdx
+// This will import the AIML file as a string and treat it as a state.
+import ReasoningChainState2 from "./ReasoningChainState2.aiml"
+
+// It can then be used as an element in the current AIML file.
+<ReasoningChainState2 />
+
+// importing JS/TS/Python/etc files will treat the file as a string.
+import myPYFile from "./myFile.py"
+
+// and then use it in a script.
+<script>
+  {myPYFile}
+</script>
+```
+
+## Comments
+{/* 
+Comments will be used by tooling to provide optimization hints to the AIML tooling.
+
+The tooling can then use this to provide hints, errors, feedback, and build optimized versions of prompts akin to DSPy, or LLMLingua. 
+Evaluations and dataset/fine tuned model creation also uses this description to better fit the task.
+
+This text should really focus on the task from a high level and describe the problem being solved. Almost like comments in code explaining the why.
+
+If you are familure with Jupiter notebooks you might understand this as the markdown cell above the code cell. 
+*/}
+
+## Workflows
+
+Workflows are an optional way to define a task. They are a way to define a sequence of states that will be executed.
+
+You choose to use workflows when you want to have more control over the execution order of the task.
+
+You can not use text/markdown before a workflow, it must be at the top level of the file.
+
+### Here is an example of a Reasoning Chain workflow:
+
+<workflow initial="understand">
+  <datamodel>
+    <data id="problem" type="string">{userInput.problem}</data>
+    <data id="steps" type="json" value={[]} />
+  </datamodel>
+
+  <state id="understand">
+    <onentry>
+      <assign location="steps[0]" expr="'Define variables and constraints'" />
+    </onentry>
+    <transition target="analyze" />
+  </state>
+
+  <state id="analyze">
+    <onentry>
+      <assign location="steps[1]" expr="'Apply inventory models'" />
+    </onentry>
+    <transition target="conclude" />
+  </state>
+
+  <state id="conclude" final="true">
+    <onentry>
+      <log expr="'Completed all ' + steps.length + ' steps'" />
+    </onentry>
+  </state>
+</workflow>
+
+## Non-Workflow usage
+
+If you do not use workflows, you can still use states and transitions to define a task.
+
+In this case, the initial state is selected by the model. and a description can be added to the state to help the model understand the state.
+
+After the model selects the initial state, element execution follows the same rules as a workflow.
+
+The markdown before the states is treated as the system prompt for the model to use when selecting the initial state.
+
+Note that markdown is NOT supported at the top level of the file after jsx elements are used.
+
+```mdx
+Text here is fine and very useful.
+
+<state id="understand" description="This state defines the first step of the reasoning chain.">
+  <onentry>
+    <assign location="steps[0]" expr="'Define variables and constraints'" />
+  </onentry>
+</state>
+
+Text here will result in an error.
+```
+
+## Supported elements
+
+The following elements are supported in AIML:
+
+- `<workflow>` - Root element that defines a complete workflow with states and transitions
+- `<state>` - Defines a single state in the workflow that can contain entry/exit actions and transitions
+- `<parallel>` - Allows multiple states to be active simultaneously
+- `<transition>` - Defines movement between states based on events or conditions
+- `<assign>` - Sets a value to a data model variable
+- `<log>` - Outputs a message to the execution log
+- `<script>` - Executes JavaScript code within the workflow
+- `<onentry>` - Contains actions to execute when entering a state
+- `<onexit>` - Contains actions to execute when exiting a state
+- `<onerror>` - Contains error handling logic
+- `<onchunk>` - Handles streaming chunks of data from an LLM
+- `<oninput>` - Processes input events in the workflow
+- `<foreach>` - Iterates over a collection of items
+- `<if>` - Conditional execution of actions
+- `<elseif>` - Alternative condition in an if/else block
+- `<else>` - Default case in an if/else block
+- `<final>` - Marks a terminal state in the workflow, after which no more states are executed and the workflow ends.
+- `<datamodel>` - Contains variable declarations for the workflow. They can be defined in the root of the file or workflow or they can be defined in a state. When defined in a state, the variables are local to the state and its children.
+- `<data>` - Declares a single variable in the datamodel with a type and optional value
+- `<llm>` - Configures and executes an LLM call
+- `<toolcall>` - Executes a specific tool call, or tool calls
+- `<sendText>` - Sends text content to the client, injecting the text into the stream if the request is streaming
+- `<sendToolCalls>` - Sends tool call results to the client, injecting the tool call results into the stream if the request is streaming
+- `<sendObject>` - Sends a structured object to the client, injecting the object into the stream if the request is streaming
+
+If tags are usedbeyond these, and the tag is not imported as a custom element from another file, it will be treated as simply text. 
+To prevent confusion though, tooling will do fuzzy matching to see if the tag is perhaps just mistyped and warn the user.
+
+## Custom elements
+
+Custom elements are imported from other files and can be used in the same file.
+
+```mdx
+import { MyCustomElement } from "./MyCustomElement.js"
+
+<MyCustomElement />
+```
+
+
+

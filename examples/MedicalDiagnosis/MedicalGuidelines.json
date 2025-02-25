@@ -1,0 +1,176 @@
+{
+  "systemSpecific": [
+    {
+      "system": "respiratory",
+      "recommendation": "For respiratory symptoms, ensure adequate hydration, consider using a humidifier for dry cough, and elevate the head when sleeping. If shortness of breath occurs, seek prompt medical attention."
+    },
+    {
+      "system": "cardiovascular",
+      "recommendation": "For cardiovascular symptoms, rest and avoid strenuous activity. If chest pain persists for more than a few minutes or is accompanied by other symptoms, seek emergency medical attention."
+    },
+    {
+      "system": "gastrointestinal",
+      "recommendation": "For gastrointestinal issues, start with a bland diet (BRAT: bananas, rice, applesauce, toast), stay hydrated, and avoid alcohol, caffeine, and spicy foods until symptoms improve."
+    },
+    {
+      "system": "neurological",
+      "recommendation": "For neurological symptoms like headaches, ensure adequate rest in a quiet, dark room. If headache is sudden, severe, or accompanied by neurological changes, seek immediate medical attention."
+    },
+    {
+      "system": "musculoskeletal",
+      "recommendation": "For musculoskeletal pain, remember RICE (Rest, Ice, Compression, Elevation) for the first 48 hours. Over-the-counter pain relievers may help, but consult healthcare providers for pain that doesn't improve."
+    },
+    {
+      "system": "dermatological",
+      "recommendation": "For skin conditions, keep the affected area clean and avoid scratching. Moisturize dry skin and use cold compresses for itching. Seek medical attention for rapidly spreading rashes or those accompanied by fever."
+    },
+    {
+      "system": "endocrine",
+      "recommendation": "For symptoms that may be related to endocrine disorders, maintain regular meal times, stay hydrated, and monitor for patterns in symptoms. Consider keeping a symptom journal to share with your healthcare provider."
+    },
+    {
+      "system": "immune",
+      "recommendation": "For potential immune system issues, practice good hygiene, get adequate rest, maintain a balanced diet, and avoid known allergens. Consider tracking symptoms to identify patterns or triggers."
+    }
+  ],
+  "conditionSpecific": [
+    {
+      "condition": "Common Cold",
+      "recommendation": "Rest, stay hydrated, use over-the-counter symptom relievers as needed. Contact healthcare provider if symptoms worsen after 10 days or if you develop high fever, severe sinus pain, or shortness of breath.",
+      "urgency": "routine"
+    },
+    {
+      "condition": "Influenza",
+      "recommendation": "Rest, stay hydrated, and take acetaminophen for fever and pain. Antiviral medications may be prescribed if started within 48 hours of symptom onset. Contact healthcare provider if breathing becomes difficult or you're unable to keep fluids down.",
+      "urgency": "soon"
+    },
+    {
+      "condition": "Migraine",
+      "recommendation": "Rest in a quiet, dark room. Apply cold compresses to forehead. Over-the-counter pain relievers may help if taken early. For frequent migraines, consult healthcare provider about preventive treatments.",
+      "urgency": "routine"
+    },
+    {
+      "condition": "Gastroenteritis",
+      "recommendation": "Stay hydrated with small sips of clear fluids. Try bland foods when feeling better. Avoid dairy, caffeine, and fatty foods initially. Seek medical attention if unable to keep fluids down for 24 hours, have bloody diarrhea, or signs of dehydration.",
+      "urgency": "soon"
+    },
+    {
+      "condition": "Urinary Tract Infection",
+      "recommendation": "Increase water intake, urinate frequently, and complete the full course of any prescribed antibiotics. Use over-the-counter pain relievers for discomfort. Contact healthcare provider if symptoms worsen or include fever, back pain, or nausea.",
+      "urgency": "soon"
+    },
+    {
+      "condition": "Sinusitis",
+      "recommendation": "Use saline nasal irrigation, apply warm compresses to face, stay hydrated, and consider over-the-counter decongestants. If symptoms persist beyond 10 days or include severe headache or fever, consult healthcare provider.",
+      "urgency": "routine"
+    },
+    {
+      "condition": "Bronchitis",
+      "recommendation": "Rest, stay hydrated, use a humidifier, and consider over-the-counter cough suppressants for sleep. Avoid smoke and air pollutants. Contact healthcare provider if shortness of breath develops or symptoms last longer than 3 weeks.",
+      "urgency": "soon"
+    },
+    {
+      "condition": "Hypertension",
+      "recommendation": "Monitor blood pressure regularly, maintain a low-sodium diet, exercise regularly, maintain healthy weight, limit alcohol, and manage stress. Take medications as prescribed and don't stop without consulting healthcare provider.",
+      "urgency": "soon"
+    },
+    {
+      "condition": "Diabetes",
+      "recommendation": "Monitor blood glucose levels regularly, follow dietary recommendations, take medications as prescribed, exercise regularly, and keep all healthcare appointments. Seek immediate attention for very high or low blood sugar.",
+      "urgency": "soon"
+    },
+    {
+      "condition": "Asthma",
+      "recommendation": "Use prescribed inhalers as directed, identify and avoid triggers, and have an asthma action plan. Seek emergency care for severe shortness of breath or if rescue inhaler doesn't provide relief.",
+      "urgency": "soon"
+    },
+    {
+      "condition": "Gastroesophageal Reflux Disease (GERD)",
+      "recommendation": "Avoid trigger foods, don't lie down right after eating, elevate head of bed, maintain healthy weight, and take medications as prescribed. Contact healthcare provider if experiencing difficulty swallowing, weight loss, or persistent pain.",
+      "urgency": "routine"
+    },
+    {
+      "condition": "Osteoarthritis",
+      "recommendation": "Balance activity with rest, maintain healthy weight, consider physical therapy, and use prescribed pain management strategies. Apply heat for stiffness and cold for pain and swelling. Consult healthcare provider about assistive devices if needed.",
+      "urgency": "routine"
+    },
+    {
+      "condition": "Allergic Rhinitis",
+      "recommendation": "Identify and avoid triggers, use air purifiers, consider saline nasal irrigation, and take antihistamines as recommended. For severe symptoms, consult healthcare provider about prescription options.",
+      "urgency": "routine"
+    },
+    {
+      "condition": "Anxiety",
+      "recommendation": "Practice regular relaxation techniques, maintain regular sleep and exercise habits, consider mindfulness meditation, and limit caffeine and alcohol. Seek professional help if anxiety interferes with daily functioning.",
+      "urgency": "soon"
+    },
+    {
+      "condition": "Depression",
+      "recommendation": "Maintain social connections, establish regular sleep and exercise habits, set realistic goals, and consider counseling or therapy. If experiencing thoughts of self-harm, seek immediate help through emergency services or crisis hotlines.",
+      "urgency": "soon"
+    },
+    {
+      "condition": "Insomnia",
+      "recommendation": "Establish regular sleep schedule, create relaxing bedtime routine, limit screen time before bed, avoid caffeine and heavy meals in evening, and ensure sleep environment is comfortable. Consult healthcare provider if persistent.",
+      "urgency": "routine"
+    },
+    {
+      "condition": "Hyperthyroidism",
+      "recommendation": "Take medications as prescribed, consider heart-healthy diet, monitor symptoms, and keep all follow-up appointments. Report significant changes in symptoms to healthcare provider promptly.",
+      "urgency": "soon"
+    },
+    {
+      "condition": "Hypothyroidism",
+      "recommendation": "Take thyroid medication on empty stomach, maintain regular medication schedule, monitor symptoms, and attend regular check-ups. Report significant weight changes or increased fatigue to healthcare provider.",
+      "urgency": "soon"
+    },
+    {
+      "condition": "Irritable Bowel Syndrome",
+      "recommendation": "Identify and avoid trigger foods, manage stress, consider fiber supplements, stay hydrated, and maintain regular exercise. Keep a food diary to help identify patterns. Consult healthcare provider about medication options if needed.",
+      "urgency": "routine"
+    },
+    {
+      "condition": "Chronic Obstructive Pulmonary Disease (COPD)",
+      "recommendation": "Stop smoking, avoid air pollutants, get vaccinated against respiratory infections, use medications and oxygen as prescribed, and participate in pulmonary rehabilitation if recommended. Seek prompt attention for increased shortness of breath.",
+      "urgency": "soon"
+    }
+  ],
+  "generalRecommendations": {
+    "preventativeCare": [
+      "Get recommended screenings and vaccinations",
+      "Maintain regular check-ups with healthcare providers",
+      "Practice good hand hygiene to prevent infections",
+      "Follow a balanced diet with plenty of fruits and vegetables",
+      "Engage in regular physical activity appropriate for your health status",
+      "Maintain healthy weight",
+      "Get adequate sleep",
+      "Manage stress through healthy coping mechanisms",
+      "Avoid tobacco and limit alcohol consumption",
+      "Use sun protection to prevent skin damage"
+    ],
+    "whenToSeekEmergencyCare": [
+      "Difficulty breathing or shortness of breath",
+      "Chest or upper abdominal pain or pressure",
+      "Fainting, sudden dizziness, weakness",
+      "Changes in vision",
+      "Confusion or changes in mental status",
+      "Any sudden or severe pain",
+      "Uncontrolled bleeding",
+      "Severe or persistent vomiting or diarrhea",
+      "Coughing or vomiting blood",
+      "Suicidal or homicidal feelings"
+    ],
+    "medicationSafety": [
+      "Take medications exactly as prescribed",
+      "Don't stop medications without consulting healthcare provider",
+      "Keep a current list of all medications, including over-the-counter and supplements",
+      "Store medications properly and check expiration dates",
+      "Don't share prescription medications with others",
+      "Ask about potential drug interactions when starting new medications",
+      "Use pill organizers or reminders if needed to maintain schedule",
+      "Dispose of unused medications properly",
+      "Report adverse effects to healthcare provider promptly",
+      "Bring all medications to medical appointments for review"
+    ]
+  }
+}

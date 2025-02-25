@@ -1,0 +1,320 @@
+{
+  "rules": [
+    {
+      "id": "CQ001",
+      "name": "Function/Method Too Long",
+      "description": "Functions or methods should be concise and focused on a single responsibility",
+      "category": "complexity",
+      "severity": "medium",
+      "threshold": {
+        "lines": 50
+      },
+      "languages": ["all"],
+      "remediation": "Break down large functions into smaller, focused methods with clear responsibilities"
+    },
+    {
+      "id": "CQ002",
+      "name": "High Cyclomatic Complexity",
+      "description": "Code with too many branches and loops is difficult to understand and test",
+      "category": "complexity",
+      "severity": "medium",
+      "threshold": {
+        "complexity": 15
+      },
+      "languages": ["all"],
+      "remediation": "Simplify conditional logic, extract complex conditions into named methods, and consider using design patterns"
+    },
+    {
+      "id": "CQ003",
+      "name": "Excessive Nesting",
+      "description": "Deeply nested code blocks reduce readability and maintainability",
+      "category": "complexity",
+      "severity": "medium",
+      "threshold": {
+        "depth": 4
+      },
+      "languages": ["all"],
+      "remediation": "Extract nested blocks into methods, use early returns, or use guard clauses"
+    },
+    {
+      "id": "CQ004",
+      "name": "Duplicated Code",
+      "description": "Repeated code increases maintenance burden and chance of bugs",
+      "category": "duplication",
+      "severity": "high",
+      "threshold": {
+        "lines": 10,
+        "similarity": 0.9
+      },
+      "languages": ["all"],
+      "remediation": "Extract duplicated code into reusable functions, classes, or modules"
+    },
+    {
+      "id": "CQ005",
+      "name": "Inconsistent Naming Convention",
+      "description": "Names should follow a consistent style pattern throughout the codebase",
+      "category": "naming",
+      "severity": "low",
+      "patterns": {
+        "js": {
+          "variable": "^[a-z][a-zA-Z0-9]*$",
+          "constant": "^[A-Z][A-Z0-9_]*$",
+          "function": "^[a-z][a-zA-Z0-9]*$",
+          "class": "^[A-Z][a-zA-Z0-9]*$"
+        },
+        "python": {
+          "variable": "^[a-z][a-z0-9_]*$",
+          "constant": "^[A-Z][A-Z0-9_]*$",
+          "function": "^[a-z][a-z0-9_]*$",
+          "class": "^[A-Z][a-zA-Z0-9]*$"
+        }
+      },
+      "languages": ["js", "ts", "python", "java", "c#"],
+      "remediation": "Follow language-specific naming conventions and establish team standards"
+    },
+    {
+      "id": "CQ006",
+      "name": "Unclear Variable Names",
+      "description": "Variable names should clearly describe their purpose",
+      "category": "naming",
+      "severity": "medium",
+      "badPatterns": ["temp", "tmp", "x", "y", "i", "j", "k", "a", "b", "foo", "bar", "data", "result"],
+      "minLength": 2,
+      "languages": ["all"],
+      "remediation": "Use descriptive, intention-revealing names that explain variables' purpose"
+    },
+    {
+      "id": "CQ007",
+      "name": "Too Many Parameters",
+      "description": "Functions/methods with many parameters are complex and difficult to use",
+      "category": "complexity",
+      "severity": "medium",
+      "threshold": {
+        "count": 5
+      },
+      "languages": ["all"],
+      "remediation": "Use parameter objects, builder pattern, or refactor to reduce parameter count"
+    },
+    {
+      "id": "CQ008",
+      "name": "Long Lines",
+      "description": "Excessively long lines reduce code readability",
+      "category": "formatting",
+      "severity": "low",
+      "threshold": {
+        "length": 100
+      },
+      "languages": ["all"],
+      "remediation": "Break long lines into multiple lines, extract variables, or refactor"
+    },
+    {
+      "id": "CQ009",
+      "name": "Magic Numbers",
+      "description": "Unexplained numeric literals make code harder to maintain",
+      "category": "maintainability",
+      "severity": "low",
+      "exemptions": [0, 1, -1, 2, 100],
+      "languages": ["all"],
+      "remediation": "Replace magic numbers with named constants or configuration values"
+    },
+    {
+      "id": "CQ010",
+      "name": "Commented Code",
+      "description": "Dead code that's been commented out should be removed",
+      "category": "maintenance",
+      "severity": "low",
+      "pattern": "^\\s*//\\s*[a-zA-Z0-9_]+\\s*\\(|^\\s*//\\s*if\\s*\\(|^\\s*//\\s*for\\s*\\(",
+      "languages": ["all"],
+      "remediation": "Remove commented-out code; rely on version control for history"
+    },
+    {
+      "id": "CQ011",
+      "name": "Empty Catch Block",
+      "description": "Empty catch blocks suppress exceptions without handling them",
+      "category": "error-handling",
+      "severity": "high",
+      "pattern": "catch\\s*\\([^)]+\\)\\s*\\{\\s*\\}",
+      "languages": ["js", "ts", "java", "c#", "php"],
+      "remediation": "At minimum, log exceptions. Consider proper error handling or rethrowing"
+    },
+    {
+      "id": "CQ012",
+      "name": "General Exception Catching",
+      "description": "Catching general exceptions masks specific issues",
+      "category": "error-handling",
+      "severity": "medium",
+      "patterns": {
+        "js": "catch\\s*\\(\\s*[a-zA-Z0-9_]+\\s*\\)",
+        "python": "except\\s*:",
+        "java": "catch\\s*\\(\\s*Exception\\s+",
+        "c#": "catch\\s*\\(\\s*Exception\\s+"
+      },
+      "languages": ["js", "ts", "python", "java", "c#"],
+      "remediation": "Catch specific exceptions and handle each appropriately"
+    },
+    {
+      "id": "CQ013",
+      "name": "Large Class",
+      "description": "Excessively large classes violate single responsibility principle",
+      "category": "maintainability",
+      "severity": "medium",
+      "threshold": {
+        "lines": 300,
+        "methods": 20
+      },
+      "languages": ["java", "c#", "js", "ts", "python", "php"],
+      "remediation": "Split large classes into smaller, focused ones with clear responsibilities"
+    },
+    {
+      "id": "CQ014",
+      "name": "Too Many Dependencies",
+      "description": "Classes with many dependencies may violate single responsibility principle",
+      "category": "architecture",
+      "severity": "medium",
+      "threshold": {
+        "count": 7
+      },
+      "languages": ["java", "c#", "js", "ts", "python"],
+      "remediation": "Apply dependency injection, refactor to reduce coupling, consider design patterns"
+    },
+    {
+      "id": "CQ015",
+      "name": "Missing Tests",
+      "description": "Code without corresponding tests is risky to change",
+      "category": "testing",
+      "severity": "high",
+      "languages": ["all"],
+      "remediation": "Implement unit tests for all significant functionality"
+    },
+    {
+      "id": "CQ016",
+      "name": "Insufficient Comments",
+      "description": "Complex code should have explanatory comments",
+      "category": "documentation",
+      "severity": "low",
+      "threshold": {
+        "commentRatio": 0.1
+      },
+      "languages": ["all"],
+      "remediation": "Add comments explaining complex logic, decisions, and non-obvious code"
+    },
+    {
+      "id": "CQ017",
+      "name": "Unused Variables or Imports",
+      "description": "Unused code elements add noise and confusion",
+      "category": "efficiency",
+      "severity": "low",
+      "languages": ["all"],
+      "remediation": "Remove unused variables, imports, and functions"
+    },
+    {
+      "id": "CQ018",
+      "name": "Inconsistent Indentation",
+      "description": "Mixed indentation styles reduce readability",
+      "category": "formatting",
+      "severity": "low",
+      "languages": ["all"],
+      "remediation": "Use a consistent indentation style (spaces or tabs, with consistent width)"
+    },
+    {
+      "id": "CQ019",
+      "name": "Global Variables",
+      "description": "Global variables create tight coupling and side effects",
+      "category": "architecture",
+      "severity": "medium",
+      "languages": ["js", "python", "php"],
+      "remediation": "Encapsulate data in classes/modules, pass parameters explicitly, use dependency injection"
+    },
+    {
+      "id": "CQ020",
+      "name": "Complex Regex",
+      "description": "Overly complex regular expressions are hard to understand and maintain",
+      "category": "complexity",
+      "severity": "medium",
+      "threshold": {
+        "length": 50
+      },
+      "languages": ["all"],
+      "remediation": "Break complex regex into smaller parts, add comments, consider alternative parsing approaches"
+    }
+  ],
+  "bestPractices": {
+    "general": [
+      "Follow the SOLID principles",
+      "Write self-documenting code",
+      "Keep functions and methods small and focused",
+      "Test extensively; aim for high coverage",
+      "Review code before submitting",
+      "Use meaningful variable and function names",
+      "Avoid premature optimization",
+      "Be consistent in style and patterns",
+      "Refactor regularly to manage technical debt",
+      "Document architecture decisions and design patterns"
+    ],
+    "errorHandling": [
+      "Never silently swallow exceptions",
+      "Handle specific exceptions with specific responses",
+      "Include contextual information in error messages",
+      "Log errors appropriately for debugging",
+      "Validate inputs early",
+      "Fail fast when errors are detected",
+      "Return meaningful error codes/messages",
+      "Consider retry strategies for transient failures",
+      "Clean up resources in finally blocks or equivalent",
+      "Design for fault tolerance when appropriate"
+    ],
+    "security": [
+      "Never trust user input",
+      "Apply principle of least privilege",
+      "Keep security credentials out of code",
+      "Use prepared statements for database queries",
+      "Implement proper authentication and authorization",
+      "Sanitize output to prevent XSS",
+      "Use secure communication channels",
+      "Keep dependencies updated",
+      "Implement proper logging of security events",
+      "Review code specifically for security issues"
+    ],
+    "performance": [
+      "Be aware of algorithmic complexity (Big O)",
+      "Optimize database queries and access patterns",
+      "Minimize network requests",
+      "Use appropriate data structures",
+      "Consider caching for expensive operations",
+      "Be mindful of memory usage",
+      "Optimize only after measuring",
+      "Understand the performance characteristics of libraries you use",
+      "Consider asynchronous processing for long-running tasks",
+      "Design for scalability when needed"
+    ]
+  },
+  "languageSpecific": {
+    "javascript": {
+      "rules": [
+        "Use strict equality (===) instead of loose equality (==)",
+        "Declare variables with const by default, let when needed, avoid var",
+        "Prefer async/await over raw promises for better readability",
+        "Use destructuring for cleaner object property access",
+        "Leverage modern ES features like optional chaining (?.) and nullish coalescing (??)"
+      ]
+    },
+    "python": {
+      "rules": [
+        "Follow PEP 8 style guidelines",
+        "Use list comprehensions when appropriate for clarity",
+        "Leverage type hints for better documentation and IDE support",
+        "Use context managers (with statements) for resource management",
+        "Prefer explicit imports over from x import *"
+      ]
+    },
+    "java": {
+      "rules": [
+        "Favor composition over inheritance",
+        "Use interfaces to define contracts",
+        "Handle exceptions appropriately, don't use checked exceptions for control flow",
+        "Follow JavaBeans conventions when appropriate",
+        "Leverage the Collections framework properly"
+      ]
+    }
+  }
+}

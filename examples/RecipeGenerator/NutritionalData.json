@@ -1,0 +1,261 @@
+{
+  "chicken breast": {
+    "calories": 165,
+    "protein": 31,
+    "carbs": 0,
+    "fat": 3.6,
+    "fiber": 0
+  },
+  "chicken thigh": {
+    "calories": 209,
+    "protein": 26,
+    "carbs": 0,
+    "fat": 10.9,
+    "fiber": 0
+  },
+  "ground beef": {
+    "calories": 250,
+    "protein": 26,
+    "carbs": 0,
+    "fat": 17,
+    "fiber": 0
+  },
+  "salmon": {
+    "calories": 206,
+    "protein": 22.1,
+    "carbs": 0,
+    "fat": 12.4,
+    "fiber": 0
+  },
+  "tofu": {
+    "calories": 76,
+    "protein": 8,
+    "carbs": 2,
+    "fat": 5,
+    "fiber": 0.6
+  },
+  "lentils": {
+    "calories": 116,
+    "protein": 9,
+    "carbs": 20,
+    "fat": 0.4,
+    "fiber": 7.9
+  },
+  "chickpeas": {
+    "calories": 164,
+    "protein": 8.9,
+    "carbs": 27,
+    "fat": 2.6,
+    "fiber": 7.6
+  },
+  "black beans": {
+    "calories": 132,
+    "protein": 8.9,
+    "carbs": 23.7,
+    "fat": 0.5,
+    "fiber": 8.7
+  },
+  "rice": {
+    "calories": 130,
+    "protein": 2.7,
+    "carbs": 28.2,
+    "fat": 0.3,
+    "fiber": 0.4
+  },
+  "quinoa": {
+    "calories": 120,
+    "protein": 4.4,
+    "carbs": 21.3,
+    "fat": 1.9,
+    "fiber": 2.8
+  },
+  "pasta": {
+    "calories": 158,
+    "protein": 5.8,
+    "carbs": 31,
+    "fat": 0.9,
+    "fiber": 1.8
+  },
+  "potato": {
+    "calories": 77,
+    "protein": 2,
+    "carbs": 17,
+    "fat": 0.1,
+    "fiber": 2.2
+  },
+  "sweet potato": {
+    "calories": 86,
+    "protein": 1.6,
+    "carbs": 20.1,
+    "fat": 0.1,
+    "fiber": 3
+  },
+  "broccoli": {
+    "calories": 31,
+    "protein": 2.6,
+    "carbs": 6,
+    "fat": 0.3,
+    "fiber": 2.4
+  },
+  "spinach": {
+    "calories": 23,
+    "protein": 2.9,
+    "carbs": 3.6,
+    "fat": 0.4,
+    "fiber": 2.2
+  },
+  "kale": {
+    "calories": 49,
+    "protein": 4.3,
+    "carbs": 8.8,
+    "fat": 0.9,
+    "fiber": 3.6
+  },
+  "bell pepper": {
+    "calories": 31,
+    "protein": 1,
+    "carbs": 6,
+    "fat": 0.3,
+    "fiber": 2.1
+  },
+  "onion": {
+    "calories": 40,
+    "protein": 1.1,
+    "carbs": 9.3,
+    "fat": 0.1,
+    "fiber": 1.7
+  },
+  "garlic": {
+    "calories": 149,
+    "protein": 6.4,
+    "carbs": 33.1,
+    "fat": 0.5,
+    "fiber": 2.1
+  },
+  "tomato": {
+    "calories": 18,
+    "protein": 0.9,
+    "carbs": 3.9,
+    "fat": 0.2,
+    "fiber": 1.2
+  },
+  "carrot": {
+    "calories": 41,
+    "protein": 0.9,
+    "carbs": 9.6,
+    "fat": 0.2,
+    "fiber": 2.8
+  },
+  "avocado": {
+    "calories": 160,
+    "protein": 2,
+    "carbs": 8.5,
+    "fat": 14.7,
+    "fiber": 6.7
+  },
+  "olive oil": {
+    "calories": 884,
+    "protein": 0,
+    "carbs": 0,
+    "fat": 100,
+    "fiber": 0
+  },
+  "butter": {
+    "calories": 717,
+    "protein": 0.9,
+    "carbs": 0.1,
+    "fat": 81.1,
+    "fiber": 0
+  },
+  "cheese": {
+    "calories": 402,
+    "protein": 25,
+    "carbs": 2.4,
+    "fat": 33.1,
+    "fiber": 0
+  },
+  "milk": {
+    "calories": 42,
+    "protein": 3.4,
+    "carbs": 5,
+    "fat": 1,
+    "fiber": 0
+  },
+  "yogurt": {
+    "calories": 59,
+    "protein": 3.5,
+    "carbs": 5,
+    "fat": 3.3,
+    "fiber": 0
+  },
+  "eggs": {
+    "calories": 155,
+    "protein": 12.6,
+    "carbs": 1.1,
+    "fat": 10.6,
+    "fiber": 0
+  },
+  "bread": {
+    "calories": 265,
+    "protein": 9.4,
+    "carbs": 49,
+    "fat": 3.3,
+    "fiber": 2.7
+  },
+  "oats": {
+    "calories": 68,
+    "protein": 2.4,
+    "carbs": 12,
+    "fat": 1.4,
+    "fiber": 2
+  },
+  "almonds": {
+    "calories": 576,
+    "protein": 21.2,
+    "carbs": 21.7,
+    "fat": 49.9,
+    "fiber": 12.2
+  },
+  "walnuts": {
+    "calories": 654,
+    "protein": 15.2,
+    "carbs": 13.7,
+    "fat": 65.2,
+    "fiber": 6.7
+  },
+  "honey": {
+    "calories": 304,
+    "protein": 0.3,
+    "carbs": 82.4,
+    "fat": 0,
+    "fiber": 0.2
+  },
+  "maple syrup": {
+    "calories": 260,
+    "protein": 0,
+    "carbs": 67,
+    "fat": 0.1,
+    "fiber": 0
+  },
+  "sugar": {
+    "calories": 387,
+    "protein": 0,
+    "carbs": 100,
+    "fat": 0,
+    "fiber": 0
+  },
+  "flour": {
+    "calories": 364,
+    "protein": 10.3,
+    "carbs": 76.3,
+    "fat": 1,
+    "fiber": 2.7
+  },
+  "chocolate": {
+    "calories": 546,
+    "protein": 7.8,
+    "carbs": 59.4,
+    "fat": 31.3,
+    "fiber": 7
+  }
+}

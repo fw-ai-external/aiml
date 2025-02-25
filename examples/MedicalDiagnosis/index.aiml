@@ -1,0 +1,305 @@
+---
+name: MedicalDiagnosisAssistant
+inputSchema:
+  type: object
+  properties:
+    symptoms:
+      type: array
+      items:
+        type: string
+      description: List of symptoms the patient is experiencing
+    duration:
+      type: integer
+      description: Duration of symptoms in days
+    patientAge:
+      type: integer
+      description: Age of the patient in years
+    patientGender:
+      type: string
+      enum: ["male", "female", "other"]
+      description: Gender of the patient
+    medicalHistory:
+      type: array
+      items:
+        type: string
+      description: Previous medical conditions
+root: true
+---
+
+{/* 
+This AIML file implements a medical diagnosis assistant that helps analyze patient symptoms
+and medical history to provide potential diagnoses. It follows a structured workflow that
+mimics clinical reasoning - gathering information, analyzing symptoms, generating potential
+diagnoses, and providing recommendations.
+
+The system is designed to be cautious and always emphasize that medical attention should be
+sought for proper diagnosis. Each diagnostic possibility is rated by likelihood and includes
+rationale for why it might match the patient's presentation.
+*/}
+
+import MedicalGuidelines from "./MedicalGuidelines.json"
+import EmergencySymptoms from "./EmergencySymptoms.json"
+
+<workflow initial="emergencyCheck">
+  <datamodel>
+    <data id="symptoms" type="array">{userInput.symptoms}</data>
+    <data id="duration" type="integer">{userInput.duration}</data>
+    <data id="patientAge" type="integer">{userInput.patientAge}</data>
+    <data id="patientGender" type="string">{userInput.patientGender}</data>
+    <data id="medicalHistory" type="array">{userInput.medicalHistory}</data>
+    <data id="isEmergency" type="boolean" value={false} />
+    <data id="emergencyReason" type="string" value={""} />
+    <data id="symptomGroups" type="json" value={{}} />
+    <data id="potentialDiagnoses" type="array" value={[]} />
+    <data id="diagnosticReasoning" type="string" value={""} />
+    <data id="recommendations" type="array" value={[]} />
+  </datamodel>
+
+  <state id="emergencyCheck">
+    <onentry>
+      <script>
+        // Check if any symptoms match emergency symptoms
+        const emergencySymptoms = JSON.parse(EmergencySymptoms);
+        for (const symptom of symptoms) {
+          const matchedEmergency = emergencySymptoms.find(es => 
+            symptom.toLowerCase().includes(es.keyword.toLowerCase())
+          );
+          
+          if (matchedEmergency) {
+            isEmergency = true;
+            emergencyReason = matchedEmergency.reason;
+            break;
+          }
+        }
+        
+        // Check age-related emergency conditions
+        if (patientAge < 2 && duration > 2 && symptoms.some(s => 
+          s.toLowerCase().includes("fever") || 
+          s.toLowerCase().includes("rash") || 
+          s.toLowerCase().includes("not eating"))) {
+          isEmergency = true;
+          emergencyReason = "Infants under 2 years with persistent symptoms require immediate medical attention";
+        }
+        
+        // Check for elderly with certain symptoms
+        if (patientAge > 65 && symptoms.some(s => 
+          s.toLowerCase().includes("confusion") || 
+          s.toLowerCase().includes("severe pain") || 
+          s.toLowerCase().includes("shortness of breath"))) {
+          isEmergency = true;
+          emergencyReason = "Elderly patients with these symptoms should seek immediate medical care";
+        }
+      </script>
+      <log expr="'Emergency check completed: ' + (isEmergency ? 'YES - ' + emergencyReason : 'No')" />
+    </onentry>
+    
+    <if cond="isEmergency">
+      <transition target="emergencyResponse" />
+    </if>
+    <else>
+      <transition target="symptomAnalysis" />
+    </else>
+  </state>
+
+  <state id="emergencyResponse" final="true">
+    <onentry>
+      <sendObject>
+        {
+          "isEmergency": true,
+          "message": "SEEK IMMEDIATE MEDICAL ATTENTION",
+          "reason": emergencyReason,
+          "instructions": "Please contact emergency services or go to the nearest emergency room. Do not wait for symptoms to worsen."
+        }
+      </sendObject>
+    </onentry>
+  </state>
+
+  <state id="symptomAnalysis">
+    <onentry>
+      <llm model="gpt-4o" temperature={0.1}>
+        <prompt>
+          Analyze the following patient symptoms and categorize them into relevant medical systems or categories:
+          
+          Patient Information:
+          - Age: {patientAge}
+          - Gender: {patientGender}
+          - Symptom Duration: {duration} days
+          - Symptoms: {symptoms.join(", ")}
+          - Medical History: {medicalHistory.join(", ")}
+          
+          Group these symptoms into categories (e.g., respiratory, cardiovascular, gastrointestinal, neurological)
+          and identify any patterns or clusters that might be relevant for diagnosis.
+          
+          Format your response as JSON with the following structure:
+          {
+            "categories": {
+              "categoryName1": ["symptom1", "symptom2"],
+              "categoryName2": ["symptom3", "symptom4"]
+            },
+            "primarySystemAffected": "most relevant body system",
+            "observations": ["any relevant patterns or observations", "another observation"]
+          }
+        </prompt>
+
+      </llm>
+       <script>
+            try {
+              symptomGroups = JSON.parse(ctx.lastElement.output);
+            } catch(e) {
+              log("Error parsing symptom analysis: " + e.message);
+              symptomGroups = {
+                "error": true,
+                "categories": {},
+                "primarySystemAffected": "unknown",
+                "observations": ["Error in symptom categorization"]
+              };
+            }
+          </script>
+      <log expr="'Symptom analysis completed for primary system: ' + symptomGroups.primarySystemAffected" />
+    </onentry>
+    <transition target="generateDiagnoses" />
+  </state>
+
+  <state id="generateDiagnoses">
+    <onentry>
+      <llm model="gpt-4o" temperature={0.2}>
+        <prompt>
+          Generate a differential diagnosis for a patient with the following presentation:
+          
+          Patient Information:
+          - Age: {patientAge}
+          - Gender: {patientGender}
+          - Symptom Duration: {duration} days
+          - Symptoms by Category: {JSON.stringify(symptomGroups.categories)}
+          - Primary System Affected: {symptomGroups.primarySystemAffected}
+          - Medical History: {medicalHistory.join(", ")}
+          - Observations: {symptomGroups.observations.join(", ")}
+          
+          For each potential diagnosis:
+          1. Assess how well it matches the symptoms
+          2. Consider patient demographics and medical history
+          3. Evaluate symptom duration and progression
+          4. Assign a likelihood rating (High, Medium, Low)
+          
+          Provide at least 3 and no more than 5 potential diagnoses, ordered by likelihood.
+          
+          Format your response as JSON with the following structure:
+          {
+            "diagnoses": [
+              {
+                "condition": "Diagnosis name",
+                "likelihood": "High/Medium/Low",
+                "matchingSymptoms": ["symptom1", "symptom2"],
+                "nonMatchingSymptoms": ["symptom3"],
+                "rationale": "Brief explanation of why this diagnosis is considered",
+                "typicalDemographics": "Description of who typically gets this condition",
+                "recommendedTests": ["test1", "test2"]
+              }
+            ],
+            "diagnosticUncertainty": "Brief discussion of limitations in this assessment"
+          }
+        </prompt>
+      </llm>
+       <script>
+            try {
+              const diagnosisResponse = JSON.parse(ctx.lastElement.output);
+              potentialDiagnoses = diagnosisResponse.diagnoses;
+              diagnosticReasoning = diagnosisResponse.diagnosticUncertainty;
+            } catch(e) {
+              log("Error parsing diagnoses: " + e.message);
+              potentialDiagnoses = [{
+                "condition": "Unable to determine",
+                "likelihood": "Unknown",
+                "rationale": "Error in diagnosis generation",
+                "recommendedTests": ["Consult with healthcare provider"]
+              }];
+              diagnosticReasoning = "There was an error generating diagnostic possibilities. Please consult with a healthcare provider.";
+            }
+          </script>
+      <log expr="'Generated ' + potentialDiagnoses.length + ' potential diagnoses'" />
+    </onentry>
+    <transition target="generateRecommendations" />
+  </state>
+
+  <state id="generateRecommendations">
+    <onentry>
+      <script>
+        // Parse medical guidelines
+        const guidelines = JSON.parse(MedicalGuidelines);
+        
+        // Basic recommendations that apply to everyone
+        recommendations.push({
+          type: "general",
+          text: "Consult with a healthcare provider for proper diagnosis and treatment"
+        });
+        
+        // Add recommendation based on primary system affected
+        const systemGuideline = guidelines.systemSpecific.find(g => 
+          g.system.toLowerCase() === symptomGroups.primarySystemAffected.toLowerCase()
+        );
+        
+        if (systemGuideline) {
+          recommendations.push({
+            type: "systemSpecific",
+            text: systemGuideline.recommendation
+          });
+        }
+        
+        // Add recommendations for each potential diagnosis
+        for (const diagnosis of potentialDiagnoses) {
+          const matchingGuideline = guidelines.conditionSpecific.find(g => 
+            g.condition.toLowerCase() === diagnosis.condition.toLowerCase()
+          );
+          
+          if (matchingGuideline) {
+            recommendations.push({
+              type: "condition",
+              condition: diagnosis.condition,
+              text: matchingGuideline.recommendation,
+              urgency: matchingGuideline.urgency || "routine"
+            });
+          }
+          
+          // Add test recommendations
+          if (diagnosis.recommendedTests && diagnosis.recommendedTests.length > 0) {
+            recommendations.push({
+              type: "diagnosticTests",
+              condition: diagnosis.condition,
+              tests: diagnosis.recommendedTests
+            });
+          }
+        }
+        
+        // Add age-specific recommendations
+        if (patientAge < 18) {
+          recommendations.push({
+            type: "demographic",
+            text: "Pediatric evaluation is recommended for patients under 18"
+          });
+        } else if (patientAge > 65) {
+          recommendations.push({
+            type: "demographic",
+            text: "Consider geriatric evaluation for comprehensive assessment"
+          });
+        }
+      </script>
+      <log expr="'Generated ' + recommendations.length + ' recommendations'" />
+    </onentry>
+    <transition target="presentFindings" />
+  </state>
+
+  <state id="presentFindings" final="true">
+    <onentry>
+      <sendObject>
+        {
+          "isEmergency": false,
+          "disclaimer": "This information is not a medical diagnosis. Always consult with a qualified healthcare provider.",
+          "symptomAnalysis": symptomGroups,
+          "potentialDiagnoses": potentialDiagnoses,
+          "diagnosticReasoning": diagnosticReasoning,
+          "recommendations": recommendations
+        }
+      </sendObject>
+    </onentry>
+  </state>
+</workflow>

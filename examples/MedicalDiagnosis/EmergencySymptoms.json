@@ -1,0 +1,122 @@
+[
+  {
+    "keyword": "chest pain",
+    "reason": "May indicate heart attack, especially if accompanied by shortness of breath, nausea, or pain radiating to jaw or arm"
+  },
+  {
+    "keyword": "difficulty breathing",
+    "reason": "May indicate severe asthma attack, allergic reaction, or pulmonary embolism"
+  },
+  {
+    "keyword": "shortness of breath",
+    "reason": "May indicate serious respiratory or cardiac conditions, especially if sudden or severe"
+  },
+  {
+    "keyword": "sudden severe headache",
+    "reason": "May indicate stroke, aneurysm, or severe hypertension"
+  },
+  {
+    "keyword": "numbness face",
+    "reason": "May indicate stroke, especially if one-sided and accompanied by confusion or slurred speech"
+  },
+  {
+    "keyword": "facial drooping",
+    "reason": "Classic sign of stroke requiring immediate medical attention"
+  },
+  {
+    "keyword": "slurred speech",
+    "reason": "May indicate stroke or other neurological emergency"
+  },
+  {
+    "keyword": "confusion",
+    "reason": "Sudden confusion can indicate stroke, infection, low blood sugar, or other serious conditions"
+  },
+  {
+    "keyword": "seizure",
+    "reason": "Especially if first-time seizure or multiple seizures without full recovery between them"
+  },
+  {
+    "keyword": "unconscious",
+    "reason": "Loss of consciousness requires immediate medical evaluation"
+  },
+  {
+    "keyword": "unresponsive",
+    "reason": "Indicates potential life-threatening condition requiring immediate intervention"
+  },
+  {
+    "keyword": "severe abdominal pain",
+    "reason": "May indicate appendicitis, intestinal obstruction, or other acute abdominal conditions"
+  },
+  {
+    "keyword": "coughing blood",
+    "reason": "May indicate pulmonary embolism, tuberculosis, or other serious conditions"
+  },
+  {
+    "keyword": "vomiting blood",
+    "reason": "Indicates internal bleeding which can be life-threatening"
+  },
+  {
+    "keyword": "blood in stool",
+    "reason": "Especially if stool appears black or tarry, indicating potential internal bleeding"
+  },
+  {
+    "keyword": "severe allergic reaction",
+    "reason": "Especially with swelling, hives, and difficulty breathing (anaphylaxis)"
+  },
+  {
+    "keyword": "anaphylaxis",
+    "reason": "Severe, potentially life-threatening allergic reaction requiring immediate treatment"
+  },
+  {
+    "keyword": "high fever",
+    "reason": "Especially if above 103°F (39.4°C) or accompanied by severe headache, neck stiffness"
+  },
+  {
+    "keyword": "broken bone",
+    "reason": "Open fractures (bone protruding through skin) require immediate medical attention"
+  },
+  {
+    "keyword": "major trauma",
+    "reason": "Significant injuries from accidents or falls require immediate evaluation"
+  },
+  {
+    "keyword": "deep cut",
+    "reason": "Especially if bleeding cannot be controlled or affects face, hands, or genitals"
+  },
+  {
+    "keyword": "severe burn",
+    "reason": "Especially if large area, affecting face/hands/genitals, or third-degree burns"
+  },
+  {
+    "keyword": "poisoning",
+    "reason": "Ingestion of harmful substances requires immediate medical attention"
+  },
+  {
+    "keyword": "overdose",
+    "reason": "Drug or medication overdose is a medical emergency"
+  },
+  {
+    "keyword": "suicidal thoughts",
+    "reason": "Active suicidal ideation with plan requires immediate psychiatric evaluation"
+  },
+  {
+    "keyword": "pregnancy bleeding",
+    "reason": "Heavy bleeding during pregnancy can indicate dangerous complications"
+  },
+  {
+    "keyword": "eye injury",
+    "reason": "Chemical exposures, penetrating injuries, or sudden vision loss"
+  },
+  {
+    "keyword": "sudden vision loss",
+    "reason": "May indicate retinal detachment, stroke, or other emergency conditions"
+  },
+  {
+    "keyword": "severe dehydration",
+    "reason": "Especially if unable to keep fluids down or showing signs of confusion"
+  },
+  {
+    "keyword": "diabetic emergency",
+    "reason": "Very high or low blood sugar with altered mental status"
+  }
+]

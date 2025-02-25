@@ -1,0 +1,192 @@
+---
+name: InvestmentAdvisor
+inputSchema:
+  type: object
+  properties:
+    investmentGoal:
+      type: string
+      description: The financial goal of the investment
+    riskTolerance:
+      type: string
+      enum: ["low", "medium", "high"]
+      description: The risk tolerance of the investor
+    timeHorizon:
+      type: integer
+      description: Investment time horizon in years
+    initialInvestment:
+      type: number
+      description: Initial investment amount in USD
+root: true
+---
+
+{/* 
+This AIML implements a financial investment advisor workflow that analyzes user inputs
+about their investment goals, risk tolerance, time horizon, and initial investment amount.
+It guides users through a step-by-step process from profile assessment to final recommendation,
+using a structured approach to ensure comprehensive financial advice.
+
+The workflow separates concerns into distinct states to progressively refine the investment
+strategy based on the user's specific criteria and market conditions.
+*/}
+
+<workflow initial="profileAssessment">
+  <datamodel>
+    <data id="investmentGoal" type="string">{userInput.investmentGoal}</data>
+    <data id="riskTolerance" type="string">{userInput.riskTolerance}</data>
+    <data id="timeHorizon" type="integer">{userInput.timeHorizon}</data>
+    <data id="initialInvestment" type="number">{userInput.initialInvestment}</data>
+    <data id="profile" type="json" value={{}} />
+    <data id="assetAllocation" type="json" value={{}} />
+    <data id="portfolioRecommendation" type="json" value={{}} />
+    <data id="marketAnalysis" type="string" value={""} />
+  </datamodel>
+
+  <state id="profileAssessment">
+    <onentry>
+      <script>
+        profile.investorCategory = timeHorizon > 10 ? "long-term" : timeHorizon > 5 ? "medium-term" : "short-term";
+        profile.investmentCapacity = initialInvestment > 100000 ? "high" : initialInvestment > 10000 ? "medium" : "limited";
+        profile.goalType = investmentGoal.toLowerCase().includes("retirement") ? "retirement" : 
+                           investmentGoal.toLowerCase().includes("education") ? "education" : 
+                           investmentGoal.toLowerCase().includes("house") ? "major purchase" : "growth";
+      </script>
+      <log expr="'Investor profile assessed: ' + JSON.stringify(profile)" />
+    </onentry>
+    <transition target="marketAnalysis" />
+  </state>
+
+  <state id="marketAnalysis">
+    <onentry>
+      <llm model="gpt-4o" temperature={0.2}>
+        <prompt>
+          Generate a concise market analysis relevant to an investor with the following profile:
+          - Investment Goal: {investmentGoal}
+          - Risk Tolerance: {riskTolerance}
+          - Time Horizon: {timeHorizon} years
+          - Investment Category: {profile.investorCategory}
+          
+          Focus on current market conditions, trends, and potential investment opportunities or risks.
+          Keep your analysis under 300 words.
+        </prompt>
+        <onchunk>
+          <assign location="marketAnalysis" expr="marketAnalysis + chunk" />
+        </onchunk>
+      </llm>
+      <log expr="'Market analysis completed'" />
+    </onentry>
+    <transition target="assetAllocation" />
+  </state>
+
+  <state id="assetAllocation">
+    <onentry>
+      <script>
+        // Base allocations depending on risk tolerance
+        if (riskTolerance === "low") {
+          assetAllocation.stocks = 20;
+          assetAllocation.bonds = 60;
+          assetAllocation.cash = 15;
+          assetAllocation.alternatives = 5;
+        } else if (riskTolerance === "medium") {
+          assetAllocation.stocks = 50;
+          assetAllocation.bonds = 30;
+          assetAllocation.cash = 10;
+          assetAllocation.alternatives = 10;
+        } else { // high
+          assetAllocation.stocks = 70;
+          assetAllocation.bonds = 15;
+          assetAllocation.cash = 5;
+          assetAllocation.alternatives = 10;
+        }
+        
+        // Adjust based on time horizon
+        if (timeHorizon > 10) {
+          assetAllocation.stocks += 10;
+          assetAllocation.bonds -= 5;
+          assetAllocation.cash -= 5;
+        } else if (timeHorizon < 5) {
+          assetAllocation.stocks -= 10;
+          assetAllocation.bonds += 5;
+          assetAllocation.cash += 5;
+        }
+        
+        // Ensure allocations don't go negative and sum to 100%
+        Object.keys(assetAllocation).forEach(key => {
+          assetAllocation[key] = Math.max(0, assetAllocation[key]);
+        });
+        
+        // Normalize to ensure sum is 100%
+        const sum = Object.values(assetAllocation).reduce((a, b) => a + b, 0);
+        Object.keys(assetAllocation).forEach(key => {
+          assetAllocation[key] = Math.round((assetAllocation[key] / sum) * 100);
+        });
+      </script>
+      <log expr="'Asset allocation completed: ' + JSON.stringify(assetAllocation)" />
+    </onentry>
+    <transition target="portfolioRecommendation" />
+  </state>
+
+  <state id="portfolioRecommendation">
+    <onentry>
+      <llm model="gpt-4o" temperature={0.1}>
+        <prompt>
+          Create a detailed investment portfolio recommendation with specific investment vehicles based on:
+          
+          INVESTOR PROFILE:
+          - Goal: {investmentGoal}
+          - Risk Tolerance: {riskTolerance}
+          - Time Horizon: {timeHorizon} years
+          - Initial Investment: ${initialInvestment}
+          - Investor Category: {profile.investorCategory}
+          
+          RECOMMENDED ASSET ALLOCATION:
+          - Stocks: {assetAllocation.stocks}%
+          - Bonds: {assetAllocation.bonds}%
+          - Cash: {assetAllocation.cash}%
+          - Alternative Investments: {assetAllocation.alternatives}%
+          
+          MARKET ANALYSIS:
+          {marketAnalysis}
+          
+          Provide specific investment vehicles (ETFs, index funds, etc.) for each asset class with approximate dollar amounts based on the allocation percentages and initial investment. Include ticker symbols where appropriate.
+          
+          Format your response as JSON with the following structure:
+          {
+            "summary": "Brief overview of the strategy",
+            "investments": [
+              {"type": "asset class", "percentage": X, "amount": $Y, "vehicles": [{"name": "Fund Name", "ticker": "XYZ", "allocation": $Amount}]}
+            ],
+            "rationale": "Brief explanation of why this portfolio suits their needs",
+            "nextSteps": "Specific actions the investor should take"
+          }
+        </prompt>
+         
+      </llm>
+       <script>
+            try {
+              portfolioRecommendation = JSON.parse(ctx.lastElement.output);
+            } catch(e) {
+              console.log("Error parsing portfolio recommendation: " + e.message);
+              portfolioRecommendation = {
+                "error": true,
+                "message": "Failed to generate structured recommendation. Please try again."
+              };
+            }
+          </script>
+      <log expr="'Portfolio recommendation completed'" />
+    </onentry>
+    <transition target="presentRecommendation" />
+  </state>
+
+  <state id="presentRecommendation" final="true">
+    <onentry>
+      <sendObject>
+        {
+          "profile": profile,
+          "marketAnalysis": marketAnalysis,
+          "assetAllocation": assetAllocation,
+          "recommendation": portfolioRecommendation
+        }
+      </sendObject>
+    </onentry>
+  </state>
+</workflow>

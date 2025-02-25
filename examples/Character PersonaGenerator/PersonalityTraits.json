@@ -1,0 +1,93 @@
+{
+  "hero": {
+    "primary": ["Brave", "Determined", "Compassionate", "Honorable", "Selfless", "Courageous", "Resilient", "Loyal"],
+    "contradictory": ["Reckless", "Stubborn", "Self-doubting", "Impulsive", "Prideful", "Vengeful", "Obsessive"]
+  },
+  "villain": {
+    "primary": [
+      "Ambitious",
+      "Ruthless",
+      "Calculated",
+      "Domineering",
+      "Manipulative",
+      "Intelligent",
+      "Charismatic",
+      "Uncompromising"
+    ],
+    "contradictory": ["Insecure", "Traumatized", "Sympathetic", "Principled", "Remorseful", "Protective", "Honorable"]
+  },
+  "mentor": {
+    "primary": [
+      "Wise",
+      "Patient",
+      "Knowledgeable",
+      "Disciplined",
+      "Perceptive",
+      "Experienced",
+      "Nurturing",
+      "Philosophical"
+    ],
+    "contradictory": ["Secretive", "Flawed", "Regretful", "Demanding", "Eccentric", "Conflicted", "Burdened"]
+  },
+  "sidekick": {
+    "primary": ["Loyal", "Supportive", "Resourceful", "Practical", "Honest", "Adaptable", "Witty", "Dependable"],
+    "contradictory": ["Ambitious", "Jealous", "Independent", "Resentful", "Conflicted", "Insecure", "Rebellious"]
+  },
+  "trickster": {
+    "primary": [
+      "Clever",
+      "Unpredictable",
+      "Adaptable",
+      "Charming",
+      "Deceptive",
+      "Quick-witted",
+      "Amusing",
+      "Resourceful"
+    ],
+    "contradictory": ["Loyal", "Principled", "Vulnerable", "Sentimental", "Protective", "Insecure", "Honorable"]
+  },
+  "default": {
+    "primary": ["Adaptive", "Curious", "Thoughtful", "Determined", "Passionate", "Empathetic", "Practical", "Complex"],
+    "contradictory": [
+      "Conflicted",
+      "Inconsistent",
+      "Unpredictable",
+      "Paradoxical",
+      "Evolving",
+      "Divided",
+      "Transforming"
+    ]
+  },
+  "common": [
+    "Introverted",
+    "Extroverted",
+    "Analytical",
+    "Creative",
+    "Meticulous",
+    "Spontaneous",
+    "Conservative",
+    "Progressive",
+    "Optimistic",
+    "Pessimistic",
+    "Cautious",
+    "Adventurous",
+    "Generous",
+    "Frugal",
+    "Humble",
+    "Proud",
+    "Stoic",
+    "Emotional",
+    "Traditional",
+    "Innovative",
+    "Patient",
+    "Impatient",
+    "Serious",
+    "Playful",
+    "Diplomatic",
+    "Blunt",
+    "Trusting",
+    "Suspicious",
+    "Disciplined",
+    "Carefree"
+  ]
+}

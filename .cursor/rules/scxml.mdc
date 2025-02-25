@@ -1,6 +1,6 @@
 ---
-description: supported intrinsic MDX elements/tags
-globs: packages/core/**, 
+description: Docs for SCXML elements/tags
+globs: 
 alwaysApply: false
 ---
 # SCXML Elements

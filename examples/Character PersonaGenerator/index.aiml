@@ -1,0 +1,374 @@
+---
+name: CharacterPersonaGenerator
+inputSchema:
+  type: object
+  properties:
+    genre:
+      type: string
+      description: The genre of the character (e.g., fantasy, sci-fi, historical)
+    archetype:
+      type: string
+      description: Character archetype (e.g., hero, villain, mentor, sidekick)
+    complexity:
+      type: integer
+      minimum: 1
+      maximum: 5
+      default: 3
+      description: How complex the character should be (1-5)
+root: true
+---
+
+import PersonalityTraits from "./PersonalityTraits.json"
+import BackstoryTemplates from "./BackstoryTemplates.json"
+
+This AIML creates detailed character personas for creative writing, tabletop RPGs, 
+or game development. The process should begin by creating a name appropriate for the 
+genre and character archetype. Then, the system should define personality traits that 
+align with the archetype while maintaining appropriate complexity.
+
+For more complex characters (levels 4-5), include contradictory traits that create 
+internal conflict. For simpler characters (levels 1-2), focus on archetypal consistency.
+
+After establishing core personality elements, create a backstory that explains how the 
+character developed these traits. The backstory's length and complexity should scale with 
+the requested complexity level.
+
+Next, describe physical appearance that reflects personality traits and backstory, followed by 
+defining motivations, flaws, and strengths. Then create key relationships that influenced 
+the character's development.
+
+For more engaging characters, develop a distinctive voice with speech patterns and sample 
+dialogue, then generate plot hooks that leverage the character's traits and relationships.
+
+Finally, assemble all elements into a comprehensive character persona that writers, game masters,
+or developers can immediately use in their creative projects.
+
+<datamodel>
+  <data id="genre" type="string">{userInput.genre}</data>
+  <data id="archetype" type="string">{userInput.archetype}</data>
+  <data id="complexity" type="integer">{userInput.complexity || 3}</data>
+  <data id="characterName" type="string" value={""} />
+  <data id="personalityTraits" type="array" value={[]} />
+  <data id="backstory" type="string" value={""} />
+  <data id="appearance" type="string" value={""} />
+  <data id="motivations" type="array" value={[]} />
+  <data id="flaws" type="array" value={[]} />
+  <data id="strengths" type="array" value={[]} />
+  <data id="relationships" type="array" value={[]} />
+  <data id="characterVoice" type="string" value={""} />
+  <data id="plotHooks" type="array" value={[]} />
+</datamodel>
+
+<state id="generateName" description="Generate a character name appropriate for the genre and archetype">
+  <onentry>
+    <llm model="gpt-4o" temperature={0.7}>
+      <prompt>
+        Generate a character name appropriate for the {genre} genre and {archetype} archetype.
+        The name should feel authentic to the genre while being memorable and pronounceable.
+        
+        If the genre is fantasy, consider using linguistic patterns common in fantasy naming conventions.
+        If sci-fi, the name might reflect future naming trends or alien cultures.
+        If historical, ensure the name is period-appropriate.
+        
+        Return just the name without explanation or additional text.
+      </prompt>
+
+    </llm>
+    <assign location="characterName" value={ctx => completion.trim()} />
+    <log expr="'Generated character name: ' + characterName" />
+  </onentry>
+</state>
+
+<state id="definePersonality" description="Define the character's personality traits">
+  <onentry>
+    <script>
+      // Load appropriate personality traits based on archetype
+      const traitsData = JSON.parse(PersonalityTraits);
+      let archetypeTraits = traitsData[archetype] || traitsData.default;
+      
+      // Scale number of traits based on complexity
+      const traitsToSelect = Math.max(3, complexity + 2);
+      
+      // Select primary traits associated with archetype
+      const primaryTraits = archetypeTraits.primary || [];
+      
+      // Select some contradictory traits for complexity
+      const contradictoryTraits = archetypeTraits.contradictory || [];
+      
+      // Select secondary traits for flavor
+      const secondaryTraits = traitsData.common || [];
+      
+      // Combine traits with weighting toward primary for archetype
+      let selectedTraits = [];
+      
+      // Always include 1-2 primary traits
+      const primaryCount = Math.min(primaryTraits.length, Math.ceil(complexity / 2));
+      for (let i = 0; i < primaryCount; i++) {
+        const randomIndex = Math.floor(Math.random() * primaryTraits.length);
+        selectedTraits.push({
+          trait: primaryTraits[randomIndex],
+          category: "primary"
+        });
+        primaryTraits.splice(randomIndex, 1); // Remove to avoid duplicates
+      }
+      
+      // Add contradictory traits for complex characters
+      if (complexity > 3 && contradictoryTraits.length > 0) {
+        const contraCount = Math.floor(complexity / 3);
+        for (let i = 0; i < contraCount; i++) {
+          if (contradictoryTraits.length === 0) break;
+          const randomIndex = Math.floor(Math.random() * contradictoryTraits.length);
+          selectedTraits.push({
+            trait: contradictoryTraits[randomIndex],
+            category: "contradictory"
+          });
+          contradictoryTraits.splice(randomIndex, 1);
+        }
+      }
+      
+      // Fill remaining slots with secondary traits
+      while (selectedTraits.length < traitsToSelect && secondaryTraits.length > 0) {
+        const randomIndex = Math.floor(Math.random() * secondaryTraits.length);
+        selectedTraits.push({
+          trait: secondaryTraits[randomIndex],
+          category: "secondary"
+        });
+        secondaryTraits.splice(randomIndex, 1);
+      }
+      
+      // Assign to personalityTraits
+      personalityTraits = selectedTraits.map(item => item.trait);
+    </script>
+    <log expr="'Defined personality traits: ' + personalityTraits.join(', ')" />
+  </onentry>
+</state>
+
+<state id="generateBackstory" description="Create a compelling backstory for the character">
+  <onentry>
+    <script>
+      // Load backstory templates
+      const backstoryData = JSON.parse(BackstoryTemplates);
+      let templates = [];
+      
+      // Get genre-specific templates
+      if (backstoryData[genre]) {
+        templates = templates.concat(backstoryData[genre]);
+      }
+      
+      // Get archetype-specific templates
+      if (backstoryData[archetype]) {
+        templates = templates.concat(backstoryData[archetype]);
+      }
+      
+      // Add some generic templates if needed
+      if (templates.length < 3 && backstoryData.generic) {
+        templates = templates.concat(backstoryData.generic);
+      }
+      
+      // Select a template based on complexity
+      let selectedTemplate = "";
+      if (templates.length > 0) {
+        // More complex characters get more complex backstories
+        const complexityIndex = Math.min(
+          Math.floor((complexity / 5) * templates.length), 
+          templates.length - 1
+        );
+        selectedTemplate = templates[complexityIndex];
+      } else {
+        selectedTemplate = "A character with a mysterious past.";
+      }
+    </script>
+    
+    <llm model="gpt-4o" temperature={0.6}>
+      <prompt>
+        Create a compelling backstory for {characterName}, a {archetype} in a {genre} setting.
+        
+        Character personality traits: {personalityTraits.join(', ')}
+        
+        Use this template as inspiration: {selectedTemplate}
+        
+        The backstory should:
+        - Explain how the character developed their personality traits
+        - Include formative experiences that shaped them
+        - Establish motivations and goals
+        - Have complexity level {complexity} (1=simple, 5=complex with multiple life phases)
+        - Be authentic to the {genre} genre
+        - Be approximately {100 + complexity * 50} words
+        
+        Write in third person past tense.
+      </prompt>
+
+    </llm>
+    <assign location="backstory" value={ctx => completion.trim()} />
+
+    <log expr="'Generated backstory of length: ' + backstory.length" />
+  </onentry>
+</state>
+
+<state id="describeAppearance" description="Describe the character's physical appearance">
+  <onentry>
+    <llm model="gpt-4o" temperature={0.5}>
+      <prompt>
+        Describe the physical appearance of {characterName}, a {archetype} character in a {genre} setting.
+        
+        Consider:
+        - Appropriate attire for the genre and their role
+        - Physical characteristics that reflect their personality traits: {personalityTraits.join(', ')}
+        - Distinctive features that make them memorable
+        - How their backstory might have affected their appearance
+        - Age, build, and other relevant physical attributes
+        
+        Write approximately 75-100 words of descriptive text in third person. The description should help visualize the character without being exhaustive.
+      </prompt>
+
+    </llm>
+    <assign location="appearance" value={ctx => completion.trim()} />
+    <log expr="'Generated appearance description'" />
+  </onentry>
+</state>
+
+<state id="defineMotivationsAndTraits" description="Define the character's motivations, flaws, and strengths">
+  <onentry>
+    <llm model="gpt-4o" temperature={0.4}>
+      <prompt>
+        Based on {characterName}'s personality traits ({personalityTraits.join(', ')}) and backstory, generate:
+        
+        1. 2-{complexity} core motivations/goals that drive this character
+        2. {complexity} character flaws that create internal or external conflict
+        3. {complexity} strengths or virtues that help them overcome challenges
+        
+        Format your response as a clean JSON object with these three arrays:
+        
+        {
+          "motivations": ["motivation 1", "motivation 2"...],
+          "flaws": ["flaw 1", "flaw 2"...],
+          "strengths": ["strength 1", "strength 2"...]
+        }
+      </prompt>
+
+    </llm>
+    <script>
+          try {
+            const traits = JSON.parse(ctx.lastElement.output);
+            motivations = traits.motivations || [];
+            flaws = traits.flaws || [];
+            strengths = traits.strengths || [];
+          } catch(e) {
+            log("Error parsing character traits: " + e.message);
+            motivations = ["Seek adventure"];
+            flaws = ["Impulsive"];
+            strengths = ["Resourceful"];
+          }
+        </script>
+    <log expr="'Defined motivations, flaws, and strengths'" />
+  </onentry>
+</state>
+
+<state id="createRelationships" description="Create key relationships for the character">
+  <onentry>
+    <llm model="gpt-4o" temperature={0.6}>
+      <prompt>
+        Create {Math.max(2, complexity)} key relationships for {characterName}, a {archetype} in a {genre} setting.
+        
+        Each relationship should include:
+        - The person's name and role (mentor, rival, family member, etc.)
+        - The nature of their connection to {characterName}
+        - The current status of their relationship (close, estranged, complex, etc.)
+        - How this relationship influences {characterName}
+        
+        Consider the character's backstory and personality traits: {personalityTraits.join(', ')}
+        
+        Format each relationship as a JSON object with these properties and return an array of these objects.
+      </prompt>
+
+    </llm>
+      <script>
+          try {
+            relationships = JSON.parse(ctx.lastElement.output);
+            // Ensure it's an array
+            if (!Array.isArray(relationships)) {
+              relationships = [];
+            }
+          } catch(e) {
+            log("Error parsing relationships: " + e.message);
+            relationships = [];
+          }
+        </script>
+    <log expr="'Created ' + relationships.length + ' relationships'" />
+  </onentry>
+</state>
+
+<state id="developCharacterVoice" description="Develop the character's distinctive voice and speech patterns">
+  <onentry>
+    <llm model="gpt-4o" temperature={0.5}>
+      <prompt>
+        Develop a distinctive voice and speech pattern for {characterName}, a {archetype} in the {genre} genre.
+        
+        Consider:
+        - Their personality traits: {personalityTraits.join(', ')}
+        - Their backstory and background
+        - Educational level and vocabulary
+        - Dialect or accent if relevant
+        - Speech quirks or verbal habits
+        - Typical phrases or expressions they might use
+        
+        Write a paragraph describing their speaking style, followed by 3-5 example quotes that demonstrate their voice.
+      </prompt>
+
+    </llm>
+    <assign location="characterVoice" value={ctx => completion.trim()} />
+    <log expr="'Developed character voice'" />
+  </onentry>
+</state>
+
+<state id="generatePlotHooks" description="Generate potential plot hooks involving this character">
+  <onentry>
+    <llm model="gpt-4o" temperature={0.7}>
+      <prompt>
+        Generate {complexity + 1} plot hooks or story ideas centered around {characterName}, a {archetype} character in a {genre} setting.
+        
+        These plot hooks should:
+        - Connect to their motivations: {motivations.join(', ')}
+        - Potentially involve their key relationships
+        - Challenge them by exploiting their flaws: {flaws.join(', ')}
+        - Allow them to use their strengths: {strengths.join(', ')}
+        - Be appropriate for the {genre} genre
+        - Range from personal conflicts to broader adventures
+        
+        Format each plot hook as a short paragraph with a clear conflict or situation. Return the results as a JSON array of strings.
+      </prompt>
+    </llm>
+     <script>
+          try {
+            plotHooks = JSON.parse(ctx.lastElement.output);
+            // Ensure it's an array
+            if (!Array.isArray(plotHooks)) {
+              plotHooks = [];
+                }
+            } catch(e) {
+                log("Error parsing plot hooks: " + e.message);
+                plotHooks = ["A mysterious stranger approaches with information about the character's past."];
+            }
+            </script>
+    <log expr="'Generated ' + plotHooks.length + ' plot hooks'" />
+  </onentry>
+</state>
+
+<final id="assemblePersona" >
+    <sendObject>
+      {
+        "characterName": characterName,
+        "genre": genre,
+        "archetype": archetype,
+        "appearance": appearance,
+        "personalityTraits": personalityTraits,
+        "backstory": backstory,
+        "motivations": motivations,
+        "flaws": flaws,
+        "strengths": strengths,
+        "relationships": relationships,
+        "characterVoice": characterVoice,
+        "plotHooks": plotHooks
+      }
+    </sendObject>
+</final>

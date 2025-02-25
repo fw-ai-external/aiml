@@ -1,0 +1,88 @@
+{
+  "techniques": [
+    {
+      "name": "sauté",
+      "description": "Cooking food quickly in a small amount of fat over relatively high heat.",
+      "suitable_for": ["vegetables", "meat", "fish", "aromatics"],
+      "equipment": ["frying pan", "sauté pan", "skillet"],
+      "tips": [
+        "Use a pan large enough to hold food in a single layer",
+        "Pat ingredients dry to promote browning",
+        "Don't overcrowd the pan or food will steam instead of sauté",
+        "Keep food moving with a spatula or by tossing"
+      ],
+      "temperature_range": "medium-high to high",
+      "typical_cooking_time": "2-10 minutes"
+    },
+    {
+      "name": "roast",
+      "description": "Cooking food with dry heat in an oven, often with fat.",
+      "suitable_for": ["meat", "vegetables", "fruit", "nuts"],
+      "equipment": ["roasting pan", "sheet pan", "oven"],
+      "tips": [
+        "Preheat oven thoroughly before adding food",
+        "Use a similar size for cut ingredients to ensure even cooking",
+        "Allow meats to rest before carving",
+        "For crispy exteriors, avoid overcrowding the pan"
+      ],
+      "temperature_range": "300°F-450°F (150°C-230°C)",
+      "typical_cooking_time": "15 minutes to several hours"
+    },
+    {
+      "name": "boil",
+      "description": "Cooking food in water or liquid that has reached 212°F (100°C) at sea level.",
+      "suitable_for": ["pasta", "rice", "eggs", "vegetables", "legumes"],
+      "equipment": ["pot", "stockpot", "saucepan"],
+      "tips": [
+        "Salt water for pasta and vegetables to enhance flavor",
+        "Start with cold water for even cooking of starches and legumes",
+        "Use plenty of water to prevent sticking",
+        "Boil delicate vegetables briefly to retain nutrients"
+      ],
+      "temperature_range": "212°F (100°C)",
+      "typical_cooking_time": "1-30 minutes"
+    },
+    {
+      "name": "simmer",
+      "description": "Cooking food gently in liquid just below boiling point, with small bubbles rising to the surface.",
+      "suitable_for": ["soups", "stews", "sauces", "tough cuts of meat", "grains"],
+      "equipment": ["pot", "saucepan", "dutch oven"],
+      "tips": [
+        "Cover pot to retain heat and moisture",
+        "Adjust heat as needed to maintain gentle bubbling",
+        "For stocks and stews, skim foam from the surface periodically",
+        "Check liquid levels to prevent drying out"
+      ],
+      "temperature_range": "185°F-200°F (85°C-93°C)",
+      "typical_cooking_time": "15 minutes to several hours"
+    },
+    {
+      "name": "steam",
+      "description": "Cooking food using the vapor from boiling water without immersing in the water itself.",
+      "suitable_for": ["vegetables", "fish", "shellfish", "dumplings", "custards"],
+      "equipment": ["steamer basket", "bamboo steamer", "pot with lid"],
+      "tips": [
+        "Ensure water doesn't touch the food",
+        "Keep lid on to trap steam",
+        "Check water level to prevent burning pot",
+        "Arrange food in single layer for even cooking"
+      ],
+      "temperature_range": "212°F (100°C)",
+      "typical_cooking_time": "3-45 minutes"
+    },
+    {
+      "name": "grill",
+      "description": "Cooking food with direct heat from below, often over flames or hot coals",
+      "suitable_for": ["meat", "vegetables", "fish", "shellfish"],
+      "equipment": ["grill", "barbecue", "campfire"],
+      "tips": [
+        "Preheat grill thoroughly before adding food",
+        "Use a similar size for cut ingredients to ensure even cooking",
+        "Turn food occasionally to cook evenly",
+        "Use a meat thermometer to check doneness"
+      ],
+      "temperature_range": "300°F-500°F (150°C-260°C)",
+      "typical_cooking_time": "5-30 minutes"
+    }
+  ]
+}
