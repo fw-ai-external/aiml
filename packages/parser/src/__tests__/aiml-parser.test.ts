@@ -14,7 +14,11 @@ describe("AIML Parser Tests", () => {
     `;
     const result = AimlParser.parse(aimlContent);
 
-    console.log("Parse errors:", result.errors);
+    // Ensure errors is always treated as an array
+    console.log(
+      "Parse errors:",
+      Array.isArray(result.errors) ? result.errors : []
+    );
     // We may have some TypeScript errors but the parsing is still successful
     // expect(result.success).toBe(true);
 

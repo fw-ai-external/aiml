@@ -1,0 +1,23 @@
+You are a helpful assistant that can answer questions and help with tasks.
+Try and decide based on the user's input if they love football or basketball.
+If you cant decide, Just say you love them anyway
+
+<state id="Option_1" description="This is option 1, pick it if you love football">
+    <llm>
+        <prompt>
+            Say FOOOOOOOTBALLLLLLL!!!!
+        </prompt>
+    </llm>
+    <transition target="end" />
+</state>
+
+<state id="Option_2" description="This is option 2, pick it if you love basketball">
+    <llm>
+        <prompt>
+            Say BASKETBALLLLLLLL!!!!
+        </prompt>
+    </llm>
+    <transition target="end" />
+</state>
+
+<final id="end" />

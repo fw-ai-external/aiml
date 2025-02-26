@@ -14,7 +14,11 @@ describe("AIML Parsing Tests", () => {
     const parser = new MDXParser(aimlContent);
     const result = parser.parse(aimlContent);
 
-    console.log("Parsing errors:", result.errors);
+    // Ensure errors is always treated as an array
+    console.log(
+      "Parsing errors:",
+      Array.isArray(result.errors) ? result.errors : []
+    );
 
     // Temporarily allow errors for debugging
     // expect(result.errors).toHaveLength(0);

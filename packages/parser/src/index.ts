@@ -23,8 +23,10 @@ export class MDXParser {
   private errors: MDXParseError[] = [];
   private options: Required<MDXParserOptions>;
   private compilerConfig: CompilerConfig = new CompilerConfig();
+  private sourceCode: string;
 
-  constructor(sourceCode?: string) {
+  constructor(sourceCode: string = "") {
+    this.sourceCode = sourceCode;
     this.project = new Project({
       useInMemoryFileSystem: true,
       skipFileDependencyResolution: true,
@@ -34,6 +36,7 @@ export class MDXParser {
       strict: true,
       validateSchema: true,
     };
+    this.errors = [];
 
     // If source code is provided, try to extract YAML frontmatter
     if (sourceCode) {
@@ -194,8 +197,8 @@ export class MDXParser {
         });
       });
 
-      // Initialize errors array if not already initialized
-      if (!Array.isArray(this.errors)) {
+      // Ensure errors is always an array before using array methods
+      if (!this.errors) {
         this.errors = [];
       }
 
@@ -218,7 +221,8 @@ export class MDXParser {
       }
     } catch (error) {
       // Handle unexpected errors during validation
-      if (!Array.isArray(this.errors)) {
+      // Ensure errors is always an array before using array methods
+      if (!this.errors) {
         this.errors = [];
       }
 
@@ -230,6 +234,11 @@ export class MDXParser {
   }
 
   private parseJSXTree(sourceFile: SourceFile): IBaseElement | null {
+    // Ensure errors is always an array
+    if (!this.errors) {
+      this.errors = [];
+    }
+
     const context: MDXParseContext = {
       sourceFile,
       currentNode: sourceFile,
@@ -448,6 +457,11 @@ export class MDXParser {
 
       return element;
     } catch (error) {
+      // Ensure errors is always an array before using array methods
+      if (!this.errors) {
+        this.errors = [];
+      }
+
       if (error instanceof Error) {
         const mdxError = new MDXParseError(
           error.message,
