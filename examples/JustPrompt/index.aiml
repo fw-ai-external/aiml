@@ -1,0 +1,7 @@
+This is a basic prompt, its just text!
+
+It can even include tags that are not special, and it works just fine!
+
+<someOtherTag>
+ text inside
+</someOtherTag>

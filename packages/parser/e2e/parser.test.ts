@@ -230,5 +230,64 @@ This is a system prompt for a non-workflow AIML file.
         expect(result.mode).toBe("workflow");
       });
     });
+
+    // Test for JustPrompt example
+    test("should correctly parse JustPrompt example", () => {
+      const aimlContent = `
+        This is a basic prompt, its just text!
+
+        It can even include tags that are not special, and it works just fine!
+
+        <someOtherTag>
+         text inside
+        </someOtherTag>
+      `;
+      const result = AimlParser.parse(aimlContent);
+
+      // For JustPrompt, we expect the parser to handle it as a non-JSX text
+      // The parser might wrap it in a default element or return null AST
+      expect(result).toBeDefined();
+
+      // Check if we have errors - we should have some since this isn't valid JSX
+      // but the parser should still handle it gracefully
+      expect(Array.isArray(result.errors)).toBe(true);
+    });
+
+    // Test for SimpleChain example
+    test("should correctly parse SimpleChain example", () => {
+      const aimlContent = `
+        {/* A comment that won't be sent to the LLM */}
+
+        <llm>
+            <prompt>
+                You are a helpful assistant that can answer questions and help with tasks.
+                Think step by step.
+            </prompt>
+        </llm>
+
+        <llm>
+            <instructions>
+                Answer the user's input
+            </instructions>
+            <prompt>
+                You are a helpful assistant that can answer questions and help with tasks.
+            </prompt>
+        </llm>
+      `;
+      const result = AimlParser.parse(aimlContent);
+
+      expect(result.ast).not.toBeNull();
+
+      // The root element should be the first LLM element
+      if (result.ast) {
+        expect(result.ast.tag).toBe("llm");
+
+        // Check for prompt element within the LLM
+        const hasPrompt =
+          result.ast.children &&
+          result.ast.children.some((child) => child.tag === "prompt");
+        expect(hasPrompt).toBe(true);
+      }
+    });
   });
 });

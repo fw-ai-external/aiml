@@ -1,0 +1,22 @@
+{/*
+I can include a comment here that wont be sent to the LLM... USEFUL!
+The output of every LLM call laid out like this will be sent in <think> tags like a reasoning model
+except for the final LLM call, which will have the output as the response
+*/}
+
+<llm>
+    <prompt>
+        You are a helpful assistant that can answer questions and help with tasks.
+        Think step by step.
+    </prompt>
+</llm>
+
+<llm>
+    <instructions>
+        Anser the user's input of ${userInput.message}
+        {(ctx) => `You had been thinking this... ${ctx.lastElement.output}`}
+    </instructions>
+    <prompt>
+        You are a helpful assistant that can answer questions and help with tasks.
+    </prompt>
+</llm>
