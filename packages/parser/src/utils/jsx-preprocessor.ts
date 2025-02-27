@@ -4,6 +4,24 @@ export class JSXPreprocessor {
   // Marker used to preserve whitespace in empty elements
   private static readonly WHITESPACE_MARKER = "__EMPTY_ELEMENT_MARKER__";
 
+  // Define self-closing tags
+  private static readonly SELF_CLOSING_TAGS = new Set([
+    "img",
+    "input",
+    "br",
+    "hr",
+    "area",
+    "base",
+    "col",
+    "embed",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr",
+  ]);
+
   /**
    * Validates and preprocesses JSX input
    * Trims outer whitespace and validates the input is valid JSX
@@ -112,13 +130,29 @@ export class JSXPreprocessor {
    * Processes self-closing tags
    */
   private static processSelfClosingTags(input: string): string {
-    // TODO any tag can be self closing
-    const selfClosingTags = Array.from(this.SELF_CLOSING_TAGS);
-    const selfClosingRegex = new RegExp(
-      `<(${selfClosingTags.join("|")})((?:\\s[^>]*)?)>(?!\/)`,
-      "g"
+    // First, handle standard self-closing tags that should always be self-closing
+    let result = input;
+
+    // Convert empty tags to self-closing format
+    result = result.replace(
+      /<([a-zA-Z][a-zA-Z0-9]*)((?:\s[^>\/]*)??)><\/\1>/g,
+      (match, tagName, attrs) => {
+        return `<${tagName}${attrs}/>`;
+      }
     );
-    return input.replace(selfClosingRegex, "<$1$2/>");
+
+    // Ensure HTML self-closing tags are properly formatted
+    this.SELF_CLOSING_TAGS.forEach((tag) => {
+      const tagRegex = new RegExp(
+        `<(${tag})((?:\\s[^>\/]*)??)>(?!\\s*<\\/\\1>)`,
+        "g"
+      );
+      result = result.replace(tagRegex, (match, tagName, attrs) => {
+        return `<${tagName}${attrs}/>`;
+      });
+    });
+
+    return result;
   }
 
   /**

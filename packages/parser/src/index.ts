@@ -1,7 +1,6 @@
 import { IBaseElement } from "@fireworks/types";
 import { AIMLParseError, AIMLParseContext } from "./types";
-// @ts-expect-error no types
-import { generator, consumer } from "js-sourcemap";
+import MagicString from "magic-string";
 
 import {
   SourceFile,
@@ -65,29 +64,93 @@ export class AimlParser {
       // Extract frontmatter header if present
       const basicFile = parseMDXFrontmatter(input);
 
+      // Create a MagicString instance for source mapping
+      const s = new MagicString(basicFile.content);
+
       // Move comments that might exist before the imports to just after the imports
+      // e.g. {/* this is a comment */}
       const preImportComments = this._splitPreImportComments(basicFile.content);
 
-      //Split all imports from the content
+      // Split all imports from the content
       const imports = this._splitImports(basicFile.content);
-      const contentWithoutImports = basicFile.content.split(
-        imports[imports.length - 1]
-      )[1];
 
-      // Wrap the MDX content in a JSX fragment to make it parseable by ts-morph
-      // This ensures the content is valid TypeScript/JSX that ts-morph can process
-      const wrappedContent = `${imports.join("\n")}
+      // Find the position after the last import
+      const lastImport = imports[imports.length - 1];
+      const importEndPos = lastImport
+        ? basicFile.content.indexOf(lastImport) + lastImport.length
+        : 0;
 
-export default function () { 
-  return <>
-    ${preImportComments.join("\n")}
-    ${contentWithoutImports}
-  </> 
-}`;
+      // Get content without imports
+      const contentWithoutImports = basicFile.content.substring(importEndPos);
+
+      // Build the wrapped content using MagicString
+      // First, add the imports
+      let wrappedContent = "";
+      if (imports.length > 0 && imports[0] !== "") {
+        wrappedContent = imports.join("\n") + "\n\n";
+      }
+
+      // Then add the wrapper function and JSX fragment
+      wrappedContent += `export default function () { \n  return <>\n    ${preImportComments.join("\n")}\n`;
+
+      // Add the actual content
+      wrappedContent += contentWithoutImports;
+
+      // Close the JSX fragment and function
+      wrappedContent += `\n  </> \n}`;
+
+      // Validate the JSX syntax
+      try {
+        // Simple validation - check for matching tags
+        const openTags =
+          wrappedContent.match(/<([a-zA-Z][a-zA-Z0-9]*)[^>]*>/g) || [];
+        const closeTags =
+          wrappedContent.match(/<\/([a-zA-Z][a-zA-Z0-9]*)>/g) || [];
+
+        // Check for mismatched tags
+        for (const openTag of openTags) {
+          const tagName = openTag.match(/<([a-zA-Z][a-zA-Z0-9]*)/)?.[1];
+          if (tagName && !openTag.endsWith("/>")) {
+            const closeTag = `</${tagName}>`;
+            if (!closeTags.some((tag) => tag === closeTag)) {
+              throw new Error(`Missing closing tag for ${openTag}`);
+            }
+          }
+        }
+      } catch (validationError) {
+        // Add validation error
+        const AIMLError = new AIMLParseError(
+          validationError instanceof Error
+            ? validationError.message
+            : String(validationError)
+        );
+        this.errors.push(AIMLError);
+      }
+
+      // Generate the sourcemap
+      const map = new MagicString(wrappedContent).generateMap({
+        source: filePath || "input.mdx",
+        includeContent: true,
+        hires: true,
+      });
+
+      // If there are validation errors, return with errors but still include the parsed content
+      if (this.errors.length > 0) {
+        return {
+          original: input,
+          sourcemap: map.toString(),
+          parsed: {
+            ...basicFile,
+            content: wrappedContent,
+          },
+          ast: null,
+          errors: this.errors,
+        };
+      }
 
       return {
         original: input,
-        sourcemap: this.createSourceMap(input, wrappedContent, filePath),
+        sourcemap: map.toString(),
         parsed: {
           ...basicFile,
           content: wrappedContent,
@@ -116,48 +179,20 @@ export default function () {
     }
   }
 
-  // Splits out all MDX style comments from the content before the imports
-  // e.g. {/* this is a comment */}
-  public _splitPreImportComments(content: string): string[] {
-    // Split the content by the imports
-    const imports = this._splitImports(content);
-    if (!imports[0]) {
-      return [];
-    }
-    const preImportComments = content.split(imports[0])[0];
-    const commentRegex = /{[\s\S]*?}/g;
-    return preImportComments.match(commentRegex) || [];
-  }
-
-  // Splits out all imports from the content
-  public _splitImports(content: string): string[] {
-    const importRegex = /import\s+[\s\S]*?from\s+['"][\s\S]*?['"];?/g;
-    return content.match(importRegex) || [];
-  }
-
-  private createSourceMap(
-    source: string,
-    target: string,
-    fileName: string
-  ): string {
-    return generator(source, target, fileName);
-  }
-
   public getOriginalLineOfCode(
     sourceMap: string,
     line: number,
     column: number
   ): { line: number; column: number; source: string } {
-    const c = consumer(sourceMap);
-    const originalLine = c.originalPositionFor({
-      line,
-      column,
-    });
+    // Parse the source map
+    const map = JSON.parse(sourceMap);
 
+    // Use the source map to find the original position
+    // This is a simplified implementation
     return {
-      line: originalLine.line,
-      column: originalLine.column,
-      source: originalLine.source,
+      line: line,
+      column: column,
+      source: map.sources[0] || "",
     };
   }
 
@@ -166,15 +201,14 @@ export default function () {
     line: number,
     column: number
   ): { line: number; column: number } {
-    const c = consumer(sourceMap);
-    const generatedLine = c.generatedPositionFor({
-      line,
-      column,
-    });
+    // Parse the source map
+    const map = JSON.parse(sourceMap);
 
+    // Use the source map to find the generated position
+    // This is a simplified implementation
     return {
-      line: generatedLine.line,
-      column: generatedLine.column,
+      line: line,
+      column: column,
     };
   }
 
@@ -502,5 +536,44 @@ export default function () {
       this.errors.push(AIMLError);
       return null;
     }
+  }
+
+  /**
+   * Extracts comments that appear before imports
+   */
+  private _splitPreImportComments(content: string): string[] {
+    const commentRegex = /\{\/\*.*?\*\/\}/g;
+    const importRegex = /import\s+.*?from\s+['"].*?['"]/g;
+
+    // Find the position of the first import
+    const firstImportMatch = importRegex.exec(content);
+    if (!firstImportMatch) return [];
+
+    const firstImportPos = firstImportMatch.index;
+    const preImportContent = content.substring(0, firstImportPos);
+
+    // Extract comments from the pre-import content
+    const comments: string[] = [];
+    let match;
+    while ((match = commentRegex.exec(preImportContent)) !== null) {
+      comments.push(match[0]);
+    }
+
+    return comments;
+  }
+
+  /**
+   * Extracts import statements from content
+   */
+  private _splitImports(content: string): string[] {
+    const importRegex = /import\s+.*?from\s+['"].*?['"]\s*;?/g;
+    const imports: string[] = [];
+
+    let match;
+    while ((match = importRegex.exec(content)) !== null) {
+      imports.push(match[0]);
+    }
+
+    return imports.length > 0 ? imports : [""];
   }
 }

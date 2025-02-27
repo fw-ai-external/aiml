@@ -1,0 +1,22 @@
+{
+  "name": "@aiml/sourcemap",
+  "version": "0.1.0",
+  "description": "Source map utilities for AIML",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "acorn": "^8.8.2",
+    "tokenizr": "^1.7.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^18.15.11",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.4"
+  }
+}
