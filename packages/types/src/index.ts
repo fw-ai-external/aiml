@@ -53,6 +53,7 @@ export type AIMLNode = {
     | "element"
     | "import"
     | "header"
+    | "expression"
     | "headerField"
     | "field";
   id?: string;
@@ -87,17 +88,23 @@ export interface HeaderNode extends AIMLNode {
 
 export interface HeaderFieldNode extends AIMLNode {
   kind: "headerField";
+  id: string;
   value: string;
 }
 
 export interface CommentNode extends AIMLNode {
-  kind: "comment";
+  kind: "expression";
   value: string;
 }
 
 export interface TextNode extends AIMLNode {
   kind: "text";
   value: string | number | boolean;
+}
+
+export interface ExpressionNode extends AIMLNode {
+  kind: "expression";
+  value: string;
 }
 
 export interface Attributes {

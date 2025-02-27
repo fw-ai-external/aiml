@@ -23,10 +23,10 @@ describe("Tag Escaping Tests", () => {
 
       const result = parser._preProcessFile("custom-tags.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
 
       // Check that the custom tag is preserved in the content
-      expect(result.parsed?.content).toContain("<customTag>");
+      expect(result.processed?.content).toContain("<customTag>");
     });
 
     it("should only include valid AIML elements in the AST", () => {

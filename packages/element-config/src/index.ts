@@ -83,13 +83,6 @@ export type ElementDefinition<
     | ((props: Props) => AllowedChildrenType);
 };
 
-// Export all schemas and types
-export * from "./schemas/states";
-export * from "./schemas/actions";
-export * from "./schemas/control-flow";
-export * from "./schemas/specialized";
-export * from "./types";
-
 export const allElementConfigs: Record<ElementType, ElementDefinition> = {
   workflow: workflowConfig,
   state: stateConfig,
@@ -146,3 +139,10 @@ export type PromptProps = z.infer<typeof promptConfig.propsSchema>;
 export type InstructionsProps = z.infer<typeof instructionsConfig.propsSchema>;
 
 export * from "./nodeDefinitions";
+
+// Export all schemas and types
+export * from "./schemas/states";
+export * from "./schemas/actions";
+export * from "./schemas/control-flow";
+export * from "./schemas/specialized";
+export * from "./types";

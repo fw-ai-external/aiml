@@ -35,11 +35,11 @@ name: Valid Tags Test
 
       const result = parser._preProcessFile("valid-tags.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
 
       // Check that all valid tags are preserved in the processed content
       for (const tag of validTags) {
-        expect(result.parsed?.content).toContain(`<${tag}>`);
+        expect(result.processed?.content).toContain(`<${tag}>`);
       }
     });
 
@@ -74,12 +74,12 @@ name: Invalid Tags Test
 
       const result = parser._preProcessFile("invalid-tags.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
 
       // Check that all invalid tags are preserved in the processed content
       // They should be treated as text, not actual JSX
       for (const tag of invalidTags) {
-        expect(result.parsed?.content).toContain(`<${tag}>`);
+        expect(result.processed?.content).toContain(`<${tag}>`);
       }
     });
 
@@ -109,11 +109,11 @@ name: Mixed Tags Test
 
       const result = parser._preProcessFile("mixed-tags.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
 
       // Check that all tags (both valid and invalid) are preserved in the content
       for (const tag of [...validTags, ...invalidTags]) {
-        expect(result.parsed?.content).toContain(`<${tag}>`);
+        expect(result.processed?.content).toContain(`<${tag}>`);
       }
     });
 
@@ -135,11 +135,11 @@ name: Nested Invalid Tags
 
       const result = parser._preProcessFile("nested-invalid.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
 
       // Both invalid tags should be preserved in the content
-      expect(result.parsed?.content).toContain("<invalidParent>");
-      expect(result.parsed?.content).toContain("<invalidChild>");
+      expect(result.processed?.content).toContain("<invalidParent>");
+      expect(result.processed?.content).toContain("<invalidChild>");
     });
   });
 

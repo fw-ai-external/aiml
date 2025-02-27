@@ -50,10 +50,10 @@ describe("Custom Tag Escaping Tests", () => {
       `;
 
       const result = parser._preProcessFile("custom-tags.mdx", input);
-      console.log(result.parsed?.content);
+      console.log(result.processed?.content);
       // Check that the custom tag is preserved in the content
-      expect(result.parsed?.content).toContain("<customTag>");
-      expect(result.parsed?.content).toContain("This is a custom tag");
+      expect(result.processed?.content).toContain("<customTag>");
+      expect(result.processed?.content).toContain("This is a custom tag");
     });
 
     it("should preserve nested custom tags in the preprocessed content", () => {
@@ -72,9 +72,9 @@ describe("Custom Tag Escaping Tests", () => {
       const result = parser._preProcessFile("nested-custom-tags.mdx", input);
 
       // Check that both custom tags are preserved in the content
-      expect(result.parsed?.content).toContain("<customParent>");
-      expect(result.parsed?.content).toContain("<customChild>");
-      expect(result.parsed?.content).toContain("This is nested content");
+      expect(result.processed?.content).toContain("<customParent>");
+      expect(result.processed?.content).toContain("<customChild>");
+      expect(result.processed?.content).toContain("This is nested content");
     });
 
     it("should preserve custom tags with attributes in the preprocessed content", () => {
@@ -96,9 +96,9 @@ describe("Custom Tag Escaping Tests", () => {
       );
 
       // Check that the custom tag and its attributes are preserved
-      expect(result.parsed?.content).toContain('<customTag id="custom1"');
-      expect(result.parsed?.content).toContain('class="test"');
-      expect(result.parsed?.content).toContain('data-attr="value"');
+      expect(result.processed?.content).toContain('<customTag id="custom1"');
+      expect(result.processed?.content).toContain('class="test"');
+      expect(result.processed?.content).toContain('data-attr="value"');
     });
   });
 

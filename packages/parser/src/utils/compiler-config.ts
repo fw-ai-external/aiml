@@ -1,9 +1,9 @@
-import { CompilerOptions } from "ts-morph";
+import { CompilerOptions, ts } from "ts-morph";
 
 export class CompilerConfig {
   static getDefaultOptions(): CompilerOptions {
     return {
-      jsx: 1, // Preserve
+      jsx: ts.JsxEmit.Preserve,
       allowJs: true,
       allowJsx: true,
       moduleResolution: 2, // Node
@@ -11,14 +11,17 @@ export class CompilerConfig {
       skipLibCheck: true,
       noResolve: true,
       types: [],
-      jsxFactory: "createElement",
-      jsxFragmentFactory: "Fragment",
       target: 6, // ES2020
       module: 99, // ESNext
       esModuleInterop: true,
       resolveJsonModule: true,
       noLib: true,
       skipDefaultLibCheck: true,
+      plugins: [
+        {
+          name: "@mdx-js/typescript-plugin",
+        },
+      ],
     };
   }
 

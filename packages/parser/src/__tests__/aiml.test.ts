@@ -1,192 +1,137 @@
-import { describe, expect, test } from "bun:test";
-import { MDXParser } from "../index";
+import { AimlParser } from "../index";
+import { describe, it, expect, beforeEach } from "bun:test";
+import { tsToAIML } from "../ts-to-aiml";
 
 describe("AIML Parsing Tests", () => {
-  test("should parse workflow element with initial attribute", () => {
-    const aimlContent = `
-      <workflow initial="start">
-        <state id="start">
-          <transition target="end" />
-        </state>
-        <final id="end" />
-      </workflow>
-    `;
-    const parser = new MDXParser(aimlContent);
-    const result = parser.parse(aimlContent);
+  let parser: AimlParser;
 
-    // Ensure errors is always treated as an array
-    console.log(
-      "Parsing errors:",
-      Array.isArray(result.errors) ? result.errors : []
-    );
-
-    // Temporarily allow errors for debugging
-    // expect(result.errors).toHaveLength(0);
-    expect(result.ast).toBeDefined();
-    expect(result.ast.tag).toBe("workflow");
-    expect(result.ast.attributes.initial).toBe("start");
+  beforeEach(() => {
+    parser = new AimlParser();
   });
 
-  test("should parse workflow element with runInOrder attribute", () => {
-    const aimlContent = `
-      <workflow runInOrder={true}>
-        <state id="first">
-          <script>
-            ctx.datamodel.step = 1;
-          </script>
-        </state>
-        <state id="second">
-          <script>
-            ctx.datamodel.step = 2;
-          </script>
-        </state>
-      </workflow>
-    `;
-    const parser = new MDXParser(aimlContent);
-    const result = parser.parse(aimlContent);
-
-    // Temporarily allow errors for debugging
-    // expect(result.errors).toHaveLength(0);
-    expect(result.ast).toBeDefined();
-    expect(result.ast.tag).toBe("workflow");
-    // runInOrder attribute is not being properly parsed in current implementation
-    // expect(result.ast.attributes.runInOrder).toBeTruthy();
-  });
-
-  test("should parse non-workflow mode with state as root element", () => {
-    const aimlContent = `
-      <state id="assessment">
-        <datamodel>
-          { score: 0 }
-        </datamodel>
-        <transition target="nextState" />
-      </state>
-    `;
-    const parser = new MDXParser(aimlContent);
-    const result = parser.parse(aimlContent);
-
-    // Temporarily allow errors for debugging
-    // expect(result.errors).toHaveLength(0);
-    expect(result.ast).toBeDefined();
-    expect(result.ast.tag).toBe("state");
-    expect(result.ast.attributes.id).toBe("assessment");
-  });
-
-  test("should parse non-workflow mode with parallel as root element", () => {
-    const aimlContent = `
-      <parallel id="concurrent">
-        <state id="thread1" />
-        <state id="thread2" />
-      </parallel>
-    `;
-    const parser = new MDXParser(aimlContent);
-    const result = parser.parse(aimlContent);
-
-    // Temporarily allow errors for debugging
-    // expect(result.errors).toHaveLength(0);
-    expect(result.ast).toBeDefined();
-    expect(result.ast.tag).toBe("parallel");
-    expect(result.ast.attributes.id).toBe("concurrent");
-  });
-
-  test("should parse non-workflow mode with final as root element", () => {
-    const aimlContent = `
-      <final id="complete">
-        <log>Process completed successfully</log>
-      </final>
-    `;
-    const parser = new MDXParser(aimlContent);
-    const result = parser.parse(aimlContent);
-
-    // Temporarily allow errors for debugging
-    // expect(result.errors).toHaveLength(0);
-    expect(result.ast).toBeDefined();
-    expect(result.ast.tag).toBe("final");
-    expect(result.ast.attributes.id).toBe("complete");
-  });
-
-  test("should extract and attach system prompt in non-workflow mode", () => {
-    const aimlContent = `
-      This is a system prompt that explains what this agent does.
-      It provides guidance to the model on how to select the initial state.
-
-      <state id="rootState">
-        <transition target="nextState" />
-      </state>
-    `;
-    const parser = new MDXParser(aimlContent);
-    const result = parser.parse(aimlContent);
-
-    // Temporarily allow errors for debugging
-    // expect(result.errors).toHaveLength(0);
-    expect(result.ast).toBeDefined();
-    // System prompt is not being properly attached in current implementation
-    // expect(result.ast.attributes.systemPrompt).toBeDefined();
-    // expect(result.ast.attributes.systemPrompt).toContain(
-    //   "This is a system prompt"
-    // );
-  });
-
-  test("should parse YAML frontmatter and attach to AST", () => {
-    const aimlContent = `---
-title: AIML Test
-description: Test file with frontmatter
-version: 1.0
+  describe("Basic AIML Parsing", () => {
+    it("should parse a basic AIML file", () => {
+      const input = `
+---
+name: Test Workflow
 ---
 
-<state id="rootState">
-  <transition target="nextState" />
-</state>
-    `;
-    const parser = new MDXParser(aimlContent);
-    const result = parser.parse(aimlContent);
+Some text here with {userInput.message.content}
 
-    // Temporarily allow errors for debugging
-    // expect(result.errors).toHaveLength(0);
-    expect(result.ast).toBeDefined();
-    // Frontmatter is not being properly attached in current implementation
-    // expect(result.ast.attributes.frontmatter).toBeDefined();
-    // expect(result.ast.attributes.frontmatter.title).toBe("AIML Test");
-    // expect(result.ast.attributes.frontmatter.version).toBe(1.0);
-  });
+<workflow id="test">
+  <state id="start">
+    <customTag>This is a custom tag</customTag>
+    <transition target="end" />
+  </state>
+  <final id="end" />
+</workflow>
+      `;
 
-  test("should parse AIML elements like llm, script, datamodel", () => {
-    const aimlContent = `
-<state id="llmState">
-  <datamodel>
-    { 
-      prompt: "Generate a response",
-      parameters: { temperature: 0.7 }
-    }
-  </datamodel>
+      parser.setFile({ path: "test.mdx", content: input }, true);
+
+      const result = parser.compile("test.mdx");
+
+      // Add more detailed debug logging
+      console.log("AST Structure Type:", typeof result.ast);
+      console.log("AST is array:", Array.isArray(result.ast));
+      console.log("AST Length:", result.ast?.length);
+
+      if (result.ast && result.ast.length > 0) {
+        const firstNode = result.ast[0];
+        console.log("First Node Kind:", firstNode.getKindName?.());
+
+        // Show node structure recursively
+        console.log("Full AST structure:");
+        function logNode(node, depth = 0) {
+          const indent = "  ".repeat(depth);
+          console.log(`${indent}Kind: ${node.getKindName?.() || "unknown"}`);
+
+          // Print more details for specific kinds
+          if (node.getText) {
+            const text = node.getText();
+            if (text.length < 100) {
+              console.log(`${indent}Text: ${text}`);
+            } else {
+              console.log(`${indent}Text: ${text.substring(0, 50)}...`);
+            }
+          }
+
+          if (typeof node.getChildren === "function") {
+            const children = node.getChildren();
+            console.log(`${indent}Children count: ${children.length}`);
+            children.forEach((child) => {
+              logNode(child, depth + 1);
+            });
+          }
+        }
+
+        logNode(firstNode);
+      }
+
+      expect(result.ast).not.toBeNull();
+
+      // Add debug in tsToAIML function
+      console.log("Calling tsToAIML...");
+      const ourAST = tsToAIML(result.ast!);
+
+      // Print the ourAST to see what we're getting
+      console.log("Parsed AIML AST:", JSON.stringify(ourAST, null, 2));
+
+      // Enable the expectations now that we have a proper implementation
+      expect(ourAST).toBeArrayOfSize(4);
+      expect(ourAST[0].type).toBe("header");
+      expect(ourAST[0].children).toBeArrayOfSize(1);
+      expect(ourAST[0].children?.[0]?.type).toBe("headerField");
+      expect(ourAST[0].children?.[0]?.id).toBe("name");
+      expect(ourAST[0].children?.[0]?.value).toBe("Test Workflow");
+
+      expect(ourAST[1].type).toBe("text");
+      expect(ourAST[2].type).toBe("expression");
+      expect(ourAST[2].value).toBe("userInput.message.content");
+      expect(ourAST[3].type).toBe("element");
+    });
+
+    it("should parse an even more complex AIML file", () => {
+      const input = `
+---
+name: Test Workflow
+---
+
+Some text here with {userInput.message.content.toLowerCase()}
+<customTag>This is a custom tag so it is just a text node</customTag>
+
+<transition 
+target="end" />
   
-  <llm>
-    <prompt>
-      Please write a short story about a robot.
-    </prompt>
-    <instructions>
-      Keep it under 100 words and make it child-friendly.
-    </instructions>
-  </llm>
-  
-  <script>
-    ctx.datamodel.result = ctx.llmResponse;
-  </script>
-</state>
-    `;
-    const parser = new MDXParser(aimlContent);
-    const result = parser.parse(aimlContent);
+      `;
 
-    // Temporarily allow errors for debugging
-    // expect(result.errors).toHaveLength(0);
-    expect(result.ast).toBeDefined();
-    expect(result.ast.tag).toBe("state");
-    expect(result.ast.children).toBeDefined();
+      parser.setFile({ path: "test.mdx", content: input }, true);
 
-    // Verify children have been parsed correctly
-    const childTags = result.ast.children.map((child) => child.tag);
-    expect(childTags).toContain("datamodel");
-    expect(childTags).toContain("llm");
-    expect(childTags).toContain("script");
+      const result = parser.compile("test.mdx");
+      expect(result.ast).not.toBeNull();
+
+      const ourAST = tsToAIML(result.ast!);
+
+      // Enable the expectations now that we have a proper implementation
+      expect(ourAST).toBeArrayOfSize(5);
+      expect(ourAST[0].type).toBe("header");
+      expect(ourAST[0].children).toBeArrayOfSize(1);
+      expect(ourAST[0].children?.[0]?.type).toBe("headerField");
+      expect(ourAST[0].children?.[0]?.id).toBe("name");
+      expect(ourAST[0].children?.[0]?.value).toBe("Test Workflow");
+
+      expect(ourAST[1].type).toBe("text");
+      expect(ourAST[2].type).toBe("expression");
+      expect(ourAST[2].value).toBe("userInput.message.content.toLowerCase()");
+      expect(ourAST[3].type).toBe("text");
+      // this is just text, ignore that it looks like JSX
+      expect(ourAST[3].value).toBe(
+        "<customTag>This is a custom tag so it is just a text node</customTag>"
+      );
+      expect(ourAST[4].type).toBe("element");
+      expect(ourAST[4].tag).toBe("transition");
+      expect(ourAST[4].attributes).toBeObject();
+      expect(ourAST[4].attributes?.target).toBe("end");
+    });
   });
 });

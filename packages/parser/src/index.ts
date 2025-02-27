@@ -18,7 +18,7 @@ type ProcessedAIMLFile = {
   original: string;
   errors: AIMLParseError[];
   sourcemap: string | null;
-  parsed: AIMLFile | null;
+  processed: AIMLFile | null;
   ast: IBaseElement | null;
 };
 
@@ -139,7 +139,7 @@ export class AimlParser {
         return {
           original: input,
           sourcemap: map.toString(),
-          parsed: {
+          processed: {
             ...basicFile,
             content: wrappedContent,
           },
@@ -151,7 +151,7 @@ export class AimlParser {
       return {
         original: input,
         sourcemap: map.toString(),
-        parsed: {
+        processed: {
           ...basicFile,
           content: wrappedContent,
         },
@@ -174,7 +174,7 @@ export class AimlParser {
         errors: this.errors,
         original: input,
         sourcemap: null,
-        parsed: null,
+        processed: null,
       };
     }
   }
@@ -212,6 +212,48 @@ export class AimlParser {
     };
   }
 
+  public compile(filePAth: string) {
+    const file = this.files.get(filePAth);
+
+    if (!file) {
+      throw new Error(`File ${filePAth} not found`);
+    }
+
+    if (!file.processed) {
+      throw new Error(`File ${filePAth} not parsed ${file.errors}`);
+    }
+
+    // Create the source file in the TS project now that it is cleaned up
+    const sourceFile = this.project.createSourceFile(
+      filePAth,
+      file.processed?.content || "",
+      {
+        overwrite: true,
+      }
+    );
+
+    // this._validateSyntax(sourceFile);
+
+    // const ast = this._parseJSXTree(sourceFile);
+
+    const ast = sourceFile.getChildren();
+
+    // If parseJSXTree returned null due to an error, return early with errors
+    if (ast === null) {
+      return {
+        ast: null,
+        errors: this.errors,
+      };
+    }
+
+    // TODO: Attach frontmatter to the AST
+
+    return {
+      ast,
+      errors: this.errors,
+    };
+  }
+
   public _createAST(filePAth: string) {
     const file = this.files.get(filePAth);
 
@@ -219,14 +261,14 @@ export class AimlParser {
       throw new Error(`File ${filePAth} not found`);
     }
 
-    if (!file.parsed) {
+    if (!file.processed) {
       throw new Error(`File ${filePAth} not parsed ${file.errors}`);
     }
 
     // Create the source file in the TS project now that it is cleaned up
     const sourceFile = this.project.createSourceFile(
       filePAth,
-      file.parsed?.content || "",
+      file.processed?.content || "",
       {
         overwrite: true,
       }

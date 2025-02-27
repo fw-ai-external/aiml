@@ -25,14 +25,14 @@ name: Test Workflow
 
       const result = parser._preProcessFile("test.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
       expect(result.sourcemap).not.toBeNull();
 
       // Check that the content includes our valid tags
-      expect(result.parsed?.content).toContain("<workflow");
-      expect(result.parsed?.content).toContain("<state");
-      expect(result.parsed?.content).toContain("<transition");
-      expect(result.parsed?.content).toContain("<final");
+      expect(result.processed?.content).toContain("<workflow");
+      expect(result.processed?.content).toContain("<state");
+      expect(result.processed?.content).toContain("<transition");
+      expect(result.processed?.content).toContain("<final");
     });
 
     it("should handle MDX files with custom tags not defined in allElementConfigs", () => {
@@ -52,10 +52,10 @@ name: Test with Custom Tags
 
       const result = parser._preProcessFile("test.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
 
       // The content should still include the customTag as text
-      expect(result.parsed?.content).toContain("<customTag>");
+      expect(result.processed?.content).toContain("<customTag>");
     });
 
     it("should handle MDX files with mixed valid and invalid tags", () => {
@@ -76,11 +76,11 @@ name: Mixed Tags Test
 
       const result = parser._preProcessFile("test.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
 
       // Both valid and invalid tags should be in the content
-      expect(result.parsed?.content).toContain("<someInvalidTag>");
-      expect(result.parsed?.content).toContain("<log>");
+      expect(result.processed?.content).toContain("<someInvalidTag>");
+      expect(result.processed?.content).toContain("<log>");
     });
 
     it("should handle MDX files with nested invalid tags", () => {
@@ -102,11 +102,11 @@ name: Nested Invalid Tags
 
       const result = parser._preProcessFile("test.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
 
       // Nested invalid tags should be preserved
-      expect(result.parsed?.content).toContain("<invalidParent>");
-      expect(result.parsed?.content).toContain("<invalidChild>");
+      expect(result.processed?.content).toContain("<invalidParent>");
+      expect(result.processed?.content).toContain("<invalidChild>");
     });
   });
 

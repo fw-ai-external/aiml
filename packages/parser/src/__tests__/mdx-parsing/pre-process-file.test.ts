@@ -25,17 +25,17 @@ name: Simple Test
 
       const result = parser._preProcessFile("simple.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
       expect(result.sourcemap).not.toBeNull();
 
       // Check that the parsed content includes the frontmatter data
-      expect(result.parsed?.name).toBe("Simple Test");
+      expect(result.processed?.name).toBe("Simple Test");
 
       // Check that the content includes the JSX
-      expect(result.parsed?.content).toContain("<workflow");
-      expect(result.parsed?.content).toContain("<state");
-      expect(result.parsed?.content).toContain("<transition");
-      expect(result.parsed?.content).toContain("<final");
+      expect(result.processed?.content).toContain("<workflow");
+      expect(result.processed?.content).toContain("<state");
+      expect(result.processed?.content).toContain("<transition");
+      expect(result.processed?.content).toContain("<final");
     });
 
     it("should handle MDX files without frontmatter", () => {
@@ -50,13 +50,13 @@ name: Simple Test
 
       const result = parser._preProcessFile("no-frontmatter.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
 
       // Check that the parsed content has default values for frontmatter
-      expect(result.parsed?.name).toBe("");
+      expect(result.processed?.name).toBe("");
 
       // Check that the content includes the JSX
-      expect(result.parsed?.content).toContain("<workflow");
+      expect(result.processed?.content).toContain("<workflow");
     });
   });
 
@@ -73,18 +73,18 @@ import { somethingElse } from 'somewhere-else';
 
       const result = parser._preProcessFile("imports.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
 
       // Check that imports are preserved
-      expect(result.parsed?.content).toContain(
+      expect(result.processed?.content).toContain(
         "import { something } from 'somewhere';"
       );
-      expect(result.parsed?.content).toContain(
+      expect(result.processed?.content).toContain(
         "import { somethingElse } from 'somewhere-else';"
       );
 
       // Check that the content is also preserved
-      expect(result.parsed?.content).toContain("<workflow");
+      expect(result.processed?.content).toContain("<workflow");
     });
 
     it("should handle comments before imports", () => {
@@ -99,27 +99,27 @@ import { something } from 'somewhere';
 
       const result = parser._preProcessFile("comments-imports.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
 
       // Check that comments are preserved
-      expect(result.parsed?.content).toContain(
+      expect(result.processed?.content).toContain(
         "{/* This is a comment before imports */}"
       );
 
       // Check that imports are preserved
-      expect(result.parsed?.content).toContain(
+      expect(result.processed?.content).toContain(
         "import { something } from 'somewhere';"
       );
 
       // Check that the content is also preserved
-      expect(result.parsed?.content).toContain("<workflow");
+      expect(result.processed?.content).toContain("<workflow");
     });
   });
 
   describe("Error handling", () => {
     it("should handle errors gracefully", () => {
       // Create an invalid MDX file (missing closing tag)
-      const input = `
+      const input = `dd
 <workflow id="test">
   <state id="start">
     <transition target="end" />
@@ -138,7 +138,12 @@ import { something } from 'somewhere';
       expect(result.original).toBe(input);
 
       // But parsed content should be null due to errors
-      expect(result.parsed).toBeNull();
+      expect(result.processed).toEqual({
+        content:
+          'export default function () { \n  return <>\n    \ndd\n<workflow id="test">\n  <state id="start">\n    <transition target="end" />\n  </state>\n  <final id="end">\n</workflow>\n      \n  </> \n}',
+        props: {},
+        name: "",
+      });
     });
   });
 
@@ -174,12 +179,14 @@ import { something } from 'somewhere';
 
       const result = parser._preProcessFile("wrap.mdx", input);
       expect(result.errors).toHaveLength(0);
-      expect(result.parsed).not.toBeNull();
+      expect(result.processed).not.toBeNull();
 
       // Check that the content is wrapped in a JSX fragment
-      expect(result.parsed?.content).toContain("export default function () {");
-      expect(result.parsed?.content).toContain("return <>");
-      expect(result.parsed?.content).toContain("</>");
+      expect(result.processed?.content).toContain(
+        "export default function () {"
+      );
+      expect(result.processed?.content).toContain("return <>");
+      expect(result.processed?.content).toContain("</>");
     });
   });
 });

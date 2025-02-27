@@ -33,17 +33,17 @@ name: Integration Test
       // First, preprocess the file
       const preprocessResult = parser._preProcessFile(filePath, input);
       expect(preprocessResult.errors).toHaveLength(0);
-      expect(preprocessResult.parsed).not.toBeNull();
+      expect(preprocessResult.processed).not.toBeNull();
 
       // Verify all tags (valid and invalid) are preserved in the preprocessed content
-      expect(preprocessResult.parsed?.content).toContain("<workflow");
-      expect(preprocessResult.parsed?.content).toContain("<state");
-      expect(preprocessResult.parsed?.content).toContain("<customTag>");
-      expect(preprocessResult.parsed?.content).toContain("<log>");
-      expect(preprocessResult.parsed?.content).toContain("<invalidTag>");
-      expect(preprocessResult.parsed?.content).toContain("<nestedInvalid>");
-      expect(preprocessResult.parsed?.content).toContain("<transition");
-      expect(preprocessResult.parsed?.content).toContain("<final");
+      expect(preprocessResult.processed?.content).toContain("<workflow");
+      expect(preprocessResult.processed?.content).toContain("<state");
+      expect(preprocessResult.processed?.content).toContain("<customTag>");
+      expect(preprocessResult.processed?.content).toContain("<log>");
+      expect(preprocessResult.processed?.content).toContain("<invalidTag>");
+      expect(preprocessResult.processed?.content).toContain("<nestedInvalid>");
+      expect(preprocessResult.processed?.content).toContain("<transition");
+      expect(preprocessResult.processed?.content).toContain("<final");
 
       // Set the file in the parser
       parser.setFile({ path: filePath, content: input }, true);
@@ -95,27 +95,27 @@ More markdown content outside of JSX.
       // Preprocess the file
       const preprocessResult = parser._preProcessFile(filePath, input);
       expect(preprocessResult.errors).toHaveLength(0);
-      expect(preprocessResult.parsed).not.toBeNull();
+      expect(preprocessResult.processed).not.toBeNull();
 
       // Verify all content is preserved in the preprocessed file
-      expect(preprocessResult.parsed?.content).toContain("<workflow");
-      expect(preprocessResult.parsed?.content).toContain("<state");
-      expect(preprocessResult.parsed?.content).toContain("<customTag>");
-      expect(preprocessResult.parsed?.content).toContain("<log>");
-      expect(preprocessResult.parsed?.content).toContain("<invalidTag");
-      expect(preprocessResult.parsed?.content).toContain('attr="value"');
-      expect(preprocessResult.parsed?.content).toContain("<nestedInvalid>");
-      expect(preprocessResult.parsed?.content).toContain("<transition");
-      expect(preprocessResult.parsed?.content).toContain("<final");
+      expect(preprocessResult.processed?.content).toContain("<workflow");
+      expect(preprocessResult.processed?.content).toContain("<state");
+      expect(preprocessResult.processed?.content).toContain("<customTag>");
+      expect(preprocessResult.processed?.content).toContain("<log>");
+      expect(preprocessResult.processed?.content).toContain("<invalidTag");
+      expect(preprocessResult.processed?.content).toContain('attr="value"');
+      expect(preprocessResult.processed?.content).toContain("<nestedInvalid>");
+      expect(preprocessResult.processed?.content).toContain("<transition");
+      expect(preprocessResult.processed?.content).toContain("<final");
 
       // Verify markdown content is preserved
-      expect(preprocessResult.parsed?.content).toContain(
+      expect(preprocessResult.processed?.content).toContain(
         "# This is a markdown heading"
       );
-      expect(preprocessResult.parsed?.content).toContain(
+      expect(preprocessResult.processed?.content).toContain(
         "## This is a markdown subheading"
       );
-      expect(preprocessResult.parsed?.content).toContain(
+      expect(preprocessResult.processed?.content).toContain(
         "More markdown content outside of JSX"
       );
     });
@@ -147,11 +147,11 @@ name: Similar Tags Test
       // Preprocess the file
       const preprocessResult = parser._preProcessFile(filePath, input);
       expect(preprocessResult.errors).toHaveLength(0);
-      expect(preprocessResult.parsed).not.toBeNull();
+      expect(preprocessResult.processed).not.toBeNull();
 
       // Verify similar tags are preserved in the preprocessed content
       for (const tag of similarTags) {
-        expect(preprocessResult.parsed?.content).toContain(`<${tag}>`);
+        expect(preprocessResult.processed?.content).toContain(`<${tag}>`);
       }
     });
 
@@ -178,17 +178,19 @@ name: Tags With Attributes
       // Preprocess the file
       const preprocessResult = parser._preProcessFile(filePath, input);
       expect(preprocessResult.errors).toHaveLength(0);
-      expect(preprocessResult.parsed).not.toBeNull();
+      expect(preprocessResult.processed).not.toBeNull();
 
       // Verify tags with attributes are preserved
-      expect(preprocessResult.parsed?.content).toContain(
+      expect(preprocessResult.processed?.content).toContain(
         '<customTag id="custom1"'
       );
-      expect(preprocessResult.parsed?.content).toContain('class="test"');
-      expect(preprocessResult.parsed?.content).toContain('data-attr="value"');
-      expect(preprocessResult.parsed?.content).toContain('<log id="log1"');
-      expect(preprocessResult.parsed?.content).toContain('target="end"');
-      expect(preprocessResult.parsed?.content).toContain('event="done"');
+      expect(preprocessResult.processed?.content).toContain('class="test"');
+      expect(preprocessResult.processed?.content).toContain(
+        'data-attr="value"'
+      );
+      expect(preprocessResult.processed?.content).toContain('<log id="log1"');
+      expect(preprocessResult.processed?.content).toContain('target="end"');
+      expect(preprocessResult.processed?.content).toContain('event="done"');
     });
   });
 });

@@ -16,13 +16,14 @@
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
-    "test": "bun test",
+    "test": "bun test ./src/**/*.test.ts",
     "test:e2e": "bun test e2e/"
   },
   "dependencies": {
     "@fireworks/core": "workspace:*",
     "@fireworks/element-config": "workspace:*",
     "@fireworks/types": "workspace:*",
+    "@mdx-js/typescript-plugin": "^0.0.8",
     "ajv": "^8.17.1",
     "arktype": "^2.1.0",
     "js-sourcemap": "^0.0.6",
