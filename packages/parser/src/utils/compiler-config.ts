@@ -1,4 +1,4 @@
-import type { CompilerOptions } from "../types";
+import { CompilerOptions } from "ts-morph";
 
 export class CompilerConfig {
   static getDefaultOptions(): CompilerOptions {

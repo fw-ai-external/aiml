@@ -1,9 +1,9 @@
 import { z } from "zod";
 import type { ReactNode } from "react";
 import type {
-  SCXMLNodeType,
   ElementRole,
   AllowedChildrenType,
+  ElementType,
 } from "@fireworks/types";
 
 export type ElementProps = Record<string, any>;
@@ -66,11 +66,7 @@ export interface BaseElementDefinition {
   /**
    * The actual tag name used in the config/tsx
    */
-  tag: string;
-  /**
-   * The type of the element
-   */
-  scxmlType?: SCXMLNodeType;
+  tag: ElementType;
   /**
    * The role of the element
    */
@@ -106,7 +102,7 @@ export interface BaseElementDefinition {
 
 export type ElementDefinition<
   Props = any,
-  Tag extends string = string,
+  Tag extends ElementType = ElementType,
 > = BaseElementDefinition & {
   tag: Tag;
   propsSchema?: z.ZodType<Props>;

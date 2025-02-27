@@ -1,5 +1,5 @@
 import type {
-  SCXMLNodeType,
+  ElementType,
   IBaseElement,
   IBaseElementConfig,
   ElementRole,
@@ -12,7 +12,7 @@ export class BaseElement implements IBaseElement {
   key: string;
   tag: string;
   role: ElementRole;
-  elementType: SCXMLNodeType;
+  elementType: ElementType;
   attributes: Record<string, any>;
   children: IBaseElement[];
   parent?: IBaseElement;
@@ -23,6 +23,11 @@ export class BaseElement implements IBaseElement {
   readonly onExecutionGraphConstruction?: (buildContext: any) => any;
   readonly enter?: () => Promise<void>;
   readonly exit?: () => Promise<void>;
+  type: "element" = "element";
+  lineStart: number = 0;
+  lineEnd: number = 0;
+  columnStart: number = 0;
+  columnEnd: number = 0;
 
   constructor(config: IBaseElementConfig) {
     this.id = config.id;
@@ -40,5 +45,11 @@ export class BaseElement implements IBaseElement {
     this.exit = config.exit;
     this.propsSchema = config.propsSchema ?? z.object({});
     this.description = config.description;
+
+    // Set position information if provided
+    if (config.lineStart !== undefined) this.lineStart = config.lineStart;
+    if (config.lineEnd !== undefined) this.lineEnd = config.lineEnd;
+    if (config.columnStart !== undefined) this.columnStart = config.columnStart;
+    if (config.columnEnd !== undefined) this.columnEnd = config.columnEnd;
   }
 }

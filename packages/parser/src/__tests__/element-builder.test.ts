@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { ElementBuilder } from "../utils/element-builder";
-import { Project, Node, SyntaxKind } from "ts-morph";
+import { Project, SyntaxKind } from "ts-morph";
 import type { ElementRole } from "@fireworks/types";
 
 describe("ElementBuilder", () => {

@@ -20,7 +20,6 @@ export const stateConfig: BaseElementDefinition = {
     "onentry",
     "onexit",
     "transition",
-    "invoke",
     "state",
     "parallel",
     "final",
@@ -29,6 +28,12 @@ export const stateConfig: BaseElementDefinition = {
     "if",
     "else",
     "elseif",
+    "llm",
+    "toolcall",
+    "log",
+    "sendText",
+    "sendToolCalls",
+    "sendObject",
   ] as AllowedChildrenType,
   documentation: "Basic state container",
 };
@@ -69,26 +74,11 @@ export const finalConfig: BaseElementDefinition = {
 
 export type FinalProps = z.infer<typeof finalConfig.propsSchema>;
 
-// History Element
-export const historyConfig: BaseElementDefinition = {
-  tag: "history",
-  role: "state",
-  propsSchema: z.object({
-    id: z.string().optional(),
-  }),
-  allowedChildren: ["onentry", "onexit"] as AllowedChildrenType,
-  description: "Represents historical state information",
-  documentation: "Represents historical state information",
-};
-
-export type HistoryProps = z.infer<typeof historyConfig.propsSchema>;
-
 // Export a type for all state-related schemas
 export type StateSchemas = {
   state: typeof stateConfig.propsSchema;
   parallel: typeof parallelConfig.propsSchema;
   final: typeof finalConfig.propsSchema;
-  history: typeof historyConfig.propsSchema;
 };
 
 // Export a type for all state-related allowed children
@@ -96,5 +86,4 @@ export type StateAllowedChildren = {
   state: typeof stateConfig.allowedChildren;
   parallel: typeof parallelConfig.allowedChildren;
   final: typeof finalConfig.allowedChildren;
-  history: typeof historyConfig.allowedChildren;
 };

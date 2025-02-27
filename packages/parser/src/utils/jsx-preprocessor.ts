@@ -1,24 +1,6 @@
 import { JSXPreprocessError } from "../types";
 
 export class JSXPreprocessor {
-  // HTML tags that should be self-closing
-  private static readonly SELF_CLOSING_TAGS = new Set([
-    "area",
-    "base",
-    "br",
-    "col",
-    "embed",
-    "hr",
-    "img",
-    "input",
-    "link",
-    "meta",
-    "param",
-    "source",
-    "track",
-    "wbr",
-  ]);
-
   // Marker used to preserve whitespace in empty elements
   private static readonly WHITESPACE_MARKER = "__EMPTY_ELEMENT_MARKER__";
 
@@ -41,16 +23,6 @@ export class JSXPreprocessor {
    * transformations to ensure proper JSX formatting
    */
   static normalizeSyntax(input: string): string {
-    // Handle special test cases directly
-    if (this.isEmptySpanElement(input)) {
-      return "<span>  </span>";
-    }
-
-    // Special case for complex nested structures in tests
-    if (this.isComplexNestedStructure(input)) {
-      return this.normalizeComplexStructure(input);
-    }
-
     // Regular processing for other cases
     // First normalize all whitespace to single spaces
     let result = input.replace(/\s+/g, " ");
@@ -107,12 +79,6 @@ export class JSXPreprocessor {
    */
   static process(input: string): string {
     try {
-      // Special handling for test cases
-      if (this.isComplexNestedStructure(input)) {
-        const runtime = this.createJSXRuntime();
-        return `${runtime}<div><span><input/><br/></span></div>`;
-      }
-
       // Handle empty or whitespace-only input
       if (!input.trim()) {
         throw new JSXPreprocessError("No JSX element found in MDX file");
@@ -131,40 +97,6 @@ export class JSXPreprocessor {
   }
 
   /**
-   * Checks if input is an empty span element with whitespace
-   */
-  private static isEmptySpanElement(input: string): boolean {
-    return (
-      input === "<span>  </span>" ||
-      input === "<span>\n</span>" ||
-      input === "<span>    </span>"
-    );
-  }
-
-  /**
-   * Checks if input is a complex nested structure (for tests)
-   */
-  private static isComplexNestedStructure(input: string): boolean {
-    return (
-      input.includes("<div>") &&
-      input.includes("<span>") &&
-      input.includes("<input>") &&
-      input.includes("<br>")
-    );
-  }
-
-  /**
-   * Normalizes a complex nested structure
-   */
-  private static normalizeComplexStructure(input: string): string {
-    return input
-      .replace(/\s+/g, " ")
-      .replace(/<input>/g, "<input/>")
-      .replace(/<br>/g, "<br/>")
-      .replace(/>\s+</g, "><");
-  }
-
-  /**
    * Marks empty elements with a special token for preservation
    */
   private static markEmptyElements(input: string): string {
@@ -180,6 +112,7 @@ export class JSXPreprocessor {
    * Processes self-closing tags
    */
   private static processSelfClosingTags(input: string): string {
+    // TODO any tag can be self closing
     const selfClosingTags = Array.from(this.SELF_CLOSING_TAGS);
     const selfClosingRegex = new RegExp(
       `<(${selfClosingTags.join("|")})((?:\\s[^>]*)?)>(?!\/)`,

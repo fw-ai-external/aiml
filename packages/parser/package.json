@@ -20,14 +20,18 @@
     "test:e2e": "bun test e2e/"
   },
   "dependencies": {
-    "@fireworks/types": "workspace:*",
-    "@fireworks/element-config": "workspace:*",
     "@fireworks/core": "workspace:*",
+    "@fireworks/element-config": "workspace:*",
+    "@fireworks/types": "workspace:*",
+    "ajv": "^8.17.1",
+    "arktype": "^2.1.0",
+    "js-sourcemap": "^0.0.6",
+    "mdast": "^3.0.0",
     "ts-morph": "^21.0.1",
     "uuid": "^9.0.1",
-    "zod": "^3.22.4",
+    "xml-formatter": "^3.6.2",
     "xml-js": "^1.6.11",
-    "xml-formatter": "^3.6.2"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@fireworks/tsconfig": "workspace:*",

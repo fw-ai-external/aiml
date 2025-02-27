@@ -1,41 +1,41 @@
-import { z } from "zod";
-
 export * from "./errors";
 export * from "./utils";
+import { z } from "zod";
 
 /**
  * All possible SCXML node types.
  * This must match exactly with BaseElement.ts's definition.
  */
-export type SCXMLNodeType =
-  | "state"
-  | "parallel"
-  | "transition"
-  | "final"
-  | "history"
-  | "onentry"
-  | "onexit"
-  | "initial"
-  | "datamodel"
-  | "data"
-  | "assign"
-  | "donedata"
-  | "content"
-  | "param"
-  | "script"
-  | "send"
-  | "cancel"
-  | "if"
-  | "elseif"
-  | "else"
-  | "foreach"
-  | "log"
-  | "raise"
-  | "scxml"
-  | "on"
-  | "invoke"
-  | "finalize"
-  | "llm";
+
+export const aimlElements = [
+  "workflow",
+  "state",
+  "parallel",
+  "final",
+  "datamodel",
+  "data",
+  "assign",
+  "onentry",
+  "onexit",
+  "transition",
+  "if",
+  "elseif",
+  "else",
+  "foreach",
+  "script",
+  "llm",
+  "toolcall",
+  "log",
+  "sendText",
+  "sendToolCalls",
+  "sendObject",
+  "onerror",
+  "onchunk",
+  "prompt",
+  "instructions",
+] as const;
+
+export type ElementType = (typeof aimlElements)[number];
 
 export type ElementRole =
   | "state"
@@ -46,59 +46,75 @@ export type ElementRole =
 
 export type AllowedChildrenType = string[] | "none" | "any" | "text";
 
-export interface InstructionNode {
-  kind: "instruction";
-  key?: string;
-  name?: undefined;
-  scxmlType?: undefined;
-  instruction: string;
-  text?: undefined;
-  comment?: undefined;
-  nodes?: undefined;
-  attributes?: undefined;
+export type AIMLNode = {
+  type:
+    | "text"
+    | "comment"
+    | "element"
+    | "import"
+    | "header"
+    | "headerField"
+    | "field";
+  id?: string;
+  key: string;
+  tag?: string;
+  role?: ElementRole;
+  elementType?: ElementType;
+  attributes?: Attributes;
+  children?: AIMLNode[];
+  parent?: IBaseElement;
+  value?: string | number | boolean;
+  filePath?: string;
+  namedImports?: string[];
+  defaultImport?: string;
+  lineStart: number;
+  lineEnd: number;
+  columnStart: number;
+  columnEnd: number;
+};
+
+export interface ImportNode extends AIMLNode {
+  kind: "import";
+  filePath: string;
+  namedImports?: string[];
+  defaultImport?: string;
 }
 
-export interface CommentNode {
+export interface HeaderNode extends AIMLNode {
+  kind: "header";
+  children: HeaderFieldNode[];
+}
+
+export interface HeaderFieldNode extends AIMLNode {
+  kind: "headerField";
+  value: string;
+}
+
+export interface CommentNode extends AIMLNode {
   kind: "comment";
-  key?: string;
-  name?: undefined;
-  scxmlType?: undefined;
-  comment: string;
-  text?: undefined;
-  instruction?: undefined;
-  nodes?: undefined;
-  attributes?: undefined;
+  value: string;
 }
 
-export interface TextNode {
+export interface TextNode extends AIMLNode {
   kind: "text";
-  key?: string;
-  name?: undefined;
-  scxmlType?: undefined;
-  text: string | number | boolean;
-  comment?: undefined;
-  instruction?: undefined;
-  nodes?: undefined;
-  attributes?: undefined;
+  value: string | number | boolean;
 }
 
 export interface Attributes {
   [key: string]: string | number | undefined;
 }
 
-export interface IBaseElement {
+export interface IBaseElement extends AIMLNode {
+  type: "element";
   readonly id: string;
   readonly key: string;
   readonly tag: string;
   readonly role: ElementRole;
-  readonly elementType: SCXMLNodeType;
-  readonly attributes: Record<string, any>;
-  readonly children: IBaseElement[];
+  readonly elementType: ElementType;
+  readonly attributes: Attributes;
+  readonly children: AIMLNode[];
   readonly onExecutionGraphConstruction?: (buildContext: any) => any;
-  enter?: () => Promise<void>;
-  exit?: () => Promise<void>;
-  allowedChildren: AllowedChildrenType;
-  schema: z.ZodType<any>;
+  readonly allowedChildren: AllowedChildrenType;
 }
 
 export interface IBaseElementConfig {
@@ -106,7 +122,7 @@ export interface IBaseElementConfig {
   key: string;
   tag: string;
   role: ElementRole;
-  elementType: SCXMLNodeType;
+  elementType: ElementType;
   attributes?: Record<string, any>;
   children?: IBaseElement[];
   parent?: IBaseElement;
@@ -118,24 +134,9 @@ export interface IBaseElementConfig {
   documentation?: string;
   allowedChildren: AllowedChildrenType;
   schema: z.ZodType<any>;
+  type: "element";
+  lineStart: number;
+  lineEnd: number;
+  columnStart: number;
+  columnEnd: number;
 }
-
-export type FireAgentNode =
-  | TextNode
-  | CommentNode
-  | InstructionNode
-  | IBaseElement
-  | {
-      kind: "tag";
-      key: string;
-      name: string;
-      scxmlType: SCXMLNodeType;
-      attributes: Attributes;
-      nodes?: Array<FireAgentNode>;
-      parents?: Array<{ name: string; id: string }>;
-      isRendered?: boolean;
-      text?: undefined;
-      comment?: undefined;
-      instruction?: undefined;
-      initiatedfrom?: "render" | "spec";
-    };

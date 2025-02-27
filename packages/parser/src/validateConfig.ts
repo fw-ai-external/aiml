@@ -1,4 +1,4 @@
-import type { FireAgentNode } from "./types";
+import type { IBaseElement } from "@fireworks/types";
 
 interface ValidationError {
   type: "unreachable_state";
@@ -6,9 +6,9 @@ interface ValidationError {
   message: string;
 }
 
-export function validateConfig(config: FireAgentNode): {
+export function validateConfig(config: IBaseElement): {
   errors: ValidationError[];
-  config: FireAgentNode;
+  config: IBaseElement;
 } {
   return {
     errors: findUnreachableStates(config),
@@ -16,11 +16,11 @@ export function validateConfig(config: FireAgentNode): {
   };
 }
 
-function hasTagProperties(node: FireAgentNode): node is FireAgentNode & {
+function hasTagProperties(node: IBaseElement): node is IBaseElement & {
   kind: "tag";
   name: string;
   attributes: { [key: string]: string | number | undefined };
-  nodes?: FireAgentNode[];
+  nodes?: IBaseElement[];
 } {
   return (
     "kind" in node &&
@@ -30,12 +30,12 @@ function hasTagProperties(node: FireAgentNode): node is FireAgentNode & {
   );
 }
 
-function findUnreachableStates(element: FireAgentNode): ValidationError[] {
+function findUnreachableStates(element: IBaseElement): ValidationError[] {
   const errors: ValidationError[] = [];
   const reachableStates = new Set<string>();
 
   // Helper function to collect all state IDs
-  function collectStateIds(elem: FireAgentNode): Set<string> {
+  function collectStateIds(elem: IBaseElement): Set<string> {
     const stateIds = new Set<string>();
 
     if (
@@ -47,7 +47,7 @@ function findUnreachableStates(element: FireAgentNode): ValidationError[] {
     }
 
     if (hasTagProperties(elem) && elem.nodes) {
-      elem.nodes.forEach((child: FireAgentNode) => {
+      elem.nodes.forEach((child: IBaseElement) => {
         const childStateIds = collectStateIds(child);
         childStateIds.forEach((id) => stateIds.add(id));
       });
@@ -58,7 +58,7 @@ function findUnreachableStates(element: FireAgentNode): ValidationError[] {
 
   // Helper function to collect all transitions and mark initial states
   function collectTransitionsAndInitials(
-    elem: FireAgentNode
+    elem: IBaseElement
   ): Map<string, string[]> {
     const transitions = new Map<string, string[]>();
 
@@ -69,7 +69,7 @@ function findUnreachableStates(element: FireAgentNode): ValidationError[] {
       } else if (elem.nodes && elem.nodes.length > 0) {
         // If no initial attribute, first state child is initial
         const firstState = elem.nodes.find(
-          (child: FireAgentNode) =>
+          (child: IBaseElement) =>
             hasTagProperties(child) &&
             child.name === "state" &&
             child.attributes?.id
@@ -95,9 +95,9 @@ function findUnreachableStates(element: FireAgentNode): ValidationError[] {
       } else if (elem.nodes) {
         // If no initial attribute, first state child is initial
         const firstState = elem.nodes.find(
-          (child: FireAgentNode) =>
+          (child: IBaseElement) =>
             hasTagProperties(child) &&
-            child.name === "state" &&
+            child.role === "state" &&
             child.attributes?.id
         );
         if (
@@ -129,7 +129,7 @@ function findUnreachableStates(element: FireAgentNode): ValidationError[] {
     }
 
     if (hasTagProperties(elem) && elem.nodes) {
-      elem.nodes.forEach((child: FireAgentNode) => {
+      elem.nodes.forEach((child: IBaseElement) => {
         const childTransitions = collectTransitionsAndInitials(child);
         childTransitions.forEach((targets, source) => {
           const existing = transitions.get(source) || [];
@@ -141,15 +141,15 @@ function findUnreachableStates(element: FireAgentNode): ValidationError[] {
     return transitions;
   }
 
-  function findParentState(elem: FireAgentNode): FireAgentNode | null {
+  function findParentState(elem: IBaseElement): IBaseElement | null {
     let current = elem;
-    while (current && hasTagProperties(current) && current.name !== "state") {
+    while (current && hasTagProperties(current) && current.role !== "state") {
       current = findParent(current);
     }
     return current || null;
   }
 
-  function findParent(elem: FireAgentNode): FireAgentNode {
+  function findParent(elem: IBaseElement): IBaseElement {
     let queue = [element];
     while (queue.length > 0) {
       const current = queue.shift()!;

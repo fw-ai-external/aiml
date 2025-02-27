@@ -6,11 +6,7 @@ import {
 } from "ts-morph";
 import { v4 as uuidv4 } from "uuid";
 import { BaseElement } from "../BaseElement";
-import type {
-  ElementRole,
-  IBaseElement,
-  SCXMLNodeType,
-} from "@fireworks/types";
+import type { ElementRole, IBaseElement, ElementType } from "@fireworks/types";
 import { z } from "zod";
 
 export class ElementBuilder {
@@ -90,11 +86,15 @@ export class ElementBuilder {
 
     const id = attributes.id || uuidv4();
     const key = attributes.key || id;
-    const elementType = tagName as SCXMLNodeType;
+    const elementType = tagName as ElementType;
     const role = this.determineRole(tagName);
 
     // Create a stub schema that satisfies the ZodType interface
     const schema = this.createStubSchema(tagName, attributes);
+
+    // Get approximate position information
+    const startPos = node.getPos();
+    const endPos = node.getEnd();
 
     return new BaseElement({
       id,
@@ -107,6 +107,11 @@ export class ElementBuilder {
       parent: undefined,
       allowedChildren: "any",
       schema,
+      type: "element",
+      lineStart: 1, // Default values since we can't get exact line/column
+      lineEnd: 1,
+      columnStart: startPos,
+      columnEnd: endPos,
     });
   }
 

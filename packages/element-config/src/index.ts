@@ -1,23 +1,11 @@
 import { z } from "zod";
 import type {
-  SCXMLNodeType,
+  ElementType,
   ElementRole,
   AllowedChildrenType,
 } from "@fireworks/types";
-import {
-  finalConfig,
-  historyConfig,
-  parallelConfig,
-  stateConfig,
-} from "./schemas/states";
-import {
-  assignConfig,
-  cancelConfig,
-  logConfig,
-  raiseConfig,
-  scriptConfig,
-  sendConfig,
-} from "./schemas/actions";
+import { finalConfig, parallelConfig, stateConfig } from "./schemas/states";
+import { assignConfig, logConfig, scriptConfig } from "./schemas/actions";
 import {
   elseConfig,
   elseIfConfig,
@@ -30,8 +18,16 @@ import {
 import {
   dataConfig,
   dataModelConfig,
+  instructionsConfig,
   llmConfig,
-  scxmlConfig,
+  onChunkConfig,
+  onErrorConfig,
+  promptConfig,
+  sendObjectConfig,
+  sendTextConfig,
+  sendToolCallsConfig,
+  toolCallConfig,
+  workflowConfig,
 } from "./schemas/specialized";
 
 // Helper type for element definitions to ensure type safety with allowed children
@@ -41,11 +37,8 @@ export interface BaseElementDefinition {
   /**
    * The actual tag name used in the config/tsx
    */
-  tag: string;
-  /**
-   * The type of the element
-   */
-  scxmlType?: SCXMLNodeType;
+  tag: ElementType;
+
   /**
    * The role of the element
    */
@@ -81,7 +74,7 @@ export interface BaseElementDefinition {
 
 export type ElementDefinition<
   Props = any,
-  Tag extends string = string,
+  Tag extends ElementType = ElementType,
 > = BaseElementDefinition & {
   tag: Tag;
   propsSchema?: z.ZodType<Props>;
@@ -97,28 +90,32 @@ export * from "./schemas/control-flow";
 export * from "./schemas/specialized";
 export * from "./types";
 
-export const allElementConfigs = {
-  scxml: scxmlConfig,
+export const allElementConfigs: Record<ElementType, ElementDefinition> = {
+  workflow: workflowConfig,
   state: stateConfig,
   parallel: parallelConfig,
-  transition: transitionConfig,
   final: finalConfig,
-  onentry: onEntryConfig,
-  onexit: onExitConfig,
-  history: historyConfig,
   datamodel: dataModelConfig,
   data: dataConfig,
   assign: assignConfig,
-  send: sendConfig,
-  cancel: cancelConfig,
-  script: scriptConfig,
-  log: logConfig,
-  raise: raiseConfig,
+  onentry: onEntryConfig,
+  onexit: onExitConfig,
+  transition: transitionConfig,
   if: ifConfig,
   elseif: elseIfConfig,
   else: elseConfig,
   foreach: forEachConfig,
+  script: scriptConfig,
   llm: llmConfig,
+  toolcall: toolCallConfig,
+  log: logConfig,
+  sendText: sendTextConfig,
+  sendToolCalls: sendToolCallsConfig,
+  sendObject: sendObjectConfig,
+  onerror: onErrorConfig,
+  onchunk: onChunkConfig,
+  prompt: promptConfig,
+  instructions: instructionsConfig,
 } as const;
 
 export const allStateElementConfigs = Object.values(allElementConfigs).filter(
@@ -133,12 +130,19 @@ export * from "./schemas/specialized";
 
 // Export prop types
 export type AssignProps = z.infer<typeof assignConfig.propsSchema>;
-export type CancelProps = z.infer<typeof cancelConfig.propsSchema>;
 export type LogProps = z.infer<typeof logConfig.propsSchema>;
-export type RaiseProps = z.infer<typeof raiseConfig.propsSchema>;
 export type ScriptProps = z.infer<typeof scriptConfig.propsSchema>;
-export type SendProps = z.infer<typeof sendConfig.propsSchema>;
 export type OnEntryProps = z.infer<typeof onEntryConfig.propsSchema>;
 export type OnExitProps = z.infer<typeof onExitConfig.propsSchema>;
+export type ToolCallProps = z.infer<typeof toolCallConfig.propsSchema>;
+export type SendTextProps = z.infer<typeof sendTextConfig.propsSchema>;
+export type SendToolCallsProps = z.infer<
+  typeof sendToolCallsConfig.propsSchema
+>;
+export type SendObjectProps = z.infer<typeof sendObjectConfig.propsSchema>;
+export type OnErrorProps = z.infer<typeof onErrorConfig.propsSchema>;
+export type OnChunkProps = z.infer<typeof onChunkConfig.propsSchema>;
+export type PromptProps = z.infer<typeof promptConfig.propsSchema>;
+export type InstructionsProps = z.infer<typeof instructionsConfig.propsSchema>;
 
 export * from "./nodeDefinitions";

@@ -1,176 +1,224 @@
+import { IBaseElement } from "@fireworks/types";
+import { AIMLParseError, AIMLParseContext } from "./types";
+// @ts-expect-error no types
+import { generator, consumer } from "js-sourcemap";
+
 import {
-  Project,
-  Node,
   SourceFile,
+  Node,
   JsxElement,
   JsxSelfClosingElement,
-  ScriptKind,
+  Project,
 } from "ts-morph";
-import type { IBaseElement } from "@fireworks/types";
-import {
-  MDXParseContext,
-  MDXParseError,
-  MDXParseResult,
-  MDXParserOptions,
-} from "./types";
-
-import { JSXPreprocessor } from "./utils/jsx-preprocessor";
 import { ElementBuilder } from "./utils/element-builder";
 import { CompilerConfig } from "./utils/compiler-config";
+import { isAIMLElement } from "@fireworks/types";
+import { AIMLFile, parseMDXFrontmatter } from "./utils/frontmater";
 
-export class MDXParser {
+type ProcessedAIMLFile = {
+  original: string;
+  errors: AIMLParseError[];
+  sourcemap: string | null;
+  parsed: AIMLFile | null;
+  ast: IBaseElement | null;
+};
+
+/**
+ * AimlParser extends the base MDXParser to provide AIML-specific functionality
+ * It focuses on correctly identifying AIML elements and handling both
+ * workflow and non-workflow mode
+ */
+export class AimlParser {
+  private errors: AIMLParseError[] = [];
   private project: Project;
-  private errors: MDXParseError[] = [];
-  private options: Required<MDXParserOptions>;
-  private compilerConfig: CompilerConfig = new CompilerConfig();
-  private sourceCode: string;
 
-  constructor(sourceCode: string = "") {
-    this.sourceCode = sourceCode;
+  private files: Map<string, ProcessedAIMLFile> = new Map();
+
+  constructor() {
     this.project = new Project({
       useInMemoryFileSystem: true,
-      skipFileDependencyResolution: true,
+      // skipFileDependencyResolution: true,
       compilerOptions: CompilerConfig.getDefaultOptions(),
     });
-    this.options = {
-      strict: true,
-      validateSchema: true,
-    };
-    this.errors = [];
 
-    // If source code is provided, try to extract YAML frontmatter
-    if (sourceCode) {
-      try {
-        this.extractFrontmatter(sourceCode);
-      } catch (error) {
-        // Silently ignore frontmatter extraction errors
-        // They will be caught during the actual parse
-      }
-    }
+    this.errors = [];
   }
 
-  parse(input: string): MDXParseResult {
+  public setFile(
+    file: { path: string; content: string },
+    process = false
+  ): void {
+    this.files.set(file.path, this._preProcessFile(file.path, file.content));
+    // return this.project.createSourceFile(file.path, file.content, {
+    //   overwrite: true,
+    //   scriptKind: ScriptKind.TSX,
+    // });
+  }
+
+  /**
+   * Parses AIML content and determines its mode (workflow or non-workflow)
+   */
+  public _preProcessFile(filePath: string, input: string): ProcessedAIMLFile {
     this.errors = [];
 
     try {
-      // Extract frontmatter if present
-      const frontmatter = this.extractFrontmatter(input);
+      // Extract frontmatter header if present
+      const basicFile = parseMDXFrontmatter(input);
 
-      // Handle markdown text for non-workflow mode
-      let systemPrompt: string | null = null;
+      // Move comments that might exist before the imports to just after the imports
+      const preImportComments = this._splitPreImportComments(basicFile.content);
 
-      // Extract markdown text that might be present before the first AIML element
-      // This is used in non-workflow mode as a system prompt
-      const firstElementMatch = input.match(
-        /<(workflow|state|parallel|final)[^>]*>/i
-      );
-      if (
-        firstElementMatch &&
-        firstElementMatch.index &&
-        firstElementMatch.index > 0
-      ) {
-        // Extract text before the first element, excluding frontmatter
-        let textBeforeElement = input
-          .substring(0, firstElementMatch.index)
-          .trim();
+      //Split all imports from the content
+      const imports = this._splitImports(basicFile.content);
+      const contentWithoutImports = basicFile.content.split(
+        imports[imports.length - 1]
+      )[1];
 
-        // Remove frontmatter if present
-        if (frontmatter) {
-          const frontmatterMatch = textBeforeElement.match(
-            /^---\s*\n[\s\S]*?\n---\s*\n/
-          );
-          if (frontmatterMatch) {
-            textBeforeElement = textBeforeElement
-              .substring(frontmatterMatch[0].length)
-              .trim();
-          }
-        }
+      // Wrap the MDX content in a JSX fragment to make it parseable by ts-morph
+      // This ensures the content is valid TypeScript/JSX that ts-morph can process
+      const wrappedContent = `${imports.join("\n")}
 
-        if (textBeforeElement) {
-          systemPrompt = textBeforeElement;
-        }
-      }
-
-      // Process the input to handle JSX syntax
-      const processedInput = JSXPreprocessor.process(input);
-
-      const sourceFile = this.createSourceFile(processedInput);
-
-      this.validateSyntax(sourceFile);
-
-      const ast = this.parseJSXTree(sourceFile);
-
-      // If parseJSXTree returned null due to an error, return early with errors
-      if (ast === null) {
-        return {
-          ast: null as any,
-          errors: this.errors,
-        };
-      }
-
-      // If frontmatter was found, attach it to the AST
-      if (frontmatter && Object.keys(frontmatter).length > 0) {
-        // Use TypeScript casting to overcome readonly restrictions
-        (ast as any).attributes = {
-          ...ast.attributes,
-          frontmatter,
-        };
-      }
-
-      // Handle non-workflow mode
-      if (ast.tag !== "workflow") {
-        // Check if this is a non-workflow AIML file with top-level states
-        const topLevelStates = ast.children.filter((child) =>
-          ["state", "parallel", "final"].includes(child.tag)
-        );
-
-        if (
-          topLevelStates.length > 0 ||
-          ast.tag === "state" ||
-          ast.tag === "parallel" ||
-          ast.tag === "final"
-        ) {
-          // This is a non-workflow mode AIML file
-          // If we have a system prompt from markdown text, attach it to the AST
-          if (systemPrompt) {
-            (ast as any).attributes = {
-              ...ast.attributes,
-              systemPrompt,
-            };
-          }
-        }
-      }
+export default function () { 
+  return <>
+    ${preImportComments.join("\n")}
+    ${contentWithoutImports}
+  </> 
+}`;
 
       return {
-        ast,
-        errors: this.errors,
+        original: input,
+        sourcemap: this.createSourceMap(input, wrappedContent, filePath),
+        parsed: {
+          ...basicFile,
+          content: wrappedContent,
+        },
+        ast: null,
+        errors: [],
       };
     } catch (error) {
       console.error("Error in parse:", error);
       // Collect the error instead of throwing
       if (error instanceof Error) {
-        const mdxError = new MDXParseError(error.message);
-        this.errors.push(mdxError);
+        const AIMLError = new AIMLParseError(error.message);
+        this.errors.push(AIMLError);
       } else {
-        const mdxError = new MDXParseError("Unknown error during parsing");
-        this.errors.push(mdxError);
+        const AIMLError = new AIMLParseError("Unknown error during parsing");
+        this.errors.push(AIMLError);
       }
 
       return {
-        ast: null as any,
+        ast: null,
         errors: this.errors,
+        original: input,
+        sourcemap: null,
+        parsed: null,
       };
     }
   }
 
-  private createSourceFile(input: string): SourceFile {
-    return this.project.createSourceFile("temp.tsx", input, {
-      overwrite: true,
-      scriptKind: ScriptKind.TSX,
-    });
+  // Splits out all MDX style comments from the content before the imports
+  // e.g. {/* this is a comment */}
+  public _splitPreImportComments(content: string): string[] {
+    // Split the content by the imports
+    const imports = this._splitImports(content);
+    if (!imports[0]) {
+      return [];
+    }
+    const preImportComments = content.split(imports[0])[0];
+    const commentRegex = /{[\s\S]*?}/g;
+    return preImportComments.match(commentRegex) || [];
   }
 
-  private validateSyntax(sourceFile: SourceFile): void {
+  // Splits out all imports from the content
+  public _splitImports(content: string): string[] {
+    const importRegex = /import\s+[\s\S]*?from\s+['"][\s\S]*?['"];?/g;
+    return content.match(importRegex) || [];
+  }
+
+  private createSourceMap(
+    source: string,
+    target: string,
+    fileName: string
+  ): string {
+    return generator(source, target, fileName);
+  }
+
+  public getOriginalLineOfCode(
+    sourceMap: string,
+    line: number,
+    column: number
+  ): { line: number; column: number; source: string } {
+    const c = consumer(sourceMap);
+    const originalLine = c.originalPositionFor({
+      line,
+      column,
+    });
+
+    return {
+      line: originalLine.line,
+      column: originalLine.column,
+      source: originalLine.source,
+    };
+  }
+
+  public _getGeneratedLineOfCodeFromSourceLine(
+    sourceMap: string,
+    line: number,
+    column: number
+  ): { line: number; column: number } {
+    const c = consumer(sourceMap);
+    const generatedLine = c.generatedPositionFor({
+      line,
+      column,
+    });
+
+    return {
+      line: generatedLine.line,
+      column: generatedLine.column,
+    };
+  }
+
+  public _createAST(filePAth: string) {
+    const file = this.files.get(filePAth);
+
+    if (!file) {
+      throw new Error(`File ${filePAth} not found`);
+    }
+
+    if (!file.parsed) {
+      throw new Error(`File ${filePAth} not parsed ${file.errors}`);
+    }
+
+    // Create the source file in the TS project now that it is cleaned up
+    const sourceFile = this.project.createSourceFile(
+      filePAth,
+      file.parsed?.content || "",
+      {
+        overwrite: true,
+      }
+    );
+
+    this._validateSyntax(sourceFile);
+
+    const ast = this._parseJSXTree(sourceFile);
+
+    // If parseJSXTree returned null due to an error, return early with errors
+    if (ast === null) {
+      return {
+        ast: null,
+        errors: this.errors,
+      };
+    }
+
+    // TODO: Attach frontmatter to the AST
+
+    return {
+      ast,
+      errors: this.errors,
+    };
+  }
+
+  public _validateSyntax(sourceFile: SourceFile): void {
     try {
       // Check syntax using ts-morph's diagnostics
       const diagnostics = sourceFile.getPreEmitDiagnostics();
@@ -213,8 +261,8 @@ export class MDXParser {
           const line = diagnostic.getLineNumber() || 1;
           const column = diagnostic.getStart() || 1;
 
-          const mdxError = new MDXParseError(messageStr, line, column);
-          this.errors.push(mdxError);
+          const AIMLError = new AIMLParseError(messageStr, line, column);
+          this.errors.push(AIMLError);
         });
 
         // Don't throw, just collect the errors
@@ -226,20 +274,20 @@ export class MDXParser {
         this.errors = [];
       }
 
-      const mdxError = new MDXParseError(
+      const AIMLError = new AIMLParseError(
         error instanceof Error ? error.message : String(error)
       );
-      this.errors.push(mdxError);
+      this.errors.push(AIMLError);
     }
   }
 
-  private parseJSXTree(sourceFile: SourceFile): IBaseElement | null {
+  public _parseJSXTree(sourceFile: SourceFile): IBaseElement | null {
     // Ensure errors is always an array
     if (!this.errors) {
       this.errors = [];
     }
 
-    const context: MDXParseContext = {
+    const context: AIMLParseContext = {
       sourceFile,
       currentNode: sourceFile,
       errors: this.errors,
@@ -247,37 +295,37 @@ export class MDXParser {
     };
 
     try {
-      const jsxNode = this.findRootJSXElement(sourceFile);
+      const jsxNode = this._findRootJSXElement(sourceFile);
 
       // Handle the case where no JSX element was found
       if (jsxNode === null) {
         return null;
       }
 
-      return this.parseJSXNode(jsxNode, context);
+      return this._parseJSXNode(jsxNode, context);
     } catch (error) {
       if (error instanceof Error) {
-        const mdxError = new MDXParseError(
+        const AIMLError = new AIMLParseError(
           error.message,
           sourceFile.getStartLineNumber(),
           sourceFile.getStart()
         );
-        this.errors.push(mdxError);
+        this.errors.push(AIMLError);
         // Return null instead of throwing
         return null;
       }
       // For unknown errors, still add to errors collection
-      const mdxError = new MDXParseError(
+      const AIMLError = new AIMLParseError(
         "Unknown error during parsing",
         sourceFile.getStartLineNumber(),
         sourceFile.getStart()
       );
-      this.errors.push(mdxError);
+      this.errors.push(AIMLError);
       return null;
     }
   }
 
-  private findRootJSXElement(
+  public _findRootJSXElement(
     sourceFile: SourceFile
   ): JsxElement | JsxSelfClosingElement | null {
     // AIML files can be in either workflow mode or non-workflow mode
@@ -336,17 +384,17 @@ export class MDXParser {
 
     if (!jsxNode) {
       // Instead of throwing, add to errors and return null
-      const mdxError = new MDXParseError("No JSX element found in MDX file");
-      this.errors.push(mdxError);
+      const AIMLError = new AIMLParseError("No JSX element found in AIML file");
+      this.errors.push(AIMLError);
       return null;
     }
 
     return jsxNode;
   }
 
-  private parseJSXNode(
+  public _parseJSXNode(
     node: JsxElement | JsxSelfClosingElement,
-    context: MDXParseContext
+    context: AIMLParseContext
   ): IBaseElement | null {
     try {
       const openingElement = Node.isJsxElement(node)
@@ -359,36 +407,9 @@ export class MDXParser {
       // Look for AIML elements first
       if (Node.isJsxElement(node)) {
         // Check if this is a recognized AIML element
-        const aimlElements = [
-          "workflow",
-          "state",
-          "parallel",
-          "final",
-          "datamodel",
-          "data",
-          "assign",
-          "onentry",
-          "onexit",
-          "transition",
-          "if",
-          "elseif",
-          "else",
-          "foreach",
-          "script",
-          "llm",
-          "toolcall",
-          "log",
-          "sendText",
-          "sendToolCalls",
-          "sendObject",
-          "onerror",
-          "onchunk",
-          "prompt",
-          "instructions",
-        ];
 
         const lowerTagName = tagName.toLowerCase();
-        if (aimlElements.includes(lowerTagName)) {
+        if (isAIMLElement(lowerTagName)) {
           // Process this AIML element directly
         } else {
           // Look for AIML elements in children
@@ -400,18 +421,18 @@ export class MDXParser {
                 .getTagNameNode()
                 .getText()
                 .toLowerCase();
-              if (aimlElements.includes(childTagName)) {
+              if (isAIMLElement(childTagName)) {
                 // Found an AIML element, process it instead
-                return this.parseJSXNode(child, context);
+                return this._parseJSXNode(child, context);
               }
             } else if (Node.isJsxSelfClosingElement(child)) {
               const childTagName = child
                 .getTagNameNode()
                 .getText()
                 .toLowerCase();
-              if (aimlElements.includes(childTagName)) {
+              if (isAIMLElement(childTagName)) {
                 // Found an AIML element, process it instead
-                return this.parseJSXNode(child, context);
+                return this._parseJSXNode(child, context);
               }
             }
           }
@@ -431,7 +452,7 @@ export class MDXParser {
               ...context,
               parents: [...context.parents],
             };
-            const childElement = this.parseJSXNode(child, childContext);
+            const childElement = this._parseJSXNode(child, childContext);
             if (childElement !== null) {
               children.push(childElement);
             }
@@ -463,55 +484,23 @@ export class MDXParser {
       }
 
       if (error instanceof Error) {
-        const mdxError = new MDXParseError(
+        const AIMLError = new AIMLParseError(
           error.message,
           node.getStartLineNumber(),
           node.getStart()
         );
-        this.errors.push(mdxError);
+        this.errors.push(AIMLError);
         // Return null instead of throwing
         return null;
       }
       // For unknown errors, add to errors collection
-      const mdxError = new MDXParseError(
+      const AIMLError = new AIMLParseError(
         "Unknown error during parsing",
         node.getStartLineNumber(),
         node.getStart()
       );
-      this.errors.push(mdxError);
+      this.errors.push(AIMLError);
       return null;
     }
   }
-
-  /**
-   * Extracts YAML frontmatter from AIML source code
-   * Frontmatter is expected to be at the beginning of the file between --- markers
-   */
-  private extractFrontmatter(sourceCode: string): Record<string, any> | null {
-    const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/;
-    const match = sourceCode.match(frontmatterRegex);
-
-    if (!match || !match[1]) {
-      return null;
-    }
-
-    try {
-      // In a real implementation, we would parse the YAML here
-      // For now, we'll just return an empty object
-      return {};
-    } catch (error) {
-      return null;
-    }
-  }
-}
-
-export function parseNode(
-  node: Node,
-  context: MDXParseContext
-): IBaseElement | undefined {
-  if (Node.isJsxElement(node)) {
-    const parser = new MDXParser(node.getText());
-    return parser.parse(node.getText()).ast;
-  }
-  return undefined;
 }
