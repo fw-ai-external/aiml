@@ -13,7 +13,7 @@ describe("AIML Parsing Tests", () => {
     it("should parse a basic AIML file", () => {
       const input = `
 ---
-name: Test Workflow
+name: TestWorkflow
 ---
 
 Some text here with {userInput.message.content}
@@ -31,51 +31,8 @@ Some text here with {userInput.message.content}
 
       const result = parser.compile("test.mdx");
 
-      // Add more detailed debug logging
-      console.log("AST Structure Type:", typeof result.ast);
-      console.log("AST is array:", Array.isArray(result.ast));
-      console.log("AST Length:", result.ast?.length);
-
-      if (result.ast && result.ast.length > 0) {
-        const firstNode = result.ast[0];
-        console.log("First Node Kind:", firstNode.getKindName?.());
-
-        // Show node structure recursively
-        console.log("Full AST structure:");
-        function logNode(node, depth = 0) {
-          const indent = "  ".repeat(depth);
-          console.log(`${indent}Kind: ${node.getKindName?.() || "unknown"}`);
-
-          // Print more details for specific kinds
-          if (node.getText) {
-            const text = node.getText();
-            if (text.length < 100) {
-              console.log(`${indent}Text: ${text}`);
-            } else {
-              console.log(`${indent}Text: ${text.substring(0, 50)}...`);
-            }
-          }
-
-          if (typeof node.getChildren === "function") {
-            const children = node.getChildren();
-            console.log(`${indent}Children count: ${children.length}`);
-            children.forEach((child) => {
-              logNode(child, depth + 1);
-            });
-          }
-        }
-
-        logNode(firstNode);
-      }
-
       expect(result.ast).not.toBeNull();
-
-      // Add debug in tsToAIML function
-      console.log("Calling tsToAIML...");
       const ourAST = tsToAIML(result.ast!);
-
-      // Print the ourAST to see what we're getting
-      console.log("Parsed AIML AST:", JSON.stringify(ourAST, null, 2));
 
       // Enable the expectations now that we have a proper implementation
       expect(ourAST).toBeArrayOfSize(4);
@@ -83,7 +40,7 @@ Some text here with {userInput.message.content}
       expect(ourAST[0].children).toBeArrayOfSize(1);
       expect(ourAST[0].children?.[0]?.type).toBe("headerField");
       expect(ourAST[0].children?.[0]?.id).toBe("name");
-      expect(ourAST[0].children?.[0]?.value).toBe("Test Workflow");
+      expect(ourAST[0].children?.[0]?.value).toBe("TestWorkflow");
 
       expect(ourAST[1].type).toBe("text");
       expect(ourAST[2].type).toBe("expression");
@@ -94,7 +51,7 @@ Some text here with {userInput.message.content}
     it("should parse an even more complex AIML file", () => {
       const input = `
 ---
-name: Test Workflow
+name: TestWorkflow
 ---
 
 Some text here with {userInput.message.content.toLowerCase()}
@@ -118,7 +75,7 @@ target="end" />
       expect(ourAST[0].children).toBeArrayOfSize(1);
       expect(ourAST[0].children?.[0]?.type).toBe("headerField");
       expect(ourAST[0].children?.[0]?.id).toBe("name");
-      expect(ourAST[0].children?.[0]?.value).toBe("Test Workflow");
+      expect(ourAST[0].children?.[0]?.value).toBe("TestWorkflow");
 
       expect(ourAST[1].type).toBe("text");
       expect(ourAST[2].type).toBe("expression");
@@ -132,6 +89,88 @@ target="end" />
       expect(ourAST[4].tag).toBe("transition");
       expect(ourAST[4].attributes).toBeObject();
       expect(ourAST[4].attributes?.target).toBe("end");
+    });
+  });
+  describe("Multi-file", () => {
+    it("should handle imports between AIML files", () => {
+      // Create a file that will be imported
+      const importedFile = `
+---
+name: ImportedComponent
+---
+
+<message>This is a reusable component</message>
+      `;
+
+      // Create a main file that imports the other file
+      const mainFile = `
+---
+name: Main Workflow
+---
+import ImportedComponent from "./imported-component";
+
+<workflow id="main">
+  <step id="start">
+    <ImportedComponent />
+    <text>Additional content in the main file</text>
+  </step>
+</workflow>
+      `;
+
+      // Add both files to the parser
+      parser.setFile(
+        { path: "imported-component.aiml", content: importedFile },
+        true
+      );
+      parser.setFile({ path: "main-workflow.aiml", content: mainFile }, true);
+
+      // Compile the main file
+      const result = parser.compile("main-workflow.aiml");
+      expect(result.ast).not.toBeNull();
+
+      const ourAST = tsToAIML(result.ast!);
+
+      // Verify the structure of the compiled AST
+      expect(ourAST).toBeArrayOfSize(3);
+
+      // Check header
+      expect(ourAST[0].type).toBe("header");
+      expect(ourAST[0].children?.[0]?.type).toBe("headerField");
+      expect(ourAST[0].children?.[0]?.id).toBe("name");
+      expect(ourAST[0].children?.[0]?.value).toBe("Main Workflow");
+
+      // Check import element
+      expect(ourAST[1].type).toBe("element");
+      expect(ourAST[1].tag).toBe("import");
+      expect(ourAST[1].attributes?.from).toBe("./imported-component.mdx");
+
+      // Check workflow element
+      expect(ourAST[2].type).toBe("element");
+      expect(ourAST[2].tag).toBe("workflow");
+      expect(ourAST[2].attributes?.id).toBe("main");
+
+      // Check step element inside workflow
+      expect(ourAST[2].children).toBeArrayOfSize(1);
+      expect(ourAST[2].children?.[0]?.type).toBe("element");
+      expect(ourAST[2].children?.[0]?.tag).toBe("step");
+      expect(ourAST[2].children?.[0]?.attributes?.id).toBe("start");
+
+      // Check children of step element
+      expect(ourAST[2].children?.[0]?.children).toBeArrayOfSize(2);
+      expect(ourAST[2].children?.[0]?.children?.[0]?.type).toBe("element");
+      expect(ourAST[2].children?.[0]?.children?.[0]?.tag).toBe("import");
+      expect(ourAST[2].children?.[0]?.children?.[0]?.attributes?.from).toBe(
+        "./imported-component.mdx"
+      );
+
+      expect(ourAST[2].children?.[0]?.children?.[1]?.type).toBe("element");
+      expect(ourAST[2].children?.[0]?.children?.[1]?.tag).toBe("text");
+      expect(ourAST[2].children?.[0]?.children?.[1]?.children?.[0]?.type).toBe(
+        "text"
+      );
+      expect(ourAST[2].children?.[0]?.children?.[1]?.children?.[0]?.value).toBe(
+        "Additional content in the main file"
+      );
     });
   });
 });
