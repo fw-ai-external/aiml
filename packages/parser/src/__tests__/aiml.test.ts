@@ -109,10 +109,12 @@ name: Main Workflow
 ---
 import ImportedComponent from "./imported-component";
 
+Some text here because why not
+
 <workflow id="main">
-  <step id="start">
+  <state id="start">
     <ImportedComponent />
-  </step>
+  </state>
 </workflow>
       `;
 
@@ -142,21 +144,25 @@ import ImportedComponent from "./imported-component";
       expect(ourAST[1].type).toBe("import");
       expect(ourAST[1].filePath).toBe("./imported-component.aiml");
 
+      // Check text
+      expect(ourAST[2].type).toBe("text");
+      expect(ourAST[2].value).toBe("Some text here because why not");
+
       // Check workflow element
-      expect(ourAST[2].type).toBe("element");
-      expect(ourAST[2].tag).toBe("workflow");
-      expect(ourAST[2].attributes?.id).toBe("main");
+      expect(ourAST[3].type).toBe("element");
+      expect(ourAST[3].tag).toBe("workflow");
+      expect(ourAST[3].attributes?.id).toBe("main");
 
       // Check step element inside workflow
-      expect(ourAST[2].children).toBeArrayOfSize(1);
-      expect(ourAST[2].children?.[0]?.type).toBe("element");
-      expect(ourAST[2].children?.[0]?.tag).toBe("step");
-      expect(ourAST[2].children?.[0]?.attributes?.id).toBe("start");
+      expect(ourAST[3].children).toBeArrayOfSize(1);
+      expect(ourAST[3].children?.[0]?.type).toBe("element");
+      expect(ourAST[3].children?.[0]?.tag).toBe("state");
+      expect(ourAST[3].children?.[0]?.attributes?.id).toBe("start");
 
       // Check children of step element
-      expect(ourAST[2].children?.[0]?.children).toBeArrayOfSize(1);
-      expect(ourAST[2].children?.[0]?.children?.[0]?.type).toBe("element");
-      expect(ourAST[2].children?.[0]?.children?.[0]?.tag).toBe(
+      expect(ourAST[3].children?.[0]?.children).toBeArrayOfSize(1);
+      expect(ourAST[3].children?.[0]?.children?.[0]?.type).toBe("element");
+      expect(ourAST[3].children?.[0]?.children?.[0]?.tag).toBe(
         "ImportedComponent"
       );
     });
