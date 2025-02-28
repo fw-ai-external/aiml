@@ -1,0 +1,58 @@
+{
+  "name": "@fireworks/language-service",
+  "version": "0.6.2",
+  "type": "module",
+  "description": "AIML support for Volar",
+  "homepage": "https://fireworks.com",
+  "bugs": "https://github.com/fwai/aiml/issues",
+  "funding": "https://opencollective.com/unified",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "files": ["lib", "types"],
+  "keywords": [
+    "IntelliSense",
+    "aiml",
+    "llm",
+    "ai",
+    "language-service",
+    "vscode",
+    "fireworks",
+    "prompt",
+    "llm",
+    "llm-prompt",
+    "llm-prompt-engine",
+    "llm-prompt-engineer"
+  ],
+  "scripts": {
+    "prepack": "tsc --build --clean && tsc --build",
+    "test-api": "node --test",
+    "test": "npm pack && npm run test-api"
+  },
+  "dependencies": {
+    "@types/estree": "^1.0.0",
+    "@types/mdast": "^4.0.0",
+    "@types/unist": "^3.0.0",
+    "@volar/language-service": "~2.4.0",
+    "estree-util-scope": "^1.0.0",
+    "estree-walker": "^3.0.0",
+    "mdast-util-mdxjs-esm": "^2.0.0",
+    "mdast-util-to-markdown": "^2.0.0",
+    "remark-mdx": "^3.0.0",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.0",
+    "unist-util-lsp": "^2.0.0",
+    "unist-util-visit-parents": "^6.0.0",
+    "vfile-message": "^4.0.0",
+    "vscode-uri": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "remark-frontmatter": "^5.0.0"
+  },
+  "sideEffects": false
+}
