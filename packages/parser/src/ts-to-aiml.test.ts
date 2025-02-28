@@ -176,12 +176,15 @@ Some text here because why not
       expect(result.nodes[3].children?.[0]?.tag).toBe("state");
       expect(result.nodes[3].children?.[0]?.attributes?.id).toBe("start");
 
+      console.log(result.nodes[3].children?.[0]?.children);
       // Check children of step element
-      //   expect(ourAST[3].children?.[0]?.children).toBeArrayOfSize(1);
-      //   expect(ourAST[3].children?.[0]?.children?.[0]?.type).toBe("element");
-      //   expect(ourAST[3].children?.[0]?.children?.[0]?.tag).toBe(
-      //     "ImportedComponent"
-      //   );
+      expect(result.nodes[3].children?.[0]?.children).toBeArrayOfSize(1);
+      expect(result.nodes[3].children?.[0]?.children?.[0]?.type).toBe(
+        "element"
+      );
+      expect(result.nodes[3].children?.[0]?.children?.[0]?.tag).toBe(
+        "ImportedComponent"
+      );
     });
   });
 });

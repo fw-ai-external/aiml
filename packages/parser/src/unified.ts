@@ -550,7 +550,12 @@ function transformNode(
       // Check if this is an allowed AIML element
       const tagName = node.name;
 
-      if (aimlElements.includes(tagName)) {
+      // Check if this is an allowed AIML element or an imported component
+      // For imported components, we'll treat them as valid elements
+      if (
+        aimlElements.includes(tagName) ||
+        tagName.charAt(0).toUpperCase() === tagName.charAt(0)
+      ) {
         // This is a valid AIML element
         const elementNode: AIMLNode = {
           type: "element",
