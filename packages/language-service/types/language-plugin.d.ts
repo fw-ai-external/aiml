@@ -14,6 +14,6 @@
 export function createMdxLanguagePlugin(plugins?: PluggableList, checkMdx?: boolean, jsxImportSource?: string): LanguagePlugin<string | URI, VirtualMdxCode>;
 import type { PluggableList } from 'unified';
 import type { URI } from 'vscode-uri';
-import { VirtualMdxCode } from './virtual-code.js';
+import { VirtualMdxCode } from "./virtual-code.js";
 import type { LanguagePlugin } from '@volar/language-service';
 //# sourceMappingURL=language-plugin.d.ts.map
