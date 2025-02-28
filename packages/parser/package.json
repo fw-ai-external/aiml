@@ -29,6 +29,7 @@
     "js-sourcemap": "^0.0.6",
     "magic-string": "^0.30.17",
     "mdast": "^3.0.0",
+    "remark-mdx-frontmatter": "^5.0.0",
     "ts-morph": "^21.0.1",
     "uuid": "^9.0.1",
     "xml-formatter": "^3.6.2",

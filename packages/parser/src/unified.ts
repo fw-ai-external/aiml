@@ -1,7 +1,7 @@
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkMdx from "remark-mdx";
-import remarkFrontmatter from "remark-frontmatter";
+import remarkMdxFrontmatter from "remark-mdx-frontmatter";
 import remarkGfm from "remark-gfm";
 import { parse as parseYaml } from "yaml";
 import { VFile } from "vfile";
@@ -85,6 +85,7 @@ export interface IBaseElement {
 
 export type AIMLNode = {
   type:
+    | "paragraph"
     | "text"
     | "comment"
     | "element"
@@ -180,12 +181,15 @@ export async function parseMDXToAIML(
   const processor = unified()
     .use(remarkParse)
     .use(remarkGfm)
-    .use(remarkFrontmatter, ["yaml"])
+    .use(remarkMdxFrontmatter, { name: "frontmatter" })
     .use(remarkMdx);
 
   // Parse the content to get the AST
   const ast = await processor.parse(file);
   await processor.run(ast, file);
+
+  // Debug the AST structure
+  console.log("AST Structure:", JSON.stringify(ast, null, 2));
 
   // Process warnings from the parser
   if (file.messages.length > 0) {
@@ -267,15 +271,95 @@ function transformToAIMLNodes(
   diagnostics: Diagnostic[]
 ): AIMLNode[] {
   const nodes: AIMLNode[] = [];
+  // Array to store additional nodes from paragraph processing
+  const additionalNodes: AIMLNode[] = [];
 
   // Process root node's children
   if ("children" in ast && Array.isArray(ast.children)) {
+    // Check if the first nodes form a frontmatter pattern
+    if (
+      ast.children.length >= 3 &&
+      ast.children[0].type === "mdxjsEsm" &&
+      ast.children[1].type === "thematicBreak" &&
+      ast.children[2].type === "heading" &&
+      (ast.children[2] as any).depth === 2
+    ) {
+      // Extract frontmatter data from the heading
+      const headingNode = ast.children[2] as any;
+      if (
+        headingNode.children &&
+        headingNode.children.length > 0 &&
+        headingNode.children[0].type === "text"
+      ) {
+        const headingText = headingNode.children[0].value;
+        const match = headingText.match(/^name:\s*(.+)$/);
+
+        if (match) {
+          // Create a header node with a headerField for the name
+          const headerNode: AIMLNode = {
+            type: "header",
+            key: generateKey(),
+            lineStart: getPosition(ast.children[0], "start", "line"),
+            lineEnd: getPosition(ast.children[2], "end", "line"),
+            columnStart: getPosition(ast.children[0], "start", "column"),
+            columnEnd: getPosition(ast.children[2], "end", "column"),
+            children: [
+              {
+                type: "headerField",
+                key: generateKey(),
+                tag: "name",
+                id: "name",
+                value: match[1].trim(),
+                lineStart: getPosition(headingNode, "start", "line"),
+                lineEnd: getPosition(headingNode, "end", "line"),
+                columnStart: getPosition(headingNode, "start", "column"),
+                columnEnd: getPosition(headingNode, "end", "column"),
+              },
+            ],
+          };
+
+          nodes.push(headerNode);
+
+          // Process the remaining children
+          for (let i = 3; i < ast.children.length; i++) {
+            const transformed = transformNode(
+              ast.children[i],
+              options,
+              diagnostics,
+              additionalNodes
+            );
+            if (transformed) {
+              nodes.push(transformed);
+            }
+          }
+
+          // Add any additional nodes from paragraph processing
+          if (additionalNodes.length > 0) {
+            nodes.push(...additionalNodes);
+          }
+
+          return nodes;
+        }
+      }
+    }
+
+    // If no frontmatter pattern was found, process all children normally
     for (const child of ast.children) {
-      const transformed = transformNode(child, options, diagnostics);
+      const transformed = transformNode(
+        child,
+        options,
+        diagnostics,
+        additionalNodes
+      );
       if (transformed) {
         nodes.push(transformed);
       }
     }
+  }
+
+  // Add any additional nodes from paragraph processing
+  if (additionalNodes.length > 0) {
+    nodes.push(...additionalNodes);
   }
 
   return nodes;
@@ -286,12 +370,14 @@ function transformToAIMLNodes(
  * @param node The unified AST node
  * @param options Parsing options
  * @param diagnostics Array to collect diagnostics
+ * @param additionalNodes Optional array to store additional nodes
  * @returns An AIML node or null if the node should be skipped
  */
 function transformNode(
   node: any,
   options: MDXToAIMLOptions,
-  diagnostics: Diagnostic[]
+  diagnostics: Diagnostic[],
+  additionalNodes: AIMLNode[] = []
 ): AIMLNode | null {
   if (!node) return null;
 
@@ -513,7 +599,12 @@ function transformNode(
         // Process children
         if (node.children && node.children.length > 0) {
           for (const child of node.children) {
-            const childNode = transformNode(child, options, diagnostics);
+            const childNode = transformNode(
+              child,
+              options,
+              diagnostics,
+              additionalNodes
+            );
             if (childNode) {
               // Set parent reference if needed
               childNode.parent = { key: elementNode.key };
@@ -578,6 +669,148 @@ function transformNode(
         columnEnd: getPosition(node, "end", "column"),
       };
 
+    // Special handling for paragraph nodes to preserve mdxTextExpression nodes
+    case "paragraph":
+      // Create a paragraph node with children
+      if (node.children && node.children.length > 0) {
+        // Create the paragraph node
+        const paragraphNode: AIMLNode = {
+          type: "paragraph",
+          key: generateKey(),
+          children: [],
+          lineStart: getPosition(node, "start", "line"),
+          lineEnd: getPosition(node, "end", "line"),
+          columnStart: getPosition(node, "start", "column"),
+          columnEnd: getPosition(node, "end", "column"),
+        };
+
+        // First, collect all the children into a more manageable format
+        const processedChildren: {
+          type: string;
+          value?: string;
+          node?: any;
+        }[] = [];
+
+        // First pass: convert all nodes to a simpler format
+        for (const child of node.children) {
+          const childNode = child as any;
+
+          if (childNode.type === "text") {
+            processedChildren.push({
+              type: "text",
+              value: childNode.value || "",
+            });
+          } else if (childNode.type === "mdxTextExpression") {
+            // Process the expression node
+            const expressionNode = transformNode(
+              child,
+              options,
+              diagnostics,
+              additionalNodes
+            );
+            if (expressionNode) {
+              processedChildren.push({
+                type: "expression",
+                node: expressionNode,
+              });
+            }
+          } else if (childNode.type === "mdxJsxTextElement") {
+            // Convert custom JSX elements to text
+            const textValue = serializeJsxToText(childNode);
+            processedChildren.push({
+              type: "text",
+              value: textValue,
+            });
+          } else {
+            // For other node types, just add their text content
+            const childText = extractTextFromNode(childNode);
+            if (childText) {
+              processedChildren.push({
+                type: "text",
+                value: childText,
+              });
+            }
+          }
+        }
+
+        // Second pass: combine adjacent text nodes
+        const combinedChildren: {
+          type: string;
+          value?: string;
+          node?: any;
+        }[] = [];
+
+        let currentText = "";
+        for (const child of processedChildren) {
+          if (child.type === "text") {
+            currentText += child.value || "";
+          } else {
+            // If we have accumulated text, add it as a text node
+            if (currentText) {
+              combinedChildren.push({
+                type: "text",
+                value: currentText,
+              });
+              currentText = "";
+            }
+            combinedChildren.push(child);
+          }
+        }
+
+        // Add any remaining text
+        if (currentText) {
+          combinedChildren.push({
+            type: "text",
+            value: currentText,
+          });
+        }
+
+        // Third pass: create actual nodes
+        for (const child of combinedChildren) {
+          if (child.type === "text") {
+            paragraphNode.children!.push({
+              type: "text",
+              key: generateKey(),
+              value: child.value || "",
+              lineStart: getPosition(node, "start", "line"),
+              lineEnd: getPosition(node, "end", "line"),
+              columnStart: getPosition(node, "start", "column"),
+              columnEnd: getPosition(node, "end", "column"),
+            });
+          } else if (child.type === "expression" && child.node) {
+            paragraphNode.children!.push(child.node);
+          }
+        }
+
+        // Return the paragraph node with all children
+        return paragraphNode;
+      }
+
+      // If no children or no valid nodes created, extract text content normally
+      const paragraphText = extractTextFromNode(node);
+      if (paragraphText) {
+        return {
+          type: "paragraph",
+          key: generateKey(),
+          children: [
+            {
+              type: "text",
+              key: generateKey(),
+              value: paragraphText,
+              lineStart: getPosition(node, "start", "line"),
+              lineEnd: getPosition(node, "end", "line"),
+              columnStart: getPosition(node, "start", "column"),
+              columnEnd: getPosition(node, "end", "column"),
+            },
+          ],
+          lineStart: getPosition(node, "start", "line"),
+          lineEnd: getPosition(node, "end", "line"),
+          columnStart: getPosition(node, "start", "column"),
+          columnEnd: getPosition(node, "end", "column"),
+        };
+      }
+      return null;
+
     // For all other nodes, convert to text
     default:
       // Extract text content from the node
@@ -639,26 +872,29 @@ function parseImportStatement(importStatement: string): {
   };
 
   // Match source path from import statement
-  const sourceMatch = importStatement.match(/from\\s+['"]([^'"]+)['"]/);
+  const sourceMatch = importStatement.match(/from\s+["']([^"']+)["']/);
   if (sourceMatch) {
-    result.source = sourceMatch[1];
+    // Add .aiml extension if not present and not a .js file
+    let sourcePath = sourceMatch[1];
+    if (!sourcePath.endsWith(".js") && !sourcePath.endsWith(".aiml")) {
+      sourcePath = sourcePath + ".aiml";
+    }
+    result.source = sourcePath;
   }
 
   // Match default import
-  const defaultImportMatch = importStatement.match(/import\\s+(\\w+)\\s+from/);
+  const defaultImportMatch = importStatement.match(/import\s+(\w+)\s+from/);
   if (defaultImportMatch) {
     result.defaultImport = defaultImportMatch[1];
   }
 
   // Match named imports
-  const namedImportsMatch = importStatement.match(
-    /import\\s+{([^}]+)}\\s+from/
-  );
+  const namedImportsMatch = importStatement.match(/import\s+{([^}]+)}\s+from/);
   if (namedImportsMatch) {
     const namedImportsStr = namedImportsMatch[1];
     const imports = namedImportsStr.split(",").map((imp) => {
       // Handle "as" aliases
-      const aliasMatch = imp.trim().match(/(\\w+)(?:\\s+as\\s+(\\w+))?/);
+      const aliasMatch = imp.trim().match(/(\w+)(?:\s+as\s+(\w+))?/);
       if (aliasMatch) {
         return aliasMatch[2] || aliasMatch[1];
       }
@@ -762,15 +998,21 @@ function extractTextFromNode(node: any): string | null {
     return text;
   }
 
-  // For paragraphs, process children
+  // For paragraphs, we need special handling to preserve mdxTextExpression nodes
+  // This function should only be called for text extraction, not for node transformation
   if (node.type === "paragraph") {
     let text = "";
 
     if (node.children && node.children.length > 0) {
       for (const child of node.children) {
-        const childText = extractTextFromNode(child);
-        if (childText) {
-          text += childText;
+        // Skip mdxTextExpression nodes in text extraction
+        if (child.type === "mdxTextExpression") {
+          text += "{...}"; // Placeholder for expressions
+        } else {
+          const childText = extractTextFromNode(child);
+          if (childText) {
+            text += childText;
+          }
         }
       }
     }
@@ -1006,36 +1248,3 @@ export async function parseMDXFilesToAIML(
     files: files,
   });
 }
-
-/**
- * Example usage:
- *
- * // Create VFile instances for all files
- * const mainFile = new VFile({
- *   path: 'workflow.mdx',
- *   value: `---
- * title: AIML Workflow Example
- * description: An example of an AIML workflow
- * ---
- *
- * import { someData } from './data.js';
- *
- * # My Workflow
- *
- * <workflow name="example">
- *   <state id="start">
- *     <transition target="processing" />
- *   </state>
- * </workflow>
- * `
- * });
- *
- * const dataFile = new VFile({
- *   path: 'data.js',
- *   value: 'export const someData = { key: "value" };'
- * });
- *
- * // Pass all files to the parser
- * const result = await parseMDXFilesToAIML([mainFile, dataFile]);
- * console.log(JSON.stringify(result, null, 2));
- */
