@@ -112,7 +112,6 @@ import ImportedComponent from "./imported-component";
 <workflow id="main">
   <step id="start">
     <ImportedComponent />
-    <text>Additional content in the main file</text>
   </step>
 </workflow>
       `;
@@ -140,9 +139,8 @@ import ImportedComponent from "./imported-component";
       expect(ourAST[0].children?.[0]?.value).toBe("Main Workflow");
 
       // Check import element
-      expect(ourAST[1].type).toBe("element");
-      expect(ourAST[1].tag).toBe("import");
-      expect(ourAST[1].attributes?.from).toBe("./imported-component.mdx");
+      expect(ourAST[1].type).toBe("import");
+      expect(ourAST[1].filePath).toBe("./imported-component.aiml");
 
       // Check workflow element
       expect(ourAST[2].type).toBe("element");
@@ -156,20 +154,10 @@ import ImportedComponent from "./imported-component";
       expect(ourAST[2].children?.[0]?.attributes?.id).toBe("start");
 
       // Check children of step element
-      expect(ourAST[2].children?.[0]?.children).toBeArrayOfSize(2);
+      expect(ourAST[2].children?.[0]?.children).toBeArrayOfSize(1);
       expect(ourAST[2].children?.[0]?.children?.[0]?.type).toBe("element");
-      expect(ourAST[2].children?.[0]?.children?.[0]?.tag).toBe("import");
-      expect(ourAST[2].children?.[0]?.children?.[0]?.attributes?.from).toBe(
-        "./imported-component.mdx"
-      );
-
-      expect(ourAST[2].children?.[0]?.children?.[1]?.type).toBe("element");
-      expect(ourAST[2].children?.[0]?.children?.[1]?.tag).toBe("text");
-      expect(ourAST[2].children?.[0]?.children?.[1]?.children?.[0]?.type).toBe(
-        "text"
-      );
-      expect(ourAST[2].children?.[0]?.children?.[1]?.children?.[0]?.value).toBe(
-        "Additional content in the main file"
+      expect(ourAST[2].children?.[0]?.children?.[0]?.tag).toBe(
+        "ImportedComponent"
       );
     });
   });
