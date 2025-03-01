@@ -1,6 +1,4 @@
-/**
- * @import {Pluggable, PluggableList, Plugin} from 'unified'
- */
+import { Pluggable, PluggableList, Plugin } from "unified";
 
 /**
  * Resolve remark plugins from TypeScript’s parsed command line options.
@@ -13,46 +11,48 @@
  *   An array of resolved plugins, or `undefined` in case of an invalid
  *   configuration.
  */
-export async function resolveRemarkPlugins(mdxConfig, resolvePlugin) {
+export async function resolveRemarkPlugins(
+  mdxConfig: unknown,
+  resolvePlugin: (name: string) => Plugin | PromiseLike<Plugin>
+): Promise<PluggableList | undefined> {
   if (
-    typeof mdxConfig !== 'object' ||
+    typeof mdxConfig !== "object" ||
     !mdxConfig ||
-    !('plugins' in mdxConfig)
+    !("plugins" in mdxConfig)
   ) {
-    return
+    return;
   }
 
-  const pluginConfig = mdxConfig.plugins
+  const pluginConfig = mdxConfig.plugins;
 
-  if (typeof pluginConfig !== 'object' || !pluginConfig) {
-    return
+  if (typeof pluginConfig !== "object" || !pluginConfig) {
+    return;
   }
 
   const pluginArray = Array.isArray(pluginConfig)
     ? pluginConfig
-    : Object.entries(pluginConfig)
+    : Object.entries(pluginConfig);
 
   if (pluginArray.length === 0) {
-    return
+    return;
   }
 
-  /** @type {Promise<Pluggable>[]} */
-  const plugins = []
+  const plugins: Promise<Pluggable>[] = [];
   for (const maybeTuple of pluginArray) {
     const [name, ...options] = Array.isArray(maybeTuple)
       ? maybeTuple
-      : [maybeTuple]
+      : [maybeTuple];
 
-    if (typeof name !== 'string') {
-      continue
+    if (typeof name !== "string") {
+      continue;
     }
 
     plugins.push(
       Promise.resolve(name)
         .then(resolvePlugin)
         .then((plugin) => [plugin, ...options])
-    )
+    );
   }
 
-  return Promise.all(plugins)
+  return Promise.all(plugins);
 }

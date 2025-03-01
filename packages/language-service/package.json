@@ -9,11 +9,11 @@
   "license": "MIT",
   "exports": {
     ".": {
-      "types": "./types/index.d.ts",
-      "default": "./lib/index.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
-  "files": ["lib", "types"],
+  "files": ["dist"],
   "keywords": [
     "IntelliSense",
     "aiml",
@@ -29,9 +29,12 @@
     "llm-prompt-engineer"
   ],
   "scripts": {
-    "prepack": "tsc --build --clean && tsc --build",
-    "test-api": "node --test",
-    "test": "npm pack && npm run test-api"
+    "build": "tsc --project tsconfig.build.json",
+    "clean": "rimraf dist *.tsbuildinfo",
+    "dev": "tsc --project tsconfig.build.json --watch",
+    "lint": "eslint --ext .ts src",
+    "test": "bun test",
+    "prepack": "npm run clean && npm run build"
   },
   "dependencies": {
     "@types/estree": "^1.0.0",
@@ -52,7 +55,11 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "remark-frontmatter": "^5.0.0"
+    "eslint": "^8.0.0",
+    "rimraf": "^5.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
   },
   "sideEffects": false
 }

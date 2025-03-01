@@ -1,17 +1,21 @@
 {
-  "exclude": ["lib", "**/coverage/**"],
-  "references": [{"path": "./tsconfig.build.json"}],
+  "exclude": ["**/coverage/**"],
   "compilerOptions": {
-    "noEmit": true,
-    "checkJs": true,
-    "composite": true,
-    "declarationMap": true,
-    "lib": ["es2022"],
-    "module": "node16",
-    "moduleDetection": "force",
-    "strict": true,
-    "stripInternal": true,
     "target": "es2022",
-    "types": ["node"]
-  }
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2022"],
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "composite": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node", "bun-types"]
+  },
+  "include": ["src/**/*"]
 }

@@ -1,20 +1,7 @@
 {
-  "include": ["lib"],
-  "exclude": ["**/coverage/**"],
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "checkJs": true,
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "emitDeclarationOnly": true,
-    "lib": ["es2022"],
-    "module": "node16",
-    "moduleDetection": "force",
-    "outDir": "types",
-    "rootDir": "lib",
-    "strict": true,
-    "stripInternal": true,
-    "target": "es2022",
-    "types": ["node"]
-  }
-}
+    "stripInternal": true
+  },
+  "exclude": ["src/**/*.test.ts", "**/coverage/**"]
+} 
