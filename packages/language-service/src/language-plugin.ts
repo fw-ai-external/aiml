@@ -12,7 +12,6 @@ import remarkParse from "remark-parse";
 import * as unifiedModule from "unified";
 const unified: () => any = unifiedModule.unified as any;
 import { VirtualMdxCode } from "./virtual-code.js";
-import { VFileMessage } from "vfile-message";
 
 // Type declarations for imported types
 declare namespace Unified {
@@ -98,64 +97,20 @@ export function createMdxLanguagePlugin(
       });
 
       if (languageId === "mdx") {
-        // For debugging purposes - bypass the actual processing for now
-        console.log(
-          "BYPASS MODE: Creating simpler VirtualMdxCode instance for testing"
-        );
-
-        // Create a minimal instance with the required properties
+        console.log("Creating VirtualMdxCode instance");
         const virtualCode = new VirtualMdxCode(
           snapshot,
           processor,
           checkMdx,
           jsxImportSource
         );
-
-        // Instead of actual processing, set properties directly
-        virtualCode.id = "mdx";
-        virtualCode.languageId = "mdx";
-        virtualCode.error = null as unknown as VFileMessage;
-        virtualCode.mappings = [
-          {
-            sourceOffsets: [0],
-            generatedOffsets: [0],
-            lengths: [snapshot.getLength()],
-            data: {
-              completion: true,
-              format: true,
-              navigation: true,
-              semantic: true,
-              structure: true,
-              verification: true,
-            },
-          },
-        ];
-
-        // Create a simple embedded code
-        virtualCode.embeddedCodes = [
-          {
-            id: "jsx",
-            languageId: "javascriptreact",
-            mappings: [
-              {
-                sourceOffsets: [0],
-                generatedOffsets: [0],
-                lengths: [10],
-                data: {
-                  completion: true,
-                  format: true,
-                  navigation: true,
-                  semantic: true,
-                  structure: true,
-                  verification: true,
-                },
-              },
-            ],
-            snapshot: snapshot,
-          },
-        ];
-
-        console.log("Simplified VirtualMdxCode instance created");
+        console.log("VirtualMdxCode instance created:", {
+          id: virtualCode.id,
+          languageId: virtualCode.languageId,
+          hasError: !!virtualCode.error,
+          mappingsLength: virtualCode.mappings.length,
+          embeddedCodesLength: virtualCode.embeddedCodes.length,
+        });
         return virtualCode;
       }
       console.log(
