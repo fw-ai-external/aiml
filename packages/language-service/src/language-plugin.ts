@@ -1,37 +1,21 @@
-/// <reference types="@volar/typescript" />
+import { LanguagePlugin, VirtualCode } from "@volar/language-service";
+import { PluggableList } from "unified";
+import { URI } from "vscode-uri";
 
-/**
- * @import {LanguagePlugin} from '@volar/language-service'
- * @import {PluggableList} from 'unified'
- * @import {URI} from 'vscode-uri'
- */
-
-import remarkMdx from "remark-mdx";
+import remarkMDX from "remark-mdx";
 import remarkParse from "remark-parse";
 // Cast the unified import to any
 import * as unifiedModule from "unified";
 const unified: () => any = unifiedModule.unified as any;
-import { VirtualMdxCode } from "./virtual-code.js";
+import { VirtualAimlCode } from "./virtual-code";
 
 // Type declarations for imported types
 declare namespace Unified {
   type Plugin = any;
   type Pluggable = Plugin | [Plugin, ...any[]];
-  type PluggableList = Pluggable[];
 }
 
 declare namespace Volar {
-  interface LanguagePlugin<TFileName, TVirtualCode> {
-    getLanguageId(fileNameOrUri: TFileName): string | undefined;
-    createVirtualCode(
-      fileNameOrUri: TFileName,
-      languageId: string,
-      snapshot: any,
-      options?: any
-    ): TVirtualCode | undefined;
-    typescript?: TypeScriptPlugin;
-  }
-
   interface TypeScriptPlugin {
     extraFileExtensions: {
       extension: string;
@@ -45,27 +29,27 @@ declare namespace Volar {
   }
 }
 
-type URI = { toString(): string } | string;
-
 /**
- * Create a [Volar](https://volarjs.dev) language plugin to support MDX.
+ * Create a [Volar](https://volarjs.dev) language plugin to support AIML.
  *
  * @param {PluggableList} [plugins]
  *   A list of remark syntax plugins. Only syntax plugins are supported.
  *   Transformers are unused.
- * @param {boolean} checkMdx
- *   If true, check MDX files strictly.
+ * @param {boolean} checkAiml
+ *   If true, check AIML files strictly.
  * @param {string} jsxImportSource
  *   The JSX import source to use in the embedded JavaScript file.
- * @returns {LanguagePlugin<string | URI, VirtualMdxCode>}
- *   A Volar language plugin to support MDX.
+ * @returns {LanguagePlugin<string | URI, VirtualAimlCode>}
+ *   A Volar language plugin to support AIML.
  */
-export function createMdxLanguagePlugin(
-  plugins?: any,
-  checkMdx = false,
+export function createAimlLanguagePlugin(
+  plugins?: PluggableList,
+  checkAiml = false,
   jsxImportSource = "react"
-): Volar.LanguagePlugin<string | URI, VirtualMdxCode> {
-  const processor = unified().use(remarkParse).use(remarkMdx);
+): LanguagePlugin<string | URI, VirtualCode> & {
+  typescript: Volar.TypeScriptPlugin;
+} {
+  const processor = unified().use(remarkParse).use(remarkMDX);
 
   if (plugins) {
     processor.use(plugins);
@@ -75,8 +59,8 @@ export function createMdxLanguagePlugin(
 
   return {
     getLanguageId(fileNameOrUri: string | URI): string | undefined {
-      if (String(fileNameOrUri).endsWith(".mdx")) {
-        return "mdx";
+      if (String(fileNameOrUri).endsWith(".aiml")) {
+        return "aiml";
       }
       return undefined;
     },
@@ -86,16 +70,16 @@ export function createMdxLanguagePlugin(
       languageId: string,
       snapshot: any,
       options?: any
-    ): VirtualMdxCode | undefined {
-      if (languageId === "mdx") {
-        const virtualCode = new VirtualMdxCode(
+    ): VirtualCode | undefined {
+      if (languageId === "aiml") {
+        const virtualCode = new VirtualAimlCode(
           snapshot,
           processor,
-          checkMdx,
+          checkAiml,
           jsxImportSource
         );
 
-        return virtualCode;
+        return virtualCode as VirtualCode;
       }
 
       return undefined;
@@ -103,7 +87,7 @@ export function createMdxLanguagePlugin(
 
     typescript: {
       extraFileExtensions: [
-        { extension: "mdx", isMixedContent: true, scriptKind: 7 },
+        { extension: "aiml", isMixedContent: true, scriptKind: 7 },
       ],
 
       getServiceScript(root: any) {

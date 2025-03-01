@@ -6,8 +6,8 @@ import path from "node:path/posix";
 import { toMarkdown } from "mdast-util-to-markdown";
 import { fromPlace } from "unist-util-lsp";
 import { URI, Utils } from "vscode-uri";
-import { toggleSyntax } from "./commands.js";
-import { VirtualMdxCode } from "./virtual-code.js";
+import { toggleSyntax } from "./commands";
+import { VirtualAimlCode } from "./virtual-code";
 
 // Define simplified interfaces to avoid type conflicts
 interface WorkspaceEdit {
@@ -58,7 +58,7 @@ interface VFileMessage {
  */
 
 /**
- * @typedef createMdxServicePlugin.Options
+ * @typedef createAimlServicePlugin.Options
  * @property {ApplyEdit} applyEdit
  *   A function to apply workspace edits.
  */
@@ -88,23 +88,23 @@ const imageExtensions = new Set([
 ]);
 
 /**
- * Create a [Volar](https://volarjs.dev) language service plugin for MDX files.
+ * Create a [Volar](https://volarjs.dev) language service plugin for AIML files.
  *
  * Supports the following formatting commands:
  *
- * - `mdx.toggleDelete`: Toggle `~~strikethrough~~` text.
- * - `mdx.toggleEmphasis`: Toggle `*emphasis*` text.
- * - `mdx.toggleInlineCode`: Toggle `` `inlineCode` `` text.
- * - `mdx.toggleStrong`: Toggle `**strong**` text.
+ * - `aiml.toggleDelete`: Toggle `~~strikethrough~~` text.
+ * - `aiml.toggleEmphasis`: Toggle `*emphasis*` text.
+ * - `aiml.toggleInlineCode`: Toggle `` `inlineCode` `` text.
+ * - `aiml.toggleStrong`: Toggle `**strong**` text.
  *
- * @param {createMdxServicePlugin.Options} options
- *   Options to configure the MDX language service.
+ * @param {createAimlServicePlugin.Options} options
+ *   Options to configure the AIML language service.
  * @returns {LanguageServicePlugin}
- *   The Volar service plugin for MDX files.
+ *   The Volar service plugin for AIML files.
  */
-export function createMdxServicePlugin(options: ServicePluginOptions): any {
+export function createAimlServicePlugin(options: ServicePluginOptions): any {
   return {
-    name: "mdx",
+    name: "aiml",
 
     capabilities: {
       diagnosticProvider: {
@@ -113,10 +113,10 @@ export function createMdxServicePlugin(options: ServicePluginOptions): any {
       },
       executeCommandProvider: {
         commands: [
-          "mdx.toggleDelete",
-          "mdx.toggleEmphasis",
-          "mdx.toggleInlineCode",
-          "mdx.toggleStrong",
+          "aiml.toggleDelete",
+          "aiml.toggleEmphasis",
+          "aiml.toggleInlineCode",
+          "aiml.toggleStrong",
         ],
       },
       documentDropEditsProvider: true,
@@ -126,7 +126,7 @@ export function createMdxServicePlugin(options: ServicePluginOptions): any {
       return {
         executeCommand(command: string, args: any[]) {
           switch (command) {
-            case "mdx.toggleDelete": {
+            case "aiml.toggleDelete": {
               return toggleSyntax(
                 context,
                 options,
@@ -137,7 +137,7 @@ export function createMdxServicePlugin(options: ServicePluginOptions): any {
               );
             }
 
-            case "mdx.toggleEmphasis": {
+            case "aiml.toggleEmphasis": {
               return toggleSyntax(
                 context,
                 options,
@@ -148,7 +148,7 @@ export function createMdxServicePlugin(options: ServicePluginOptions): any {
               );
             }
 
-            case "mdx.toggleInlineCode": {
+            case "aiml.toggleInlineCode": {
               return toggleSyntax(
                 context,
                 options,
@@ -159,7 +159,7 @@ export function createMdxServicePlugin(options: ServicePluginOptions): any {
               );
             }
 
-            case "mdx.toggleStrong": {
+            case "aiml.toggleStrong": {
               return toggleSyntax(
                 context,
                 options,
@@ -279,7 +279,7 @@ export function createMdxServicePlugin(options: ServicePluginOptions): any {
           const virtualCode =
             decoded && sourceScript?.generated?.embeddedCodes.get(decoded[1]);
 
-          if (!(virtualCode instanceof VirtualMdxCode)) {
+          if (!(virtualCode instanceof VirtualAimlCode)) {
             return;
           }
 
@@ -294,7 +294,8 @@ export function createMdxServicePlugin(options: ServicePluginOptions): any {
                   : error.ruleId,
                 codeDescription: {
                   href:
-                    error.url || "https://mdxjs.com/docs/troubleshooting-mdx/",
+                    error.url ||
+                    "https://docs.fireworks.ai/troubleshooting-aiml/",
                 },
                 range: error.place
                   ? fromPlace(error.place)
@@ -303,7 +304,7 @@ export function createMdxServicePlugin(options: ServicePluginOptions): any {
                       end: { line: 0, character: 0 },
                     },
                 severity: 1,
-                source: "MDX",
+                source: "AIML",
               },
             ];
           }

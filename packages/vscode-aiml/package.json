@@ -10,7 +10,7 @@
   "engines": {
     "vscode": "^1.82.0"
   },
-  "main": "out/extension.js",
+  "main": "dist/extension.js",
   "keywords": ["aiml", "aiml"],
   "icon": "assets/aiml.png",
   "activationEvents": [
@@ -21,6 +21,9 @@
   ],
   "scripts": {
     "generate": "node --conditions development ./script/generate.mjs",
+    "build": "node ./script/build.mjs",
+    "package": "vsce package --no-dependencies",
+    "publish": "vsce publish --no-dependencies",
     "vscode:prepublish": "node ./script/build.mjs"
   },
   "devDependencies": {

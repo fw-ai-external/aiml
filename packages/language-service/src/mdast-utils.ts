@@ -1,28 +1,5 @@
-/**
- * @import {Nodes} from 'mdast'
- * @import {Point, Position} from 'unist'
- */
-
-// Type declarations based on JSDoc references
-declare namespace Mdast {
-  interface Nodes {
-    position?: Unist.Position;
-    [key: string]: any;
-  }
-}
-
-declare namespace Unist {
-  interface Point {
-    offset?: number;
-    line: number;
-    column: number;
-  }
-
-  interface Position {
-    start: Point;
-    end: Point;
-  }
-}
+import { Nodes } from "mdast";
+import { Point, Position } from "unist";
 
 /**
  * Get the offset of a parsed unist point.
@@ -32,7 +9,7 @@ declare namespace Unist {
  * @returns {number}
  *   The offset of the unist point.
  */
-export function getPointOffset(point: Unist.Point): number {
+export function getPointOffset(point: Point): number {
   return /** @type {number} */ point.offset ?? 0;
 }
 
@@ -44,9 +21,9 @@ export function getPointOffset(point: Unist.Point): number {
  * @returns {number}
  *   The start offset of the unist point.
  */
-export function getNodeStartOffset(node: Mdast.Nodes): number {
+export function getNodeStartOffset(node: Nodes): number {
   return getPointOffset(
-    /** @type {Position} */ (node.position as Unist.Position).start
+    /** @type {Position} */ (node.position as Position).start
   );
 }
 
@@ -58,8 +35,8 @@ export function getNodeStartOffset(node: Mdast.Nodes): number {
  * @returns {number}
  *   The end offset of the unist point.
  */
-export function getNodeEndOffset(node: Mdast.Nodes): number {
+export function getNodeEndOffset(node: Nodes): number {
   return getPointOffset(
-    /** @type {Position} */ (node.position as Unist.Position).end
+    /** @type {Position} */ (node.position as Position).end
   );
 }

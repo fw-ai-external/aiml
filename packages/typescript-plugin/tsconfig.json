@@ -1,0 +1,17 @@
+{
+  "include": ["src"],
+  "references": [{"path": "../language-service/tsconfig.build.json"}],
+  "compilerOptions": {
+    "declaration": true,
+    "resolveJsonModule": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  }
+}

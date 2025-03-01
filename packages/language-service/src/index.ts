@@ -1,3 +1,3 @@
-export { createMdxLanguagePlugin } from "./language-plugin";
-export { createMdxServicePlugin } from "./service-plugin";
+export { createAimlLanguagePlugin } from "./language-plugin";
+export { createAimlServicePlugin } from "./service-plugin";
 export { resolveRemarkPlugins } from "./tsconfig";

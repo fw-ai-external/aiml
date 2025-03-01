@@ -1,39 +1,19 @@
-/**
- * @import {LanguageServiceContext, Range, TextEdit} from '@volar/language-service'
- * @import {createMdxServicePlugin} from '../lib/service-plugin.js'
- */
+// import { createAimlServicePlugin } from "./service-plugin";
 
 import { visitParents } from "unist-util-visit-parents";
 import { URI } from "vscode-uri";
 import { getNodeEndOffset, getNodeStartOffset } from "./mdast-utils";
-import { VirtualMdxCode } from "./virtual-code";
+import { VirtualAimlCode } from "./virtual-code";
 
 // Import types based on JSDoc comments
 import type {
   LanguageServiceContext,
   Range,
   TextEdit,
-  WorkspaceEdit,
 } from "@volar/language-service";
-import type { Node, Position } from "unist";
-
-// Define Mdast namespace with the same structure as in virtual-code.ts
-// But ensure it's compatible with unist's Position and Point types
-declare namespace Mdast {
-  interface Root {
-    type: string;
-    children: Nodes[];
-    position?: Position;
-    [key: string]: any;
-  }
-
-  interface Nodes {
-    type: string;
-    position?: Position;
-    children?: Nodes[];
-    [key: string]: any;
-  }
-}
+import type { Node } from "unist";
+import { Nodes } from "mdast";
+import { Root } from "mdast";
 
 // Define specific node types we need for our implementation
 interface TextNode extends Node {
@@ -41,16 +21,30 @@ interface TextNode extends Node {
   value: string;
 }
 
+interface ParentNode extends Node {
+  type: string;
+  children: Node[];
+}
+
 // Use the Mdast namespace types
-type MdastNodes = Mdast.Nodes;
-type MdastRoot = Mdast.Root;
+type MdastNodes = Node[];
+type MdastRoot = Root;
+
+// Define the Options interface for createAimlServicePlugin
+namespace createAimlServicePlugin {
+  export interface Options {
+    applyEdit: (edit: {
+      changes: Record<string, TextEdit[]>;
+    }) => Promise<unknown>;
+  }
+}
 
 /**
  * Toggle prose syntax based on the AST.
  *
  * @param {LanguageServiceContext} context
  *   The Volar service context.
- * @param {createMdxServicePlugin.Options} options
+ * @param {createAimlServicePlugin.Options} options
  *   The options to use for applying workspace edits.
  * @param {string} type
  *   The type of the mdast node to toggle.
@@ -64,7 +58,7 @@ type MdastRoot = Mdast.Root;
  */
 export async function toggleSyntax(
   context: LanguageServiceContext,
-  options: { applyEdit: (edit: WorkspaceEdit) => PromiseLike<unknown> },
+  options: createAimlServicePlugin.Options,
   type: string,
   separator: string,
   uri: string,
@@ -74,7 +68,7 @@ export async function toggleSyntax(
   const sourceScript = context.language.scripts.get(parsedUri);
   const root = sourceScript?.generated?.root;
 
-  if (!(root instanceof VirtualMdxCode)) {
+  if (!(root instanceof VirtualAimlCode)) {
     return;
   }
 
@@ -101,11 +95,9 @@ export async function toggleSyntax(
   visitParents(
     ast as unknown as Node,
     "text",
-    (node: any, ancestors: any[]) => {
-      // Cast node to MdastNodes for getNodeStartOffset and getNodeEndOffset
-      const typedNode = node as MdastNodes;
-      const nodeStart = getNodeStartOffset(typedNode);
-      const nodeEnd = getNodeEndOffset(typedNode);
+    (node: TextNode, ancestors: Node[]) => {
+      const nodeStart = getNodeStartOffset(node as unknown as Nodes);
+      const nodeEnd = getNodeEndOffset(node as unknown as Nodes);
 
       if (selectionStart < nodeStart) {
         // Outside of this node
@@ -123,10 +115,14 @@ export async function toggleSyntax(
       );
 
       if (matchingAncestor) {
-        // Cast to MdastNodes for type safety
-        const ancestorWithChildren = matchingAncestor as MdastNodes;
-        const ancestorStart = getNodeStartOffset(ancestorWithChildren);
-        const ancestorEnd = getNodeEndOffset(ancestorWithChildren);
+        // Cast to ParentNode for type safety
+        const ancestorWithChildren = matchingAncestor as ParentNode;
+        const ancestorStart = getNodeStartOffset(
+          ancestorWithChildren as unknown as Nodes
+        );
+        const ancestorEnd = getNodeEndOffset(
+          ancestorWithChildren as unknown as Nodes
+        );
 
         // Ensure we have children before accessing them
         if (
@@ -134,13 +130,13 @@ export async function toggleSyntax(
           ancestorWithChildren.children.length > 0
         ) {
           const firstChildStart = getNodeStartOffset(
-            ancestorWithChildren.children[0]
+            ancestorWithChildren.children[0] as unknown as Nodes
           );
           const lastChild =
             ancestorWithChildren.children[
               ancestorWithChildren.children.length - 1
             ];
-          const lastChildEnd = getNodeEndOffset(lastChild);
+          const lastChildEnd = getNodeEndOffset(lastChild as unknown as Nodes);
 
           edits.push(
             {
@@ -160,9 +156,9 @@ export async function toggleSyntax(
           );
         }
       } else {
-        const valueOffset = getNodeStartOffset(typedNode);
+        const valueOffset = getNodeStartOffset(node as unknown as Nodes);
         let insertStart = valueOffset;
-        let insertEnd = getNodeEndOffset(typedNode);
+        let insertEnd = getNodeEndOffset(node as unknown as Nodes);
 
         for (const match of node.value.matchAll(/\b/g)) {
           if (match.index === undefined) {
