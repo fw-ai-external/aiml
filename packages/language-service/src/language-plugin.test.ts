@@ -5,28 +5,16 @@ import { VFileMessage } from "vfile-message";
 import { createMdxLanguagePlugin } from "./language-plugin";
 import { VirtualMdxCode } from "./virtual-code";
 
-// Simple test to check if Bun test runner is working
-test("simple test - should pass quickly", () => {
-  console.log("Simple test running");
-  expect(true).toBe(true);
-});
-
 test("create virtual code w/ mdxjsEsm", () => {
-  console.log("Starting first test");
   const plugin = createMdxLanguagePlugin();
-  console.log("Plugin created");
 
   const snapshot = snapshotFromLines("export const a = 1", "");
-  console.log("Snapshot created");
 
-  console.log("About to call createVirtualCode");
   const code = plugin.createVirtualCode?.("/test.mdx", "mdx", snapshot, {
     getAssociatedScript: () => undefined,
   });
-  console.log("createVirtualCode called successfully");
 
   expect(code instanceof VirtualMdxCode).toBe(true);
-  console.log("First assertion passed");
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();

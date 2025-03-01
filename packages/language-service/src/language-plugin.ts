@@ -87,36 +87,17 @@ export function createMdxLanguagePlugin(
       snapshot: any,
       options?: any
     ): VirtualMdxCode | undefined {
-      console.log("createVirtualCode called with:", {
-        fileNameOrUri,
-        languageId,
-        snapshotType: snapshot ? typeof snapshot : "undefined",
-        snapshotInstance: snapshot ? snapshot.constructor.name : "undefined",
-        optionsPresent: !!options,
-        optionsKeys: options ? Object.keys(options) : [],
-      });
-
       if (languageId === "mdx") {
-        console.log("Creating VirtualMdxCode instance");
         const virtualCode = new VirtualMdxCode(
           snapshot,
           processor,
           checkMdx,
           jsxImportSource
         );
-        console.log("VirtualMdxCode instance created:", {
-          id: virtualCode.id,
-          languageId: virtualCode.languageId,
-          hasError: !!virtualCode.error,
-          mappingsLength: virtualCode.mappings.length,
-          embeddedCodesLength: virtualCode.embeddedCodes.length,
-        });
+
         return virtualCode;
       }
-      console.log(
-        "Not creating virtual code - unsupported language ID:",
-        languageId
-      );
+
       return undefined;
     },
 
