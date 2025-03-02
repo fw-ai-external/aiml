@@ -1,70 +1,79 @@
-import { ExecuteCommandSignature, LabsInfo } from "@volar/vscode";
-import { ExtensionContext } from "vscode";
+import { LabsInfo } from "@volar/vscode";
+import { ExtensionContext, workspace, FileSystemWatcher } from "vscode";
+import * as path from "path";
 
-import * as languageServerProtocol from "@volar/language-server/protocol.js";
-import {
-  activateAutoInsertion,
-  activateDocumentDropEdit,
-  createLabsInfo,
-  getTsdk,
-} from "@volar/vscode";
-import {
-  extensions,
-  window,
-  workspace,
-  Disposable,
-  ProgressLocation,
-} from "vscode";
-import { LanguageClient, TransportKind } from "@volar/vscode/node.js";
-
-let client: LanguageClient;
-
-let disposable: Disposable;
+// Track the current extension instance
+let currentExtension: any = null;
+let watcher: FileSystemWatcher | null = null;
 
 export async function activate(context: ExtensionContext): Promise<LabsInfo> {
-  extensions.getExtension("vscode.typescript-language-features")?.activate();
+  // Setup hot reloading if in development mode
+  if (process.env.NODE_ENV === "development") {
+    setupHotReload(context);
+  }
 
-  const { tsdk } = (await getTsdk(context)) ?? { tsdk: "" };
+  return loadExtensionLogic(context);
+}
 
-  client = new LanguageClient(
-    "AIML",
-    {
-      module: context.asAbsolutePath("dist/language-server.js"),
-      transport: TransportKind.ipc,
-    },
-    {
-      documentSelector: [{ language: "aiml" }],
-      initializationOptions: {
-        typescript: { tsdk },
-      },
-      markdown: {
-        isTrusted: true,
-        supportHtml: true,
-      },
-      middleware: { executeCommand },
+/**
+ * Sets up file watching for hot reload
+ */
+function setupHotReload(context: ExtensionContext) {
+  // Watch for changes to the extension-logic.ts file
+  const extensionPath = context.extensionPath;
+  const srcPath = path.join(extensionPath, "src");
+
+  // Create a file watcher for the src directory
+  watcher = workspace.createFileSystemWatcher(path.join(srcPath, "**", "*.ts"));
+
+  // When a file changes, reload the extension logic
+  watcher.onDidChange(async (uri) => {
+    console.log(`File changed: ${uri.fsPath}. Reloading extension...`);
+
+    // Dispose the current extension instance if it exists
+    if (currentExtension && typeof currentExtension.dispose === "function") {
+      await currentExtension.dispose();
+      currentExtension = null;
     }
-  );
 
-  tryRestartServer();
+    // Reload the extension logic
+    await loadExtensionLogic(context);
+  });
 
-  context.subscriptions.push(
-    workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration("aiml.server.enable")) {
-        tryRestartServer();
+  // Add the watcher to the context subscriptions
+  context.subscriptions.push(watcher);
+}
+
+/**
+ * Loads the extension logic module
+ */
+async function loadExtensionLogic(
+  context: ExtensionContext
+): Promise<LabsInfo> {
+  try {
+    // Clear the module cache to force a reload
+    if (process.env.NODE_ENV === "development") {
+      const logicPath = path.join(
+        context.extensionPath,
+        "dist",
+        "extension-logic.js"
+      );
+      if (require.cache[require.resolve(logicPath)]) {
+        delete require.cache[require.resolve(logicPath)];
       }
-    })
-  );
-
-  const volarLabs = createLabsInfo(languageServerProtocol);
-  volarLabs.addLanguageClient(client);
-
-  return volarLabs.extensionExports;
-
-  async function tryRestartServer() {
-    await stopServer();
-    if (workspace.getConfiguration("aiml").get("server.enable")) {
-      await startServer();
     }
+
+    // Import the extension logic
+    const extensionLogic = await import("./extension-logic");
+
+    // Create a new instance of the extension logic
+    currentExtension = new extensionLogic.AimlExtension(context);
+
+    // Initialize the extension
+    return await currentExtension.initialize();
+  } catch (error) {
+    console.error("Failed to load extension logic:", error);
+    throw error;
   }
 }
 
@@ -72,62 +81,15 @@ export async function activate(context: ExtensionContext): Promise<LabsInfo> {
  * Deactivate the extension.
  */
 export async function deactivate() {
-  await stopServer();
-}
-
-async function stopServer() {
-  if (client?.needsStop()) {
-    disposable.dispose();
-
-    await client.stop();
+  // Dispose the current extension instance if it exists
+  if (currentExtension && typeof currentExtension.dispose === "function") {
+    await currentExtension.dispose();
+    currentExtension = null;
   }
-}
 
-/**
- * Start the language server and client integrations.
- */
-async function startServer() {
-  if (client.needsStart()) {
-    await window.withProgress(
-      {
-        location: ProgressLocation.Window,
-        title: "Starting AIML Language Server…",
-      },
-      async () => {
-        await client.start();
-
-        disposable = Disposable.from(
-          activateAutoInsertion("aiml", client),
-          activateDocumentDropEdit("aiml", client)
-        );
-      }
-    );
-  }
-}
-
-async function executeCommand(
-  command: string,
-  args: unknown[],
-  next: ExecuteCommandSignature
-) {
-  switch (command) {
-    case "aiml.toggleDelete":
-    case "aiml.toggleEmphasis":
-    case "aiml.toggleInlineCode":
-    case "aiml.toggleStrong": {
-      const editor = window.activeTextEditor;
-      if (!editor) {
-        return;
-      }
-
-      return next(command, [
-        String(editor.document.uri),
-        client.code2ProtocolConverter.asRange(editor.selection),
-      ]);
-    }
-
-    default: {
-      return next(command, args);
-    }
+  // Dispose the watcher if it exists
+  if (watcher) {
+    watcher.dispose();
+    watcher = null;
   }
 }

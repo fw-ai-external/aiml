@@ -7,7 +7,7 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 import {
-  createMdxLanguagePlugin,
+  createAimlLanguagePlugin,
   createMdxServicePlugin,
   resolveRemarkPlugins,
 } from "@mdx-js/language-service";
@@ -110,7 +110,7 @@ connection.onInitialize(async (parameters) => {
     }
 
     return [
-      createMdxLanguagePlugin(
+      createAimlLanguagePlugin(
         (plugins || defaultPlugins) as PluggableList,
         checkMdx,
         jsxImportSource

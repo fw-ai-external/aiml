@@ -2,11 +2,11 @@ import { test, expect } from "bun:test";
 import remarkFrontmatter from "remark-frontmatter";
 import * as typescript from "typescript";
 import { VFileMessage } from "vfile-message";
-import { createMdxLanguagePlugin } from "./language-plugin";
-import { VirtualMdxCode } from "./virtual-code";
+import { createAimlLanguagePlugin } from "./language-plugin";
+import { VirtualAimlCode } from "./virtual-code";
 
 test("create virtual code w/ mdxjsEsm", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines("export const a = 1", "");
 
@@ -14,9 +14,9 @@ test("create virtual code w/ mdxjsEsm", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
-  expect(code!.id).toBe("mdx");
-  expect(code!.languageId).toBe("mdx");
+  expect(code instanceof VirtualAimlCode).toBe(true);
+  expect(code!.id).toBe("aiml");
+  expect(code!.languageId).toBe("aiml");
   expect(code!.error).toBeNull();
   expect(code!.snapshot).toBe(snapshot);
   expect(code!.mappings).toEqual([
@@ -53,7 +53,7 @@ test("create virtual code w/ mdxjsEsm", () => {
 });
 
 test("create virtual code w/ mdxjsEsm and CRLF", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     'import {Planet} from "./Planet.js"\r',
@@ -64,9 +64,9 @@ test("create virtual code w/ mdxjsEsm and CRLF", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
-  expect(code!.id).toBe("mdx");
-  expect(code!.languageId).toBe("mdx");
+  expect(code instanceof VirtualAimlCode).toBe(true);
+  expect(code!.id).toBe("aiml");
+  expect(code!.languageId).toBe("aiml");
   expect(code!.error).toBeNull();
   expect(code!.snapshot).toBe(snapshot);
   expect(code!.mappings).toEqual([
@@ -176,7 +176,7 @@ test("create virtual code w/ mdxjsEsm and CRLF", () => {
 });
 
 test("create virtual code w/o MDX layout in case of named re-export", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines('export {named} from "./Layout.js"', "");
 
@@ -184,7 +184,7 @@ test("create virtual code w/o MDX layout in case of named re-export", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -223,7 +223,7 @@ test("create virtual code w/o MDX layout in case of named re-export", () => {
 });
 
 test("create virtual code w/ MDX layout in case of default re-export", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines('export {default} from "./Layout.js"', "");
 
@@ -231,7 +231,7 @@ test("create virtual code w/ MDX layout in case of default re-export", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -342,7 +342,7 @@ test("create virtual code w/ MDX layout in case of default re-export", () => {
 });
 
 test("create virtual code w/ MDX layout in case of named and default re-export", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     'export {named, default} from "./Layout.js"',
@@ -353,7 +353,7 @@ test("create virtual code w/ MDX layout in case of named and default re-export",
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -464,7 +464,7 @@ test("create virtual code w/ MDX layout in case of named and default re-export",
 });
 
 test("create virtual code w/ MDX layout in case of default and named re-export", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     'export {default, named} from "./Layout.js"',
@@ -475,7 +475,7 @@ test("create virtual code w/ MDX layout in case of default and named re-export",
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -586,7 +586,7 @@ test("create virtual code w/ MDX layout in case of default and named re-export",
 });
 
 test("create virtual code w/ MDX layout in case of a default exported arrow function", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines("export default () => {}", "");
 
@@ -594,7 +594,7 @@ test("create virtual code w/ MDX layout in case of a default exported arrow func
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -718,7 +718,7 @@ test("create virtual code w/ MDX layout in case of a default exported arrow func
 });
 
 test("create virtual code w/ MDX layout in case of a default exported function declaration", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "export default function MDXLayout() {}",
@@ -729,7 +729,7 @@ test("create virtual code w/ MDX layout in case of a default exported function d
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -855,7 +855,7 @@ test("create virtual code w/ MDX layout in case of a default exported function d
 });
 
 test("create virtual code w/ MDX layout in case of a default exported constant", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines('export default "main"', "");
 
@@ -863,7 +863,7 @@ test("create virtual code w/ MDX layout in case of a default exported constant",
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -974,7 +974,7 @@ test("create virtual code w/ MDX layout in case of a default exported constant",
 });
 
 test("create virtual code w/ MDX layout and matching argument name", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "export default function MDXLayout(properties) {}",
@@ -985,7 +985,7 @@ test("create virtual code w/ MDX layout and matching argument name", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -1111,7 +1111,7 @@ test("create virtual code w/ MDX layout and matching argument name", () => {
 });
 
 test("create virtual code w/ MDX layout in case of a default export followed by a named", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "export default function MDXLayout() {}",
@@ -1123,7 +1123,7 @@ test("create virtual code w/ MDX layout in case of a default export followed by 
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -1252,7 +1252,7 @@ test("create virtual code w/ MDX layout in case of a default export followed by 
 });
 
 test("create virtual code w/ MDX layout in case of a default export preceded by a named", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "export function named() {}",
@@ -1264,7 +1264,7 @@ test("create virtual code w/ MDX layout in case of a default export preceded by 
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -1393,7 +1393,7 @@ test("create virtual code w/ MDX layout in case of a default export preceded by 
 });
 
 test("create virtual code w/ mdxFlowExpression", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines("{Math.PI}", "");
 
@@ -1401,7 +1401,7 @@ test("create virtual code w/ mdxFlowExpression", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -1510,7 +1510,7 @@ test("create virtual code w/ mdxFlowExpression", () => {
 });
 
 test("create virtual code w/ empty mdxFlowExpression", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines("{}", "");
 
@@ -1518,7 +1518,7 @@ test("create virtual code w/ empty mdxFlowExpression", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -1628,7 +1628,7 @@ test("create virtual code w/ empty mdxFlowExpression", () => {
 });
 
 test("create virtual code w/ prefixed JSX expressions for mdxFlowExpression", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "export function Local() {}",
@@ -1649,7 +1649,7 @@ test("create virtual code w/ prefixed JSX expressions for mdxFlowExpression", ()
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -1806,7 +1806,7 @@ test("create virtual code w/ prefixed JSX expressions for mdxFlowExpression", ()
 });
 
 test("create virtual code w/ prefixed JSX expressions in attributes", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "export function Local() {}",
@@ -1822,7 +1822,7 @@ test("create virtual code w/ prefixed JSX expressions in attributes", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -1961,7 +1961,7 @@ test("create virtual code w/ prefixed JSX expressions in attributes", () => {
 });
 
 test("create virtual code w/ mdxJsxFlowElement w/ children", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "export function Local() {}",
@@ -1988,7 +1988,7 @@ test("create virtual code w/ mdxJsxFlowElement w/ children", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -2147,7 +2147,7 @@ test("create virtual code w/ mdxJsxFlowElement w/ children", () => {
 });
 
 test("create virtual code w/ mdxJsxFlowElement w/ blockquote child", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "<div>",
@@ -2161,7 +2161,7 @@ test("create virtual code w/ mdxJsxFlowElement w/ blockquote child", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -2278,7 +2278,7 @@ test("create virtual code w/ mdxJsxFlowElement w/ blockquote child", () => {
 });
 
 test("create virtual code w/ mdxJsxFlowElement w/o children", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "export function Local() {}",
@@ -2293,7 +2293,7 @@ test("create virtual code w/ mdxJsxFlowElement w/o children", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -2421,7 +2421,7 @@ test("create virtual code w/ mdxJsxFlowElement w/o children", () => {
 });
 
 test("create virtual code w/ mdxJsxTextElement", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "export function Local() {}",
@@ -2436,7 +2436,7 @@ test("create virtual code w/ mdxJsxTextElement", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -2576,7 +2576,7 @@ test("create virtual code w/ mdxJsxTextElement", () => {
 });
 
 test("create virtual code w/ mdxTextExpression", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines("3 < {Math.PI} < 4", "");
 
@@ -2584,7 +2584,7 @@ test("create virtual code w/ mdxTextExpression", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -2697,7 +2697,7 @@ test("create virtual code w/ mdxTextExpression", () => {
 });
 
 test("create virtual code w/ async mdxTextExpression", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "3 < {await Promise.resolve(Math.PI)} < 4",
@@ -2708,7 +2708,7 @@ test("create virtual code w/ async mdxTextExpression", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -2821,7 +2821,7 @@ test("create virtual code w/ async mdxTextExpression", () => {
 });
 
 test("ignore async functions in props or expressions", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "export const arrow = async () => {",
@@ -2846,7 +2846,7 @@ test("ignore async functions in props or expressions", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -3001,7 +3001,7 @@ test("ignore async functions in props or expressions", () => {
 });
 
 test("support locally scoped components", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines("{(Component) => <Component />}", "");
 
@@ -3009,7 +3009,7 @@ test("support locally scoped components", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -3118,7 +3118,7 @@ test("support locally scoped components", () => {
 });
 
 test("create virtual code w/ dedented markdown content", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines(
     "| Language |",
@@ -3132,7 +3132,7 @@ test("create virtual code w/ dedented markdown content", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -3171,7 +3171,7 @@ test("create virtual code w/ dedented markdown content", () => {
 });
 
 test("create virtual code w/ syntax error", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const snapshot = snapshotFromLines("<", "");
 
@@ -3179,7 +3179,7 @@ test("create virtual code w/ syntax error", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error instanceof VFileMessage).toBe(true);
@@ -3259,7 +3259,7 @@ test("create virtual code w/ syntax error", () => {
 });
 
 test("create virtual code w/ yaml frontmatter", () => {
-  const plugin = createMdxLanguagePlugin([remarkFrontmatter]);
+  const plugin = createAimlLanguagePlugin([remarkFrontmatter]);
 
   const snapshot = snapshotFromLines("---", "hello: frontmatter", "---", "");
 
@@ -3267,7 +3267,7 @@ test("create virtual code w/ yaml frontmatter", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -3382,7 +3382,7 @@ test("create virtual code w/ yaml frontmatter", () => {
 });
 
 test("update virtual code", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   let code = plugin.createVirtualCode?.(
     "/test.mdx",
@@ -3391,14 +3391,14 @@ test("update virtual code", () => {
     { getAssociatedScript: () => undefined }
   );
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
 
   const snapshot = snapshotFromLines("This line is fixed", "");
   code = plugin.createVirtualCode?.("/text.mdx", "mdx", snapshot, {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
 
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
@@ -3496,7 +3496,7 @@ test("update virtual code", () => {
 });
 
 test("compilation setting defaults", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const host = plugin.typescript?.resolveLanguageServiceHost?.({
     getCompilationSettings: () => ({}),
@@ -3510,7 +3510,7 @@ test("compilation setting defaults", () => {
 });
 
 test("compilation setting overrides", () => {
-  const plugin = createMdxLanguagePlugin();
+  const plugin = createAimlLanguagePlugin();
 
   const host = plugin.typescript?.resolveLanguageServiceHost?.({
     getCompilationSettings: () => ({
@@ -3529,7 +3529,7 @@ test("compilation setting overrides", () => {
 });
 
 test("support checkMdx", () => {
-  const plugin = createMdxLanguagePlugin(undefined, true);
+  const plugin = createAimlLanguagePlugin(undefined, true);
 
   const snapshot = snapshotFromLines("");
 
@@ -3537,7 +3537,7 @@ test("support checkMdx", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();
@@ -3632,7 +3632,7 @@ test("support checkMdx", () => {
 });
 
 test("support custom jsxImportSource", () => {
-  const plugin = createMdxLanguagePlugin(undefined, false, "preact");
+  const plugin = createAimlLanguagePlugin(undefined, false, "preact");
 
   const snapshot = snapshotFromLines("");
 
@@ -3640,7 +3640,7 @@ test("support custom jsxImportSource", () => {
     getAssociatedScript: () => undefined,
   });
 
-  expect(code instanceof VirtualMdxCode).toBe(true);
+  expect(code instanceof VirtualAimlCode).toBe(true);
   expect(code!.id).toBe("mdx");
   expect(code!.languageId).toBe("mdx");
   expect(code!.error).toBeNull();

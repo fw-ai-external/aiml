@@ -27,6 +27,8 @@
     "vscode:prepublish": "node ./script/build.mjs"
   },
   "devDependencies": {
+    "@hediet/node-reload": "^0.7.3",
+    "@hediet/std": "^0.6.0",
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.82.0",
     "@volar/language-server": "~2.4.0",

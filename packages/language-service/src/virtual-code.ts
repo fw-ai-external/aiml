@@ -44,6 +44,7 @@ declare namespace Volar {
     snapshot?: TypeScript.IScriptSnapshot;
     mappings: CodeMapping[];
     embeddedCodes: VirtualCode[];
+    error?: VFileMessage | null;
     [key: string]: any;
   }
 }

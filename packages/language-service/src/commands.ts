@@ -79,7 +79,7 @@ export async function toggleSyntax(
     return;
   }
 
-  // Assuming the VirtualMdxCode type has languageId but not snapshot
+  // Assuming the VirtualAimlCode type has languageId but not snapshot
   // We'll use a type assertion to access snapshot property
   const doc = context.documents.get(
     parsedUri,

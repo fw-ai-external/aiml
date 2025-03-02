@@ -21,7 +21,10 @@ const debug = process.argv.includes("debug");
 // First build TypeScript to JavaScript
 await build({
   bundle: false,
-  entryPoints: [path.join(rootDir, "src/extension.ts")],
+  entryPoints: [
+    path.join(rootDir, "src/extension.ts"),
+    path.join(rootDir, "src/extension-logic.ts"),
+  ],
   format: "cjs",
   outdir: distDir,
   platform: "node",
@@ -34,6 +37,9 @@ await build({
   bundle: true,
   entryPoints: {
     "dist/extension": require.resolve(path.join(distDir, "extension.js")),
+    "dist/extension-logic": require.resolve(
+      path.join(distDir, "extension-logic.js")
+    ),
     "dist/language-server": "@fireworks/language-service",
     "node_modules/@fireworks/typescript-plugin": require.resolve(
       "../../typescript-plugin/dist/index.js"
