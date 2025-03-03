@@ -8,9 +8,9 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 import {
   createAimlLanguagePlugin,
-  createMdxServicePlugin,
+  createAimlServicePlugin,
   resolveRemarkPlugins,
-} from "@mdx-js/language-service";
+} from "@fireworks/language-service";
 import {
   createConnection,
   createServer,
@@ -24,7 +24,7 @@ import { create as createMarkdownServicePlugin } from "volar-service-markdown";
 import { create as createTypeScriptServicePlugin } from "volar-service-typescript";
 import { create as createTypeScriptSyntacticServicePlugin } from "volar-service-typescript/lib/plugins/syntactic.js";
 
-process.title = "mdx-language-server";
+process.title = "aiml-language-server";
 
 /** @type {PluggableList} */
 const defaultPlugins = [[remarkFrontmatter, ["toml", "yaml"]], remarkGfm];
@@ -61,10 +61,10 @@ connection.onInitialize(async (parameters) => {
     const plugins = [
       createMarkdownServicePlugin({
         getDiagnosticOptions(document, context) {
-          return context.env.getConfiguration?.("mdx.validate");
+          return context.env.getConfiguration?.(" .validate");
         },
       }),
-      createMdxServicePlugin(connection.workspace),
+      createAimlServicePlugin(connection.workspace),
     ];
 
     if (tsEnabled) {
@@ -77,7 +77,6 @@ connection.onInitialize(async (parameters) => {
   }
 
   async function getLanguagePlugins(tsconfig: string | undefined) {
-    /** @type {PluggableList | undefined} */
     let plugins;
     let checkMdx = false;
     let jsxImportSource = "react";
@@ -96,7 +95,7 @@ connection.onInitialize(async (parameters) => {
         tsconfig
       );
       plugins = await resolveRemarkPlugins(
-        commandLine.raw?.mdx,
+        commandLine.raw?.aiml,
         async (name) => {
           const plugin = await loadPlugin(name, {
             prefix: "remark",
@@ -105,7 +104,7 @@ connection.onInitialize(async (parameters) => {
           return plugin as Plugin;
         }
       );
-      checkMdx = Boolean(commandLine.raw?.mdx?.checkMdx);
+      checkMdx = Boolean(commandLine.raw?.aiml?.checkAiml);
       jsxImportSource = commandLine.options.jsxImportSource || jsxImportSource;
     }
 
@@ -120,7 +119,7 @@ connection.onInitialize(async (parameters) => {
 });
 
 connection.onInitialized(() => {
-  const extensions = ["mdx"];
+  const extensions = ["aiml"];
   if (tsEnabled) {
     extensions.push(
       "cjs",

@@ -8,6 +8,9 @@ const plugin = createAsyncLanguageServicePlugin(
   [".aiml"],
   2 /* JSX */,
   async (ts, info) => {
+    // Debug info to help with development
+    console.log("Plugin activated for AIML file");
+
     const [
       { createAimlLanguagePlugin, resolveRemarkPlugins },
       { loadPlugin },

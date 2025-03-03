@@ -31,7 +31,7 @@ blob = blob.replace(/<dict>/, ($0) => {
   return `<!--
     This file is maintained at <https://github.com/${repo}/blob/${branch}/${filename}>.
     To improve it, please create a pull request to the original repository.
-    Once accepted there, it can be pulled into this project (\`vscode-mdx\`) with
+    Once accepted there, it can be pulled into this project (\`vscode-aiml\`) with
     \`script/generate.mjs\`, and released.
 
     Version from SHA: ${sha}.

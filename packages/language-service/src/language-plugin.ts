@@ -72,6 +72,7 @@ export function createAimlLanguagePlugin(
       options?: any
     ): VirtualCode | undefined {
       if (languageId === "aiml") {
+        console.log("Creating virtual code for AIML file");
         const virtualCode = new VirtualAimlCode(
           snapshot,
           processor,
@@ -87,17 +88,20 @@ export function createAimlLanguagePlugin(
 
     typescript: {
       extraFileExtensions: [
-        { extension: "aiml", isMixedContent: true, scriptKind: 7 },
+        { extension: "aiml", isMixedContent: true, scriptKind: 7 /* JSX */ },
       ],
 
       getServiceScript(root: any) {
-        if (root.embeddedCodes) {
+        if (root.embeddedCodes && root.embeddedCodes.length > 0) {
+          console.log("Extracting JS/TS code from AIML file");
+          // Only extract code from JavaScript code blocks
           return {
             code: root.embeddedCodes[0],
             extension: ".jsx",
-            scriptKind: 2,
+            scriptKind: 2, // JSX
           };
         }
+        // If no embedded codes found, return null to avoid TypeScript validation on the whole file
         return undefined;
       },
 
@@ -108,6 +112,10 @@ export function createAimlLanguagePlugin(
             ...host.getCompilationSettings(),
             // Always allow JS for type checking.
             allowJs: true,
+            // Set jsx to react-jsx
+            jsx: 4, // React JSX
+            // Disable type checking on XML sections
+            checkJs: false,
           }),
         };
       },

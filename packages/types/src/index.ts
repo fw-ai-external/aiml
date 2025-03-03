@@ -33,6 +33,9 @@ export const aimlElements = [
   "onchunk",
   "prompt",
   "instructions",
+  "cancel",
+  "raise",
+  "send",
 ] as const;
 
 export type ElementType = (typeof aimlElements)[number];

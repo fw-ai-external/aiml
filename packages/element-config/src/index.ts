@@ -5,7 +5,14 @@ import type {
   AllowedChildrenType,
 } from "@fireworks/types";
 import { finalConfig, parallelConfig, stateConfig } from "./schemas/states";
-import { assignConfig, logConfig, scriptConfig } from "./schemas/actions";
+import {
+  assignConfig,
+  cancelConfig,
+  logConfig,
+  raiseConfig,
+  sendConfig,
+  scriptConfig,
+} from "./schemas/actions";
 import {
   elseConfig,
   elseIfConfig,
@@ -109,6 +116,9 @@ export const allElementConfigs: Record<ElementType, ElementDefinition> = {
   onchunk: onChunkConfig,
   prompt: promptConfig,
   instructions: instructionsConfig,
+  cancel: cancelConfig,
+  raise: raiseConfig,
+  send: sendConfig,
 } as const;
 
 export const allStateElementConfigs = Object.values(allElementConfigs).filter(
@@ -137,6 +147,9 @@ export type OnErrorProps = z.infer<typeof onErrorConfig.propsSchema>;
 export type OnChunkProps = z.infer<typeof onChunkConfig.propsSchema>;
 export type PromptProps = z.infer<typeof promptConfig.propsSchema>;
 export type InstructionsProps = z.infer<typeof instructionsConfig.propsSchema>;
+export type CancelProps = z.infer<typeof cancelConfig.propsSchema>;
+export type RaiseProps = z.infer<typeof raiseConfig.propsSchema>;
+export type SendProps = z.infer<typeof sendConfig.propsSchema>;
 
 export * from "./nodeDefinitions";
 

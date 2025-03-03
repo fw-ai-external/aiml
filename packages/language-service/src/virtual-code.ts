@@ -6,7 +6,6 @@
  * @import {AimljsEsm} from 'mdast-util-aimljs-esm'
  * @import {IScriptSnapshot} from 'typescript'
  * @import {Processor} from 'unified'
- * @import {VFileMessage} from 'vfile-message'
  */
 
 import { createVisitors } from "estree-util-scope";
@@ -44,7 +43,7 @@ declare namespace Volar {
     snapshot?: TypeScript.IScriptSnapshot;
     mappings: CodeMapping[];
     embeddedCodes: VirtualCode[];
-    error?: VFileMessage | null;
+    error?: AimlError | null;
     [key: string]: any;
   }
 }
@@ -166,20 +165,15 @@ declare namespace Unified {
   }
 }
 
-// VFile message for errors
-interface VFileMessage {
+// Create our own simple error class for AIML parsing
+class AimlError {
   message: string;
-  source?: string;
-  ruleId?: string;
-  url?: string;
-  place?: any;
-  [key: string]: any;
-}
+  source: string;
 
-// Define helper types for function parameters
-interface ComponentStartParams {
-  isAsync: boolean;
-  scope?: EstreeUtilScope.Scope;
+  constructor(message: string, source: string = "aiml") {
+    this.message = message;
+    this.source = source;
+  }
 }
 
 /**
@@ -1005,56 +999,49 @@ export class VirtualAimlCode implements Volar.VirtualCode {
   private _processor: Unified.Processor<Mdast.Root>;
   private _checkAiml: boolean;
   private _jsxImportSource: string;
+
   /**
-   * The mdast of the document, but only if it's valid.
-   *
-   * @type {Root | undefined}
+   * The parsed AST.
    */
   ast?: Mdast.Root;
+
   /**
-   * The virtual files embedded in the AIML file.
-   *
-   * @type {VirtualCode[]}
+   * The embedded virtual code files, one for each JSX expression.
    */
   embeddedCodes: Volar.VirtualCode[] = [];
+
   /**
-   * The error that was throw while parsing.
-   *
-   * @type {VFileMessage | null}
+   * The error, if any.
    */
-  error: VFileMessage | null = null;
+  error: AimlError | null = null;
+
   /**
-   * The file ID.
-   *
-   * @type {'aiml'}
+   * A unique ID for this virtual code.
    */
   id = "aiml";
+
   /**
-   * The language ID.
-   *
-   * @type {'aiml'}
+   * The language ID for this virtual code.
    */
   languageId = "aiml";
+
   /**
-   * The code mappings of the AIML file. There is always only one mapping.
-   *
-   * @type {CodeMapping[]}
+   * The code mappings.
    */
   mappings: Volar.CodeMapping[] = [];
+
   /**
-   * The original TypeScript snapshot.
+   * The snapshot.
    */
   snapshot: TypeScript.IScriptSnapshot;
 
   /**
-   * @param {IScriptSnapshot} snapshot
-   *   The original TypeScript snapshot.
-   * @param {Processor<Root>} processor
-   *   The unified processor to use for parsing.
-   * @param {boolean} checkAiml
-   *   If true, insert a `@check-js` comment into the virtual JavaScript code.
-   * @param {string} jsxImportSource
-   *   The JSX import source to use in the embedded JavaScript file.
+   * Create a virtual code file for AIML.
+   *
+   * @param snapshot The snapshot.
+   * @param processor The processor (with base plugins from MDX).
+   * @param checkAiml Whether to check AIML strictly.
+   * @param jsxImportSource The JSX import source.
    */
   constructor(
     snapshot: TypeScript.IScriptSnapshot,
@@ -1066,52 +1053,75 @@ export class VirtualAimlCode implements Volar.VirtualCode {
     this._checkAiml = checkAiml;
     this._jsxImportSource = jsxImportSource;
     this.snapshot = snapshot;
-    const length = snapshot.getLength();
-    this.mappings[0] = {
-      sourceOffsets: [0] as number[],
-      generatedOffsets: [0] as number[],
-      lengths: [length] as number[],
-      data: {
-        completion: true,
-        format: true,
-        navigation: true,
-        semantic: true,
-        structure: true,
-        verification: true,
-      },
-    };
-
-    const aiml = snapshot.getText(0, length);
 
     try {
-      const ast = this._processor.parse(aiml);
+      // Get the text content of the file
+      const aiml = snapshot.getText(0, snapshot.getLength());
+
+      console.log(
+        "Processing AIML file content:",
+        aiml.substring(0, 100) + "..."
+      );
+
+      // Parse AIML as MDX with our processor
+      this.ast = processor.parse(aiml);
+
+      // Identify JS code blocks and XML sections separately
+      // Only extract JavaScript from code blocks and proper JSX sections
+      this.identifyCodeSections(aiml);
+
+      // Extract embedded codes from the AST
       this.embeddedCodes = getEmbeddedCodes(
         aiml,
-        ast,
-        this._checkAiml,
-        this._jsxImportSource
+        this.ast,
+        checkAiml,
+        jsxImportSource
       );
-      this.ast = ast;
-      this.error = null;
-    } catch (error: unknown) {
-      this.error = error as VFileMessage;
-      this.ast = undefined;
-      this.embeddedCodes = [
-        {
-          id: "jsx",
-          languageId: "javascriptreact",
-          mappings: [] as Volar.CodeMapping[],
-          snapshot: new ScriptSnapshot(fallback),
-          embeddedCodes: [] as Volar.VirtualCode[],
-        },
-        {
-          id: "md",
-          languageId: "markdown",
-          mappings: [] as Volar.CodeMapping[],
-          snapshot: new ScriptSnapshot(aiml),
-          embeddedCodes: [] as Volar.VirtualCode[],
-        },
-      ];
+
+      console.log("Extracted embedded codes:", this.embeddedCodes.length);
+    } catch (error: any) {
+      console.error("Error parsing AIML file:", error);
+
+      if (error instanceof Error) {
+        this.error = new AimlError(error.message);
+      } else {
+        this.error = new AimlError(String(error));
+      }
     }
+  }
+
+  /**
+   * Identify code sections in the AIML file
+   * This helps distinguish between XML markup and JavaScript code
+   */
+  private identifyCodeSections(aiml: string) {
+    // Find code blocks that start with ```js or ```javascript
+    const codeBlockRegex = /```(?:js|javascript)\s*([\s\S]*?)```/g;
+    let match;
+
+    while ((match = codeBlockRegex.exec(aiml)) !== null) {
+      const startOffset = match.index + match[0].indexOf(match[1]);
+      const endOffset = startOffset + match[1].length;
+
+      // Add to mappings - these are JS/TS sections that should be validated
+      this.mappings.push({
+        sourceOffsets: [startOffset],
+        generatedOffsets: [0], // Would be mapped to a position in the generated file
+        lengths: [match[1].length],
+        data: {
+          semantic: true,
+          completion: true,
+          format: true,
+          navigation: true,
+          verification: true,
+        },
+      });
+
+      console.log(
+        `Found JS code block: ${match[1].substring(0, 20)}... [${startOffset}-${endOffset}]`
+      );
+    }
+
+    // The rest is considered XML/markup and should not be validated as TypeScript
   }
 }
