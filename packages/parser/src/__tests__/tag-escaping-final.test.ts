@@ -1,15 +1,10 @@
-import { AimlParser } from "../index";
-import { describe, it, expect, beforeEach } from "bun:test";
+import { describe, it, expect } from "bun:test";
 import { isAIMLElement } from "@fireworks/types";
 import { aimlElements } from "@fireworks/types";
+import { parseMDXFilesToAIML } from "..";
+import { VFile } from "vfile";
 
 describe("Tag Escaping Final Tests", () => {
-  let parser: AimlParser;
-
-  beforeEach(() => {
-    parser = new AimlParser();
-  });
-
   describe("Valid vs Invalid Tags", () => {
     it("should correctly identify valid AIML elements", () => {
       // Test all valid element types from aimlElements
@@ -38,7 +33,7 @@ describe("Tag Escaping Final Tests", () => {
   });
 
   describe("AST creation with custom tags", () => {
-    it("should only include valid AIML elements in the AST", () => {
+    it("should only include valid AIML elements in the AST", async () => {
       const input = `
 <workflow id="test">
   <state id="start">
@@ -49,8 +44,12 @@ describe("Tag Escaping Final Tests", () => {
 </workflow>
       `;
 
-      // Set the file in the parser
-      parser.setFile({ path: "ast-test.mdx", content: input }, true);
+      const testFile = new VFile({
+        path: "test.mdx",
+        value: input,
+      });
+
+      const result = await parseMDXFilesToAIML([testFile]);
 
       // Check that customTag is not a valid AIML element
       expect(isAIMLElement("customTag")).toBe(false);

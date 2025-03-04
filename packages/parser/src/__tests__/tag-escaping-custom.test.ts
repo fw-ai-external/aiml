@@ -1,15 +1,10 @@
-import { AimlParser } from "../index";
-import { describe, it, expect, beforeEach } from "bun:test";
+import { describe, it, expect } from "bun:test";
 import { isAIMLElement } from "@fireworks/types";
 import { aimlElements } from "@fireworks/types";
+import { parseMDXFilesToAIML } from "..";
+import { VFile } from "vfile";
 
 describe("Custom Tag Escaping Tests", () => {
-  let parser: AimlParser;
-
-  beforeEach(() => {
-    parser = new AimlParser();
-  });
-
   describe("Valid vs Invalid Tags", () => {
     it("should correctly identify valid AIML elements", () => {
       // Test all valid element types from aimlElements
@@ -37,8 +32,8 @@ describe("Custom Tag Escaping Tests", () => {
     });
   });
 
-  describe("Tag preservation in _preProcessFile", () => {
-    it("should preserve custom tags in the preprocessed content", () => {
+  describe("Tag preservation when tag is a string", () => {
+    it("should preserve custom tags in the content", async () => {
       const input = `
 <workflow id="test">
   <state id="start">
@@ -49,14 +44,25 @@ describe("Custom Tag Escaping Tests", () => {
 </workflow>
       `;
 
-      const result = parser._preProcessFile("custom-tags.mdx", input);
-      console.log(result.processed?.content);
+      const testFile = new VFile({
+        path: "test.mdx",
+        value: input,
+      });
+
+      const result = await parseMDXFilesToAIML([testFile]);
       // Check that the custom tag is preserved in the content
-      expect(result.processed?.content).toContain("<customTag>");
-      expect(result.processed?.content).toContain("This is a custom tag");
+      expect(result.nodes[0].children?.[0].children?.[0].type).toBe(
+        "paragraph"
+      );
+      expect(
+        result.nodes[0].children?.[0].children?.[0].children?.[0].type
+      ).toBe("text");
+      expect(
+        result.nodes[0].children?.[0].children?.[0].children?.[0].value
+      ).toBe("<customTag>This is a custom tag</customTag>");
     });
 
-    it("should preserve nested custom tags in the preprocessed content", () => {
+    it("should preserve nested custom tags in the AST", async () => {
       const input = `
 <workflow id="test">
   <state id="start">
@@ -69,15 +75,21 @@ describe("Custom Tag Escaping Tests", () => {
 </workflow>
       `;
 
-      const result = parser._preProcessFile("nested-custom-tags.mdx", input);
+      const testFile = new VFile({
+        path: "test.mdx",
+        value: input,
+      });
+
+      const result = await parseMDXFilesToAIML([testFile]);
 
       // Check that both custom tags are preserved in the content
-      expect(result.processed?.content).toContain("<customParent>");
-      expect(result.processed?.content).toContain("<customChild>");
-      expect(result.processed?.content).toContain("This is nested content");
+      expect(result.nodes[0].children?.[0].children?.[0].type).toBe("text");
+      expect(result.nodes[0].children?.[0].children?.[0].value).toBe(
+        "<customParent><customChild>This is nested content</customChild></customParent>"
+      );
     });
 
-    it("should preserve custom tags with attributes in the preprocessed content", () => {
+    it("should preserve custom tags with attributes in the AST", async () => {
       const input = `
 <workflow id="test">
   <state id="start">
@@ -90,20 +102,23 @@ describe("Custom Tag Escaping Tests", () => {
 </workflow>
       `;
 
-      const result = parser._preProcessFile(
-        "custom-tags-with-attrs.mdx",
-        input
-      );
+      const testFile = new VFile({
+        path: "test.mdx",
+        value: input,
+      });
+
+      const result = await parseMDXFilesToAIML([testFile]);
 
       // Check that the custom tag and its attributes are preserved
-      expect(result.processed?.content).toContain('<customTag id="custom1"');
-      expect(result.processed?.content).toContain('class="test"');
-      expect(result.processed?.content).toContain('data-attr="value"');
+      expect(result.nodes[0].children?.[0].children?.[0].type).toBe("text");
+      expect(result.nodes[0].children?.[0].children?.[0].value).toBe(
+        '<customTag id="custom1" class="test" data-attr="value">Custom tag with attributes</customTag>'
+      );
     });
   });
 
   describe("AST creation with custom tags", () => {
-    it("should only include valid AIML elements in the AST", () => {
+    it("should only include valid AIML elements in the AST", async () => {
       const input = `
 <workflow id="test">
   <state id="start">
@@ -114,8 +129,12 @@ describe("Custom Tag Escaping Tests", () => {
 </workflow>
       `;
 
-      // Set the file in the parser
-      parser.setFile({ path: "ast-test.mdx", content: input }, true);
+      const testFile = new VFile({
+        path: "test.mdx",
+        value: input,
+      });
+
+      const result = await parseMDXFilesToAIML([testFile]);
 
       // Check that customTag is not a valid AIML element
       expect(isAIMLElement("customTag")).toBe(false);

@@ -1,15 +1,8 @@
-import { AimlParser } from "./index";
-import { describe, it, expect, beforeEach } from "bun:test";
-import { parseMDXFilesToAIML } from "./unified";
+import { describe, it, expect } from "bun:test";
+import { parseMDXFilesToAIML } from ".";
 import { VFile } from "vfile";
 
 describe("AIML Parsing Tests", () => {
-  let parser: AimlParser;
-
-  beforeEach(() => {
-    parser = new AimlParser();
-  });
-
   describe("Basic AIML Parsing", () => {
     it("should parse a basic AIML file", async () => {
       const input = `

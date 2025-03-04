@@ -14,8 +14,6 @@ describe("CompilerConfig", () => {
       expect(options.skipLibCheck).toBe(true);
       expect(options.noResolve).toBe(true);
       expect(options.types).toEqual([]);
-      expect(options.jsxFactory).toBe("createElement");
-      expect(options.jsxFragmentFactory).toBe("Fragment");
       expect(options.target).toBe(6);
       expect(options.module).toBe(99);
       expect(options.esModuleInterop).toBe(true);

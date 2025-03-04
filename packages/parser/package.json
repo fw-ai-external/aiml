@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build",
-    "dev": "tsc --watch",
+    "dev": "bun run dev.ts --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "test": "bun test ./src/**/*.test.ts",
@@ -26,6 +26,7 @@
     "@mdx-js/typescript-plugin": "^0.0.8",
     "ajv": "^8.17.1",
     "arktype": "^2.1.0",
+    "hohoro": "^0.3.0",
     "js-sourcemap": "^0.0.6",
     "magic-string": "^0.30.17",
     "mdast": "^3.0.0",
@@ -38,6 +39,8 @@
   },
   "devDependencies": {
     "@fireworks/tsconfig": "workspace:*",
+    "@swc/cli": "^0.6.0",
+    "@swc/core": "^1.11.7",
     "@types/node": "^20.11.5",
     "@types/uuid": "^9.0.8",
     "@types/xml-formatter": "^2.1.1",

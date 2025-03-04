@@ -1,16 +1,11 @@
-import { AimlParser } from "../index";
-import { describe, it, expect, beforeEach } from "bun:test";
+import { describe, it, expect } from "bun:test";
 import { isAIMLElement } from "@fireworks/types";
+import { VFile } from "vfile";
+import { parseMDXFilesToAIML } from "..";
 
 describe("Tag Escaping Tests", () => {
-  let parser: AimlParser;
-
-  beforeEach(() => {
-    parser = new AimlParser();
-  });
-
   describe("Custom tag handling", () => {
-    it("should preserve custom tags in the preprocessed content", () => {
+    it("should preserve custom tags in the preprocessed content", async () => {
       const input = `
 <workflow id="test">
   <state id="start">
@@ -21,15 +16,28 @@ describe("Tag Escaping Tests", () => {
 </workflow>
       `;
 
-      const result = parser._preProcessFile("custom-tags.mdx", input);
-      expect(result.errors).toHaveLength(0);
-      expect(result.processed).not.toBeNull();
+      const testFile = new VFile({
+        path: "test.mdx",
+        value: input,
+      });
+
+      const result = await parseMDXFilesToAIML([testFile]);
+      expect(result.diagnostics).toHaveLength(0);
+      expect(result.nodes).not.toBeNull();
 
       // Check that the custom tag is preserved in the content
-      expect(result.processed?.content).toContain("<customTag>");
+      expect(result.nodes[0].children?.[0].children?.[0].type).toBe(
+        "paragraph"
+      );
+      expect(
+        result.nodes[0].children?.[0].children?.[0].children?.[0].type
+      ).toBe("text");
+      expect(
+        result.nodes[0].children?.[0].children?.[0].children?.[0].value
+      ).toBe("<customTag>This is a custom tag</customTag>");
     });
 
-    it("should only include valid AIML elements in the AST", () => {
+    it("should only include valid AIML elements in the AST", async () => {
       const input = `
 <workflow id="test">
   <state id="start">
@@ -40,8 +48,14 @@ describe("Tag Escaping Tests", () => {
 </workflow>
       `;
 
-      // Set the file in the parser
-      parser.setFile({ path: "ast-test.mdx", content: input }, true);
+      const testFile = new VFile({
+        path: "test.mdx",
+        value: input,
+      });
+
+      const result = await parseMDXFilesToAIML([testFile]);
+      expect(result.diagnostics).toHaveLength(0);
+      expect(result.nodes).not.toBeNull();
 
       // Check that customTag is not a valid AIML element
       expect(isAIMLElement("customTag")).toBe(false);
