@@ -13,20 +13,12 @@
   "main": "dist/extension.js",
   "keywords": ["aiml", "aiml"],
   "icon": "assets/aiml.png",
-  "activationEvents": [
-    "onLanguage:aiml",
-    "onLanguage:javascript",
-    "onLanguage:javascriptreact",
-    "onLanguage:typescript",
-    "onLanguage:typescriptreact"
-  ],
   "scripts": {
-    "generate": "node --conditions development ./script/generate.mjs",
-    "dev": "node ./script/build.mjs --watch",
-    "build": "node ./script/build.mjs",
+    "dev": "bun ./script/build.ts --watch",
+    "build": "bun ./script/build.ts",
     "package": "vsce package --no-dependencies",
     "publish": "vsce publish --no-dependencies",
-    "vscode:prepublish": "node ./script/build.mjs"
+    "vscode:prepublish": "bun ./script/build.ts"
   },
   "devDependencies": {
     "@hediet/node-reload": "^0.7.3",
@@ -35,7 +27,7 @@
     "@types/vscode": "^1.96.0",
     "@volar/language-server": "~2.4.0",
     "@volar/vscode": "~2.4.0",
-    "@vscode/vsce": "^3.0.0",
+    "@vscode/vsce": "^3.2.0",
     "esbuild": "^0.24.0",
     "ovsx": "^0.10.0"
   },
@@ -67,43 +59,6 @@
             "enum": ["text", "json"],
             "default": "text",
             "description": "How to format traced AIML language server requests."
-          },
-          "aiml.validate.validateReferences": {
-            "enum": ["ignore", "hint", "warning", "error"],
-            "default": "ignore",
-            "markdownDescription": "Diagnostic level for invalid reference links, e.g. `[text][no-such-ref]`."
-          },
-          "aiml.validate.validateFragmentLinks": {
-            "enum": ["ignore", "hint", "warning", "error"],
-            "default": "ignore",
-            "markdownDescription": "Diagnostic level for fragments links to headers in the current file that don't exist, e.g. `[text](#no-such-header)`."
-          },
-          "aiml.validate.validateFileLinks": {
-            "enum": ["ignore", "hint", "warning", "error"],
-            "default": "ignore",
-            "markdownDescription": "Diagnostic level for links to local files that don't exist, e.g. `[text](./no-such-file.png)`."
-          },
-          "aiml.validate.validateMarkdownFileLinkFragments": {
-            "enum": ["ignore", "hint", "warning", "error"],
-            "default": "ignore",
-            "markdownDescription": "Diagnostic level for the fragment part of links to other local markdown files , e.g. `[text](./file.md#no-such-header)`."
-          },
-          "aiml.validate.validateUnusedLinkDefinitions": {
-            "enum": ["ignore", "hint", "warning", "error"],
-            "default": "ignore",
-            "markdownDescription": "Diagnostic level for link definitions that aren't used anywhere. `[never-used]: http://example.com`."
-          },
-          "aiml.validate.validateDuplicateLinkDefinitions": {
-            "enum": ["ignore", "hint", "warning", "error"],
-            "default": "ignore",
-            "markdownDescription": "Diagnostic level for duplicate link definitions."
-          },
-          "aiml.validate.ignoreLinks": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "markdownDescription": "Glob of links that should not be validated."
           }
         }
       }
@@ -191,20 +146,12 @@
         }
       },
       {
-        "scopeName": "source.markdown.aiml.codeblock",
-        "path": "./syntaxes/aiml.markdown.tmLanguage.json",
+        "scopeName": "source.aiml.codeblock",
+        "path": "./syntaxes/aiml.tmLanguage.json",
         "injectTo": ["text.html.markdown"],
         "embeddedLanguages": {
           "meta.embedded.block.aiml": "aiml"
         }
-      }
-    ],
-    "typescriptServerPlugins": [
-      {
-        "name": "@fireworks/typescript-plugin",
-        "enableForWorkspaceTypeScriptVersions": true,
-        "configNamespace": "typescript",
-        "languages": ["aiml"]
       }
     ]
   }
