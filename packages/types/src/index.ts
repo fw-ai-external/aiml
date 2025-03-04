@@ -51,6 +51,7 @@ export type AllowedChildrenType = string[] | "none" | "any" | "text";
 
 export type AIMLNode = {
   type:
+    | "paragraph"
     | "text"
     | "comment"
     | "element"
@@ -75,7 +76,9 @@ export type AIMLNode = {
   lineEnd: number;
   columnStart: number;
   columnEnd: number;
+  comments?: CommentNode[];
 };
+// comment nodes need to be added to the nearest IBaseElement after them via a new field on IBaseElement for comments
 
 export interface ImportNode extends AIMLNode {
   kind: "import";
@@ -96,7 +99,7 @@ export interface HeaderFieldNode extends AIMLNode {
 }
 
 export interface CommentNode extends AIMLNode {
-  kind: "expression";
+  kind: "comment";
   value: string;
 }
 
@@ -108,6 +111,11 @@ export interface TextNode extends AIMLNode {
 export interface ExpressionNode extends AIMLNode {
   kind: "expression";
   value: string;
+}
+
+export interface ParagraphNode extends AIMLNode {
+  kind: "paragraph";
+  children: (TextNode | ExpressionNode)[];
 }
 
 export interface Attributes {
@@ -125,6 +133,7 @@ export interface IBaseElement extends AIMLNode {
   readonly children: AIMLNode[];
   readonly onExecutionGraphConstruction?: (buildContext: any) => any;
   readonly allowedChildren: AllowedChildrenType;
+  readonly comments?: CommentNode[];
 }
 
 export interface IBaseElementConfig {
