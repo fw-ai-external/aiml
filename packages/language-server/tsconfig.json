@@ -1,6 +1,5 @@
 {
   "exclude": ["**/coverage/**"],
-  "references": [{"path": "../language-service/tsconfig.build.json"}],
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "checkJs": true,
