@@ -185,7 +185,37 @@ export async function parseMDXToAIML(
     .use(remarkMdx);
 
   // Parse the content to get the AST
-  const ast = await processor.parse(file);
+  let ast;
+  try {
+    ast = processor.parse(file);
+  } catch (error) {
+    // Extract error position information if available
+    let errorPosition = { line: 1, column: 1 };
+    if (error instanceof Error && "loc" in error) {
+      const loc = (error as any).loc;
+      if (
+        loc &&
+        typeof loc.line === "number" &&
+        typeof loc.column === "number"
+      ) {
+        errorPosition = { line: loc.line, column: loc.column };
+      }
+    }
+    console.error(`Error parsing AIML at ${file.path}: ${error}
+Offending code: ${file.value.toString().split("\n")[errorPosition.line - 1]}
+`);
+    diagnostics.push({
+      message: error instanceof Error ? error.message : String(error),
+      severity: DiagnosticSeverity.Error,
+      code: "MDX002",
+      source: "aiml-parser",
+      range: {
+        start: { line: 1, column: 1 },
+        end: { line: 1, column: 1 },
+      },
+    });
+    return { nodes: [], diagnostics };
+  }
   await processor.run(ast, file);
 
   // Debug the AST structure
@@ -1265,7 +1295,7 @@ export async function parseMDXFilesToAIML(
     };
   }
 
-  // Use the first file as the main file to parse
+  // TODO: support multiple files
   const mainFile = files[0];
 
   // Parse the main file, providing all files for import resolution

@@ -30,9 +30,7 @@ export function astToRunnableBaseElementTree(nodes: AIMLNode[]): IBaseElement {
 
   // Find the first element that could be a root
   const rootElementNode = nodes.find(
-    (node) =>
-      node.type === "element" &&
-      (node.elementType === "workflow" || node.elementType === "state")
+    (node) => node.type === "element" && node.elementType === "workflow"
   ) as IBaseElement | undefined;
 
   if (rootElementNode) {
@@ -74,87 +72,217 @@ export function astToRunnableBaseElementTree(nodes: AIMLNode[]): IBaseElement {
   // Collect all comments to be assigned to the nearest elements
   const comments: CommentNode[] = [];
 
+  // Helper function to convert a node to an element
+  const convertNodeToElement = (node: AIMLNode): IBaseElement => {
+    if (node.type === "element") {
+      // Already an element, create a new BaseElement with processed children
+      const elementNode = node as IBaseElement;
+
+      // Create a new array for processed children
+      const processedChildren: IBaseElement[] = [];
+
+      // Process all children recursively
+      if (elementNode.children) {
+        for (const child of elementNode.children) {
+          if (child.type === "element") {
+            // Recursively process element children
+            processedChildren.push(convertNodeToElement(child as AIMLNode));
+          } else if (child.type === "paragraph") {
+            // Convert paragraph to llm element
+            processedChildren.push(convertParagraphToLlm(child as AIMLNode));
+          } else if (child.type === "expression") {
+            // Convert expression to script element
+            processedChildren.push(
+              convertExpressionToScript(child as AIMLNode)
+            );
+          } else if (child.type === "comment") {
+            // Collect comments to be assigned later
+            comments.push(child as CommentNode);
+          } else if (child.type === "text") {
+            // Check if the text contains expressions
+            const textValue = (child as TextNode).value?.toString() || "";
+            if (textValue.includes("{") && textValue.includes("}")) {
+              // Create a script element for the expression
+              processedChildren.push(
+                new BaseElement({
+                  id: `script-${child.key}`,
+                  key: child.key,
+                  tag: "script",
+                  role: "action",
+                  elementType: "script",
+                  attributes: {
+                    content: textValue,
+                  },
+                  children: [],
+                  allowedChildren: "none",
+                  schema: {} as any,
+                  type: "element",
+                  lineStart: child.lineStart,
+                  lineEnd: child.lineEnd,
+                  columnStart: child.columnStart,
+                  columnEnd: child.columnEnd,
+                })
+              );
+            } else {
+              // Keep the text node as is
+              processedChildren.push(
+                new BaseElement({
+                  id: `text-${child.key}`,
+                  key: child.key,
+                  tag: "text",
+                  role: "output",
+                  elementType: "text" as any,
+                  attributes: {
+                    content: textValue,
+                  },
+                  children: [],
+                  allowedChildren: "none",
+                  schema: {} as any,
+                  type: "element",
+                  lineStart: child.lineStart,
+                  lineEnd: child.lineEnd,
+                  columnStart: child.columnStart,
+                  columnEnd: child.columnEnd,
+                })
+              );
+            }
+          }
+          // Ignore other node types
+        }
+      }
+
+      // Create a new BaseElement with the processed children
+      return new BaseElement({
+        id: elementNode.id || `element-${elementNode.key}`,
+        key: elementNode.key,
+        tag: elementNode.tag,
+        role: elementNode.role,
+        elementType: elementNode.elementType,
+        attributes: elementNode.attributes || {},
+        children: processedChildren,
+        allowedChildren: elementNode.allowedChildren || "any",
+        schema: {} as any,
+        type: "element",
+        lineStart: elementNode.lineStart,
+        lineEnd: elementNode.lineEnd,
+        columnStart: elementNode.columnStart,
+        columnEnd: elementNode.columnEnd,
+      });
+    } else if (node.type === "paragraph") {
+      return convertParagraphToLlm(node);
+    } else if (node.type === "expression") {
+      return convertExpressionToScript(node);
+    } else {
+      // Default case: create a generic element
+      return new BaseElement({
+        id: `generic-${node.key}`,
+        key: node.key,
+        tag: "script", // Default to script
+        role: "action",
+        elementType: "script",
+        attributes: {
+          content: node.value?.toString() || "",
+        },
+        children: [],
+        allowedChildren: "none",
+        schema: {} as any,
+        type: "element",
+        lineStart: node.lineStart,
+        lineEnd: node.lineEnd,
+        columnStart: node.columnStart,
+        columnEnd: node.columnEnd,
+      });
+    }
+  };
+
+  // Helper function to convert paragraph to llm element
+  const convertParagraphToLlm = (paragraphNode: AIMLNode): IBaseElement => {
+    // Extract text from paragraph children
+    let promptText = "";
+    if (paragraphNode.children) {
+      for (const child of paragraphNode.children) {
+        if (child.type === "text") {
+          promptText += (child as TextNode).value;
+        } else if (child.type === "expression") {
+          promptText += `\${${(child as ExpressionNode).value}}`;
+        }
+      }
+    }
+
+    // Create an llm element with the paragraph text as prompt
+    return new BaseElement({
+      id: `llm-${paragraphNode.key}`,
+      key: paragraphNode.key,
+      tag: "llm",
+      role: "output",
+      elementType: "llm",
+      attributes: {
+        prompt: promptText,
+      },
+      children: [],
+      allowedChildren: "none",
+      schema: {} as any,
+      type: "element",
+      lineStart: paragraphNode.lineStart,
+      lineEnd: paragraphNode.lineEnd,
+      columnStart: paragraphNode.columnStart,
+      columnEnd: paragraphNode.columnEnd,
+    });
+  };
+
+  // Helper function to convert expression to script element
+  const convertExpressionToScript = (
+    expressionNode: AIMLNode
+  ): IBaseElement => {
+    // Create a script element with the expression value
+    return new BaseElement({
+      id: `script-${expressionNode.key}`,
+      key: expressionNode.key,
+      tag: "script",
+      role: "action",
+      elementType: "script",
+      attributes: {
+        content: (expressionNode as ExpressionNode).value,
+      },
+      children: [],
+      allowedChildren: "none",
+      schema: {} as any,
+      type: "element",
+      lineStart: expressionNode.lineStart,
+      lineEnd: expressionNode.lineEnd,
+      columnStart: expressionNode.columnStart,
+      columnEnd: expressionNode.columnEnd,
+    });
+  };
+
+  // Process all nodes and convert them to elements
+  const processedNodes: IBaseElement[] = [];
+
   // First pass: Process all top-level nodes
   for (const node of nodes) {
     if (node.type === "comment") {
       // Collect comments to be assigned later
       comments.push(node as CommentNode);
-    } else if (node.type === "paragraph" && node !== rootElement) {
-      // Convert root level paragraphs to llm elements
-      const paragraphNode = node as AIMLNode;
-
-      // Extract text from paragraph children
-      let promptText = "";
-      if (paragraphNode.children) {
-        for (const child of paragraphNode.children) {
-          if (child.type === "text") {
-            promptText += (child as TextNode).value;
-          } else if (child.type === "expression") {
-            promptText += `{${(child as ExpressionNode).value}}`;
-          }
-        }
-      }
-
-      // Create an llm element with the paragraph text as prompt
-      const llmElement = new BaseElement({
-        id: `llm-${paragraphNode.key}`,
-        key: paragraphNode.key,
-        tag: "llm",
-        role: "output",
-        elementType: "llm",
-        attributes: {
-          prompt: promptText,
-        },
-        children: [],
-        allowedChildren: "none",
-        schema: {} as any,
-        type: "element",
-        lineStart: paragraphNode.lineStart,
-        lineEnd: paragraphNode.lineEnd,
-        columnStart: paragraphNode.columnStart,
-        columnEnd: paragraphNode.columnEnd,
-      });
-
-      // Add the llm element to the root
-      if (rootElement && rootElement !== node) {
-        rootElement.children.push(llmElement);
-      }
-    } else if (node.type === "expression" && node !== rootElement) {
+    } else if (node.type === "paragraph") {
+      // Convert paragraphs to llm elements
+      processedNodes.push(convertParagraphToLlm(node));
+    } else if (node.type === "expression") {
       // Convert expressions to script elements
-      const expressionNode = node as ExpressionNode;
+      processedNodes.push(convertExpressionToScript(node));
+    } else if (node.type === "element") {
+      // Process element nodes recursively
+      processedNodes.push(convertNodeToElement(node));
+    }
+    // Ignore other node types
+  }
 
-      // Create a script element with the expression value
-      const scriptElement = new BaseElement({
-        id: `script-${expressionNode.key}`,
-        key: expressionNode.key,
-        tag: "script",
-        role: "action",
-        elementType: "script",
-        attributes: {
-          content: expressionNode.value,
-        },
-        children: [],
-        allowedChildren: "none",
-        schema: {} as any,
-        type: "element",
-        lineStart: expressionNode.lineStart,
-        lineEnd: expressionNode.lineEnd,
-        columnStart: expressionNode.columnStart,
-        columnEnd: expressionNode.columnEnd,
-      });
-
-      // Add the script element to the root
-      if (rootElement && rootElement !== node) {
-        rootElement.children.push(scriptElement);
-      }
-    } else if (node.type === "element" && node !== rootElement) {
-      // Process element nodes
-      const elementNode = node as IBaseElement;
-
+  // Add all processed nodes to the root element
+  for (const node of processedNodes) {
+    if (node !== rootElement) {
       // Check if this is an action element without a state ancestor
-      if (elementNode.role === "action") {
+      if (node.role === "action") {
         let hasStateAncestor = false;
-        let currentParent = elementNode.parent;
+        let currentParent = node.parent;
 
         // Check if the element has a state ancestor
         while (currentParent) {
@@ -166,28 +294,12 @@ export function astToRunnableBaseElementTree(nodes: AIMLNode[]): IBaseElement {
         }
 
         // If no state ancestor, add it to the root element
-        if (!hasStateAncestor && rootElement && rootElement !== elementNode) {
-          // Remove from its current parent if it has one
-          if (elementNode.parent) {
-            const parentElement = elementNode.parent as IBaseElement;
-            const index = parentElement.children.findIndex(
-              (child) => child.key === elementNode.key
-            );
-            if (index !== -1) {
-              parentElement.children.splice(index, 1);
-            }
-          }
-
-          // Add to the root element
-          rootElement.children.push(elementNode);
+        if (!hasStateAncestor && rootElement) {
+          rootElement.children.push(node);
         }
-      } else if (
-        rootElement &&
-        rootElement !== elementNode &&
-        !elementNode.parent
-      ) {
+      } else if (rootElement && !node.parent) {
         // Add orphaned elements to the root
-        rootElement.children.push(elementNode);
+        rootElement.children.push(node);
       }
     }
   }
@@ -229,5 +341,93 @@ export function astToRunnableBaseElementTree(nodes: AIMLNode[]): IBaseElement {
     assignCommentsToElement(rootElement, comments);
   }
 
-  return rootElement as IBaseElement;
+  // Final pass: Ensure all nodes in the tree are elements
+  const ensureAllNodesAreElements = (element: IBaseElement): IBaseElement => {
+    // Create a new array for processed children
+    const processedChildren: IBaseElement[] = [];
+
+    // Process all children recursively
+    for (const child of element.children) {
+      if (child.type === "element") {
+        // Recursively process element children
+        processedChildren.push(
+          ensureAllNodesAreElements(child as IBaseElement)
+        );
+      } else {
+        // Convert non-element nodes to elements
+        if (child.type === "paragraph") {
+          processedChildren.push(convertParagraphToLlm(child as AIMLNode));
+        } else if (child.type === "expression") {
+          processedChildren.push(convertExpressionToScript(child as AIMLNode));
+        } else if (child.type === "text") {
+          // Convert text to element
+          processedChildren.push(
+            new BaseElement({
+              id: `text-${child.key}`,
+              key: child.key,
+              tag: "text",
+              role: "output",
+              elementType: "text" as any,
+              attributes: {
+                content: (child as TextNode).value?.toString() || "",
+              },
+              children: [],
+              allowedChildren: "none",
+              schema: {} as any,
+              type: "element",
+              lineStart: child.lineStart,
+              lineEnd: child.lineEnd,
+              columnStart: child.columnStart,
+              columnEnd: child.columnEnd,
+            })
+          );
+        } else {
+          // Default case: create a generic element
+          processedChildren.push(
+            new BaseElement({
+              id: `generic-${child.key}`,
+              key: child.key,
+              tag: "script",
+              role: "action",
+              elementType: "script",
+              attributes: {
+                content: child.value?.toString() || "",
+              },
+              children: [],
+              allowedChildren: "none",
+              schema: {} as any,
+              type: "element",
+              lineStart: child.lineStart,
+              lineEnd: child.lineEnd,
+              columnStart: child.columnStart,
+              columnEnd: child.columnEnd,
+            })
+          );
+        }
+      }
+    }
+
+    // Create a new element with the processed children
+    return new BaseElement({
+      id: element.id,
+      key: element.key,
+      tag: element.tag,
+      role: element.role,
+      elementType: element.elementType,
+      attributes: element.attributes,
+      children: processedChildren,
+      allowedChildren: element.allowedChildren,
+      schema: {} as any,
+      type: "element",
+      lineStart: element.lineStart,
+      lineEnd: element.lineEnd,
+      columnStart: element.columnStart,
+      columnEnd: element.columnEnd,
+    });
+  };
+
+  // Ensure all nodes in the tree are elements
+  const finalRootElement = ensureAllNodesAreElements(rootElement);
+
+  return finalRootElement;
 }
