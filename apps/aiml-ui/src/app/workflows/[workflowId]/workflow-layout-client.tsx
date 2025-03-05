@@ -1,23 +1,19 @@
 "use client";
 
 import * as React from "react";
-
 import { Header } from "@/components/ui/header";
 import { Skeleton } from "@/components/ui/skeleton";
-
 import { useWorkflow } from "@/hooks/use-workflows";
 import { WorkflowHeader } from "@/domains/workflows/workflow-header";
 
-export default function WorkflowLayout({
+export function WorkflowLayoutClient({
+  workflowId,
   children,
-  params,
 }: {
+  workflowId: string;
   children: React.ReactNode;
-  params: { workflowId: string };
 }) {
-  const { workflow, isLoading: isWorkflowLoading } = useWorkflow(
-    params.workflowId
-  );
+  const { workflow, isLoading: isWorkflowLoading } = useWorkflow(workflowId);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -26,7 +22,7 @@ export default function WorkflowLayout({
       ) : (
         <WorkflowHeader
           workflowName={workflow?.name!}
-          workflowId={params.workflowId}
+          workflowId={workflowId}
         />
       )}
       {children}

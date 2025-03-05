@@ -5,6 +5,8 @@ export async function GET(
   { params }: { params: Promise<{ workflowId: string }> }
 ) {
   const resolvedParams = await params;
+
+  console.log(resolvedParams);
   // Mock data for now - replace with actual API call
   return NextResponse.json({
     id: resolvedParams.workflowId,

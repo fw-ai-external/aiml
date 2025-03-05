@@ -38,8 +38,9 @@ export const useWorkflows = () => {
 export const useWorkflow = (workflowId: string) => {
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  console.log("workflowId", workflowId);
   useEffect(() => {
+    console.log("workflowId", workflowId);
     const fetchWorkflow = async () => {
       setIsLoading(true);
       try {

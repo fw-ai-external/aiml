@@ -167,6 +167,7 @@ describe("Healing parsed results", () => {
     const file = new VFile({ path: filePath, value: content });
 
     const result = await parseMDXFilesToAIML([file]);
+    expect(result.nodes.length).toBeGreaterThan(0);
     const healed = astToRunnableBaseElementTree(result.nodes);
 
     expect(healed).toBeDefined();
@@ -188,6 +189,7 @@ describe("Healing parsed results", () => {
     const file = new VFile({ path: filePath, value: content });
 
     const result = await parseMDXFilesToAIML([file]);
+    expect(result.nodes.length).toBeGreaterThan(0);
     const healed = astToRunnableBaseElementTree(result.nodes);
 
     expect(healed).toBeDefined();
