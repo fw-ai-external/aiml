@@ -79,7 +79,7 @@ export type AIMLNode = {
   elementType?: ElementType;
   attributes?: Attributes;
   children?: AIMLNode[];
-  parent?: IBaseElement;
+  parent?: WeakRef<AIMLNode>;
   value?: string | number | boolean;
   filePath?: string;
   namedImports?: string[];
@@ -131,7 +131,7 @@ export interface ParagraphNode extends AIMLNode {
 }
 
 export interface Attributes {
-  [key: string]: string | number | undefined;
+  [key: string]: string | number | undefined | boolean;
 }
 
 export interface IBaseElement extends AIMLNode {

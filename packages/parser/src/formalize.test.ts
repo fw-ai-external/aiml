@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { parseMDXFilesToAIML, parseMDXToAIML } from ".";
-import { astToRunnableBaseElementTree } from "./heal";
+import { astToRunnableBaseElementTree } from "./formalize";
 import { VFile } from "vfile";
 import { readFileSync } from "fs";
 import { join } from "path";

@@ -6,7 +6,8 @@ import remarkGfm from "remark-gfm";
 import { parse as parseYaml } from "yaml";
 import { VFile } from "vfile";
 import { Node } from "unist";
-import { astToRunnableBaseElementTree } from "./heal";
+import { astToRunnableBaseElementTree } from "./formalize";
+import { AIMLNode } from "@fireworks/types";
 
 // Define the allowed AIML elements
 export const aimlElements = [
@@ -83,35 +84,6 @@ export interface IBaseElement {
   id?: string;
   key: string;
 }
-
-export type AIMLNode = {
-  type:
-    | "paragraph"
-    | "text"
-    | "comment"
-    | "element"
-    | "import"
-    | "header"
-    | "expression"
-    | "headerField"
-    | "field";
-  id?: string;
-  key: string;
-  tag?: string;
-  role?: ElementRole;
-  elementType?: string;
-  attributes?: Attributes;
-  children?: AIMLNode[];
-  parent?: IBaseElement;
-  value?: string | number | boolean;
-  filePath?: string;
-  namedImports?: string[];
-  defaultImport?: string;
-  lineStart: number;
-  lineEnd: number;
-  columnStart: number;
-  columnEnd: number;
-};
 
 // Define diagnostics types
 export enum DiagnosticSeverity {
@@ -666,7 +638,7 @@ function transformNode(
             );
             if (childNode) {
               // Set parent reference if needed
-              childNode.parent = { key: elementNode.key };
+              childNode.parent = new WeakRef(elementNode);
               elementNode.children!.push(childNode);
             }
           }

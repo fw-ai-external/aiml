@@ -15,7 +15,7 @@ export class BaseElement implements IBaseElement {
   elementType: ElementType;
   attributes: Record<string, any>;
   children: IBaseElement[];
-  parent?: IBaseElement;
+  parent?: WeakRef<IBaseElement>;
   allowedChildren: AllowedChildrenType;
   schema: z.ZodType<any>;
   readonly propsSchema: any;
@@ -37,7 +37,7 @@ export class BaseElement implements IBaseElement {
     this.elementType = config.elementType;
     this.attributes = config.attributes ?? {};
     this.children = config.children ?? [];
-    this.parent = config.parent;
+    this.parent = config.parent ? new WeakRef(config.parent) : undefined;
     this.allowedChildren = config.allowedChildren;
     this.schema = config.schema;
     this.onExecutionGraphConstruction = config.onExecutionGraphConstruction;
