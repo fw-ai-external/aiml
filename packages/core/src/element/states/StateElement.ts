@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
 import { ExecutionGraphElement } from "../../runtime/types";
-import { BaseElement } from "../../runtime/BaseElement";
+import { BaseElement } from "../";
 import { stateConfig } from "@fireworks/element-config";
 const stateSchema = z.object({
   id: z.string(),

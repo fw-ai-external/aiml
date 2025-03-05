@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import { BaseElement } from "../../runtime/BaseElement";
+import { BaseElement } from "../";
 import { ExecutionGraphElement } from "../../runtime/types";
 import { StepValue } from "../../runtime/StepValue";
 import { v4 as uuidv4 } from "uuid";

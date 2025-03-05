@@ -1,6 +1,16 @@
-import { BaseElement } from "./BaseElement";
+import { BaseElement } from "@fireworks/core";
 import { ExecutionGraphElement } from "./types";
-import { StepConfig, Workflow } from "@mastra/core";
+import { Workflow } from "@mastra/core/workflows";
+
+// Define missing types
+export interface StepConfig<
+  TInput = any,
+  TOutput = any,
+  TProps = any,
+  TContext = any,
+> {
+  when?: (context: TContext) => Promise<boolean>;
+}
 
 export class BuildContext {
   /**

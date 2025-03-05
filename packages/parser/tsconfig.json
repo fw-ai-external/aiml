@@ -3,19 +3,22 @@
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.d.ts"
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.d.ts"
   ],
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.mts",
     "src/**/*.mtsx",
-    "src/**/*.json"
-, "../core/src/runtime/formalize.test.ts", "../core/src/runtime/formalize.ts"  ],
+    "src/**/*.json",
+  ],
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "noEmit": false
   }
 }

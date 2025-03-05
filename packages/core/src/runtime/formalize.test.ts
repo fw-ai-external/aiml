@@ -5,9 +5,12 @@ import { VFile } from "vfile";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { IBaseElement } from "@fireworks/types";
+import { BaseElement } from "../element";
 
 // Helper function to recursively check if all nodes are of type "element"
-function checkAllNodesAreElements(element: IBaseElement): boolean {
+function checkAllNodesAreElements(
+  element: IBaseElement | BaseElement
+): boolean {
   if (element.type !== "element") {
     console.error("Found non-element node:", element);
     return false;
@@ -66,7 +69,7 @@ describe("Healing parsed results", () => {
 
     expect(healed).toBeDefined();
     expect(healed.type).toBe("element");
-    expect(checkAllNodesAreElements(healed)).toBe(true);
+    expect(checkAllNodesAreElements(healed as IBaseElement)).toBe(true);
   });
 
   // Test SimpleRouter example
@@ -87,7 +90,7 @@ describe("Healing parsed results", () => {
 
     expect(healed).toBeDefined();
     expect(healed.type).toBe("element");
-    expect(checkAllNodesAreElements(healed)).toBe(true);
+    expect(checkAllNodesAreElements(healed as IBaseElement)).toBe(true);
   });
 
   // Test JustPrompt example
@@ -108,7 +111,7 @@ describe("Healing parsed results", () => {
 
     expect(healed).toBeDefined();
     expect(healed.type).toBe("element");
-    expect(checkAllNodesAreElements(healed)).toBe(true);
+    expect(checkAllNodesAreElements(healed as IBaseElement)).toBe(true);
   });
 
   // Test Character PersonaGenerator example
@@ -129,7 +132,7 @@ describe("Healing parsed results", () => {
 
     expect(healed).toBeDefined();
     expect(healed.type).toBe("element");
-    expect(checkAllNodesAreElements(healed)).toBe(true);
+    expect(checkAllNodesAreElements(healed as IBaseElement)).toBe(true);
   });
 
   // Test CodeReviewer example
@@ -150,7 +153,7 @@ describe("Healing parsed results", () => {
 
     expect(healed).toBeDefined();
     expect(healed.type).toBe("element");
-    expect(checkAllNodesAreElements(healed)).toBe(true);
+    expect(checkAllNodesAreElements(healed as IBaseElement)).toBe(true);
   });
 
   // Test InvestmentAdvisor example
@@ -172,7 +175,7 @@ describe("Healing parsed results", () => {
 
     expect(healed).toBeDefined();
     expect(healed.type).toBe("element");
-    expect(checkAllNodesAreElements(healed)).toBe(true);
+    expect(checkAllNodesAreElements(healed as IBaseElement)).toBe(true);
   });
 
   // Test MedicalDiagnosis example
@@ -194,7 +197,7 @@ describe("Healing parsed results", () => {
 
     expect(healed).toBeDefined();
     expect(healed.type).toBe("element");
-    expect(checkAllNodesAreElements(healed)).toBe(true);
+    expect(checkAllNodesAreElements(healed as IBaseElement)).toBe(true);
   });
 
   // Test RecipeGenerator example
@@ -215,6 +218,6 @@ describe("Healing parsed results", () => {
 
     expect(healed).toBeDefined();
     expect(healed.type).toBe("element");
-    expect(checkAllNodesAreElements(healed)).toBe(true);
+    expect(checkAllNodesAreElements(healed as IBaseElement)).toBe(true);
   });
 });

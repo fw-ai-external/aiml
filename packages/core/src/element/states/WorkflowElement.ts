@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import { BaseElement } from "../../runtime/BaseElement";
+import { BaseElement } from "../";
 import { ExecutionGraphElement } from "../../runtime/types";
 import { workflowConfig } from "@fireworks/element-config";
 

@@ -1,10 +1,10 @@
 // Define a simplified local Workflow type to avoid deep type instantiation
-import { BaseElement } from "@fireworks/parser";
+import { BaseElement } from "@fireworks/core";
 import { z } from "zod";
 import { BuildContext } from "./BuildContext";
 import { StepValue } from "./StepValue";
 import { ExecutionGraphElement } from "./types";
-import { Workflow } from "@mastra/core";
+import { Workflow } from "@mastra/core/workflows";
 
 type WorkflowRunState = Awaited<ReturnType<Workflow["getState"]>>;
 
@@ -89,7 +89,7 @@ export class Runtime<
           // create a function that evaluates the when expression
           // this serves as a guard for the step
           // TODO use Step context here
-          when: async ({ context }) =>
+          when: async ({ context }: { context: Record<string, any> }) =>
             element.when ? eval(element.when) : true,
         });
       } else {
@@ -98,7 +98,7 @@ export class Runtime<
           // create a function that evaluates the when expression
           // this serves as a guard for the step
           // TODO use Step context here
-          when: async ({ context }) =>
+          when: async ({ context }: { context: Record<string, any> }) =>
             element.when ? eval(element.when) : true,
         });
       }
@@ -133,7 +133,7 @@ export class Runtime<
       if (!newActiveStates.has(stateId)) {
         const element = this.findElementById(stateId);
         if (element) {
-          await (element as BaseElement).deactivate?.();
+          // await (element as BaseElement).deactivate?.();
         }
       }
     }
@@ -166,7 +166,9 @@ export class Runtime<
     const { runId, start } = this.workflow.createRun();
 
     // Set up state transition monitoring
-    this.workflow.watch((state) => this.handleStateTransition(state as any));
+    this.workflow.watch((state: WorkflowRunState) =>
+      this.handleStateTransition(state)
+    );
     // .catch((error) => {
     //   console.error("error", error);
     //   this.options?.onError?.(error as Error);

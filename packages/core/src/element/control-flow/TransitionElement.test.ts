@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach } from "bun:test";
 import { Transition } from "./TransitionElement";
 import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { z } from "zod";
-import { BaseElement } from "../../runtime/BaseElement";
+import { BaseElement } from "../";
 import { StepValue } from "../../runtime/StepValue";
 import { v4 as uuidv4 } from "uuid";
 
@@ -31,6 +31,8 @@ describe("TransitionElement", () => {
       lineEnd: 0,
       columnStart: 0,
       columnEnd: 0,
+      allowedChildren: "any",
+      schema: z.object({}),
     });
 
     ctx = new ElementExecutionContext({

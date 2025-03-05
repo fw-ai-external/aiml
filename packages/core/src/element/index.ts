@@ -33,3 +33,4 @@ export * from "./ai";
 export * from "./control-flow";
 export * from "./states";
 export * from "./context";
+export * from "./BaseElement";

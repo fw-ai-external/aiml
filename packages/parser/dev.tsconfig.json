@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "/Users/mattapperson/Development/scratchpad/packages/parser/src/index.test.ts",
+    "/Users/mattapperson/Development/scratchpad/packages/parser/src/BaseElement.ts",
+    "/Users/mattapperson/Development/scratchpad/packages/parser/src/validateConfig.ts",
+    "/Users/mattapperson/Development/scratchpad/packages/parser/src/validateConfig.test.ts",
+    "/Users/mattapperson/Development/scratchpad/packages/parser/src/index.ts",
+    "/Users/mattapperson/Development/scratchpad/packages/parser/src/utils/element-builder.ts",
+    "/Users/mattapperson/Development/scratchpad/packages/parser/src/utils/compiler-config.ts",
+    "/Users/mattapperson/Development/scratchpad/packages/parser/src/utils/frontmater.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist"
+  },
+  "exclude": ["**/__tests__/**"]
+}

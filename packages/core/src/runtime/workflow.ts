@@ -1,4 +1,4 @@
-import { BaseElement } from "./BaseElement";
+import { BaseElement } from "@fireworks/core";
 import { BuildContext } from "./BuildContext";
 import { ExecutionGraphElement } from "./types";
 

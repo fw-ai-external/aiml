@@ -1,4 +1,4 @@
-import { BaseElement } from "../runtime/BaseElement";
+import { BaseElement } from "./";
 
 /***************************************************
  * 1. Basic Types

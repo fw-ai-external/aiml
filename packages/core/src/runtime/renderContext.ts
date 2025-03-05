@@ -1,4 +1,4 @@
-import { BaseElement } from "./BaseElement";
+import { BaseElement } from "@fireworks/core";
 
 function stringifyNode(node: BaseElement): string {
   if (!node) return "";
@@ -6,7 +6,7 @@ function stringifyNode(node: BaseElement): string {
     return String(node.attributes.text);
   }
   return node.children
-    .filter((child): child is BaseElement => child instanceof BaseElement)
+    .filter((child: any): child is BaseElement => child instanceof BaseElement)
     .map(stringifyNode)
     .join("");
 }
@@ -27,7 +27,9 @@ export class RenderContext implements IRenderContext {
 
   public toString(): string {
     return this.children
-      .filter((child): child is BaseElement => child instanceof BaseElement)
+      .filter(
+        (child: any): child is BaseElement => child instanceof BaseElement
+      )
       .map((node) => {
         const key = node.id;
         if (this.memoizedNodes.has(key)) {

@@ -5,13 +5,14 @@ import type {
   CommentNode,
   HeaderNode,
   AIMLNode,
+  FireAgentNode,
 } from "@fireworks/types";
-import { BaseElement } from "./";
 import {
   getElementClassByTagName,
   isSupportedElementName,
   Workflow,
 } from "../element";
+import { BaseElement } from "@fireworks/core";
 
 export function astToRunnableBaseElementTree(nodes: AIMLNode[]): BaseElement {
   const headerNode = nodes.find((node) => node.type === "header") as
@@ -27,7 +28,7 @@ export function astToRunnableBaseElementTree(nodes: AIMLNode[]): BaseElement {
   if (rootElementNode) {
     rootElement = Workflow.initFromAttributesAndNodes(
       rootElementNode.attributes,
-      rootElementNode.children,
+      rootElementNode.children as FireAgentNode[],
       []
     ) as BaseElement;
   } else {
@@ -85,11 +86,11 @@ export function astToRunnableBaseElementTree(nodes: AIMLNode[]): BaseElement {
         let currentParent = node.parent;
 
         while (currentParent) {
-          if (currentParent.deref()?.role === "state") {
+          if (currentParent.role === "state") {
             hasStateAncestor = true;
             break;
           }
-          currentParent = currentParent.deref()?.parent;
+          currentParent = currentParent.parent;
         }
 
         if (!hasStateAncestor && rootElement) {
@@ -112,7 +113,7 @@ export function astToRunnableBaseElementTree(nodes: AIMLNode[]): BaseElement {
   // If this is an auto-created workflow, set the initial state to the first state element
   if (isAutoCreatedWorkflow && finalRootElement.children.length > 0) {
     const firstState = finalRootElement.children.find(
-      (child) => child.role === "state"
+      (child: BaseElement) => child.role === "state"
     );
     if (firstState) {
       finalRootElement.attributes.initial = firstState.id;
@@ -176,7 +177,7 @@ function convertNodeToElement(
         if (child.type === "element") {
           element.children.push(convertNodeToElement(child, comments, element));
         } else if (child.type === "paragraph") {
-          if (shouldConvertParagraphToLlm(child, elementNode)) {
+          if (shouldConvertParagraphToLlm(elementNode)) {
             element.children.push(convertParagraphToLlm(child, element));
           } else {
             element.children.push(convertParagraphToText(child));
@@ -191,7 +192,7 @@ function convertNodeToElement(
 
     return element;
   } else if (node.type === "paragraph") {
-    if (shouldConvertParagraphToLlm(node, parentNode)) {
+    if (shouldConvertParagraphToLlm(parentNode)) {
       return convertParagraphToLlm(node, parentNode);
     }
     return convertParagraphToText(node);
@@ -246,7 +247,7 @@ function assignCommentsToElement(
 }
 
 function ensureAllNodesAreElements(element: BaseElement): BaseElement {
-  const processedChildren: IBaseElement[] = [];
+  const processedChildren: BaseElement[] = [];
 
   if (element.children) {
     for (const child of element.children) {
@@ -285,20 +286,23 @@ function ensureAllNodesAreElements(element: BaseElement): BaseElement {
 
   return Constructor.initFromAttributesAndNodes(
     element.attributes,
-    processedChildren,
-    element.parent ? [element.parent] : []
+    processedChildren as FireAgentNode[],
+    element.parent ? [new WeakRef(element.parent)] : []
   ) as BaseElement;
 }
 
 function createStateElement(id: string, children: BaseElement[]): BaseElement {
   const State = getElementClassByTagName("state");
 
-  return State.initFromAttributesAndNodes({ id }, children, []) as BaseElement;
+  return State.initFromAttributesAndNodes(
+    { id },
+    children as FireAgentNode[],
+    []
+  ) as BaseElement;
 }
 
 function shouldConvertParagraphToLlm(
-  node: AIMLNode,
-  parentNode?: IBaseElement
+  parentNode?: BaseElement | IBaseElement
 ): boolean {
   // Convert if direct child of a state node
   if (parentNode?.role === "state") {

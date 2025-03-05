@@ -1,10 +1,11 @@
 import { describe, expect, test, beforeEach, mock } from "bun:test";
-import { BaseElement } from "./BaseElement";
+import { BaseElement } from "../element";
 import { ReplayableAsyncIterableStream } from "../utils/streams";
 import { StepValue } from "./StepValue";
 import { RunValue } from "./RunValue";
 import { APIStreamEvent } from "../types";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
 // Mock the StepValue to remove async complexity in tests
 function createMockStepValue(data: any) {
@@ -64,6 +65,8 @@ describe("RunValue unit tests", () => {
         lineEnd: 0,
         columnStart: 0,
         columnEnd: 0,
+        allowedChildren: "any",
+        schema: z.object({}),
       }),
       path: [],
       input: mockRunStepValue,
@@ -98,6 +101,8 @@ describe("RunValue unit tests", () => {
         lineEnd: 0,
         columnStart: 0,
         columnEnd: 0,
+        allowedChildren: "any",
+        schema: z.object({}),
       }),
       path: [],
       input: mockRunStepValue,
@@ -126,6 +131,8 @@ describe("RunValue unit tests", () => {
         lineEnd: 0,
         columnStart: 0,
         columnEnd: 0,
+        allowedChildren: "any",
+        schema: z.object({}),
       }),
       path: [],
       input: mockRunStepValue,
@@ -203,6 +210,8 @@ describe("RunValue unit tests", () => {
         lineEnd: 0,
         columnStart: 0,
         columnEnd: 0,
+        allowedChildren: "any",
+        schema: z.object({}),
       }),
       path: [],
       input: mockRunStepValue_1,
@@ -225,6 +234,8 @@ describe("RunValue unit tests", () => {
         lineEnd: 0,
         columnStart: 0,
         columnEnd: 0,
+        allowedChildren: "any",
+        schema: z.object({}),
       }),
       path: [],
       input: mockRunStepValue_1,

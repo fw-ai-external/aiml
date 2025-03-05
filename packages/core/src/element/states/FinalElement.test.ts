@@ -3,7 +3,8 @@ import { Final } from "./FinalElement";
 import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { z } from "zod";
 import { StepValue } from "../../runtime/StepValue";
-import { BaseElement } from "../../runtime/BaseElement";
+import { BaseElement } from "../";
+import { AIMLNode } from "@fireworks/types";
 
 const finalSchema = z.object({
   id: z.string().optional(),
@@ -27,6 +28,8 @@ describe("FinalElement", () => {
       lineEnd: 0,
       columnStart: 0,
       columnEnd: 0,
+      allowedChildren: "any",
+      schema: z.object({}),
     });
 
     ctx = new ElementExecutionContext({
@@ -86,7 +89,7 @@ describe("FinalElement", () => {
       {
         id: "final1",
       },
-      [onEntry as BaseElement],
+      [onEntry as AIMLNode],
       [new WeakRef(root)]
     );
 

@@ -5,7 +5,6 @@ import {
   JsxAttributeLike,
 } from "ts-morph";
 import { v4 as uuidv4 } from "uuid";
-import { BaseElement } from "../BaseElement";
 import type { ElementRole, IBaseElement, ElementType } from "@fireworks/types";
 import { z } from "zod";
 
@@ -96,23 +95,22 @@ export class ElementBuilder {
     const startPos = node.getPos();
     const endPos = node.getEnd();
 
-    return new BaseElement({
+    return {
       id,
       key,
       tag: tagName,
       role,
       elementType,
       attributes,
-      children,
+      children: children,
       parent: undefined,
       allowedChildren: "any",
-      schema,
       type: "element",
       lineStart: 1, // Default values since we can't get exact line/column
       lineEnd: 1,
       columnStart: startPos,
       columnEnd: endPos,
-    });
+    } as IBaseElement;
   }
 
   /**

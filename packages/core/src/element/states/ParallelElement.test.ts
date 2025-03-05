@@ -3,7 +3,7 @@ import { Parallel } from "./ParallelElement";
 import { State } from "./StateElement";
 import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { z } from "zod";
-import { BaseElement } from "@fireworks/core";
+import { BaseElement } from "../";
 import { StepValue } from "../../runtime/StepValue";
 
 const parallelSchema = z.object({
@@ -28,6 +28,8 @@ describe("ParallelElement", () => {
       lineEnd: 0,
       columnStart: 0,
       columnEnd: 0,
+      allowedChildren: "any",
+      schema: z.object({}),
     });
 
     ctx = new ElementExecutionContext({

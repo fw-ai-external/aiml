@@ -4,7 +4,9 @@
     "parser": {
       "syntax": "typescript",
       "dynamicImport": false,
-      "decorators": false
+      "decorators": false,
+      "declaration": true,
+      "declarationMap": true
     },
     "transform": {
       "react": {

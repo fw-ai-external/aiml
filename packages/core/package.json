@@ -8,11 +8,15 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./runtime/StepValue": {
+      "import": "./dist/runtime/StepValue.js",
+      "types": "./dist/runtime/StepValue.d.ts"
     }
   },
   "scripts": {
     "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build",
-    "dev": "bun run dev.ts --watch-dir ./src",
+    "dev": "bun run dev.ts --watch-dir ./src & tsc --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "test": "bun test"

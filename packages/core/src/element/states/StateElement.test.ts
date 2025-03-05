@@ -3,7 +3,7 @@ import { State } from "./StateElement";
 import { z } from "zod";
 import { StepValue } from "../../runtime/StepValue";
 import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
-import { BaseElement } from "../../runtime/BaseElement";
+import { BaseElement } from "../";
 
 const stateSchema = z.object({
   id: z.string().optional(),
@@ -28,6 +28,8 @@ describe("StateElement", () => {
       lineEnd: 0,
       columnStart: 0,
       columnEnd: 0,
+      allowedChildren: "any",
+      schema: z.object({}),
     });
 
     ctx = new ElementExecutionContext({

@@ -18,6 +18,7 @@
   "keywords": ["IntelliSense", "AIML", "LLM", "fireworks", "language-server", "AI", "agents"],
   "scripts": {
     "test-api": "bun test",
+    "dev": "bun run dev.ts --watch",
     "test": "bun run test-api",
     "build": "tsc -p tsconfig.build.json"
   },

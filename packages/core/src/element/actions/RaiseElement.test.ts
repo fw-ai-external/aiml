@@ -1,7 +1,8 @@
 import { describe, expect, it, beforeEach, mock } from "bun:test";
-import { BaseElement } from "../../runtime/BaseElement";
+import { BaseElement } from "../";
 import { Raise } from "./RaiseElement";
 import { StepValue } from "../../runtime/StepValue";
+import { z } from "zod";
 
 describe("RaiseElement", () => {
   let ctx: any;
@@ -22,13 +23,15 @@ describe("RaiseElement", () => {
       lineEnd: 0,
       columnStart: 0,
       columnEnd: 0,
-      onExecutionGraphConstruction: (buildContext) => ({
+      onExecutionGraphConstruction: () => ({
         id: "root",
         key: "root-key",
         type: "state",
         subType: "scxml",
         attributes: {},
       }),
+      allowedChildren: "any",
+      schema: z.object({}),
     });
 
     mockSendEvent = mock((event: string) => {});

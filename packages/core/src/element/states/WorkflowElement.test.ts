@@ -2,7 +2,8 @@ import { describe, expect, it } from "bun:test";
 import { Workflow } from "./WorkflowElement";
 import { StepValue } from "../../runtime/StepValue";
 import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
-import { BaseElement } from "../../runtime/BaseElement";
+import { BaseElement } from "../";
+import { z } from "zod";
 
 describe("WorkflowElement", () => {
   const createMockContext = (attributes = {}) => {
@@ -47,6 +48,8 @@ describe("WorkflowElement", () => {
         lineEnd: 0,
         columnStart: 0,
         columnEnd: 0,
+        allowedChildren: "any",
+        schema: z.object({}),
       });
     }
   }

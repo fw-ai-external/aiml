@@ -3,7 +3,7 @@ import { createElementDefinition } from "../createElementDefinition";
 import { BuildContext } from "../../runtime/BuildContext";
 import { ExecutionGraphElement } from "../../runtime/types";
 import { v4 as uuidv4 } from "uuid";
-import { BaseElement } from "../../runtime/BaseElement";
+import { BaseElement } from "../";
 
 const elseIfSchema = z.object({
   id: z.string().optional(),

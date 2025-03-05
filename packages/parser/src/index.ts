@@ -174,7 +174,7 @@ export async function parseMDXToAIML(
       }
     }
     console.error(`Error parsing AIML at ${file.path}: ${error}
-Offending code: ${file.value.toString().split("\n")[errorPosition.line - 1]}
+Offending code: ${file.value?.toString().split("\n")[errorPosition.line - 1]}
 `);
     diagnostics.push({
       message: error instanceof Error ? error.message : String(error),
@@ -1276,5 +1276,3 @@ export async function parseMDXFilesToAIML(
     files: files,
   });
 }
-
-export { BaseElement } from "./BaseElement";

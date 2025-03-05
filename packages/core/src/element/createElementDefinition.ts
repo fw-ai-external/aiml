@@ -6,7 +6,7 @@ import type {
   SCXMLNodeType,
 } from "@fireworks/types";
 import { ElementExecutionContext } from "../runtime/ElementExecutionContext";
-import { BaseElement } from "../runtime/BaseElement";
+import { BaseElement } from "./";
 import { ExecutionGraphElement } from "../runtime/types";
 import { BuildContext } from "../runtime/BuildContext";
 import { v4 as uuidv4 } from "uuid";
@@ -44,6 +44,8 @@ function convertToBaseElement(node: FireAgentNode): BaseElement {
       lineEnd: node.lineEnd,
       columnStart: node.columnStart,
       columnEnd: node.columnEnd,
+      allowedChildren: "any", // Add missing property
+      schema: z.any(), // Add missing property
     });
   }
 
@@ -67,6 +69,8 @@ function convertToBaseElement(node: FireAgentNode): BaseElement {
       lineEnd: node.lineEnd ?? defaultLineEnd,
       columnStart: node.columnStart ?? defaultColumnStart,
       columnEnd: node.columnEnd ?? defaultColumnEnd,
+      allowedChildren: "any", // Add missing property
+      schema: z.any(), // Add missing property
     });
   }
 
@@ -84,6 +88,8 @@ function convertToBaseElement(node: FireAgentNode): BaseElement {
     lineEnd: node.lineEnd ?? defaultLineEnd,
     columnStart: node.columnStart ?? defaultColumnStart,
     columnEnd: node.columnEnd ?? defaultColumnEnd,
+    allowedChildren: "any", // Add missing property
+    schema: z.any(), // Add missing property
   });
 }
 
@@ -279,6 +285,11 @@ export const createElementDefinition = <
           lineEnd: nodes[nodes.length - 1]?.lineEnd ?? 0,
           columnStart: nodes[0]?.columnStart ?? 0,
           columnEnd: nodes[nodes.length - 1]?.columnEnd ?? 0,
+          allowedChildren:
+            typeof config.allowedChildren === "function"
+              ? config.allowedChildren({} as Props)
+              : config.allowedChildren || "any", // Add missing property
+          schema: config.propsSchema || z.any(), // Add missing property
         });
 
         return tagNode;

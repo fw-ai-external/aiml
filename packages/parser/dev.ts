@@ -21,11 +21,12 @@ try {
 
 // Start Generation Here
 const originalProcessExit = process.exit;
-process.exit = (code?: number): never => {
-  console.info(`Watching for changes...`);
-  // Instead of exiting, simply return.
-  return undefined as never;
-};
+// process.exit = (code?: number): never => {
+//   console.info(`Watching for changes...`);
+//   // Instead of exiting, simply return.
+//   return undefined as never;
+// };
+
 await runBuild({
   rootDirectory: process.cwd(),
   logger: console,
@@ -35,8 +36,8 @@ const watcher = watch(
   join(process.cwd(), targetDir),
   { recursive: true },
   async () => {
-    await rm(join(process.cwd(), "dist"), { recursive: true, force: true });
-
+    // await rm(join(process.cwd(), "dist"), { recursive: true, force: true });
+    console.log("Removing dist directory...");
     await runBuild({
       rootDirectory: process.cwd(),
       logger: console,

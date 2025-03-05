@@ -1,9 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import { StepValue } from "../../runtime/StepValue";
 import { LLM } from "./LLMElement";
-import { BaseElement } from "../../runtime/BaseElement";
+import { BaseElement } from "../";
 import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
 const stepContext = new ElementExecutionContext({
   input: new StepValue({}),
@@ -48,6 +49,7 @@ describe("LLM Element", () => {
             columnStart: 0,
             columnEnd: 0,
             allowedChildren: [],
+            schema: z.object({}),
           })
         ),
       ]
@@ -82,6 +84,8 @@ describe("LLM Element", () => {
             lineEnd: 0,
             columnStart: 0,
             columnEnd: 0,
+            allowedChildren: [],
+            schema: z.object({}),
           })
         ),
       ]
@@ -118,6 +122,8 @@ describe("LLM Element", () => {
             lineEnd: 0,
             columnStart: 0,
             columnEnd: 0,
+            allowedChildren: [],
+            schema: z.object({}),
           })
         ),
       ]
@@ -154,6 +160,8 @@ describe("LLM Element", () => {
             lineEnd: 0,
             columnStart: 0,
             columnEnd: 0,
+            allowedChildren: [],
+            schema: z.object({}),
           })
         ),
       ]
@@ -201,6 +209,8 @@ describe("LLM Element", () => {
             lineEnd: 0,
             columnStart: 0,
             columnEnd: 0,
+            allowedChildren: [],
+            schema: z.object({}),
           })
         ),
       ]
@@ -243,6 +253,8 @@ describe("LLM Element", () => {
             lineEnd: 0,
             columnStart: 0,
             columnEnd: 0,
+            allowedChildren: [],
+            schema: z.object({}),
           })
         ),
       ]

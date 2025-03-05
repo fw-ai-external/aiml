@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import type { BaseElement } from "../../runtime/BaseElement";
+import type { BaseElement } from "../";
 import { BuildContext } from "../../runtime/BuildContext";
 import { ExecutionGraphElement } from "../../runtime/types";
 import { v4 as uuidv4 } from "uuid";
@@ -87,14 +87,10 @@ export const If = createElementDefinition({
         // final condition => c2 && !(mainIfCond) && ...
         const mergedCond = buildShortCircuitCondition(c2, priorConds);
 
-        // Collect child actions from the elseIf
-        // This might be the direct children of ElseIfElement
-        const elseIfChildren = ch.children.map((gc) => gc as BaseElement);
-
         const partitionNode = buildIfPartitionNode(
           `${ifNode.id}_p${partitionIndex}`,
           mergedCond,
-          elseIfChildren,
+          ch.children,
           buildContext
         );
 
@@ -104,9 +100,6 @@ export const If = createElementDefinition({
         priorConds.push(c2);
         partitionIndex++;
       } else if (ch.elementType === "else") {
-        // This is the final partition if we get here
-        const elseChildren = ch.children.map((gc) => gc as BaseElement);
-
         // mergedCond => the negation of all priorConds
         // i.e. !c1 && !c2 && ...
         const mergedCond = buildShortCircuitCondition("true", priorConds);
@@ -114,7 +107,7 @@ export const If = createElementDefinition({
         const partitionNode = buildIfPartitionNode(
           `${ifNode.id}_p${partitionIndex}`,
           mergedCond,
-          elseChildren,
+          ch.children,
           buildContext
         );
         ifNode.next!.push(partitionNode);

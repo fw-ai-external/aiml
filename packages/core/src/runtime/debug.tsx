@@ -1,11 +1,6 @@
 import React from "react";
-import {
-  BaseElement,
-  ElementPredicate,
-  Fragment,
-  isElement,
-  Node,
-} from "./BaseElement";
+import { BaseElement, Fragment, isElement } from "../element";
+import type { ElementPredicate, Node } from "../element";
 
 const debugRepresentationSymbol = Symbol("Workflow.JSX debug representation");
 
@@ -224,7 +219,7 @@ export async function* debugTreeGenerator(
     yield current;
 
     let elementToRender = null as BaseElement | null;
-    const shouldStop: ElementPredicate = (element) => {
+    const shouldStop: ElementPredicate = (element: Node) => {
       if (elementToRender === null && isElement(element)) {
         elementToRender = element;
       }
