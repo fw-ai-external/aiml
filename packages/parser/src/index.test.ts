@@ -189,9 +189,11 @@ name: ParagraphMergeTest
 ---
 
 First paragraph with {expression1}.
+
 Second paragraph with {expression2}.
 
-Third paragraph (should not be merged with above due to blank line).
+Third paragraph (should be merged with above due to blank line).
+
       `;
 
       const testFile = new VFile({
@@ -203,7 +205,7 @@ Third paragraph (should not be merged with above due to blank line).
       expect(result.nodes).not.toBeNull();
 
       // We should have 3 nodes: header, merged paragraph, and third paragraph
-      expect(result.nodes).toBeArrayOfSize(3);
+      expect(result.nodes).toBeArrayOfSize(2);
 
       // Check header
       expect(result.nodes[0].type).toBe("header");
@@ -214,13 +216,15 @@ Third paragraph (should not be merged with above due to blank line).
       // Check merged paragraph (first and second paragraphs should be merged)
       expect(result.nodes[1].type).toBe("paragraph");
 
-      // The merged paragraph should have 4 children:
+      // The merged paragraph should have 7 children:
       // 1. Text: "First paragraph with "
       // 2. Expression: "expression1"
-      // 3. Text: ".\nSecond paragraph with "
-      // 4. Expression: "expression2"
-      // 5. Text: "."
-      expect(result.nodes[1].children).toBeArrayOfSize(5);
+      // 3. Text: "."
+      // 4. Text: "Second paragraph with "
+      // 5. Expression: "expression2"
+      // 6. Text: "."
+      // 7. Text: "Third paragraph (should be merged with above due to blank line)."
+      expect(result.nodes[1].children).toBeArrayOfSize(7);
 
       expect(result.nodes[1].children?.[0]?.type).toBe("text");
       expect(result.nodes[1].children?.[0]?.value).toBe(
@@ -231,22 +235,23 @@ Third paragraph (should not be merged with above due to blank line).
       expect(result.nodes[1].children?.[1]?.value).toBe("expression1");
 
       expect(result.nodes[1].children?.[2]?.type).toBe("text");
-      expect(result.nodes[1].children?.[2]?.value).toBe(
-        ".\nSecond paragraph with "
+      expect(result.nodes[1].children?.[2]?.value).toBe(".");
+
+      expect(result.nodes[1].children?.[3]?.type).toBe("text");
+      expect(result.nodes[1].children?.[3]?.value).toBe(
+        "Second paragraph with "
       );
 
-      expect(result.nodes[1].children?.[3]?.type).toBe("expression");
-      expect(result.nodes[1].children?.[3]?.value).toBe("expression2");
+      expect(result.nodes[1].children?.[4]?.type).toBe("expression");
+      expect(result.nodes[1].children?.[4]?.value).toBe("expression2");
 
-      expect(result.nodes[1].children?.[4]?.type).toBe("text");
-      expect(result.nodes[1].children?.[4]?.value).toBe(".");
+      expect(result.nodes[1].children?.[5]?.type).toBe("text");
+      expect(result.nodes[1].children?.[5]?.value).toBe(".");
 
-      // Check third paragraph (should not be merged due to blank line)
-      expect(result.nodes[2].type).toBe("paragraph");
-      expect(result.nodes[2].children).toBeArrayOfSize(1);
-      expect(result.nodes[2].children?.[0]?.type).toBe("text");
-      expect(result.nodes[2].children?.[0]?.value).toBe(
-        "Third paragraph (should not be merged with above due to blank line)."
+      // Check for the third paragraph content (now merged into the first paragraph)
+      expect(result.nodes[1].children?.[6]?.type).toBe("text");
+      expect(result.nodes[1].children?.[6]?.value).toBe(
+        "Third paragraph (should be merged with above due to blank line)."
       );
     });
   });

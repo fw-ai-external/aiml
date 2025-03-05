@@ -374,49 +374,51 @@ function transformToAIMLNodes(
 }
 
 /**
- * Merge adjacent paragraph nodes, combining their children
+ * Merge all paragraph nodes, combining their children
  * @param nodes Array of AIML nodes to process
  */
 function mergeParagraphs(nodes: AIMLNode[]): void {
   if (nodes.length < 2) return;
 
-  let i = 0;
-  while (i < nodes.length - 1) {
+  // Find the first paragraph node
+  let firstParagraphIndex = -1;
+  for (let i = 0; i < nodes.length; i++) {
+    if (nodes[i].type === "paragraph") {
+      firstParagraphIndex = i;
+      break;
+    }
+  }
+
+  // If no paragraph found, return
+  if (firstParagraphIndex === -1) return;
+
+  // Get the first paragraph node
+  const firstParagraph = nodes[firstParagraphIndex];
+
+  // Iterate through the remaining nodes
+  let i = firstParagraphIndex + 1;
+  while (i < nodes.length) {
     const current = nodes[i];
-    const next = nodes[i + 1];
 
-    // Check if both current and next nodes are paragraphs
-    if (current.type === "paragraph" && next.type === "paragraph") {
-      // Check if paragraphs are directly adjacent (no blank line between them)
-      // This can be determined by checking if the line end of the current paragraph
-      // is adjacent to the line start of the next paragraph
-      const areAdjacent =
-        current.lineEnd !== undefined &&
-        next.lineStart !== undefined &&
-        current.lineEnd + 1 === next.lineStart;
-
-      if (areAdjacent) {
-        // Merge the children of the next paragraph into the current one
-        if (current.children && next.children) {
-          current.children.push(...next.children);
-        }
-
-        // Update the end position of the current paragraph to match the end of the next paragraph
-        if (next.lineEnd !== undefined) {
-          current.lineEnd = next.lineEnd;
-        }
-        if (next.columnEnd !== undefined) {
-          current.columnEnd = next.columnEnd;
-        }
-
-        // Remove the next paragraph from the array
-        nodes.splice(i + 1, 1);
-
-        // Don't increment i, as we need to check if the next node is also a paragraph
-      } else {
-        // Paragraphs are not adjacent, move to the next node
-        i++;
+    // If the current node is a paragraph, merge it with the first paragraph
+    if (current.type === "paragraph") {
+      // Merge the children of the current paragraph into the first paragraph
+      if (firstParagraph.children && current.children) {
+        firstParagraph.children.push(...current.children);
       }
+
+      // Update the end position of the first paragraph to match the end of the current paragraph
+      if (current.lineEnd !== undefined) {
+        firstParagraph.lineEnd = current.lineEnd;
+      }
+      if (current.columnEnd !== undefined) {
+        firstParagraph.columnEnd = current.columnEnd;
+      }
+
+      // Remove the current paragraph from the array
+      nodes.splice(i, 1);
+
+      // Don't increment i, as we need to check the next node
     } else {
       // Move to the next node
       i++;
