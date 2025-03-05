@@ -22,6 +22,11 @@ describe("FinalElement", () => {
       tag: "scxml",
       role: "state",
       key: "root",
+      type: "element",
+      lineStart: 0,
+      lineEnd: 0,
+      columnStart: 0,
+      columnEnd: 0,
     });
 
     ctx = new ElementExecutionContext({
@@ -62,7 +67,7 @@ describe("FinalElement", () => {
         id: "final1",
       },
       [],
-      [root]
+      [new WeakRef(root)]
     );
 
     expect((element as BaseElement).elementType).toBe("final");
@@ -74,7 +79,7 @@ describe("FinalElement", () => {
         id: "entry1",
       },
       [],
-      [root]
+      [new WeakRef(root)]
     );
 
     const element = Final.initFromAttributesAndNodes(
@@ -82,7 +87,7 @@ describe("FinalElement", () => {
         id: "final1",
       },
       [onEntry as BaseElement],
-      [root]
+      [new WeakRef(root)]
     );
 
     const result = await (element as BaseElement).execute(ctx as any);
@@ -101,7 +106,7 @@ describe("FinalElement", () => {
         id: "parent",
       },
       [],
-      [root]
+      [new WeakRef(root)]
     );
 
     const element = Final.initFromAttributesAndNodes(
@@ -109,7 +114,7 @@ describe("FinalElement", () => {
         id: "final1",
       },
       [],
-      [parent as BaseElement]
+      [new WeakRef(parent as BaseElement)]
     );
 
     const result = await (element as BaseElement).execute(ctx as any);

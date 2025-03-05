@@ -1,5 +1,5 @@
 // Define a simplified local Workflow type to avoid deep type instantiation
-import { BaseElement } from "./BaseElement";
+import { BaseElement } from "@fireworks/parser";
 import { z } from "zod";
 import { BuildContext } from "./BuildContext";
 import { StepValue } from "./StepValue";
@@ -50,7 +50,10 @@ export class Runtime<
     const executionGraph =
       this.spec.onExecutionGraphConstruction?.(buildContext);
     if (!executionGraph) {
-      throw new Error("Execution graph construction returned undefined");
+      throw new Error(
+        "Execution graph construction returned undefined",
+        buildContext as any
+      );
     }
 
     // Start with the root execution graph element and add all elements recursively
@@ -199,8 +202,8 @@ export class Runtime<
   }
 }
 
-export * from "./BaseElement";
 export * from "./BuildContext";
 export * from "./StepValue";
 export * from "./types";
 export * from "./ElementExecutionContext";
+export * from "./formalize";

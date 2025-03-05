@@ -23,6 +23,11 @@ describe("StateElement", () => {
       tag: "scxml",
       role: "state",
       key: "root",
+      type: "element",
+      lineStart: 0,
+      lineEnd: 0,
+      columnStart: 0,
+      columnEnd: 0,
     });
 
     ctx = new ElementExecutionContext({
@@ -61,7 +66,7 @@ describe("StateElement", () => {
         initial: "substate1",
       },
       [],
-      [root]
+      [new WeakRef(root)]
     );
 
     expect((element as BaseElement).elementType).toBe("state");
@@ -74,7 +79,7 @@ describe("StateElement", () => {
         id: "state1",
       },
       [],
-      [root]
+      [new WeakRef(root)]
     );
 
     const result = await (element as BaseElement).execute?.(ctx as any);
@@ -93,7 +98,7 @@ describe("StateElement", () => {
         id: "child1",
       },
       [],
-      [root]
+      [new WeakRef(root)]
     );
 
     const element = State.initFromAttributesAndNodes(
@@ -101,8 +106,8 @@ describe("StateElement", () => {
         id: "state1",
         initial: "child1",
       },
-      [childState as BaseElement],
-      [root]
+      [childState as any],
+      [new WeakRef(root)]
     );
 
     const result = await (element as BaseElement).execute?.(ctx as any);

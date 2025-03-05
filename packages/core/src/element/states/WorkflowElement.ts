@@ -2,25 +2,14 @@ import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
 import { BaseElement } from "../../runtime/BaseElement";
 import { ExecutionGraphElement } from "../../runtime/types";
+import { workflowConfig } from "@fireworks/element-config";
 
-const scxmlSchema = z.object({
-  name: z.string().optional(),
-  version: z.string().optional(),
-  initial: z.string().optional(),
-  datamodel: z
-    .enum(["null", "minimal", "ecmascript"])
-    .default("ecmascript")
-    .optional(),
-});
+type WorkflowProps = z.infer<typeof workflowConfig.propsSchema>;
 
-type SCXMLProps = z.infer<typeof scxmlSchema>;
-
-export const SCXML = createElementDefinition({
-  tag: "scxml",
-  propsSchema: scxmlSchema,
+export const Workflow = createElementDefinition({
+  ...workflowConfig,
   role: "user-input",
   elementType: "state",
-  allowedChildren: ["state", "parallel", "final", "datamodel", "script"],
   onExecutionGraphConstruction(buildContext) {
     // Convert all child elements into ExecutionGraphElements
     const childElements = buildContext.children

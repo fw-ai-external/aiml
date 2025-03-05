@@ -13,7 +13,7 @@
     "src/**/*.mts",
     "src/**/*.mtsx",
     "src/**/*.json"
-  ],
+, "../core/src/runtime/formalize.test.ts", "../core/src/runtime/formalize.ts"  ],
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"

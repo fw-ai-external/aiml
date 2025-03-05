@@ -17,6 +17,11 @@ describe("RaiseElement", () => {
       key: "root-key",
       attributes: {},
       children: [],
+      type: "element",
+      lineStart: 0,
+      lineEnd: 0,
+      columnStart: 0,
+      columnEnd: 0,
       onExecutionGraphConstruction: (buildContext) => ({
         id: "root",
         key: "root-key",
@@ -46,7 +51,7 @@ describe("RaiseElement", () => {
         event: "test.event",
       },
       [],
-      [root]
+      [new WeakRef(root)]
     ) as BaseElement;
 
     expect(element.elementType).toBe("raise");
@@ -60,7 +65,7 @@ describe("RaiseElement", () => {
         event: "test.event",
       },
       [],
-      [root]
+      [new WeakRef(root)]
     ) as BaseElement;
 
     const executeResult = await element.execute?.(ctx);
@@ -80,7 +85,7 @@ describe("RaiseElement", () => {
         id: "raise1",
       } as any,
       [],
-      [root]
+      [new WeakRef(root)]
     ) as BaseElement;
 
     await expect(element.execute?.(ctx)).rejects.toThrow(

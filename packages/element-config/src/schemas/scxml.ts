@@ -1,9 +1,9 @@
 import { z } from "zod";
 import type { ElementDefinition } from "..";
 
-// Schema for SCXML root element
-export const scxmlConfig: ElementDefinition = {
-  tag: "scxml",
+//   for SCXML root element
+export const workflowConfig: ElementDefinition = {
+  tag: "workflow",
   role: "state",
   allowedChildren: ["state", "parallel", "final", "datamodel", "initial"],
   propsSchema: z.object({

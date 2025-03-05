@@ -6,7 +6,6 @@ import remarkGfm from "remark-gfm";
 import { parse as parseYaml } from "yaml";
 import { VFile } from "vfile";
 import { Node } from "unist";
-import { astToRunnableBaseElementTree } from "./formalize";
 import { AIMLNode } from "@fireworks/types";
 
 // Define the allowed AIML elements
@@ -406,7 +405,6 @@ function transformNode(
           headerNode.children!.push({
             type: "headerField",
             key: generateKey(),
-            tag: key,
             id: key, // Add id property to match test expectations
             value: value as any,
             lineStart: getPosition(node, "start", "line"),
@@ -1279,4 +1277,4 @@ export async function parseMDXFilesToAIML(
   });
 }
 
-export { astToRunnableBaseElementTree };
+export { BaseElement } from "./BaseElement";

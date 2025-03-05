@@ -35,13 +35,21 @@ describe("LLM Element", () => {
       },
       [],
       [
-        new BaseElement({
-          id: "root",
-          elementType: "scxml",
-          tag: "scxml",
-          role: "state",
-          key: uuidv4(),
-        }),
+        new WeakRef(
+          new BaseElement({
+            id: "root",
+            elementType: "scxml",
+            tag: "scxml",
+            role: "state",
+            key: uuidv4(),
+            type: "element",
+            lineStart: 0,
+            lineEnd: 0,
+            columnStart: 0,
+            columnEnd: 0,
+            allowedChildren: [],
+          })
+        ),
       ]
     );
 
@@ -62,13 +70,20 @@ describe("LLM Element", () => {
       },
       [],
       [
-        new BaseElement({
-          id: "root",
-          elementType: "scxml",
-          tag: "scxml",
-          role: "state",
-          key: uuidv4(),
-        }),
+        new WeakRef(
+          new BaseElement({
+            id: "root",
+            elementType: "scxml",
+            tag: "scxml",
+            role: "state",
+            key: uuidv4(),
+            type: "element",
+            lineStart: 0,
+            lineEnd: 0,
+            columnStart: 0,
+            columnEnd: 0,
+          })
+        ),
       ]
     );
 
@@ -91,13 +106,20 @@ describe("LLM Element", () => {
       },
       [],
       [
-        new BaseElement({
-          id: "root",
-          elementType: "scxml",
-          tag: "scxml",
-          role: "state",
-          key: uuidv4(),
-        }),
+        new WeakRef(
+          new BaseElement({
+            id: "root",
+            elementType: "scxml",
+            tag: "scxml",
+            role: "state",
+            key: uuidv4(),
+            type: "element",
+            lineStart: 0,
+            lineEnd: 0,
+            columnStart: 0,
+            columnEnd: 0,
+          })
+        ),
       ]
     );
 
@@ -120,13 +142,20 @@ describe("LLM Element", () => {
       },
       [],
       [
-        new BaseElement({
-          id: "root",
-          elementType: "scxml",
-          tag: "scxml",
-          role: "state",
-          key: uuidv4(),
-        }),
+        new WeakRef(
+          new BaseElement({
+            id: "root",
+            elementType: "scxml",
+            tag: "scxml",
+            role: "state",
+            key: uuidv4(),
+            type: "element",
+            lineStart: 0,
+            lineEnd: 0,
+            columnStart: 0,
+            columnEnd: 0,
+          })
+        ),
       ]
     );
 
@@ -160,13 +189,20 @@ describe("LLM Element", () => {
       },
       [],
       [
-        new BaseElement({
-          id: "root",
-          elementType: "scxml",
-          tag: "scxml",
-          role: "state",
-          key: uuidv4(),
-        }),
+        new WeakRef(
+          new BaseElement({
+            id: "root",
+            elementType: "scxml",
+            tag: "scxml",
+            role: "state",
+            key: uuidv4(),
+            type: "element",
+            lineStart: 0,
+            lineEnd: 0,
+            columnStart: 0,
+            columnEnd: 0,
+          })
+        ),
       ]
     );
 
@@ -195,13 +231,20 @@ describe("LLM Element", () => {
       },
       [],
       [
-        new BaseElement({
-          id: "root",
-          elementType: "scxml",
-          tag: "scxml",
-          role: "state",
-          key: uuidv4(),
-        }),
+        new WeakRef(
+          new BaseElement({
+            id: "root",
+            elementType: "scxml",
+            tag: "scxml",
+            role: "state",
+            key: uuidv4(),
+            type: "element",
+            lineStart: 0,
+            lineEnd: 0,
+            columnStart: 0,
+            columnEnd: 0,
+          })
+        ),
       ]
     );
 

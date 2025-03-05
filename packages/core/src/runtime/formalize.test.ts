@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { parseMDXFilesToAIML, parseMDXToAIML } from ".";
+import { parseMDXFilesToAIML, parseMDXToAIML } from "@fireworks/parser";
 import { astToRunnableBaseElementTree } from "./formalize";
 import { VFile } from "vfile";
 import { readFileSync } from "fs";

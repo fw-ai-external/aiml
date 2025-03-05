@@ -12,51 +12,22 @@ const allElementDefinitions: Record<string, ReactTagNodeType> = {
   ...ai,
 } as const;
 
-export function getNodeDefinitionClass(nodeType: string): ReactTagNodeType {
-  const normalizedNodeType = nodeType.toLowerCase();
+export function getElementClassByTagName(tagName: string): ReactTagNodeType {
+  const normalizedTagName = tagName.toLowerCase();
   const matchingKey = Object.keys(allElementDefinitions).find(
-    (key) => key.toLowerCase() === normalizedNodeType
+    (key) => key.toLowerCase() === normalizedTagName
   );
   if (!matchingKey) {
-    throw new ElementError("Invalid nodetype " + nodeType, nodeType);
+    throw new ElementError("Invalid tagName " + tagName, tagName);
   }
   return allElementDefinitions[matchingKey];
 }
-export function isSupportedNodeName(nodeName: string): boolean {
+export function isSupportedElementName(tagName: string): boolean {
   return Object.keys(allElementDefinitions).some(
-    (key) => key.toLowerCase() === nodeName.toLowerCase()
+    (key) => key.toLowerCase() === tagName.toLowerCase()
   );
 }
 
-export const SCXMLNodeTypes = [
-  "scxml",
-  "state",
-  "parallel",
-  "transition",
-  "initial",
-  "final",
-  "onentry",
-  "onexit",
-  "history",
-  "raise",
-  "if",
-  "elseif",
-  "else",
-  "foreach",
-  "log",
-  "datamodel",
-  "data",
-  "assign",
-  "donedata",
-  "content",
-  "param",
-  "script",
-  "send",
-  "cancel",
-  "invoke",
-  "finalize",
-] as const;
-export type SCXMLNodeType = (typeof SCXMLNodeTypes)[number];
 export * from "./actions";
 export * from "./ai";
 export * from "./control-flow";

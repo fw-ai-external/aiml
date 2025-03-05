@@ -1,6 +1,8 @@
 import type { Workflow } from "@mastra/core/workflows";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { AIMLNode } from "@fireworks/types";
+import { BaseElement } from "@fireworks/core";
 
 export const useWorkflows = () => {
   const [workflows, setWorkflows] = useState<Record<string, Workflow>>({});
@@ -37,7 +39,13 @@ export const useWorkflows = () => {
 
 export const useWorkflow = (workflowId: string) => {
   const [workflow, setWorkflow] = useState<
-    (Workflow & { prompt: string }) | null
+    | (Workflow & {
+        prompt: string;
+        ast?: AIMLNode[];
+        stepGraph?: any;
+        elementTree?: BaseElement;
+      })
+    | null
   >(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -73,7 +81,14 @@ export const useWorkflow = (workflowId: string) => {
     fetchWorkflow();
   }, [workflowId]);
 
-  const updateWorkflow = async (workflow: Workflow & { prompt: string }) => {
+  const updateWorkflow = async (
+    workflow: Workflow & {
+      prompt: string;
+      ast?: AIMLNode[];
+      stepGraph?: any;
+      elementTree?: BaseElement;
+    }
+  ) => {
     setIsUpdating(true);
     const res = await fetch(`/api/workflows/${workflowId}`, {
       method: "POST",
@@ -83,9 +98,7 @@ export const useWorkflow = (workflowId: string) => {
       const error = await res.json();
       toast.error(error?.error || "Error updating workflow");
     } else {
-      setWorkflow({ ...workflow, prompt: workflow.prompt } as Workflow & {
-        prompt: string;
-      });
+      setWorkflow(workflow);
     }
 
     setIsUpdating(false);

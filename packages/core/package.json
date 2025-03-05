@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build",
-    "dev": "tsc --watch",
+    "dev": "bun run dev.ts --watch-dir ./src",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "test": "bun test"
@@ -24,6 +24,7 @@
     "@mastra/core": "^0.3.0",
     "@nyariv/sandboxjs": "^0.8.23",
     "@stdlib/nlp-sentencize": "^0.0.x",
+    "@unkey/api": "^0.34.0",
     "cli-highlight": "^2.1.11",
     "cli-spinners": "^2.9.2",
     "ink": "^4.4.1",

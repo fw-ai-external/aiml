@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import { SCXML } from "./SCXMLElement";
+import { Workflow } from "./WorkflowElement";
 import { StepValue } from "../../runtime/StepValue";
 import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { BaseElement } from "../../runtime/BaseElement";
 
-describe("SCXMLElement", () => {
+describe("WorkflowElement", () => {
   const createMockContext = (attributes = {}) => {
     return new ElementExecutionContext({
       input: new StepValue({
@@ -42,17 +42,22 @@ describe("SCXMLElement", () => {
         key: id,
         elementType: "state",
         attributes: { id },
+        type: "element",
+        lineStart: 0,
+        lineEnd: 0,
+        columnStart: 0,
+        columnEnd: 0,
       });
     }
   }
 
-  const mockSCXML = {
-    tag: "scxml",
-    execute: (SCXML as any).definition.execute,
+  const mockWorkflow = {
+    tag: "workflow",
+    execute: (Workflow as any).definition.execute,
   };
 
   it("should create an SCXML element", () => {
-    expect(mockSCXML.tag).toBe("scxml");
+    expect(mockWorkflow.tag).toBe("workflow");
   });
 
   it("should execute initial state when specified", async () => {
@@ -60,7 +65,7 @@ describe("SCXMLElement", () => {
     const state1 = new MockState("s1");
     const state2 = new MockState("s2");
 
-    const result = await mockSCXML.execute(ctx, [state1, state2]);
+    const result = await mockWorkflow.execute(ctx, [state1, state2]);
 
     expect(ctx.datamodel._state_s1).toEqual({ isActive: true });
     expect(ctx.datamodel._state_s2).toBeUndefined();
@@ -76,7 +81,7 @@ describe("SCXMLElement", () => {
     const state1 = new MockState("s1");
     const state2 = new MockState("s2");
 
-    const result = await mockSCXML.execute(ctx, [state1, state2]);
+    const result = await mockWorkflow.execute(ctx, [state1, state2]);
 
     expect(ctx.datamodel._state_s1).toEqual({ isActive: true });
     expect(ctx.datamodel._state_s2).toBeUndefined();
@@ -91,7 +96,7 @@ describe("SCXMLElement", () => {
     const ctx = createMockContext({ initial: "nonexistent" });
     const state1 = new MockState("s1");
 
-    await expect(mockSCXML.execute(ctx, [state1])).rejects.toThrow(
+    await expect(mockWorkflow.execute(ctx, [state1])).rejects.toThrow(
       'Initial state "nonexistent" not found'
     );
   });
@@ -104,7 +109,7 @@ describe("SCXMLElement", () => {
     });
     const state1 = new MockState("s1");
 
-    const result = await mockSCXML.execute(ctx, [state1]);
+    const result = await mockWorkflow.execute(ctx, [state1]);
 
     expect(result?.object).toEqual({
       name: "test-machine",

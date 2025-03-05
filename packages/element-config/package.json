@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build",
-    "dev": "tsc --watch",
+    "dev": "bun run dev.ts --watch-dir ./src",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit"
   },

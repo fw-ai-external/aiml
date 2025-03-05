@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
 import { ExecutionGraphElement } from "../../runtime/types";
 import { BaseElement } from "../../runtime/BaseElement";
-
+import { stateConfig } from "@fireworks/element-config";
 const stateSchema = z.object({
   id: z.string(),
   initial: z.string().optional(),
@@ -11,26 +11,10 @@ const stateSchema = z.object({
 type StateProps = z.infer<typeof stateSchema>;
 
 export const State = createElementDefinition({
-  tag: "state",
-  propsSchema: stateSchema,
+  ...stateConfig,
+
   role: "state",
   elementType: "state",
-  allowedChildren: [
-    "onentry",
-    "onexit",
-    "transition",
-    "invoke",
-    "state",
-    "parallel",
-    "final",
-
-    // Not part of the SCXML spec, but useful for FireAgent
-    "script",
-    "assign",
-    "if",
-    "else",
-    "elseif",
-  ],
   onExecutionGraphConstruction(buildContext) {
     console.log(
       "=-------------------- StateElement",

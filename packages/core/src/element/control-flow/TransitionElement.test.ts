@@ -71,7 +71,7 @@ describe("TransitionElement", () => {
         target: "state2",
       },
       [],
-      [root]
+      [new WeakRef(root)]
     );
 
     expect((element as BaseElement).elementType).toBe("transition");
@@ -88,7 +88,7 @@ describe("TransitionElement", () => {
         target: "state2",
       },
       [],
-      [root]
+      [new WeakRef(root)]
     );
 
     const result = await (element as BaseElement).execute(ctx);
@@ -114,7 +114,7 @@ describe("TransitionElement", () => {
         target: "state2",
       },
       [],
-      [root]
+      [new WeakRef(root)]
     );
 
     const result = await (element as BaseElement).execute(ctx);
@@ -140,7 +140,7 @@ describe("TransitionElement", () => {
         target: "state2",
       },
       [],
-      [root]
+      [new WeakRef(root)]
     );
 
     const result = await (element as BaseElement).execute(ctx);

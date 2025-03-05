@@ -23,6 +23,11 @@ describe("ParallelElement", () => {
       tag: "scxml",
       role: "state",
       key: "root",
+      type: "element",
+      lineStart: 0,
+      lineEnd: 0,
+      columnStart: 0,
+      columnEnd: 0,
     });
 
     ctx = new ElementExecutionContext({
@@ -85,7 +90,7 @@ describe("ParallelElement", () => {
       {
         id: "parallel1",
       },
-      [state1, state2],
+      [new WeakRef(state1), new WeakRef(state2)],
       "spec"
     ) as unknown as BaseElement;
 
@@ -120,7 +125,7 @@ describe("ParallelElement", () => {
       {
         id: "parallel1",
       },
-      [state1, state2],
+      [new WeakRef(state1), new WeakRef(state2)],
       "spec"
     ) as unknown as BaseElement;
 

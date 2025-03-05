@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs";
 import { z } from "zod";
-import {
-  parseMDXToAIML,
-  astToRunnableBaseElementTree,
-} from "@fireworks/parser";
-import { Runtime } from "@fireworks/core";
+import { parseMDXToAIML } from "@fireworks/parser";
+import { Runtime, astToRunnableBaseElementTree } from "@fireworks/core";
 
 export async function GET(
   request: Request,
@@ -47,6 +44,8 @@ export async function GET(
     },
     prompt: "",
     stepSubscriberGraph: {},
+    ast: [],
+    elementTree: {},
   });
 }
 
@@ -77,6 +76,8 @@ export async function POST(
           ),
         })
         .optional(),
+      ast: z.array(z.any()).optional(),
+      elementTree: z.any().optional(),
       stepSubscriberGraph: z.record(z.any()).optional(),
     });
 
@@ -114,6 +115,8 @@ export async function POST(
         {
           ...body,
           stepGraph: workflow.toGraph(),
+          ast,
+          elementTree,
         },
         null,
         2
@@ -127,6 +130,7 @@ export async function POST(
     console.error(
       `Error updating workflow: ${error instanceof Error ? error.message : "Unknown error"}`
     );
+    console.log("error", error);
     return NextResponse.json(
       {
         error: "Failed to update workflow",

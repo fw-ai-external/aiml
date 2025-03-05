@@ -38,7 +38,7 @@ function convertToBaseElement(node: FireAgentNode): BaseElement {
       elementType: node.elementType,
       attributes: node.attributes || {},
       children: node.children?.map(convertToBaseElement) || [],
-      parent: node.parent as unknown as BaseElement,
+      parent: node.parent as unknown as WeakRef<BaseElement>,
       type: node.type,
       lineStart: node.lineStart,
       lineEnd: node.lineEnd,
@@ -121,7 +121,7 @@ export type ReactTagNodeDefinition<
   initFromAttributesAndNodes: (
     props: Props,
     nodes: FireAgentNode[],
-    parentsOrMode?: BaseElement[] | "render" | "spec"
+    parentsOrMode?: WeakRef<BaseElement>[] | "render" | "spec"
   ) => BaseElement | BaseElement[];
   areChildrenAllowed(children: string[]): boolean;
 };
@@ -135,7 +135,7 @@ export type ReactTagNodeType<
   initFromAttributesAndNodes: (
     props: Props,
     nodes: FireAgentNode[],
-    parentsOrMode?: BaseElement[] | "render" | "spec"
+    parentsOrMode?: WeakRef<BaseElement>[] | "render" | "spec"
   ) => BaseElement | BaseElement[];
 };
 
@@ -238,8 +238,8 @@ export const createElementDefinition = <
       },
       initFromAttributesAndNodes: (
         props: Props,
-        nodes: FireAgentNode[],
-        parentsOrMode?: BaseElement[] | "render" | "spec"
+        nodes: FireAgentNode[] = [],
+        parentsOrMode?: WeakRef<BaseElement>[] | "render" | "spec"
       ): BaseElement | BaseElement[] => {
         const validatedProps = ReactTagNode.validateProps(props) as Props & {
           children?: BaseElement[];
@@ -275,10 +275,10 @@ export const createElementDefinition = <
               ? config.onExecutionGraphConstruction
               : defaultExecutionGraphConstruction,
           type: "element",
-          lineStart: nodes[0].lineStart ?? 0,
-          lineEnd: nodes[nodes.length - 1].lineEnd ?? 0,
-          columnStart: nodes[0].columnStart ?? 0,
-          columnEnd: nodes[nodes.length - 1].columnEnd ?? 0,
+          lineStart: nodes[0]?.lineStart ?? 0,
+          lineEnd: nodes[nodes.length - 1]?.lineEnd ?? 0,
+          columnStart: nodes[0]?.columnStart ?? 0,
+          columnEnd: nodes[nodes.length - 1]?.columnEnd ?? 0,
         });
 
         return tagNode;
