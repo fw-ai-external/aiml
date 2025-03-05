@@ -11,10 +11,10 @@ import { WorkflowDebug } from "@/domains/workflows/workflow-debug";
 export function WorkflowInformation({ workflowId }: { workflowId: string }) {
   const [runId, setRunId] = useState<string>("");
   return (
-    <Tabs defaultValue="run">
+    <Tabs defaultValue="prompt">
       <TabsList className="flex shrink-0 border-b">
         <TabsTrigger value="prompt" className="group">
-          <p className="text-xs p-3 text-aimll-3 group-data-[state=active]:text-aiaiml5 group-data-[state=active]:border-b-2 group-data-[state=active]:pb-2.5 border-white">
+          <p className="text-xs p-3 text-aiml-el-3 group-data-[state=active]:text-aiml-el-5 group-data-[state=active]:border-b-2 group-data-[state=active]:pb-2.5 border-white">
             Prompt
           </p>
         </TabsTrigger>
@@ -37,11 +37,6 @@ export function WorkflowInformation({ workflowId }: { workflowId: string }) {
         <TabsTrigger value="run" className="group">
           <p className="text-xs p-3 text-aiml-el-3 group-data-[state=active]:text-aiml-el-5 group-data-[state=active]:border-b-2 group-data-[state=active]:pb-2.5 border-white">
             Run
-          </p>
-        </TabsTrigger>
-        <TabsTrigger value="logs" className="group">
-          <p className="text-xs p-3 text-aimll-3 group-data-[state=active]:text-aiaiml5 group-data-[state=active]:border-b-2 group-data-[state=active]:pb-2.5 border-white">
-            Log Drains
           </p>
         </TabsTrigger>
       </TabsList>
