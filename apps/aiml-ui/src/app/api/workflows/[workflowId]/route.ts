@@ -10,7 +10,6 @@ export async function GET(
 ) {
   const resolvedParams = await params;
 
-  console.log("resolvedParams", resolvedParams);
   // Mock data for now - replace with actual API call
   let workflow = {};
   try {
@@ -109,12 +108,8 @@ export async function POST(
     }
 
     const ast = await parseMDXToAIML(body.prompt);
-    console.log("ast", ast);
     const elementTree = astToRunnableBaseElementTree(ast.nodes);
-    console.log("elementTree", elementTree);
     const workflow = new Runtime(elementTree as any);
-
-    console.log("workflow", workflow);
 
     // Save workflow data to file
     fs.writeFileSync(
@@ -131,14 +126,12 @@ export async function POST(
       ),
       "utf8"
     );
-    console.log("Workflow updated successfully");
 
     return NextResponse.json({ ...body, stepGraph: workflow.toGraph() });
   } catch (error) {
     console.error(
       `Error updating workflow: ${error instanceof Error ? error.message : "Unknown error"}`
     );
-    console.log("error", error);
     return NextResponse.json(
       {
         error: "Failed to update workflow",
