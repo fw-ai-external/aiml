@@ -5,7 +5,7 @@ import { z } from "zod";
 import { BuildContext } from "./BuildContext";
 import { ExecutionGraphElement } from "./types";
 import type {
-  SCXMLNodeType,
+  ElementType,
   AllowedChildrenType,
   IBaseElement,
 } from "@fireworks/types";
@@ -101,8 +101,8 @@ export type StepResult =
       results: StepResultItem[];
     };
 
-export class BaseElement implements IBaseElement {
-  readonly elementType: SCXMLNodeType;
+export class BaseElement implements Omit<IBaseElement, "parent" | "children"> {
+  readonly elementType: ElementType;
   readonly tag: string;
   readonly role: "state" | "action" | "user-input" | "error" | "output";
   protected _dataModel: Record<string, unknown> = {};
@@ -119,6 +119,12 @@ export class BaseElement implements IBaseElement {
   public enter?: () => Promise<void>;
   public exit?: () => Promise<void>;
 
+  public readonly type: "element";
+  public readonly lineStart: number;
+  public readonly lineEnd: number;
+  public readonly columnStart: number;
+  public readonly columnEnd: number;
+
   private stepConditions?: StepCondition;
   private _isActive: boolean = false;
   public readonly key: string;
@@ -129,7 +135,7 @@ export class BaseElement implements IBaseElement {
     tag: string;
     role: "state" | "action" | "user-input" | "error" | "output";
     key: string;
-    elementType: SCXMLNodeType;
+    elementType: ElementType;
     attributes?: Record<string, any>;
     parent?: BaseElement;
     children?: BaseElement[];
@@ -141,6 +147,11 @@ export class BaseElement implements IBaseElement {
     stepConditions?: StepCondition;
     allowedChildren?: AllowedChildrenType;
     schema?: z.ZodType<any>;
+    type: "element";
+    lineStart: number;
+    lineEnd: number;
+    columnStart: number;
+    columnEnd: number;
   }) {
     this.id = config.id;
     this.role = config.role;
@@ -155,6 +166,11 @@ export class BaseElement implements IBaseElement {
     if (config.onExecutionGraphConstruction) {
       this.onExecutionGraphConstruction = config.onExecutionGraphConstruction;
     }
+    this.type = config.type;
+    this.lineStart = config.lineStart;
+    this.lineEnd = config.lineEnd;
+    this.columnStart = config.columnStart;
+    this.columnEnd = config.columnEnd;
     this.stepConditions = config.stepConditions;
     if (config.allowedChildren) {
       this.allowedChildren = config.allowedChildren;
@@ -165,7 +181,7 @@ export class BaseElement implements IBaseElement {
   }
 
   get parent(): BaseElement | undefined {
-    return this._parent;
+    return this._parent as BaseElement | undefined;
   }
 
   get isActive(): boolean {
@@ -274,7 +290,7 @@ export class BaseElement implements IBaseElement {
   }
 
   protected getParentOfType<T extends BaseElement>(
-    type: SCXMLNodeType
+    type: ElementType
   ): T | undefined {
     let current = this.parent;
     while (current) {

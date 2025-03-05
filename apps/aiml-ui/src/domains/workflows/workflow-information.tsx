@@ -5,12 +5,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WorkflowEndpoints } from "./workflow-endpoints";
 import { WorkflowLogs } from "./workflow-logs";
 import { WorkflowTrigger } from "./workflow-trigger";
+import { WorkflowPrompt } from "@/domains/workflows/workflow-prompt";
 
 export function WorkflowInformation({ workflowId }: { workflowId: string }) {
   const [runId, setRunId] = useState<string>("");
   return (
     <Tabs defaultValue="run">
       <TabsList className="flex shrink-0 border-b">
+        <TabsTrigger value="prompt" className="group">
+          <p className="text-xs p-3 text-aimll-3 group-data-[state=active]:text-aiaiml5 group-data-[state=active]:border-b-2 group-data-[state=active]:pb-2.5 border-white">
+            Flow Prompt
+          </p>
+        </TabsTrigger>
         <TabsTrigger value="run" className="group">
           <p className="text-xs p-3 text-aiml-el-3 group-data-[state=active]:text-aiml-el-5 group-data-[state=active]:border-b-2 group-data-[state=active]:pb-2.5 border-white">
             Run
@@ -37,6 +43,9 @@ export function WorkflowInformation({ workflowId }: { workflowId: string }) {
       </TabsContent>
       <TabsContent value="logs">
         <WorkflowLogs runId={runId} />
+      </TabsContent>
+      <TabsContent value="prompt">
+        <WorkflowPrompt workflowId={workflowId} />
       </TabsContent>
     </Tabs>
   );

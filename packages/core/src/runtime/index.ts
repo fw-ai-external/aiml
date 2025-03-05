@@ -193,6 +193,10 @@ export class Runtime<
       throw error;
     }
   }
+
+  public toGraph() {
+    return this.workflow.stepGraph;
+  }
 }
 
 export * from "./BaseElement";

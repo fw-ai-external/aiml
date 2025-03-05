@@ -19,10 +19,12 @@ export type AllowedChildrenType = string[] | "none" | "any" | "text";
 
 function isBaseElement(node: FireAgentNode): node is IBaseElement {
   return (
-    "elementType" in node &&
-    "tag" in node &&
-    "role" in node &&
-    !("kind" in node)
+    node.type === "element" &&
+    typeof node.id === "string" &&
+    typeof node.key === "string" &&
+    typeof node.tag === "string" &&
+    typeof node.role === "string" &&
+    typeof node.elementType === "string"
   );
 }
 
@@ -34,45 +36,54 @@ function convertToBaseElement(node: FireAgentNode): BaseElement {
       tag: node.tag,
       role: node.role,
       elementType: node.elementType,
-      attributes: node.attributes,
-      children: node.children.map((child) =>
-        child instanceof BaseElement
-          ? child
-          : convertToBaseElement(child as FireAgentNode)
-      ),
+      attributes: node.attributes || {},
+      children: node.children?.map(convertToBaseElement) || [],
+      parent: node.parent as unknown as BaseElement,
+      type: node.type,
+      lineStart: node.lineStart,
+      lineEnd: node.lineEnd,
+      columnStart: node.columnStart,
+      columnEnd: node.columnEnd,
     });
   }
 
+  // Default values for line/column properties since they're required
+  const defaultLineStart = 0;
+  const defaultLineEnd = 0;
+  const defaultColumnStart = 0;
+  const defaultColumnEnd = 0;
+
   if ("kind" in node && node.kind === "tag") {
     return new BaseElement({
-      id: node.key,
-      key: node.key,
-      tag: node.name,
+      id: node.key ?? uuidv4(),
+      key: node.key ?? uuidv4(),
+      tag: node.name ?? "unknown",
       role: "state",
-      elementType: node.scxmlType,
-      attributes: node.attributes as Record<string, any>,
+      elementType: node.scxmlType ?? ("state" as SCXMLNodeType),
+      attributes: node.attributes ?? {},
       children: node.nodes?.map(convertToBaseElement) || [],
+      type: "element",
+      lineStart: node.lineStart ?? defaultLineStart,
+      lineEnd: node.lineEnd ?? defaultLineEnd,
+      columnStart: node.columnStart ?? defaultColumnStart,
+      columnEnd: node.columnEnd ?? defaultColumnEnd,
     });
   }
 
   // For text, comment, and instruction nodes, create a minimal BaseElement
   return new BaseElement({
-    id: node.key || uuidv4(),
-    key: node.key || uuidv4(),
+    id: node.key ?? uuidv4(),
+    key: node.key ?? uuidv4(),
     tag: "text",
     role: "state",
     elementType: "text" as SCXMLNodeType,
-    attributes: {
-      text:
-        "text" in node
-          ? String(node.text)
-          : "comment" in node
-            ? node.comment
-            : "instruction" in node
-              ? node.instruction
-              : "",
-    },
+    attributes: {},
     children: [],
+    type: "element",
+    lineStart: node.lineStart ?? defaultLineStart,
+    lineEnd: node.lineEnd ?? defaultLineEnd,
+    columnStart: node.columnStart ?? defaultColumnStart,
+    columnEnd: node.columnEnd ?? defaultColumnEnd,
   });
 }
 
@@ -263,6 +274,11 @@ export const createElementDefinition = <
             "onExecutionGraphConstruction" in config
               ? config.onExecutionGraphConstruction
               : defaultExecutionGraphConstruction,
+          type: "element",
+          lineStart: nodes[0].lineStart ?? 0,
+          lineEnd: nodes[nodes.length - 1].lineEnd ?? 0,
+          columnStart: nodes[0].columnStart ?? 0,
+          columnEnd: nodes[nodes.length - 1].columnEnd ?? 0,
         });
 
         return tagNode;

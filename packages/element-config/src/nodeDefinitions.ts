@@ -1,5 +1,5 @@
 import type { BaseElementDefinition } from "./types";
-import { allElementConfigs } from "./index";
+import type { ElementType } from "@fireworks/types";
 
 const nodeDefinitionClasses = new Map<string, BaseElementDefinition>();
 
@@ -18,11 +18,23 @@ export function getNodeDefinitionClass(tag: string): BaseElementDefinition {
   return nodeClass;
 }
 
-export function isSupportedNodeName(nodeName: string): boolean {
-  return nodeName in allElementConfigs;
+// Store supported node names separately to break circular dependency
+const supportedNodeNames = new Set<string>();
+
+export function registerSupportedNodeName(nodeName: string): void {
+  supportedNodeNames.add(nodeName);
 }
 
-// Register all element configs
-Object.entries(allElementConfigs).forEach(([tag, config]) => {
-  registerNodeDefinitionClass(tag, config);
-});
+export function isSupportedNodeName(nodeName: string): boolean {
+  return supportedNodeNames.has(nodeName);
+}
+
+// Function to register all element configs to be called from index.ts after allElementConfigs is defined
+export function registerAllElementConfigs(
+  configs: Record<ElementType, BaseElementDefinition>
+): void {
+  Object.entries(configs).forEach(([tag, config]) => {
+    registerNodeDefinitionClass(tag, config);
+    registerSupportedNodeName(tag);
+  });
+}

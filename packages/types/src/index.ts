@@ -36,9 +36,21 @@ export const aimlElements = [
   "cancel",
   "raise",
   "send",
+  // Add SCXML specific node types
+  "scxml",
+  "initial",
+  "history",
+  "donedata",
+  "content",
+  "param",
+  "invoke",
+  "finalize",
 ] as const;
 
 export type ElementType = (typeof aimlElements)[number];
+
+// Export SCXMLNodeType as an alias for ElementType
+export type SCXMLNodeType = ElementType;
 
 export type ElementRole =
   | "state"
@@ -158,4 +170,14 @@ export interface IBaseElementConfig {
   lineEnd: number;
   columnStart: number;
   columnEnd: number;
+}
+
+// Define FireAgentNode as a more flexible extension of AIMLNode
+export interface FireAgentNode extends Partial<AIMLNode> {
+  name?: string;
+  tag?: string;
+  nodes?: FireAgentNode[];
+  kind?: string;
+  scxmlType?: SCXMLNodeType;
+  [key: string]: any; // Allow additional properties
 }

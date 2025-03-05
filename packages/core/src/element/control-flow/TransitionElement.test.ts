@@ -26,6 +26,11 @@ describe("TransitionElement", () => {
       tag: "scxml",
       role: "state",
       key: uuidv4(),
+      type: "element",
+      lineStart: 0,
+      lineEnd: 0,
+      columnStart: 0,
+      columnEnd: 0,
     });
 
     ctx = new ElementExecutionContext({

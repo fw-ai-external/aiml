@@ -36,11 +36,13 @@ export const useWorkflows = () => {
 };
 
 export const useWorkflow = (workflowId: string) => {
-  const [workflow, setWorkflow] = useState<Workflow | null>(null);
+  const [workflow, setWorkflow] = useState<
+    (Workflow & { prompt: string }) | null
+  >(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
   console.log("workflowId", workflowId);
   useEffect(() => {
-    console.log("workflowId", workflowId);
     const fetchWorkflow = async () => {
       setIsLoading(true);
       try {
@@ -71,7 +73,25 @@ export const useWorkflow = (workflowId: string) => {
     fetchWorkflow();
   }, [workflowId]);
 
-  return { workflow, isLoading };
+  const updateWorkflow = async (workflow: Workflow & { prompt: string }) => {
+    setIsUpdating(true);
+    const res = await fetch(`/api/workflows/${workflowId}`, {
+      method: "POST",
+      body: JSON.stringify(workflow),
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      toast.error(error?.error || "Error updating workflow");
+    } else {
+      setWorkflow({ ...workflow, prompt: workflow.prompt } as Workflow & {
+        prompt: string;
+      });
+    }
+
+    setIsUpdating(false);
+  };
+
+  return { workflow, isLoading, isUpdating, updateWorkflow };
 };
 
 export const useExecuteWorkflow = () => {

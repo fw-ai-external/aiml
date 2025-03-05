@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import { parse as parseYaml } from "yaml";
 import { VFile } from "vfile";
 import { Node } from "unist";
+import { astToRunnableBaseElementTree } from "./heal";
 
 // Define the allowed AIML elements
 export const aimlElements = [
@@ -1305,3 +1306,5 @@ export async function parseMDXFilesToAIML(
     files: files,
   });
 }
+
+export { astToRunnableBaseElementTree };
