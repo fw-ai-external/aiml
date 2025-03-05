@@ -15,6 +15,8 @@ export default function WorkflowGraphPage({
     params.workflowId
   );
 
+  console.log("workflow", workflow);
+
   if (isWorkflowLoading) {
     return (
       <main className="flex-1 relative grid grid-cols-[1fr_400px] divide-x">

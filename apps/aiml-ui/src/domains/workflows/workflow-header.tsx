@@ -1,14 +1,10 @@
 "use client";
 
+import { useWorkflow } from "@/hooks/use-workflows";
 import { usePathname, useRouter } from "next/navigation";
 
-export function WorkflowHeader({
-  workflowName,
-  workflowId,
-}: {
-  workflowName: string;
-  workflowId: string;
-}) {
+export function WorkflowHeader({ workflowId }: { workflowId: string }) {
+  const { workflow } = useWorkflow(workflowId);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -18,7 +14,7 @@ export function WorkflowHeader({
   return (
     <div className="flex items-center justify-between px-4 py-2 border-b">
       <div className="flex items-center gap-4">
-        <h1 className="text-lg font-medium">{workflowName}</h1>
+        <h1 className="text-lg font-medium">{workflow?.name}</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={() => router.push(`/workflows/${workflowId}/graph`)}

@@ -340,6 +340,9 @@ function transformToAIMLNodes(
             nodes.push(...additionalNodes);
           }
 
+          // Merge adjacent paragraphs
+          mergeParagraphs(nodes);
+
           return nodes;
         }
       }
@@ -364,7 +367,61 @@ function transformToAIMLNodes(
     nodes.push(...additionalNodes);
   }
 
+  // Merge adjacent paragraphs
+  mergeParagraphs(nodes);
+
   return nodes;
+}
+
+/**
+ * Merge adjacent paragraph nodes, combining their children
+ * @param nodes Array of AIML nodes to process
+ */
+function mergeParagraphs(nodes: AIMLNode[]): void {
+  if (nodes.length < 2) return;
+
+  let i = 0;
+  while (i < nodes.length - 1) {
+    const current = nodes[i];
+    const next = nodes[i + 1];
+
+    // Check if both current and next nodes are paragraphs
+    if (current.type === "paragraph" && next.type === "paragraph") {
+      // Check if paragraphs are directly adjacent (no blank line between them)
+      // This can be determined by checking if the line end of the current paragraph
+      // is adjacent to the line start of the next paragraph
+      const areAdjacent =
+        current.lineEnd !== undefined &&
+        next.lineStart !== undefined &&
+        current.lineEnd + 1 === next.lineStart;
+
+      if (areAdjacent) {
+        // Merge the children of the next paragraph into the current one
+        if (current.children && next.children) {
+          current.children.push(...next.children);
+        }
+
+        // Update the end position of the current paragraph to match the end of the next paragraph
+        if (next.lineEnd !== undefined) {
+          current.lineEnd = next.lineEnd;
+        }
+        if (next.columnEnd !== undefined) {
+          current.columnEnd = next.columnEnd;
+        }
+
+        // Remove the next paragraph from the array
+        nodes.splice(i + 1, 1);
+
+        // Don't increment i, as we need to check if the next node is also a paragraph
+      } else {
+        // Paragraphs are not adjacent, move to the next node
+        i++;
+      }
+    } else {
+      // Move to the next node
+      i++;
+    }
+  }
 }
 
 /**

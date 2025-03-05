@@ -2,10 +2,7 @@ import type { Workflow } from "@mastra/core/workflows";
 import {
   ReactFlow,
   MiniMap,
-  Controls,
   Background,
-  useNodesState,
-  useEdgesState,
   BackgroundVariant,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -15,31 +12,28 @@ import { WorkflowConditionNode } from "./workflow-condition-node";
 import { WorkflowDefaultNode } from "./workflow-default-node";
 
 function WorkflowGraph({ workflow }: { workflow: Workflow }) {
+  console.log("workflow graph render");
   const { nodes: initialNodes, edges: initialEdges } = contructNodesAndEdges({
     stepGraph: workflow.stepGraph,
     stepSubscriberGraph: workflow.stepSubscriberGraph,
   });
-  const [nodes, _, onNodesChange] = useNodesState(initialNodes);
-  const [edges] = useEdgesState(initialEdges);
 
   const nodeTypes = {
     "default-node": WorkflowDefaultNode,
     "condition-node": WorkflowConditionNode,
   };
-
   return (
     <div className="w-full h-full">
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
+        nodes={initialNodes}
+        edges={initialEdges}
         nodeTypes={nodeTypes}
-        onNodesChange={onNodesChange}
+        // onNodesChange={onNodesChange}
         fitView
         fitViewOptions={{
           maxZoom: 0.85,
         }}
       >
-        <Controls />
         <MiniMap
           pannable
           zoomable

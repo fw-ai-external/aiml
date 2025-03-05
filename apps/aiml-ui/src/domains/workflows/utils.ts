@@ -128,6 +128,7 @@ export const contructNodesAndEdges = ({
     const stepId = step.id;
     const steps = [_step, ...(stepsList?.[stepId] || [])]?.reduce(
       (acc, step, i) => {
+        console.log("step", step);
         const newStep = {
           ...step.step,
           label: step.step.id,
@@ -159,18 +160,37 @@ export const contructNodesAndEdges = ({
         position: { x: _index * 300, y: index * 100 },
         type: step.type,
         data: {
+          color: step.elementType === "workflow" ? "green" : null,
           conditions: step.conditions,
-          label: step.label,
+          label:
+            step.elementType === "workflow"
+              ? "Incoming Request"
+              : // TODO this should look inside the state to se what actions are there
+                // for now we just assume
+                step.elementType === "state"
+                ? "AI Call"
+                : step.label,
           description: step.description,
           withoutTopHandle: subscriberGraph?.[step.id] ? false : index === 0,
-          withoutBottomHandle: subscriberGraph
-            ? false
-            : index === steps.length - 1,
+          withoutBottomHandle: false,
         },
       };
     });
 
-    nodes = [...nodes, ...newNodes];
+    const responseNode = {
+      id: `response-to-user`,
+      position: { x: _index * 300, y: (steps.length + 1) * 100 },
+      type: "default-node",
+      data: {
+        label: "Response",
+        color: "blue",
+        description: "Response from the AI",
+        withoutTopHandle: false,
+        withoutBottomHandle: true,
+      },
+    };
+
+    nodes = [...nodes, ...newNodes, responseNode];
 
     const edgeSteps = [...steps].slice(0, -1);
 
@@ -181,7 +201,14 @@ export const contructNodesAndEdges = ({
       ...defaultEdgeOptions,
     }));
 
-    edges = [...edges, ...newEdges];
+    const responseEdge = {
+      id: `e${steps[steps.length - 1].id}-${responseNode.id}`,
+      source: nodes[nodes.length - 2].id,
+      target: responseNode.id,
+      ...defaultEdgeOptions,
+    };
+
+    edges = [...edges, ...newEdges, responseEdge];
   }
 
   if (!stepSubscriberGraph || !Object.keys(stepSubscriberGraph).length) {
@@ -252,6 +279,7 @@ export const contructNodesAndEdges = ({
         });
 
         nodes = [...nodes, ...newNodes];
+        console.log("nodes", nodes);
 
         const edgeSteps = [...steps].slice(0, -1);
 
@@ -265,6 +293,8 @@ export const contructNodesAndEdges = ({
         const firstEdgeStep = steps[0];
         const lastEdgeStep = steps[steps.length - 1];
 
+        // Only create subscriber connecting edges if not linking directly to the response node,
+        // ensuring that responseEdge/responseNode remain the final elements.
         const connectingEdge =
           connectingStepId === firstEdgeStep.id
             ? []
@@ -277,18 +307,16 @@ export const contructNodesAndEdges = ({
                 },
               ];
 
-        const lastEdge = originalSteps.some(
-          ({ id }) => id === lastEdgeStep.label && id !== lastEdgeStep.id
-        )
-          ? [
+        const lastEdge = !originalSteps.some(({ id }) => id !== lastEdgeStep.id)
+          ? []
+          : [
               {
                 id: `e${lastEdgeStep.id}-${connectingStepId}`,
                 source: lastEdgeStep.id,
                 target: connectingStepId,
                 ...defaultEdgeOptions,
               },
-            ]
-          : [];
+            ];
 
         edges = [...edges, ...connectingEdge, ...newEdges, ...lastEdge];
       }

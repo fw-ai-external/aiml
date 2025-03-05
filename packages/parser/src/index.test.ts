@@ -180,4 +180,74 @@ Some text here because why not
       );
     });
   });
+
+  describe("Paragraph Merging", () => {
+    it("should merge adjacent paragraphs and combine their children", async () => {
+      const input = `
+---
+name: ParagraphMergeTest
+---
+
+First paragraph with {expression1}.
+Second paragraph with {expression2}.
+
+Third paragraph (should not be merged with above due to blank line).
+      `;
+
+      const testFile = new VFile({
+        path: "test.mdx",
+        value: input,
+      });
+
+      const result = await parseMDXFilesToAIML([testFile]);
+      expect(result.nodes).not.toBeNull();
+
+      // We should have 3 nodes: header, merged paragraph, and third paragraph
+      expect(result.nodes).toBeArrayOfSize(3);
+
+      // Check header
+      expect(result.nodes[0].type).toBe("header");
+      expect(result.nodes[0].children?.[0]?.type).toBe("headerField");
+      expect(result.nodes[0].children?.[0]?.id).toBe("name");
+      expect(result.nodes[0].children?.[0]?.value).toBe("ParagraphMergeTest");
+
+      // Check merged paragraph (first and second paragraphs should be merged)
+      expect(result.nodes[1].type).toBe("paragraph");
+
+      // The merged paragraph should have 4 children:
+      // 1. Text: "First paragraph with "
+      // 2. Expression: "expression1"
+      // 3. Text: ".\nSecond paragraph with "
+      // 4. Expression: "expression2"
+      // 5. Text: "."
+      expect(result.nodes[1].children).toBeArrayOfSize(5);
+
+      expect(result.nodes[1].children?.[0]?.type).toBe("text");
+      expect(result.nodes[1].children?.[0]?.value).toBe(
+        "First paragraph with "
+      );
+
+      expect(result.nodes[1].children?.[1]?.type).toBe("expression");
+      expect(result.nodes[1].children?.[1]?.value).toBe("expression1");
+
+      expect(result.nodes[1].children?.[2]?.type).toBe("text");
+      expect(result.nodes[1].children?.[2]?.value).toBe(
+        ".\nSecond paragraph with "
+      );
+
+      expect(result.nodes[1].children?.[3]?.type).toBe("expression");
+      expect(result.nodes[1].children?.[3]?.value).toBe("expression2");
+
+      expect(result.nodes[1].children?.[4]?.type).toBe("text");
+      expect(result.nodes[1].children?.[4]?.value).toBe(".");
+
+      // Check third paragraph (should not be merged due to blank line)
+      expect(result.nodes[2].type).toBe("paragraph");
+      expect(result.nodes[2].children).toBeArrayOfSize(1);
+      expect(result.nodes[2].children?.[0]?.type).toBe("text");
+      expect(result.nodes[2].children?.[0]?.value).toBe(
+        "Third paragraph (should not be merged with above due to blank line)."
+      );
+    });
+  });
 });

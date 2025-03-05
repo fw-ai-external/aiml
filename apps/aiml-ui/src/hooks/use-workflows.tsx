@@ -1,5 +1,11 @@
 import type { Workflow } from "@mastra/core/workflows";
-import { useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { AIMLNode } from "@fireworks/types";
 import { BaseElement } from "@fireworks/core";
@@ -36,9 +42,10 @@ export const useWorkflows = () => {
 
   return { workflows, isLoading };
 };
+// Assuming createContext and useContext are imported from "react" in the module's top-level imports.
 
-export const useWorkflow = (workflowId: string) => {
-  const [workflow, setWorkflow] = useState<
+type WorkflowContextType = {
+  workflow:
     | (Workflow & {
         prompt: string;
         ast?: {
@@ -48,11 +55,51 @@ export const useWorkflow = (workflowId: string) => {
         stepGraph?: any;
         elementTree?: BaseElement;
       })
-    | null
-  >(null);
+    | null;
+  isLoading: boolean;
+  setWorkflow: (workflow: WorkflowContextType["workflow"]) => void;
+  setIsLoading: (isLoading: boolean) => void;
+};
+
+const WorkflowContext = createContext<WorkflowContextType | undefined>(
+  undefined
+);
+
+export function WorkflowProvider({
+  children,
+  workflow: initialWorkflow,
+}: {
+  children: React.ReactNode;
+  workflow: WorkflowContextType["workflow"];
+}) {
+  const [workflow, setWorkflow] =
+    useState<WorkflowContextType["workflow"]>(initialWorkflow);
   const [isLoading, setIsLoading] = useState(true);
+  return (
+    <WorkflowContext.Provider
+      value={{ workflow, isLoading, setWorkflow, setIsLoading }}
+    >
+      {children}
+    </WorkflowContext.Provider>
+  );
+}
+
+export function useWorkflowContext(): WorkflowContextType {
+  const context = useContext(WorkflowContext);
+  if (!context) {
+    throw new Error(
+      "useWorkflowContext must be used within a WorkflowProvider"
+    );
+  }
+  return context;
+}
+
+export const useWorkflow = (workflowId: string) => {
+  const { workflow, setWorkflow, isLoading, setIsLoading } =
+    useWorkflowContext();
+
   const [isUpdating, setIsUpdating] = useState(false);
-  console.log("workflowId", workflowId);
+
   useEffect(() => {
     const fetchWorkflow = async () => {
       setIsLoading(true);
@@ -84,32 +131,38 @@ export const useWorkflow = (workflowId: string) => {
     fetchWorkflow();
   }, [workflowId]);
 
-  const updateWorkflow = async (
-    workflow: Workflow & {
-      prompt: string;
-      ast?: {
-        nodes: AIMLNode[];
-        diagnostics: any[];
-      };
-      stepGraph?: any;
-      elementTree?: BaseElement;
-    }
-  ) => {
-    setIsUpdating(true);
-    const res = await fetch(`/api/workflows/${workflowId}`, {
-      method: "POST",
-      body: JSON.stringify(workflow),
-    });
-    if (!res.ok) {
-      const error = await res.json();
-      toast.error(error?.error || "Error updating workflow");
-    } else {
-      setWorkflow(workflow);
-    }
+  const updateWorkflow = useCallback(
+    async (
+      workflow: Workflow & {
+        prompt: string;
+        ast?: {
+          nodes: AIMLNode[];
+          diagnostics: any[];
+        };
+        stepGraph?: any;
+        elementTree?: BaseElement;
+      }
+    ) => {
+      setIsUpdating(true);
+      const res = await fetch(`/api/workflows/${workflowId}`, {
+        method: "POST",
+        body: JSON.stringify(workflow),
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        toast.error(error?.error || "Error updating workflow");
+      } else {
+        const data = await res.json();
+        console.log("res", data);
+        setWorkflow(data);
+        console.log("setWorkflow");
+      }
 
-    setIsUpdating(false);
-  };
-
+      setIsUpdating(false);
+    },
+    [workflowId]
+  );
+  console.log("workflow in useWorkflow", workflow);
   return { workflow, isLoading, isUpdating, updateWorkflow };
 };
 
