@@ -6,7 +6,7 @@ import { WorkflowEndpoints } from "./workflow-endpoints";
 import { WorkflowLogs } from "./workflow-logs";
 import { WorkflowTrigger } from "./workflow-trigger";
 import { WorkflowPrompt } from "@/domains/workflows/workflow-prompt";
-import { WorkflowAst } from "@/domains/workflows/workflow-ast";
+import { WorkflowDebug } from "@/domains/workflows/workflow-debug";
 
 export function WorkflowInformation({ workflowId }: { workflowId: string }) {
   const [runId, setRunId] = useState<string>("");
@@ -29,7 +29,7 @@ export function WorkflowInformation({ workflowId }: { workflowId: string }) {
             Element Tree
           </p>
         </TabsTrigger>
-        <TabsTrigger value="graph" className="group">
+        <TabsTrigger value="stepGraph" className="group">
           <p className="text-xs p-3 text-aiml-el-3 group-data-[state=active]:text-aiml-el-5 group-data-[state=active]:border-b-2 group-data-[state=active]:pb-2.5 border-white">
             Graph
           </p>
@@ -60,13 +60,13 @@ export function WorkflowInformation({ workflowId }: { workflowId: string }) {
         <WorkflowPrompt workflowId={workflowId} />
       </TabsContent>
       <TabsContent value="ast">
-        <WorkflowAst workflowId={workflowId} />
+        <WorkflowDebug workflowId={workflowId} debugType="ast" />
       </TabsContent>
       <TabsContent value="elementTree">
-        <WorkflowAst workflowId={workflowId} />
+        <WorkflowDebug workflowId={workflowId} debugType="elementTree" />
       </TabsContent>
-      <TabsContent value="graph">
-        <WorkflowAst workflowId={workflowId} />
+      <TabsContent value="stepGraph">
+        <WorkflowDebug workflowId={workflowId} debugType="stepGraph" />
       </TabsContent>
     </Tabs>
   );

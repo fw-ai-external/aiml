@@ -41,7 +41,10 @@ export const useWorkflow = (workflowId: string) => {
   const [workflow, setWorkflow] = useState<
     | (Workflow & {
         prompt: string;
-        ast?: AIMLNode[];
+        ast?: {
+          nodes: AIMLNode[];
+          diagnostics: any[];
+        };
         stepGraph?: any;
         elementTree?: BaseElement;
       })
@@ -84,7 +87,10 @@ export const useWorkflow = (workflowId: string) => {
   const updateWorkflow = async (
     workflow: Workflow & {
       prompt: string;
-      ast?: AIMLNode[];
+      ast?: {
+        nodes: AIMLNode[];
+        diagnostics: any[];
+      };
       stepGraph?: any;
       elementTree?: BaseElement;
     }

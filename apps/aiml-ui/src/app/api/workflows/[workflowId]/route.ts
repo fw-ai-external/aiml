@@ -44,7 +44,10 @@ export async function GET(
     },
     prompt: "",
     stepSubscriberGraph: {},
-    ast: [],
+    ast: {
+      nodes: [],
+      diagnostics: [],
+    },
     elementTree: {},
   });
 }
@@ -76,7 +79,12 @@ export async function POST(
           ),
         })
         .optional(),
-      ast: z.array(z.any()).optional(),
+      ast: z
+        .object({
+          nodes: z.array(z.any()),
+          diagnostics: z.array(z.any()),
+        })
+        .optional(),
       elementTree: z.any().optional(),
       stepSubscriberGraph: z.record(z.any()).optional(),
     });

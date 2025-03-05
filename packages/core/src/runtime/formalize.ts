@@ -165,6 +165,7 @@ function convertNodeToElement(
           JSON.stringify(elementNode)
       );
     }
+
     const Constructor = getElementClassByTagName(elementNode.tag);
     const element = Constructor.initFromAttributesAndNodes(
       elementNode.attributes || {},
@@ -273,22 +274,9 @@ function ensureAllNodesAreElements(element: BaseElement): BaseElement {
     }
   }
 
-  if (!isSupportedElementName(element.tag)) {
-    throw new Error(
-      "Element tag " +
-        element.tag +
-        " is not supported" +
-        JSON.stringify(element)
-    );
-  }
+  element.children = processedChildren;
 
-  const Constructor = getElementClassByTagName(element.tag);
-
-  return Constructor.initFromAttributesAndNodes(
-    element.attributes,
-    processedChildren as FireAgentNode[],
-    element.parent ? [new WeakRef(element.parent)] : []
-  ) as BaseElement;
+  return element;
 }
 
 function createStateElement(id: string, children: BaseElement[]): BaseElement {

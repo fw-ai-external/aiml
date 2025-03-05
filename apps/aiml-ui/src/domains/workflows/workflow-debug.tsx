@@ -6,7 +6,13 @@ import { useState, useEffect } from "react";
 import { Workflow } from "@mastra/core/workflows";
 import { JsonViewer } from "@/components/json-viewer";
 
-export function WorkflowAst({ workflowId }: { workflowId: string }) {
+export function WorkflowDebug({
+  workflowId,
+  debugType,
+}: {
+  workflowId: string;
+  debugType: "ast" | "elementTree" | "stepGraph";
+}) {
   const {
     workflow,
     isLoading: isWorkflowLoading,
@@ -46,7 +52,7 @@ export function WorkflowAst({ workflowId }: { workflowId: string }) {
           </div>
         ) : (
           <div className="h-[calc(100vh-180px)]">
-            <JsonViewer data={workflow?.ast} />
+            <JsonViewer data={workflow?.[debugType] || []} />
           </div>
         )}
       </div>

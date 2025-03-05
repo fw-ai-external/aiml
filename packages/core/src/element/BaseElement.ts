@@ -18,7 +18,7 @@ export class BaseElement implements Omit<IBaseElement, "parent" | "children"> {
   public readonly role: ElementRole;
   public readonly elementType: ElementType;
   public readonly attributes: Record<string, any>;
-  public readonly children: BaseElement[];
+  public children: BaseElement[];
   public readonly allowedChildren: AllowedChildrenType;
   public readonly schema: z.ZodType<any>;
   public readonly propsSchema: any;
@@ -208,6 +208,23 @@ export class BaseElement implements Omit<IBaseElement, "parent" | "children"> {
 
   protected enqueueEvent(name: string, data?: unknown): void {
     this.getRootElement()._eventQueue.push({ name, data });
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      key: this.key,
+      tag: this.tag,
+      role: this.role,
+      parent: this.parent,
+      elementType: this.elementType,
+      attributes: this.attributes,
+      children: this.children,
+      lineStart: this.lineStart,
+      lineEnd: this.lineEnd,
+      columnStart: this.columnStart,
+      columnEnd: this.columnEnd,
+    };
   }
 }
 export type Literal = string | number | null | undefined | boolean;
