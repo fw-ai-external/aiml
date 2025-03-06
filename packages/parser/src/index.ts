@@ -1339,7 +1339,7 @@ function parseWithRecursiveRecovery(
   // Keep attempting to parse until we succeed or hit max attempts
   while (attempts < MAX_ATTEMPTS) {
     attempts++;
-    console.log("Attempting to parse MDX content", currentContent);
+
     try {
       // Create a file instance
       file = new VFile({ value: currentContent, path: options.filePath });
