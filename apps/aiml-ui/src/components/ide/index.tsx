@@ -7,6 +7,11 @@ import { useEffect, useState } from "react";
 import { initialize } from "@codingame/monaco-editor-wrapper";
 import Editor from "@codingame/monaco-editor-react";
 
+// This should only be initialized once
+// And react strict mode will initialize it twice
+// if we do this in the component
+// So we initialize it in the global scope
+// and then we use a promise to wait for it in the hook
 let wait: Promise<void> | undefined;
 if (typeof window !== "undefined") {
   wait = initialize();
