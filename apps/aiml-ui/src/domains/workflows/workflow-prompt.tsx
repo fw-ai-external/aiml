@@ -1,9 +1,6 @@
-import { RefreshCcwIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useWorkflow } from "@/hooks/use-workflows";
 import { useState, useEffect } from "react";
-import { Workflow } from "@mastra/core/workflows";
 import dynamic from "next/dynamic";
 
 const CodeEditor = dynamic(
@@ -20,27 +17,27 @@ const CodeEditor = dynamic(
 
 export function WorkflowPrompt({ workflowId }: { workflowId: string }) {
   const {
-    workflow,
+    prompt: workflowPrompt,
+    astNodes,
+    astDiagnostics,
     isLoading: isWorkflowLoading,
-    updateWorkflow,
+    updatePrompt,
     isUpdating,
   } = useWorkflow(workflowId);
-  const [prompt, setPrompt] = useState(workflow?.prompt || null);
+  const [prompt, setPrompt] = useState(workflowPrompt || null);
 
   const [isClientSide, setIsClientSide] = useState(false);
 
   useEffect(() => {
-    if (!prompt && workflow?.prompt) {
-      setPrompt(workflow.prompt);
+    if (!prompt && workflowPrompt) {
+      setPrompt(workflowPrompt);
     }
-    if (workflow && prompt !== workflow.prompt) {
-      updateWorkflow({ ...workflow, prompt } as Workflow & {
-        prompt: string;
-      }).catch((error) => {
+    if (prompt !== workflowPrompt) {
+      updatePrompt(prompt || "").catch((error) => {
         console.error("Error updating workflow prompt", error);
       });
     }
-  }, [prompt, workflow]);
+  }, [prompt, workflowPrompt]);
 
   useEffect(() => {
     setIsClientSide(true);
@@ -49,13 +46,9 @@ export function WorkflowPrompt({ workflowId }: { workflowId: string }) {
   return (
     <ScrollArea className="h-[calc(100vh-126px)] px-4 pb-4 text-xs w-[400px]">
       <div className="flex justify-end sticky top-0 bg-aiml-bg-2 py-2">
-        <Button variant="outline" onClick={() => {}}>
-          {isWorkflowLoading ? (
-            <RefreshCcwIcon className="w-4 h-4 animate-spin" />
-          ) : (
-            <RefreshCcwIcon className="w-4 h-4" />
-          )}
-        </Button>
+        {isUpdating
+          ? "updating"
+          : `${astDiagnostics?.length || 0} errors found`}
       </div>
       <div className="space-y-4">
         {isWorkflowLoading ? (
@@ -69,6 +62,7 @@ export function WorkflowPrompt({ workflowId }: { workflowId: string }) {
                 key="prompt-editor"
                 // className="w-full h-full p-3 bg-aiml-bg-1 border border-aiml-border rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-aiml-accent text-aiml-el-5 font-mono"
                 value={prompt || ""}
+                diagnostics={astDiagnostics || []}
                 onChange={(value) => setPrompt(value || "")}
               />
             ) : (

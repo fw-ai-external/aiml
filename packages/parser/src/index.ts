@@ -171,8 +171,8 @@ export async function parseMDXToAIML(
       diagnostics.push({
         message: message.reason,
         severity: DiagnosticSeverity.Warning,
-        code: message.ruleId || "MDX001",
-        source: "mdx-parser",
+        code: message.ruleId || "AIML001",
+        source: "aiml-parserr",
         range: {
           start: {
             line: message.line || 1,
@@ -452,8 +452,8 @@ function transformNode(
       diagnostics.push({
         message: `Invalid YAML frontmatter: ${e}`,
         severity: DiagnosticSeverity.Error,
-        code: "MDX101",
-        source: "mdx-parser",
+        code: "AIML101",
+        source: "aiml-parserr",
         range: {
           start: {
             line: getPosition(node, "start", "line"),
@@ -491,8 +491,8 @@ function transformNode(
           diagnostics.push({
             message: "React imports are not supported",
             severity: DiagnosticSeverity.Error,
-            code: "MDX201",
-            source: "mdx-parser",
+            code: "AIML201",
+            source: "aiml-parserr",
             range: {
               start: {
                 line: getPosition(node, "start", "line"),
@@ -513,8 +513,8 @@ function transformNode(
             message:
               "Import source must be a relative file path (starting with ./ or ../)",
             severity: DiagnosticSeverity.Error,
-            code: "MDX202",
-            source: "mdx-parser",
+            code: "AIML202",
+            source: "aiml-parserr",
             range: {
               start: {
                 line: getPosition(node, "start", "line"),
@@ -536,8 +536,8 @@ function transformNode(
             diagnostics.push({
               message: `Imported file not found: ${importInfo.source}`,
               severity: DiagnosticSeverity.Error,
-              code: "MDX204",
-              source: "mdx-parser",
+              code: "AIML204",
+              source: "aiml-parserr",
               range: {
                 start: {
                   line: getPosition(node, "start", "line"),
@@ -679,8 +679,8 @@ function transformNode(
         diagnostics.push({
           message: `Element '${tagName}' is not a valid AIML element. Converting to text.`,
           severity: DiagnosticSeverity.Information,
-          code: "MDX203",
-          source: "mdx-parser",
+          code: "AIML203",
+          source: "aiml-parserr",
           range: {
             start: {
               line: getPosition(node, "start", "line"),
@@ -988,8 +988,8 @@ function validateJsxExpression(
       message:
         "Browser APIs like document and window should not be used in MDX expressions",
       severity: DiagnosticSeverity.Warning,
-      code: "MDX401",
-      source: "mdx-parser",
+      code: "AIML401",
+      source: "aiml-parserr",
       range: {
         start: position,
         end: {
@@ -1009,8 +1009,8 @@ function validateJsxExpression(
     diagnostics.push({
       message: "React hooks should not be used in MDX expressions",
       severity: DiagnosticSeverity.Error,
-      code: "MDX402",
-      source: "mdx-parser",
+      code: "AIML402",
+      source: "aiml-parserr",
       range: {
         start: position,
         end: {
@@ -1286,8 +1286,8 @@ export async function parseMDXFilesToAIML(
         {
           message: "No files provided",
           severity: DiagnosticSeverity.Error,
-          code: "MDX000",
-          source: "mdx-parser",
+          code: "AIML000",
+          source: "aiml-parserr",
           range: {
             start: { line: 1, column: 1 },
             end: { line: 1, column: 1 },
@@ -1375,7 +1375,7 @@ Offending code: ${currentContent.split("\n")[errorPosition.line - 1]}
       diagnostics.push({
         message: errorMessage,
         severity: DiagnosticSeverity.Error,
-        code: "MDX002",
+        code: "AIML002",
         source: "aiml-parser",
         range: {
           start: { line: errorPosition.line, column: errorPosition.column },

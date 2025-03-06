@@ -11,18 +11,24 @@ export default function WorkflowGraphPage(props: {
   params: Promise<{ workflowId: string }>;
 }) {
   const params = use(props.params);
-  const { workflow, isLoading: isWorkflowLoading } = useWorkflow(
-    params.workflowId
-  );
+  const {
+    stepGraph,
+    stepSubscriberGraph,
+    isLoading: isWorkflowLoading,
+  } = useWorkflow(params.workflowId);
 
   return (
     <main className="flex-1 relative grid grid-cols-[1fr_400px] divide-x">
-      {!workflow && isWorkflowLoading ? (
+      {!stepGraph && isWorkflowLoading ? (
         <div className="p-4">
           <Skeleton className="h-[600px]" />
         </div>
       ) : (
-        <WorkflowGraph workflow={workflow!} />
+        <WorkflowGraph
+          stepSubscriberGraph={stepSubscriberGraph}
+          stepGraph={stepGraph}
+          workflowId={params.workflowId}
+        />
       )}
       <div className="flex flex-col">
         <WorkflowInformation workflowId={params.workflowId} />

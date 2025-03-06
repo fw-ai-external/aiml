@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 // @ts-expect-error no types on @codingame/monaco-editor-wrapper
 import { initialize } from "@codingame/monaco-editor-wrapper";
 import Editor from "@codingame/monaco-editor-react";
+import { Diagnostic, DiagnosticSeverity } from "@fireworks/types";
+import { MarkerSeverity } from "monaco-editor";
 
 // This should only be initialized once
 // And react strict mode will initialize it twice
@@ -27,9 +29,11 @@ const CodeEditorLoadingSkeleton = () => (
 export function CodeEditor({
   value,
   onChange,
+  diagnostics,
 }: {
   value: string;
   onChange: (value: string | undefined) => void;
+  diagnostics: Diagnostic[];
 }) {
   const [isReady, setIsReady] = useState(false);
   const [editorHeight, setEditorHeight] = useState<string>("100%");
@@ -68,7 +72,7 @@ export function CodeEditor({
   }
 
   return (
-    <div ref={editorRef} className="h-[95%] w-full rounded-xl overflow-hidden">
+    <div ref={editorRef} className="h-[95%] w-full rounded-xl">
       <Editor
         height={editorHeight}
         options={{
@@ -80,6 +84,40 @@ export function CodeEditor({
           showFoldingControls: "never",
           scrollBeyondLastLine: false,
         }}
+        markers={diagnostics.map((diagnostic) => ({
+          code: diagnostic.code,
+          severity: (() => {
+            switch (diagnostic.severity) {
+              case DiagnosticSeverity.Error:
+                return MarkerSeverity.Error;
+              case DiagnosticSeverity.Warning:
+                return MarkerSeverity.Warning;
+              case DiagnosticSeverity.Information:
+                return MarkerSeverity.Info;
+              case DiagnosticSeverity.Hint:
+                return MarkerSeverity.Hint;
+              default:
+                return MarkerSeverity.Info;
+            }
+          })(),
+          startLineNumber: diagnostic.range.start.line,
+          endLineNumber: diagnostic.range.end.line,
+          startColumn: diagnostic.range.start.column,
+          endColumn: diagnostic.range.end.column,
+          message: diagnostic.message,
+          source: diagnostic.source,
+        }))}
+        // markers={[
+        //   {
+        //     code: "test",
+        //     severity: MarkerSeverity.Error,
+        //     startLineNumber: 1,
+        //     endLineNumber: 1,
+        //     startColumn: 1,
+        //     endColumn: 1,
+        //     message: "Test here",
+        //   },
+        // ]}
         programmingLanguage="mdx"
         value={value}
         onChange={onChange}

@@ -1,4 +1,3 @@
-import type { Workflow } from "@mastra/core/workflows";
 import {
   ReactFlow,
   MiniMap,
@@ -11,11 +10,19 @@ import { contructNodesAndEdges } from "./utils";
 import { WorkflowConditionNode } from "./workflow-condition-node";
 import { WorkflowDefaultNode } from "./workflow-default-node";
 
-function WorkflowGraph({ workflow }: { workflow: Workflow }) {
+function WorkflowGraph({
+  stepSubscriberGraph,
+  stepGraph,
+  workflowId,
+}: {
+  stepSubscriberGraph: any;
+  stepGraph: any;
+  workflowId: string;
+}) {
   console.log("workflow graph render");
   const { nodes: initialNodes, edges: initialEdges } = contructNodesAndEdges({
-    stepGraph: workflow.stepGraph,
-    stepSubscriberGraph: workflow.stepSubscriberGraph,
+    stepGraph,
+    stepSubscriberGraph,
   });
 
   const nodeTypes = {
@@ -25,7 +32,7 @@ function WorkflowGraph({ workflow }: { workflow: Workflow }) {
   return (
     <div className="w-full h-full">
       <ReactFlow
-        key={`workflow-${workflow.name}`}
+        key={`workflow-${workflowId}`}
         nodes={initialNodes}
         edges={initialEdges}
         nodeTypes={nodeTypes}

@@ -85,25 +85,21 @@ export function WorkflowProvider({
   );
 }
 
-export function useWorkflowContext(): WorkflowContextType {
+export const useWorkflow = (workflowId: string) => {
   const context = useContext(WorkflowContext);
   if (!context) {
     throw new Error(
       "useWorkflowContext must be used within a WorkflowProvider"
     );
   }
-  return context;
-}
-
-export const useWorkflow = (workflowId: string) => {
-  const { workflow, setWorkflow, isLoading, setIsLoading } =
-    useWorkflowContext();
+  const { workflow, setWorkflow, isLoading, setIsLoading } = context;
 
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const fetchWorkflow = async () => {
       setIsLoading(true);
+
       try {
         if (!workflowId) {
           setWorkflow(null);
@@ -132,39 +128,38 @@ export const useWorkflow = (workflowId: string) => {
     fetchWorkflow();
   }, [workflowId]);
 
-  const updateWorkflow = useCallback(
-    async (
-      workflow: Workflow & {
-        prompt: string;
-        ast?: {
-          nodes: AIMLNode[];
-          diagnostics: any[];
-        };
-        stepGraph?: any;
-        elementTree?: BaseElement;
-      }
-    ) => {
+  const updatePrompt = useCallback(
+    async (prompt: string) => {
       setIsUpdating(true);
       const res = await fetch(`/api/workflows/${workflowId}`, {
         method: "POST",
-        body: JSON.stringify(workflow),
+        body: JSON.stringify({ ...workflow, prompt }),
       });
       if (!res.ok) {
         const error = await res.json();
         toast.error(error?.error || "Error updating workflow");
       } else {
         const data = await res.json();
-        console.log("res", data);
+
         setWorkflow(data);
-        console.log("setWorkflow");
       }
 
       setIsUpdating(false);
     },
-    [workflowId]
+    [workflowId, workflow]
   );
-  console.log("workflow in useWorkflow", workflow);
-  return { workflow, isLoading, isUpdating, updateWorkflow };
+
+  return {
+    prompt: workflow?.prompt,
+    astNodes: workflow?.ast?.nodes,
+    astDiagnostics: workflow?.ast?.diagnostics,
+    stepGraph: workflow?.stepGraph,
+    stepSubscriberGraph: workflow?.stepSubscriberGraph,
+    elementTree: workflow?.elementTree,
+    isLoading,
+    isUpdating,
+    updatePrompt,
+  };
 };
 
 export const useExecuteWorkflow = () => {

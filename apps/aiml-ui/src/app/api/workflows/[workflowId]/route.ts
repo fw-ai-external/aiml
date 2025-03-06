@@ -51,7 +51,10 @@ export async function GET(
   });
 }
 
-export async function POST(request: Request, props: { params: Promise<{ workflowId: string }> }) {
+export async function POST(
+  request: Request,
+  props: { params: Promise<{ workflowId: string }> }
+) {
   const params = await props.params;
   try {
     const workflowId = params.workflowId;
@@ -125,7 +128,12 @@ export async function POST(request: Request, props: { params: Promise<{ workflow
       "utf8"
     );
 
-    return NextResponse.json({ ...body, stepGraph: workflow.toGraph() });
+    return NextResponse.json({
+      ...body,
+      ast,
+      elementTree,
+      stepGraph: workflow.toGraph(),
+    });
   } catch (error) {
     console.error(
       `Error updating workflow: ${error instanceof Error ? error.message : "Unknown error"}`
