@@ -1409,8 +1409,29 @@ Offending code: ${currentContent.split("\n")[errorPosition.line - 1]}
       );
       if (unclosedTagMatch) {
         console.log("Detected unclosed tag, appending '>' to content");
-        currentContent += ">";
-        console.log("Appended missing '>' to content");
+        // Find the line with unclosed tag (containing '</' without a following '>')
+        const contentLines = currentContent.split("\n");
+        let fixedContent = false;
+
+        for (let i = 0; i < contentLines.length; i++) {
+          const line = contentLines[i];
+          // Look for a '</' that isn't followed by a '>' before another '<'
+          const match = line.match(/(<\/[a-zA-Z0-9]*(?!\>)(?=[^<]*$))/);
+          if (match) {
+            // Trim the line and append '>' to it
+            contentLines[i] = line.trim() + ">";
+            fixedContent = true;
+            break;
+          }
+        }
+
+        if (fixedContent) {
+          currentContent = contentLines.join("\n");
+        } else {
+          // Fallback if we can't locate the line
+          currentContent += ">";
+        }
+        console.log("Appended missing '>' to the offending line");
         continue;
       }
 
@@ -1425,11 +1446,27 @@ Offending code: ${currentContent.split("\n")[errorPosition.line - 1]}
         // Log the recovery action
         console.log(`Appended missing tag </${tagName}> to content`);
       } else {
-        // If it's not a missing tag error, replace the offending line with a newline
+        // Check if the error mentions a tag
+        const tagMentionMatch = errorMessage.includes(" tag ");
+
         const contentLines = currentContent.split("\n");
         if (errorPosition.line <= contentLines.length) {
-          contentLines[errorPosition.line - 1] = "";
+          if (tagMentionMatch) {
+            // Escape < and > on the offending line
+            const line = contentLines[errorPosition.line - 1];
+
+            console.log("line" + line);
+
+            contentLines[errorPosition.line - 1] = line
+              .trimEnd()
+              .replace(/</g, "\\<")
+              .replace(/>/g, "\\>");
+          } else {
+            // If it's not a tag-related error, replace the offending line with a newline
+            contentLines[errorPosition.line - 1] = "";
+          }
           currentContent = contentLines.join("\n");
+          //console.log("Recovered from error, current content:", currentContent);
         } else {
           // If we can't locate the line, we can't continue
           break;
