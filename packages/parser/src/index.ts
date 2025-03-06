@@ -1,4 +1,4 @@
-import { unified } from "unified";
+import { Processor, unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkMdx from "remark-mdx";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
@@ -7,6 +7,7 @@ import { parse as parseYaml } from "yaml";
 import { VFile } from "vfile";
 import { Node } from "unist";
 import { AIMLNode } from "@fireworks/types";
+import { Root } from "remark-parse/lib";
 
 // Define the allowed AIML elements
 export const aimlElements = [
@@ -143,12 +144,6 @@ export async function parseMDXToAIML(
     ...options,
   };
 
-  // Initialize diagnostics array
-  const diagnostics: Diagnostic[] = [];
-
-  // Create a file instance
-  const file = new VFile({ value: content, path: options.filePath });
-
   // Create a unified processor for MDX
   const processor = unified()
     .use(remarkParse)
@@ -156,38 +151,15 @@ export async function parseMDXToAIML(
     .use(remarkMdxFrontmatter, { name: "frontmatter" })
     .use(remarkMdx);
 
-  // Parse the content to get the AST
-  let ast;
-  try {
-    ast = processor.parse(file);
-  } catch (error) {
-    // Extract error position information if available
-    let errorPosition = { line: 1, column: 1 };
-    if (error instanceof Error && "loc" in error) {
-      const loc = (error as any).loc;
-      if (
-        loc &&
-        typeof loc.line === "number" &&
-        typeof loc.column === "number"
-      ) {
-        errorPosition = { line: loc.line, column: loc.column };
-      }
-    }
-    console.error(`Error parsing AIML at ${file.path}: ${error}
-Offending code: ${file.value?.toString().split("\n")[errorPosition.line - 1]}
-`);
-    diagnostics.push({
-      message: error instanceof Error ? error.message : String(error),
-      severity: DiagnosticSeverity.Error,
-      code: "MDX002",
-      source: "aiml-parser",
-      range: {
-        start: { line: 1, column: 1 },
-        end: { line: 1, column: 1 },
-      },
-    });
+  const { ast, diagnostics, file } = await parseWithRecursiveRecovery(content, {
+    filePath: options.filePath || "index.aiml",
+    processor,
+  });
+
+  if (!ast) {
     return { nodes: [], diagnostics };
   }
+
   await processor.run(ast, file);
 
   // Debug the AST structure
@@ -1334,4 +1306,139 @@ export async function parseMDXFilesToAIML(
     filePath: mainFile.path,
     files: files,
   });
+}
+
+/**
+ * Parses MDX content recursively, handling missing closing tags and removing problematic lines
+ * @param content The MDX content to parse
+ * @param options Options including file path
+ * @returns Object containing parsed nodes and diagnostics
+ */
+function parseWithRecursiveRecovery(
+  content: string,
+  options: {
+    filePath: string;
+    processor: Processor<Root, Root, Root, undefined, undefined>;
+  }
+): {
+  ast: Root | null;
+  diagnostics: Diagnostic[];
+  file: VFile;
+} {
+  // Initialize diagnostics array
+  const diagnostics: Diagnostic[] = [];
+
+  // Keep track of our content through each iteration
+  let currentContent = content;
+
+  // Track number of attempts to prevent infinite loops
+  let attempts = 0;
+  const MAX_ATTEMPTS = 100;
+  let file = new VFile({ value: currentContent, path: options.filePath });
+
+  // Keep attempting to parse until we succeed or hit max attempts
+  while (attempts < MAX_ATTEMPTS) {
+    attempts++;
+    console.log("Attempting to parse MDX content", currentContent);
+    try {
+      // Create a file instance
+      file = new VFile({ value: currentContent, path: options.filePath });
+
+      // Parse the content to get the AST
+      const ast = options.processor.parse(file);
+
+      // If we reach here, parsing succeeded
+      return { ast, diagnostics, file };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Extract error position information if available
+      let errorPosition = { line: 1, column: 1 };
+      if (error instanceof Error && "loc" in error) {
+        const loc = (error as any).loc;
+        if (
+          loc &&
+          typeof loc.line === "number" &&
+          typeof loc.column === "number"
+        ) {
+          errorPosition = { line: loc.line, column: loc.column };
+        }
+      }
+
+      // Log the error
+      console.error(`Error parsing AIML at ${options.filePath}: ${error}
+Offending code: ${currentContent.split("\n")[errorPosition.line - 1]}
+`);
+
+      // Add to diagnostics
+      diagnostics.push({
+        message: errorMessage,
+        severity: DiagnosticSeverity.Error,
+        code: "MDX002",
+        source: "aiml-parser",
+        range: {
+          start: { line: errorPosition.line, column: errorPosition.column },
+          end: { line: errorPosition.line, column: errorPosition.column + 1 },
+        },
+      });
+
+      // Check for unexpected closing tag errors
+      const unexpectedClosingTagMatch = errorMessage.match(
+        /Unexpected closing tag `<\/(\w+)>`/i
+      );
+      if (unexpectedClosingTagMatch) {
+        const tagName = unexpectedClosingTagMatch[1];
+        console.log(`Detected unexpected closing tag: </${tagName}>`);
+
+        // Find and remove the unexpected closing tag
+        const unexpectedTag = `</${tagName}>`;
+        currentContent = currentContent.replace(unexpectedTag, "");
+
+        console.log(
+          `Removed unexpected closing tag </${tagName}> from content`
+        );
+        continue;
+      }
+
+      // Check if the error involves a missing closing tag
+      const closingTagMatch = errorMessage.match(/closing tag for `<(\w+)>`/i);
+      // Check for unexpected end of file errors related to unclosed tags
+      const unclosedTagMatch = errorMessage.match(
+        /Unexpected end of file.*or the end of the tag/i
+      );
+      if (unclosedTagMatch) {
+        console.log("Detected unclosed tag, appending '>' to content");
+        currentContent += ">";
+        console.log("Appended missing '>' to content");
+        continue;
+      }
+
+      if (closingTagMatch) {
+        // Extract the tag name from the error message
+        const tagName = closingTagMatch[1];
+        console.log(`Detected missing closing tag: </${tagName}>`);
+
+        // Append the missing closing tag to the content
+        currentContent += `\n</${tagName}>`;
+
+        // Log the recovery action
+        console.log(`Appended missing tag </${tagName}> to content`);
+      } else {
+        // If it's not a missing tag error, replace the offending line with a newline
+        const contentLines = currentContent.split("\n");
+        if (errorPosition.line <= contentLines.length) {
+          contentLines[errorPosition.line - 1] = "";
+          currentContent = contentLines.join("\n");
+        } else {
+          // If we can't locate the line, we can't continue
+          break;
+        }
+      }
+    }
+  }
+
+  // If we exit the loop without returning, parsing failed despite our attempts
+  console.error(`Failed to parse MDX after ${attempts} attempts`);
+  return { ast: null, diagnostics, file };
 }
