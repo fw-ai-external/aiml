@@ -25,6 +25,7 @@ function WorkflowGraph({ workflow }: { workflow: Workflow }) {
   return (
     <div className="w-full h-full">
       <ReactFlow
+        key={`workflow-${workflow.name}`}
         nodes={initialNodes}
         edges={initialEdges}
         nodeTypes={nodeTypes}
