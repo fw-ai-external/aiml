@@ -156,6 +156,7 @@ export const useWorkflow = (workflowId: string) => {
     stepGraph: workflow?.stepGraph,
     stepSubscriberGraph: workflow?.stepSubscriberGraph,
     elementTree: workflow?.elementTree,
+    triggerSchema: workflow?.triggerSchema,
     isLoading,
     isUpdating,
     updatePrompt,

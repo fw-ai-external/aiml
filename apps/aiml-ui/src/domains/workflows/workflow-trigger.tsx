@@ -36,17 +36,15 @@ export function WorkflowTrigger({
   workflowId: string;
   setRunId: (runId: string) => void;
 }) {
-  const { isLoading, workflow } = useWorkflow(workflowId);
+  const { isLoading, stepGraph, triggerSchema } = useWorkflow(workflowId);
   const { executeWorkflow, isExecutingWorkflow } = useExecuteWorkflow();
   const { watchWorkflow, watchResult } = useWatchWorkflow();
   const { resumeWorkflow, isResumingWorkflow } = useResumeWorkflow();
   const [result, setResult] = useState<any>(null);
   const [suspendedSteps, setSuspendedSteps] = useState<SuspendedStep[]>([]);
 
-  const triggerSchema = workflow?.triggerSchema;
-
   const handleExecuteWorkflow = async (data: any) => {
-    if (!workflow) return;
+    if (!stepGraph) return;
 
     watchWorkflow({ workflowId });
 
@@ -62,7 +60,7 @@ export function WorkflowTrigger({
   const handleResumeWorkflow = async (
     step: SuspendedStep & { context: any }
   ) => {
-    if (!workflow) return;
+    if (!stepGraph) return;
 
     const { stepId, runId, context } = step;
     const result = await resumeWorkflow({
@@ -103,11 +101,11 @@ export function WorkflowTrigger({
     );
   }
 
-  if (!workflow) return null;
+  if (!stepGraph) return null;
 
   if (!triggerSchema) {
     return (
-      <ScrollArea className="h-[calc(100vh-126px)] pt-2 px-4 pb-4 text-xs w-[400px]">
+      <ScrollArea className="h-[calc(100vh-126px)] pt-2 px-4 pb-4 text-xs w-full">
         <div className="space-y-4">
           <div className="space-y-4 px-4">
             <Button

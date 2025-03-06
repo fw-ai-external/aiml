@@ -7,6 +7,7 @@ import { WorkflowLogs } from "./workflow-logs";
 import { WorkflowTrigger } from "./workflow-trigger";
 import { WorkflowPrompt } from "@/domains/workflows/workflow-prompt";
 import { WorkflowDebug } from "@/domains/workflows/workflow-debug";
+import { WorkflowChat } from "@/domains/workflows/workflow-chat";
 
 export function WorkflowInformation({ workflowId }: { workflowId: string }) {
   const [runId, setRunId] = useState<string>("");
@@ -34,15 +35,25 @@ export function WorkflowInformation({ workflowId }: { workflowId: string }) {
             Graph
           </p>
         </TabsTrigger>
-        <TabsTrigger value="run" className="group">
+        <TabsTrigger value="agent" className="group">
           <p className="text-xs p-3 text-aiml-el-3 group-data-[state=active]:text-aiml-el-5 group-data-[state=active]:border-b-2 group-data-[state=active]:pb-2.5 border-white">
-            Run
+            Run Agent
+          </p>
+        </TabsTrigger>
+        <TabsTrigger value="chat" className="group">
+          <p className="text-xs p-3 text-aiml-el-3 group-data-[state=active]:text-aiml-el-5 group-data-[state=active]:border-b-2 group-data-[state=active]:pb-2.5 border-white">
+            Chat
           </p>
         </TabsTrigger>
       </TabsList>
-      <TabsContent value="run">
+      <TabsContent value="agent">
         {workflowId ? (
           <WorkflowTrigger workflowId={workflowId} setRunId={setRunId} />
+        ) : null}
+      </TabsContent>
+      <TabsContent value="chat">
+        {workflowId ? (
+          <WorkflowChat workflowId={workflowId} setRunId={setRunId} />
         ) : null}
       </TabsContent>
       <TabsContent value="endpoints">
