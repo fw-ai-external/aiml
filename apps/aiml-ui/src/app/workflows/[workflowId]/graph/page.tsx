@@ -1,4 +1,5 @@
-"use client";
+"use client";;
+import { use } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -6,11 +7,12 @@ import WorkflowGraph from "@/domains/workflows/workflow-graph";
 import { WorkflowInformation } from "@/domains/workflows/workflow-information";
 import { useWorkflow } from "@/hooks/use-workflows";
 
-export default function WorkflowGraphPage({
-  params,
-}: {
-  params: { workflowId: string };
-}) {
+export default function WorkflowGraphPage(
+  props: {
+    params: Promise<{ workflowId: string }>;
+  }
+) {
+  const params = use(props.params);
   const { workflow, isLoading: isWorkflowLoading } = useWorkflow(
     params.workflowId
   );

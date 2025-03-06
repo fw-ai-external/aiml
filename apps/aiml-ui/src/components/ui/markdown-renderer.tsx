@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect, type JSX } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 

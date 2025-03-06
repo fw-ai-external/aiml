@@ -4,6 +4,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useWorkflow } from "@/hooks/use-workflows";
 import { useState, useEffect } from "react";
 import { Workflow } from "@mastra/core/workflows";
+import dynamic from "next/dynamic";
+
+const CodeEditor = dynamic(
+  () => import("@/components/ide").then((mod) => mod.CodeEditor),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center h-[calc(100vh-180px)]">
+        <p className="text-gray-300/60">Loading editor...</p>
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 export function WorkflowPrompt({ workflowId }: { workflowId: string }) {
   const {
@@ -13,6 +26,8 @@ export function WorkflowPrompt({ workflowId }: { workflowId: string }) {
     isUpdating,
   } = useWorkflow(workflowId);
   const [prompt, setPrompt] = useState(workflow?.prompt || null);
+
+  const [isClientSide, setIsClientSide] = useState(false);
 
   useEffect(() => {
     if (!prompt && workflow?.prompt) {
@@ -26,6 +41,10 @@ export function WorkflowPrompt({ workflowId }: { workflowId: string }) {
       });
     }
   }, [prompt, workflow]);
+
+  useEffect(() => {
+    setIsClientSide(true);
+  }, []);
 
   return (
     <ScrollArea className="h-[calc(100vh-126px)] px-4 pb-4 text-xs w-[400px]">
@@ -45,11 +64,18 @@ export function WorkflowPrompt({ workflowId }: { workflowId: string }) {
           </div>
         ) : (
           <div className="h-[calc(100vh-180px)]">
-            <textarea
-              className="w-full h-full p-3 bg-aiml-bg-1 border border-aiml-border rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-aiml-accent text-aiml-el-5 font-mono"
-              value={prompt || ""}
-              onChange={(e) => setPrompt(e.target.value)}
-            />
+            {isClientSide ? (
+              <CodeEditor
+                key="prompt-editor"
+                // className="w-full h-full p-3 bg-aiml-bg-1 border border-aiml-border rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-aiml-accent text-aiml-el-5 font-mono"
+                value={prompt || ""}
+                onChange={(value) => setPrompt(value || "")}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-[calc(100vh-180px)]">
+                <p className="text-gray-300/60">Loading workflow prompt...</p>
+              </div>
+            )}
           </div>
         )}
       </div>

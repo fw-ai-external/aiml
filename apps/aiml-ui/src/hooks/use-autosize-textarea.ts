@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from 'react';
 
 interface UseAutosizeTextAreaProps {
-  ref: React.RefObject<HTMLTextAreaElement>;
+  ref: React.RefObject<HTMLTextAreaElement | null>;
   maxHeight?: number;
   borderWidth?: number;
   dependencies: React.DependencyList;

@@ -51,10 +51,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: { workflowId: string } }
-) {
+export async function POST(request: Request, props: { params: Promise<{ workflowId: string }> }) {
+  const params = await props.params;
   try {
     const workflowId = params.workflowId;
     const body = await request.json();

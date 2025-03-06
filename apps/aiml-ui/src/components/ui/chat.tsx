@@ -202,7 +202,7 @@ interface ChatFormProps {
   children: (props: {
     files: File[] | null;
     setFiles: React.Dispatch<React.SetStateAction<File[] | null>>;
-  }) => ReactElement;
+  }) => ReactElement<any>;
 }
 
 export const ChatForm = forwardRef<HTMLFormElement, ChatFormProps>(

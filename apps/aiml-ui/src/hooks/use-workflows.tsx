@@ -1,3 +1,4 @@
+"use client";
 import type { Workflow } from "@mastra/core/workflows";
 import {
   createContext,

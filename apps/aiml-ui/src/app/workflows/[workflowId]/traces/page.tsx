@@ -1,4 +1,5 @@
-"use client";
+"use client";;
+import { use } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -7,11 +8,12 @@ import { WorkflowInformation } from "@/domains/workflows/workflow-information";
 import { WorkflowTraces } from "@/domains/workflows/workflow-traces";
 import { useWorkflow } from "@/hooks/use-workflows";
 
-export default function WorkflowTracesPage({
-  params,
-}: {
-  params: { workflowId: string };
-}) {
+export default function WorkflowTracesPage(
+  props: {
+    params: Promise<{ workflowId: string }>;
+  }
+) {
+  const params = use(props.params);
   const { workflow, isLoading: isWorkflowLoading } = useWorkflow(
     params.workflowId
   );
