@@ -5,12 +5,19 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
+
   const fireworks = createFireworks({
     apiKey: process.env.FIREWORK_API_KEY,
+    fetch: (url, options) => {
+      console.log("fetching", url);
+      return fetch(url, options);
+    },
   });
+
   const result = streamText({
-    model: fireworks("accounts/fireworks/models/deepseek-v3") as any,
+    model: fireworks("accounts/fireworks/models/deepseek-r1"),
     messages,
   });
+
   return result.toDataStreamResponse();
 }

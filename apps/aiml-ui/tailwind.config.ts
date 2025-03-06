@@ -19,11 +19,11 @@ export default {
       },
       colors: {
         aiml: {
-          "bg-1": "#121212", // used for main background
-          "bg-2": "#171717", // used for view-windowed background
-          "bg-3": "#1a1a1a", // sed for areas in view window that need separation
-          "bg-4": "#262626", // overlay modal -> dialog e.t.c
-          "bg-5": "#2e2e2e", // context menu, dropdown
+          "bg-1": "#121212",
+          "bg-2": "#171717",
+          "bg-3": "#1a1a1a",
+          "bg-4": "#262626",
+          "bg-5": "#2e2e2e",
           "bg-6": "#202020",
           "bg-7": "#5f5fc5",
           "bg-8": "#242424",
@@ -41,7 +41,7 @@ export default {
           "border-5": "#5699a8",
           "border-6": "#212121",
           "border-7": "#2f2f2f",
-          "border-destructive": "hsl(3deg, 72.4%, 51.6%)", //colors should be hsl/oklch values
+          "border-destructive": "hsl(3deg, 72.4%, 51.6%)",
           "border-connected": "#6cd063",
           "el-1": "#5c5c5f",
           "el-2": "#707070",
@@ -54,14 +54,11 @@ export default {
           "el-connected": "#6cd063",
         },
         "dialog-bg": "rgb(34, 34, 34)",
-
-        // shadcn colors
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -99,7 +96,9 @@ export default {
           "linear-gradient(90deg, rgba(95, 120, 62, 0.05) 0%, rgba(153, 153, 153, 0.00) 100%)",
       },
       borderColor: {
-        gray: { 6: "hsla(0, 0%, 60%, 20%)" },
+        gray: {
+          "6": "hsla(0, 0%, 60%, 20%)",
+        },
       },
       borderWidth: {
         thin: "0.5px",
@@ -119,12 +118,20 @@ export default {
           },
         },
         "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
+          from: {
+            height: "0",
+          },
+          to: {
+            height: "var(--radix-accordion-content-height)",
+          },
         },
         "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+          from: {
+            height: "var(--radix-accordion-content-height)",
+          },
+          to: {
+            height: "0",
+          },
         },
       },
       animation: {
