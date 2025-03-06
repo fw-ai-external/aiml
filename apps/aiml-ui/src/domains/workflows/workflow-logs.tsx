@@ -9,7 +9,7 @@ export function WorkflowLogs({ runId }: { runId: string }) {
   const { logs, isLoading, refetchLogs } = useLogsByRunId(runId);
 
   return (
-    <ScrollArea className="h-[calc(100vh-126px)] px-4 pb-4 text-xs w-[400px]">
+    <ScrollArea className="h-[calc(100vh-126px)] px-4 pb-4 text-xs w-full">
       <div className="flex justify-end sticky top-0 bg-aiml-bg-2 py-2">
         <Button variant="outline" onClick={() => refetchLogs(runId)}>
           {isLoading ? (

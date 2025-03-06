@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useWorkflow } from "@/hooks/use-workflows";
 import { useState, useEffect } from "react";
-import { Workflow } from "@mastra/core/workflows";
 import { JsonViewer } from "@/components/json-viewer";
 
 export function WorkflowDebug({
@@ -14,28 +13,30 @@ export function WorkflowDebug({
   debugType: "ast" | "elementTree" | "stepGraph";
 }) {
   const {
-    workflow,
+    prompt: workflowPrompt,
     isLoading: isWorkflowLoading,
-    updateWorkflow,
+    astDiagnostics,
+    elementTree,
+    astNodes,
+    stepGraph,
+    updatePrompt,
     isUpdating,
   } = useWorkflow(workflowId);
-  const [prompt, setPrompt] = useState(workflow?.prompt || null);
+  const [prompt, setPrompt] = useState(workflowPrompt || null);
 
   useEffect(() => {
-    if (!prompt && workflow?.prompt) {
-      setPrompt(workflow.prompt);
+    if (!prompt && workflowPrompt) {
+      setPrompt(workflowPrompt);
     }
-    if (workflow && prompt !== workflow.prompt) {
-      updateWorkflow({ ...workflow, prompt } as Workflow & {
-        prompt: string;
-      }).catch((error) => {
+    if (workflowPrompt && prompt !== workflowPrompt) {
+      updatePrompt(prompt || "").catch((error) => {
         console.error("Error updating workflow prompt", error);
       });
     }
-  }, [prompt, workflow]);
+  }, [prompt, workflowPrompt]);
 
   return (
-    <ScrollArea className="h-[calc(100vh-126px)] px-4 pb-4 text-xs w-[400px]">
+    <ScrollArea className="h-[calc(100vh-126px)] px-4 pb-4 text-xs w-full">
       <div className="flex justify-end sticky top-0 bg-aiml-bg-2 py-2">
         <Button variant="outline" onClick={() => {}}>
           {isWorkflowLoading ? (
@@ -52,7 +53,18 @@ export function WorkflowDebug({
           </div>
         ) : (
           <div className="h-[calc(100vh-180px)]">
-            <JsonViewer data={workflow?.[debugType] || []} />
+            <JsonViewer
+              data={
+                debugType === "ast"
+                  ? {
+                      nodes: astNodes,
+                      diagnostics: astDiagnostics,
+                    }
+                  : debugType === "elementTree"
+                    ? elementTree
+                    : stepGraph
+              }
+            />
           </div>
         )}
       </div>

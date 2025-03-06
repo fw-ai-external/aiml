@@ -14,8 +14,18 @@
   "bin": {
     "mdx-language-server": "./dist/index.js"
   },
-  "files": ["dist"],
-  "keywords": ["IntelliSense", "AIML", "LLM", "fireworks", "language-server", "AI", "agents"],
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "IntelliSense",
+    "AIML",
+    "LLM",
+    "fireworks",
+    "language-server",
+    "AI",
+    "agents"
+  ],
   "scripts": {
     "test-api": "bun test",
     "dev": "bun run dev.ts --watch",
