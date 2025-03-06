@@ -50,7 +50,12 @@ export function CodeEditor({
   }, []);
 
   useEffect(() => {
-    wait?.then(() => setIsReady(true));
+    wait
+      ?.then(() => setIsReady(true))
+      .catch((error) => {
+        // This is for dev hot reloads
+        setIsReady(true);
+      });
   }, []);
 
   if (!isReady) {
@@ -58,10 +63,19 @@ export function CodeEditor({
   }
 
   return (
-    <div ref={editorRef} className="h-full w-full">
+    <div ref={editorRef} className="h-[95%] w-full rounded-xl overflow-hidden">
       <Editor
         height={editorHeight}
-        programmingLanguage="javascript"
+        options={{
+          minimap: {
+            enabled: false,
+          },
+          glyphMargin: false,
+          lineNumbers: "off",
+          showFoldingControls: "never",
+          scrollBeyondLastLine: false,
+        }}
+        programmingLanguage="mdx"
         value={value}
         onChange={onChange}
       />
