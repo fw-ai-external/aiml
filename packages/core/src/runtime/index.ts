@@ -5,6 +5,7 @@ import { BuildContext } from "./BuildContext";
 import { StepValue } from "./StepValue";
 import { ExecutionGraphElement } from "./types";
 import { Workflow } from "@mastra/core/workflows";
+import { RunValue } from "./RunValue";
 
 type WorkflowRunState = Awaited<ReturnType<Workflow["getState"]>>;
 
@@ -199,6 +200,26 @@ export class Runtime<
     }
   }
 
+  public runStream(input: InputType) {
+    const { runId, start } = this.workflow.createRun();
+
+    const run = new RunValue({ runId });
+
+    const workflowOutput = start({
+      triggerData: {
+        input: new StepValue(input),
+        chatHistory: [],
+        userInput: null,
+        datamodel: {},
+      },
+    });
+
+    workflowOutput.then(async (results) => {
+      await run.finalize();
+    });
+
+    return run;
+  }
   public toGraph() {
     return this.workflow.stepGraph;
   }
