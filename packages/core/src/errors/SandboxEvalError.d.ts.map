@@ -1,1 +1,0 @@
-{"version":3,"file":"SandboxEvalError.d.ts","sourceRoot":"","sources":["SandboxEvalError.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,SAAS,EAAE,MAAM,aAAa,CAAC;AAExC;;GAEG;AACH,qBAAa,gBAAiB,SAAQ,SAAS;IAC7C,OAAO,EAAE,EAAE,GAAG,IAAI,CAAC;gBACP,eAAe,EAAE,MAAM,EAAE,OAAO,GAAE,EAAE,GAAG,IAAW;IAK9D,WAAW,IAAI,KAAK;CAGrB"}
