@@ -65,7 +65,7 @@ export default function Workflows() {
                     <TableCell className="text-aimll-5 text-sm">
                       <span
                         onClick={() => {
-                          router.push(`/workflows/${key}/graph`);
+                          router.push(`/workflows/${key}`);
                         }}
                         className="hover:no-underline"
                       >

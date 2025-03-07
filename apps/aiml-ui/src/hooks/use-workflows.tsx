@@ -150,6 +150,7 @@ export const useWorkflow = (workflowId: string) => {
   );
 
   return {
+    name: workflow?.name,
     prompt: workflow?.prompt,
     astNodes: workflow?.ast?.nodes,
     astDiagnostics: workflow?.ast?.diagnostics,

@@ -4,7 +4,9 @@ import { streamText } from "ai";
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  const { messages, workflowId } = await req.json();
+  console.log("workflowId", workflowId);
+  console.log("messages", messages);
 
   const fireworks = createFireworks({
     apiKey: process.env.FIREWORK_API_KEY,

@@ -23,6 +23,9 @@ export default function WorkflowGraphPage(props: {
   } = useWorkflow(params.workflowId);
   const runtime = useChatRuntime({
     api: "/api/chat",
+    body: {
+      workflowId: params.workflowId,
+    },
   });
 
   return (
