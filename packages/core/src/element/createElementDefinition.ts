@@ -33,25 +33,7 @@ function isBaseElement(
 function convertToBaseElement(node: FireAgentNode | BaseElement): BaseElement {
   console.log("=-------------------- convertToBaseElement", node.tag);
   if (isBaseElement(node)) {
-    return new BaseElement({
-      id: node.id,
-      key: node.key,
-      tag: node.tag,
-      role: node.role,
-      elementType: node.elementType,
-      attributes: node.attributes || {},
-      children: node.children?.map(convertToBaseElement) || [],
-      parent: node.parent as unknown as WeakRef<BaseElement>,
-      type: node.type,
-      lineStart: node.lineStart,
-      lineEnd: node.lineEnd,
-      columnStart: node.columnStart,
-      columnEnd: node.columnEnd,
-      allowedChildren: "any", // Add missing property
-      schema: z.any(), // Add missing property
-      onExecutionGraphConstruction: node.onExecutionGraphConstruction,
-      execute: (node as any).execute,
-    });
+    return node as BaseElement;
   }
 
   // Default values for line/column properties since they're required

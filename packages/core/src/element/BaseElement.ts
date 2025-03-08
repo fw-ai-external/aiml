@@ -168,49 +168,55 @@ export class BaseElement implements Omit<IBaseElement, "parent" | "children"> {
         result: context.context.input,
       };
     }
-
-    console.log(
-      "=-------------------- execute before execute",
-      this.tag,
-      this._execute.toString()
-    );
-    const result = await this._execute(
-      {
-        ...context,
-        attributes: this.attributes,
-        machine: {
-          id: (context as any).machine.id,
-          secrets: {
-            ...context,
+    try {
+      const result = await this._execute(
+        {
+          ...context,
+          attributes: this.attributes,
+          machine: {
+            id: (context as any)?.machine?.id,
+            secrets: {
+              ...context,
+            },
           },
-        },
-        run: {
-          id: (context as any).run.id,
-        },
-        runId: (context as any).runId,
-      } as any,
-      childrenNodes
-    ).catch((error) => {
-      console.error("Error executing element:", error);
-      return new StepValue({
-        type: "error",
-        code: ErrorCode.SERVER_ERROR,
-        error: error instanceof Error ? error.message : String(error),
+          run: {
+            id: (context as any)?.run?.id,
+          },
+          runId: (context as any)?.runId,
+        } as any,
+        childrenNodes
+      ).catch((error) => {
+        console.error("Error executing element:", error);
+        return new StepValue({
+          type: "error",
+          code: ErrorCode.SERVER_ERROR,
+          error: error instanceof Error ? error.message : String(error),
+        });
       });
-    });
-    this._dataModel = {
-      ...this._dataModel,
-      [this.id]: result,
-    };
-    console.log(
-      "=-------------------- execute result",
-      this.tag,
-      await result.type(),
-      await result.value()
-    );
-    return {
-      result,
-    };
+      console.log("=-------------------- execute after execute", this.tag);
+      this._dataModel = {
+        ...this._dataModel,
+        [this.id]: result,
+      };
+      console.log(
+        "=-------------------- execute result",
+        this.tag,
+        await result.type(),
+        await result.value()
+      );
+      return {
+        result,
+      };
+    } catch (error) {
+      console.error("Error executing element:", error);
+      return {
+        result: new StepValue({
+          type: "error",
+          code: ErrorCode.SERVER_ERROR,
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      };
+    }
   };
 
   async deactivate(): Promise<void> {
