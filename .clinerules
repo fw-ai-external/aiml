@@ -1,0 +1,71 @@
+# AIML Architecture & Development Guide
+
+## Project Overview
+
+AIML is an agentic runtime enviorment for working with larglanguage models, allowing for an englesh language prompt intermixed with JSX tags and templated variables using Javascript templateed string syntax in order to interact with models in a multi turn way. The project includes a debugging UI and VSCode plugins to assist developers in crafting high quality prompts, and a language server for AIML syntax. The packages are designed such that backend/runtime code does not not need to get shipped with the frontend or the vscode plugin. The Project is built with TypeScript and follows a modular architecture pattern.
+
+## Definitions
+
+- AIML: A text based syntax derived from a loose parsing of MDX, where unparsable content is viewed as simply text
+- AIML AST: A JSON data structiure defining the elements in the AIML file, with each node representing a 1:1 of content in the AIML file.
+- AIML Elements: A nested structure derived from the AIML where all content is an element or an attribute/value. Each element is an instance of BaseElement. The nested structure is heavaly inspired by SCXML.
+- AIML Execution Graph: A declaritive JSON structure represeting how the runtime will exicute each element, in what order, and with what conditions.
+
+# Project Guidelines
+
+## Documentation Requirements
+
+- Update relevant documentation in /design-docs when modifying features
+- Keep README.md in sync with new capabilities
+- Maintain changelog entries in CHANGELOG.md
+
+## Architecture Decision Records
+
+Create ADRs in /design-docs/adr for:
+
+- Major dependency changes
+- Architectural pattern changes
+- New integration patterns
+- Database schema changes
+- Follow template in /design-docs/adr/template.md
+
+## Code Style & Patterns
+
+- Use TypeScript, and avoid typing as any or undefined
+- Prefer composition over inheritance
+- Use repository pattern for data access
+- Functions should be no more then 50 lines in length.
+- Generally, each file should only have 1 function or class defined. Exception being for utility functions.
+- Classes should be no more then 300 lines in total.
+- Modules that are prefixed with `@fireworks/` are local workspace packages.
+
+## Testing Standards
+
+- Unit tests required for business logic
+- Integration tests for API endpoints
+- E2E tests for critical user flows
+- Use `bun:test` for test utilities
+- Do not mock! Mocking modules and elements causes more bugs then they solve for
+
+## Before writing code:
+
+1. Analyze all code files thoroughly
+2. Get full context
+3. Write .MD implementation plan, including a mermade graph if the change is archatectual
+4. "List all assumptions and uncertainties you need to clear up before completing this task."
+5. Then implement code. "DO NOT BE LAZY. DO NOT OMIT CODE."
+
+# Security
+
+## Sensitive Files
+
+DO NOT read or modify:
+
+- .env files
+- Any file containing API keys, tokens, or credentials
+
+## Security Practices
+
+- Never commit sensitive files
+- Use environment variables for secrets
+- Keep credentials out of logs and output
