@@ -10,8 +10,17 @@ import type {
   RunstepOutput,
 } from "@fireworks/types";
 import { z } from "zod";
-import { StepValue } from "../runtime/StepValue";
+import { ErrorCode } from "../utils/errorCodes";
+import { StepValue } from "../runtime";
+import { ActionContext } from "@mastra/core";
+
 export class BaseElement implements Omit<IBaseElement, "parent" | "children"> {
+  public readonly inputSchema = z.object({
+    input: z.any(),
+  });
+  public readonly outputSchema = z.object({
+    result: z.any(),
+  });
   public readonly id: string;
   public readonly key: string;
   public readonly tag: string;
@@ -23,7 +32,7 @@ export class BaseElement implements Omit<IBaseElement, "parent" | "children"> {
   public readonly schema: z.ZodType<any>;
   public readonly propsSchema: any;
   public readonly description?: string;
-  public readonly onExecutionGraphConstruction?: (
+  public readonly onExecutionGraphConstruction: (
     buildContext: BuildContext
   ) => ExecutionGraphElement;
   public readonly enter?: () => Promise<void>;
@@ -44,6 +53,10 @@ export class BaseElement implements Omit<IBaseElement, "parent" | "children"> {
     ) => Promise<boolean>;
   };
   private _isActive: boolean = false;
+  private _execute?: (
+    context: ElementExecutionContext,
+    childrenNodes: BaseElement[]
+  ) => Promise<StepValue>;
 
   constructor(
     config: Omit<IBaseElementConfig, "parent" | "children"> & {
@@ -72,6 +85,13 @@ export class BaseElement implements Omit<IBaseElement, "parent" | "children"> {
     this.lineEnd = config.lineEnd ?? 0;
     this.columnStart = config.columnStart ?? 0;
     this.columnEnd = config.columnEnd ?? 0;
+    this._execute = config.execute;
+    console.log(
+      "=-------------------- config.execute internal",
+      this.tag,
+      config.execute,
+      this._execute
+    );
   }
 
   get parent(): BaseElement | undefined {
@@ -124,34 +144,74 @@ export class BaseElement implements Omit<IBaseElement, "parent" | "children"> {
     this.stepConditions = value;
   }
 
-  async execute(
-    context: ElementExecutionContext<any, RunstepOutput>,
+  // must be declared as a property arrow function to avoid binding issues
+  execute = async (
+    context: ActionContext<any>,
     childrenNodes: BaseElement[] = []
-  ): Promise<StepValue> {
+  ): Promise<{ result: StepValue }> => {
+    console.log("=-------------------- execute", this.tag);
     if (!this._isActive) {
       this._isActive = true;
       if (this.enter) await this.enter();
     }
 
-    let resultObject: Record<string, unknown> = {};
-    if (["state", "user-input", "output"].includes(this.role)) {
-      resultObject = { id: this.id, isActive: this._isActive };
+    console.log("=-------------------- execute after enter", this.tag);
+
+    if (!this._execute) {
+      console.log("=-------------------- no execute", context);
+      // this element is a pass-through element
+      this._dataModel = {
+        ...this._dataModel,
+        [this.id]: null,
+      };
+      return {
+        result: context.context.input,
+      };
     }
 
-    const result = new StepValue({
-      type: "object",
-      object: resultObject,
-      raw: JSON.stringify(resultObject),
-      wasHealed: false,
+    console.log(
+      "=-------------------- execute before execute",
+      this.tag,
+      this._execute.toString()
+    );
+    const result = await this._execute(
+      {
+        ...context,
+        attributes: this.attributes,
+        machine: {
+          id: (context as any).machine.id,
+          secrets: {
+            ...context,
+          },
+        },
+        run: {
+          id: (context as any).run.id,
+        },
+        runId: (context as any).runId,
+      } as any,
+      childrenNodes
+    ).catch((error) => {
+      console.error("Error executing element:", error);
+      return new StepValue({
+        type: "error",
+        code: ErrorCode.SERVER_ERROR,
+        error: error instanceof Error ? error.message : String(error),
+      });
     });
-
     this._dataModel = {
       ...this._dataModel,
       [this.id]: result,
     };
-
-    return result;
-  }
+    console.log(
+      "=-------------------- execute result",
+      this.tag,
+      await result.type(),
+      await result.value()
+    );
+    return {
+      result,
+    };
+  };
 
   async deactivate(): Promise<void> {
     if (this._isActive) {

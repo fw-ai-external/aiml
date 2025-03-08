@@ -1,33 +1,36 @@
 import { describe, expect, test, beforeEach, mock } from "bun:test";
-import { BaseElement } from "../element";
 import { ReplayableAsyncIterableStream } from "../utils/streams";
 import { StepValue } from "./StepValue";
 import { RunValue } from "./RunValue";
-import { APIStreamEvent } from "../types";
-import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
+import type { APIStreamEvent } from "../types";
+import type { ElementType } from "@fireworks/types";
 
-// Mock the StepValue to remove async complexity in tests
-function createMockStepValue(data: any) {
+type MockStepValueData =
+  | {
+      type: "text";
+      text: string;
+    }
+  | ReplayableAsyncIterableStream<APIStreamEvent>;
+
+function createMockStepValue(data: MockStepValueData): StepValue {
   const stepValue = new StepValue(data);
 
-  // Mock methods to prevent timeouts
   const originalStreamIterator = stepValue.streamIterator.bind(stepValue);
-  stepValue.streamIterator = mock(async function* () {
-    if (typeof data === "object" && "text" in data) {
-      yield { type: "text", text: data.text };
-      return;
-    }
+  stepValue.streamIterator = mock(
+    async function* (): AsyncIterableIterator<APIStreamEvent> {
+      if (typeof data === "object" && "text" in data) {
+        yield { type: "text", text: data.text } as APIStreamEvent;
+        return;
+      }
 
-    // If it's a stream, use the original implementation
-    if (data instanceof ReplayableAsyncIterableStream) {
-      yield* await originalStreamIterator();
-    } else {
-      yield data;
+      if (data instanceof ReplayableAsyncIterableStream) {
+        yield* await originalStreamIterator();
+      } else {
+        yield data as APIStreamEvent;
+      }
     }
-  });
+  );
 
-  // Mock valueReady to always return true in tests
   Object.defineProperty(stepValue, "valueReady", {
     get: () => true,
   });
@@ -35,256 +38,160 @@ function createMockStepValue(data: any) {
   return stepValue;
 }
 
-describe("RunValue unit tests", () => {
+function createMockStep(config: {
+  id: string;
+  elementType: ElementType;
+  input: StepValue;
+  output: StepValue;
+}) {
+  return {
+    id: config.id,
+    elementType: config.elementType,
+    path: [],
+    status: "active",
+    input: config.input,
+    output: config.output,
+  };
+}
+
+describe("RunValue", () => {
   let runValue: RunValue;
+  const RUN_ID = "test-run-uuid";
 
   beforeEach(() => {
-    runValue = new RunValue({
-      runId: "run-uuid",
+    runValue = new RunValue({ runId: RUN_ID });
+  });
+
+  describe("state management", () => {
+    test("should initialize with correct runId", () => {
+      expect(runValue.uuid).toBe(RUN_ID);
+      expect(runValue.finished).toBe(false);
+      expect(runValue.allValues).toHaveLength(0);
+    });
+
+    test("should add step and maintain correct order", async () => {
+      const mockValue1 = createMockStepValue({ type: "text", text: "first" });
+      const mockValue2 = createMockStepValue({ type: "text", text: "second" });
+
+      const step1 = createMockStep({
+        id: "step1",
+        elementType: "invoke",
+        input: mockValue1,
+        output: mockValue1,
+      });
+
+      const step2 = createMockStep({
+        id: "step2",
+        elementType: "invoke",
+        input: mockValue2,
+        output: mockValue2,
+      });
+
+      runValue.addActiveStep(step1);
+      runValue.addActiveStep(step2);
+
+      expect(runValue.allValues).toHaveLength(2);
+      expect(await runValue.allValues[0].type()).toBe("text");
+      expect(await runValue.allValues[1].type()).toBe("text");
     });
   });
 
-  test("should add a RunStepValue correctly", async () => {
-    const mockRunStepValue = createMockStepValue({
-      type: "text",
-      text: "test-value",
-    });
-
-    const stateEvent = {
-      type: "state",
-      id: "testState",
-      node: new BaseElement({
-        id: "testState",
-        key: uuidv4(),
-        tag: "invoke",
-        elementType: "invoke",
-        attributes: {},
-        role: "action",
-        type: "element",
-        lineStart: 0,
-        lineEnd: 0,
-        columnStart: 0,
-        columnEnd: 0,
-        allowedChildren: "any",
-        schema: z.object({}),
-      }),
-      path: [],
-      input: mockRunStepValue,
-      output: mockRunStepValue,
-    };
-
-    runValue.addState(stateEvent);
-
-    expect(runValue.allValues).toHaveLength(1);
-    expect(runValue.allValues[0].id).toEqual(mockRunStepValue.id);
-    expect(await runValue.allValues[0].type()).toEqual("text");
-  });
-
-  test("should return the final output correctly", async () => {
-    const mockRunStepValue = createMockStepValue({
-      type: "text",
-      text: "test-value",
-    });
-
-    const stateEvent = {
-      type: "state",
-      id: "testState",
-      node: new BaseElement({
-        id: "testState",
-        key: uuidv4(),
-        tag: "invoke",
-        elementType: "invoke",
-        attributes: {},
-        role: "action",
-        type: "element",
-        lineStart: 0,
-        lineEnd: 0,
-        columnStart: 0,
-        columnEnd: 0,
-        allowedChildren: "any",
-        schema: z.object({}),
-      }),
-      path: [],
-      input: mockRunStepValue,
-      output: mockRunStepValue,
-    };
-
-    runValue.addState(stateEvent);
-
-    const mockFinalRunStepValue = createMockStepValue({
-      type: "text",
-      text: "final-value",
-    });
-
-    const finalStateEvent = {
-      type: "state",
-      id: "testState",
-      node: new BaseElement({
-        id: "testState",
-        key: uuidv4(),
-        tag: "final",
+  describe("finalization", () => {
+    test("should properly finalize run value", async () => {
+      const mockValue = createMockStepValue({ type: "text", text: "final" });
+      const finalStep = createMockStep({
+        id: "final",
         elementType: "final",
-        attributes: {},
-        role: "state",
-        type: "element",
-        lineStart: 0,
-        lineEnd: 0,
-        columnStart: 0,
-        columnEnd: 0,
-        allowedChildren: "any",
-        schema: z.object({}),
-      }),
-      path: [],
-      input: mockRunStepValue,
-      output: mockFinalRunStepValue,
-    };
+        input: mockValue,
+        output: mockValue,
+      });
 
-    runValue.addState(finalStateEvent);
+      runValue.addActiveStep(finalStep);
+      await runValue.finalize();
 
-    // Add small delay to ensure processing completes
-    await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(runValue.finished).toBe(true);
+      const response = await runValue.responseValue();
+      expect(response).toEqual({ type: "text", text: "final" });
+    });
 
-    expect(runValue.allValues).toHaveLength(2);
-    expect(runValue.allValues[1].id).toEqual(mockFinalRunStepValue.id);
-    expect(await runValue.allValues[1].type()).toEqual("text");
-
-    // Call finalize to ensure complete state
-    await runValue.finalize();
-
-    const responseValue = await runValue.responseValue();
-    expect(responseValue).toEqual({
-      text: "final-value",
-      type: "text",
+    test("should handle empty run value finalization", async () => {
+      await runValue.finalize();
+      expect(runValue.finished).toBe(true);
+      const response = await runValue.responseValue();
+      expect(response).toEqual({ type: "text", text: "No output available" });
     });
   });
 
-  test("should finalize the RunValue", async () => {
-    const runValue = new RunValue({
-      runId: "run-uuid",
-    });
-    await runValue.finalize();
-    expect(runValue.finished).toBe(true);
-  });
+  describe("streaming", () => {
+    test("should properly handle streaming responses", async () => {
+      const mockEvents: APIStreamEvent[] = [
+        { type: "text-delta", partial: "part1", delta: "part1" } as const,
+        { type: "text-delta", partial: "part1part2", delta: "part2" } as const,
+        { type: "text", text: "part1part2" } as const,
+      ];
 
-  test("should create a stream", async () => {
-    const runValue = new RunValue({
-      runId: "run-uuid",
-    });
-    const mockRunStepValue_1 = createMockStepValue({
-      type: "text",
-      text: "test-stream-1",
-    });
+      const mockStream = new ReplayableAsyncIterableStream<APIStreamEvent>(
+        mockEvents
+      );
+      const mockValue = createMockStepValue(mockStream);
 
-    // Create a simpler mock stream for testing
-    const mockEvents: APIStreamEvent[] = [
-      {
-        type: "text-delta",
-        partial: "test-stream-1",
-        delta: "test-stream-1",
-      } as APIStreamEvent,
-      {
-        type: "text-delta",
-        partial: "test-stream-1test-stream-2",
-        delta: "test-stream-2",
-      } as APIStreamEvent,
-      { type: "text", text: "test-stream-1test-stream-2" } as APIStreamEvent,
-    ];
-
-    const mockIterator = new ReplayableAsyncIterableStream<APIStreamEvent>(
-      mockEvents
-    );
-    const mockRunStepValue_2 = createMockStepValue(mockIterator);
-
-    const stateEvent = {
-      type: "state",
-      id: "testState",
-      node: new BaseElement({
-        id: "testState",
-        key: uuidv4(),
-        tag: "invoke",
-        elementType: "invoke",
-        attributes: {},
-        role: "action",
-        type: "element",
-        lineStart: 0,
-        lineEnd: 0,
-        columnStart: 0,
-        columnEnd: 0,
-        allowedChildren: "any",
-        schema: z.object({}),
-      }),
-      path: [],
-      input: mockRunStepValue_1,
-      output: mockRunStepValue_1,
-    };
-    runValue.addState(stateEvent);
-
-    const stateEvent2 = {
-      type: "state",
-      id: "testState2",
-      node: new BaseElement({
-        id: "testState2",
-        key: uuidv4(),
-        tag: "final",
+      const streamStep = createMockStep({
+        id: "stream",
         elementType: "final",
-        attributes: {},
-        role: "state",
-        type: "element",
-        lineStart: 0,
-        lineEnd: 0,
-        columnStart: 0,
-        columnEnd: 0,
-        allowedChildren: "any",
-        schema: z.object({}),
-      }),
-      path: [],
-      input: mockRunStepValue_1,
-      output: mockRunStepValue_2,
-    };
-    runValue.addState(stateEvent2);
+        input: mockValue,
+        output: mockValue,
+      });
 
-    // Add small delay to ensure processing completes
-    await new Promise((resolve) => setTimeout(resolve, 10));
+      runValue.addActiveStep(streamStep);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      await runValue.finalize();
 
-    // Call finalize to ensure complete state
-    await runValue.finalize();
+      const stream = await runValue.responseStream();
+      const reader = stream.getReader();
 
-    // Validate the mockRunStepValue_2 can be resolved
-    const mockValue = await mockRunStepValue_2.value();
-    expect(mockValue).toEqual({
-      type: "text",
-      text: "test-stream-1test-stream-2",
-    });
+      const chunks: APIStreamEvent[] = [];
+      let done = false;
 
-    // Use a simpler approach to test the stream
-    const chunks: APIStreamEvent[] = [];
-    for (const chunk of mockEvents) {
-      chunks.push(chunk);
-    }
-    expect(chunks).toEqual(mockEvents);
-
-    // Get the response value
-    const doneValue = await runValue.responseValue();
-    expect(doneValue).toEqual({
-      type: "text",
-      text: "test-stream-1test-stream-2",
-    });
-
-    // Test the stream functionality
-    const stream = await runValue.responseStream();
-    const reader = stream.getReader();
-
-    let chunkCount = 0;
-    let done = false;
-
-    while (!done && chunkCount < 10) {
-      const result = await reader.read();
-      if (result.done) {
-        done = true;
+      while (!done) {
+        const result = await reader.read();
+        if (result.done) {
+          done = true;
+        } else {
+          const data = JSON.parse(
+            new TextDecoder().decode(result.value).replace("[data] ", "")
+          );
+          chunks.push(data);
+        }
       }
-      chunkCount++;
-    }
 
-    expect(done).toBe(true);
+      expect(chunks).toEqual(mockEvents);
+      const finalResponse = await runValue.responseValue();
+      expect(finalResponse).toEqual({ type: "text", text: "part1part2" });
+    });
+
+    test("should handle empty stream", async () => {
+      const mockEvents: APIStreamEvent[] = [];
+      const mockStream = new ReplayableAsyncIterableStream<APIStreamEvent>(
+        mockEvents
+      );
+      const mockValue = createMockStepValue(mockStream);
+
+      const streamStep = createMockStep({
+        id: "empty-stream",
+        elementType: "final",
+        input: mockValue,
+        output: mockValue,
+      });
+
+      runValue.addActiveStep(streamStep);
+      await runValue.finalize();
+
+      const stream = await runValue.responseStream();
+      const reader = stream.getReader();
+      const result = await reader.read();
+
+      expect(result.value).toEqual(new TextEncoder().encode("[done]"));
+      expect(result.done).toBe(false);
+    });
   });
 });

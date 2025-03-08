@@ -33,6 +33,7 @@ describe("TransitionElement", () => {
       columnEnd: 0,
       allowedChildren: "any",
       schema: z.object({}),
+      onExecutionGraphConstruction: () => ({}) as any,
     });
 
     ctx = new ElementExecutionContext({
@@ -94,7 +95,7 @@ describe("TransitionElement", () => {
     );
 
     const result = await (element as BaseElement).execute(ctx);
-    const value = await result?.value();
+    const value = await result?.result.value();
     expect(value).toEqual({
       type: "object",
       object: { event: "next", target: "state2", conditionMet: true },
@@ -120,7 +121,7 @@ describe("TransitionElement", () => {
     );
 
     const result = await (element as BaseElement).execute(ctx);
-    const value = await result?.value();
+    const value = await result?.result?.value();
     expect(value).toEqual({
       type: "object",
       object: { event: "next", target: "state2", conditionMet: true },
@@ -146,7 +147,7 @@ describe("TransitionElement", () => {
     );
 
     const result = await (element as BaseElement).execute(ctx);
-    const value = await result?.value();
+    const value = await result?.result?.value();
     expect(value).toEqual({
       type: "object",
       object: { event: "next", target: "state2", conditionMet: false },

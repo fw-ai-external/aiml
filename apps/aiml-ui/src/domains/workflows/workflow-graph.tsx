@@ -9,6 +9,7 @@ import "@xyflow/react/dist/style.css";
 import { contructNodesAndEdges } from "./utils";
 import { WorkflowConditionNode } from "./workflow-condition-node";
 import { WorkflowDefaultNode } from "./workflow-default-node";
+import { WorkflowStateNode } from "@/domains/workflows/workflow-state-node";
 
 function WorkflowGraph({
   stepSubscriberGraph,
@@ -19,7 +20,6 @@ function WorkflowGraph({
   stepGraph: any;
   workflowId: string;
 }) {
-  console.log("workflow graph render");
   const { nodes: initialNodes, edges: initialEdges } = contructNodesAndEdges({
     stepGraph,
     stepSubscriberGraph,
@@ -28,6 +28,7 @@ function WorkflowGraph({
   const nodeTypes = {
     "default-node": WorkflowDefaultNode,
     "condition-node": WorkflowConditionNode,
+    "state-node": WorkflowStateNode,
   };
   return (
     <div className="w-full h-full">

@@ -1,7 +1,7 @@
-import { BaseElement } from "@fireworks/core";
 import { ExecutionGraphElement } from "./types";
 import { Workflow } from "@mastra/core/workflows";
-
+import { BaseElement } from "../element/BaseElement";
+import { BuildContext as BuildContextInterface } from "@fireworks/types";
 // Define missing types
 export interface StepConfig<
   TInput = any,
@@ -12,25 +12,25 @@ export interface StepConfig<
   when?: (context: TContext) => Promise<boolean>;
 }
 
-export class BuildContext {
+export class BuildContext implements BuildContextInterface {
   /**
    * A cache of already-constructed ExecutionGraphElements,
    * keyed by their SCXML element's 'id'.
    */
-  private graphCache = new Map<string, ExecutionGraphElement>();
+  public graphCache = new Map<string, ExecutionGraphElement>();
   public children: BaseElement[];
   constructor(
     public workflow: Workflow,
     public readonly elementKey: string,
     children: BaseElement[],
-    public readonly attributes: Record<string, any>,
+    public readonly attributes: Record<string, any> = {},
     public readonly conditions: StepConfig<any, any, any, any>,
     public readonly spec: BaseElement
   ) {
     this.children = children;
   }
 
-  private findElementByKey(
+  public findElementByKey(
     node: BaseElement,
     targetKey: string
   ): BaseElement | undefined {
@@ -85,7 +85,7 @@ export class BuildContext {
     }
   }
 
-  public createNewContextForChild(child: BaseElement): BuildContext {
+  public createNewContextForChild(child: BaseElement): BuildContextInterface {
     if (child instanceof BaseElement) {
       return new BuildContext(
         this.workflow,
@@ -94,7 +94,7 @@ export class BuildContext {
         child.attributes,
         this.conditions,
         child
-      );
+      ) as any as BuildContextInterface;
     }
     throw new Error(
       "Child passed to createNewContextForChild is not a BaseElement"

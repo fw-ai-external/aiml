@@ -72,7 +72,7 @@ describe("RaiseElement", () => {
     ) as BaseElement;
 
     const executeResult = await element.execute?.(ctx);
-    const value = await executeResult?.value();
+    const value = await executeResult?.result?.value();
     expect(value).toEqual({
       type: "object",
       object: { event: "test.event" },

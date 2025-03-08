@@ -1,8 +1,5 @@
 import { createElementDefinition } from "../createElementDefinition";
-import type { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
-import type { BaseElement } from "../";
-import type { RunstepOutput } from "../../types";
 import { z } from "zod";
 
 const forEachSchema = z.object({
@@ -20,10 +17,7 @@ export const ForEach = createElementDefinition<ForEachAttributes>({
   role: "action",
   elementType: "foreach",
   allowedChildren: "any",
-  execute: async function (
-    context: ElementExecutionContext<ForEachAttributes, RunstepOutput>,
-    childrenNodes: BaseElement[]
-  ): Promise<StepValue> {
+  execute: async function (context, childrenNodes) {
     const { array, item, index } = context.attributes;
     let arrayValue: unknown[];
     let originalItemValue: unknown;

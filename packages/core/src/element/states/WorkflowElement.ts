@@ -25,7 +25,7 @@ export const Workflow = createElementDefinition({
     return {
       id: "Incoming Request",
       type: "user-input", // SCXML is a container => state
-      subType: "scxml", // let subType reflect it's SCXML root
+      subType: "workflow", // let subType reflect it's SCXML root
       key: buildContext.elementKey,
       attributes: {
         ...buildContext.attributes,

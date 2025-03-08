@@ -1,5 +1,3 @@
-import { createFireworks } from "@ai-sdk/fireworks";
-import { streamText } from "ai";
 import { Runtime, astToRunnableBaseElementTree } from "@fireworks/core";
 import fs from "node:fs";
 
@@ -18,12 +16,13 @@ export async function POST(req: Request) {
     );
     persistedWorkflow = JSON.parse(fileContent);
   } catch (error) {
-    console.error(
+    throw new Error(
       `Error reading workflow file: ${error instanceof Error ? error.message : "Unknown error"}`
     );
     // Continue with empty workflow object
   }
-  const elementTree = astToRunnableBaseElementTree(persistedWorkflow.ast);
+
+  const elementTree = astToRunnableBaseElementTree(persistedWorkflow.ast.nodes);
   const workflow = new Runtime(elementTree as any);
 
   const result = workflow.runStream({
@@ -43,7 +42,5 @@ export async function POST(req: Request) {
   //   messages,
   // });
 
-  result;
-
-  return result.toDataStreamResponse();
+  return new Response(await result.responseStream());
 }

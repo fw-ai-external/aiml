@@ -2,7 +2,6 @@ import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
 import { BaseElement } from "../";
 import { ExecutionGraphElement } from "../../runtime/types";
-import { BuildContext } from "../../runtime/BuildContext";
 import { v4 as uuidv4 } from "uuid";
 
 const elseSchema = z.object({
@@ -18,9 +17,7 @@ export const Else = createElementDefinition({
   elementType: "else",
   allowedChildren: "any",
 
-  onExecutionGraphConstruction(
-    buildContext: BuildContext
-  ): ExecutionGraphElement {
+  onExecutionGraphConstruction(buildContext): ExecutionGraphElement {
     const cached = buildContext.getCachedGraphElement(
       buildContext.attributes.id
     );

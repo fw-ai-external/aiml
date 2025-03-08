@@ -72,7 +72,11 @@ export function WorkflowInformation({ workflowId }: { workflowId: string }) {
         <WorkflowDebug workflowId={workflowId} debugType="elementTree" />
       </TabsContent>
       <TabsContent value="stepGraph">
-        <WorkflowDebug workflowId={workflowId} debugType="stepGraph" />
+        <WorkflowDebug
+          key={`stepGraph-${workflowId}`}
+          workflowId={workflowId}
+          debugType="stepGraph"
+        />
       </TabsContent>
     </Tabs>
   );

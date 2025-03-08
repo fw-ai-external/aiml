@@ -15,7 +15,7 @@
     }
   },
   "scripts": {
-    "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build",
+    "build": "rm -rf dist tsconfig.tsbuildinfo",
     "dev": "bun run dev.ts --watch-dir ./src & tsc --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",

@@ -30,6 +30,7 @@ describe("FinalElement", () => {
       columnEnd: 0,
       allowedChildren: "any",
       schema: z.object({}),
+      onExecutionGraphConstruction: () => ({}) as any,
     });
 
     ctx = new ElementExecutionContext({
@@ -94,7 +95,7 @@ describe("FinalElement", () => {
     );
 
     const result = await (element as BaseElement).execute(ctx as any);
-    const value = await result?.value();
+    const value = await result?.result?.value();
     expect(value).toEqual({
       type: "object",
       object: { id: "final1", isActive: true },
@@ -121,7 +122,7 @@ describe("FinalElement", () => {
     );
 
     const result = await (element as BaseElement).execute(ctx as any);
-    const value = await result?.value();
+    const value = await result?.result?.value();
     expect(value).toEqual({
       type: "object",
       object: { id: "final1", isActive: true },

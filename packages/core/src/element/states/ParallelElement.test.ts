@@ -30,6 +30,7 @@ describe("ParallelElement", () => {
       columnEnd: 0,
       allowedChildren: "any",
       schema: z.object({}),
+      onExecutionGraphConstruction: () => ({}) as any,
     });
 
     ctx = new ElementExecutionContext({
@@ -97,7 +98,7 @@ describe("ParallelElement", () => {
     ) as unknown as BaseElement;
 
     const result = await element.execute(ctx as any);
-    const value = await result?.value();
+    const value = await result?.result?.value();
     expect(value).toEqual({
       type: "object",
       object: { id: "parallel1", isActive: true },
@@ -132,7 +133,7 @@ describe("ParallelElement", () => {
     ) as unknown as BaseElement;
 
     const result = await element.execute(ctx as any);
-    const value = await result?.value();
+    const value = await result?.result?.value();
     expect(value).toEqual({
       type: "object",
       object: { id: "parallel1", isActive: true },

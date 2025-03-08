@@ -2,7 +2,10 @@ export * from "./errors";
 export * from "./utils";
 export * from "./runtime";
 export * from "./errorCodes";
+export * from "./diagnostics";
 import { z } from "zod";
+import type { BuildContext } from "./runtime";
+import type { ExecutionGraphElement } from "./runtime";
 
 /**
  * All possible SCXML node types.
@@ -136,7 +139,7 @@ export interface Attributes {
   [key: string]: string | number | undefined | boolean;
 }
 
-export interface IBaseElement extends AIMLNode {
+export interface IBaseElement extends AIMLNode, input {
   type: "element";
   readonly id: string;
   readonly key: string;
@@ -145,7 +148,9 @@ export interface IBaseElement extends AIMLNode {
   readonly elementType: ElementType;
   readonly attributes: Attributes;
   readonly children: AIMLNode[];
-  readonly onExecutionGraphConstruction?: (buildContext: any) => any;
+  readonly onExecutionGraphConstruction: (
+    buildContext: BuildContext
+  ) => ExecutionGraphElement;
   readonly allowedChildren: AllowedChildrenType;
   readonly comments?: CommentNode[];
 }
@@ -161,13 +166,16 @@ export interface IBaseElementConfig {
   parent?: IBaseElement;
   enter?: () => Promise<void>;
   exit?: () => Promise<void>;
-  onExecutionGraphConstruction?: (buildContext: any) => any;
+  onExecutionGraphConstruction: (
+    buildContext: BuildContext
+  ) => ExecutionGraphElement;
   propsSchema?: any;
   description?: string;
   documentation?: string;
   allowedChildren: AllowedChildrenType;
   schema: z.ZodType<any>;
   type: "element";
+  execute?: any;
   lineStart: number;
   lineEnd: number;
   columnStart: number;
@@ -183,3 +191,43 @@ export interface FireAgentNode extends Partial<AIMLNode> {
   scxmlType?: SCXMLNodeType;
   [key: string]: any; // Allow additional properties
 }
+
+// Map of element types to roles
+export const elementRoleMap: Record<ElementType, ElementRole> = {
+  workflow: "state",
+  state: "state",
+  parallel: "state",
+  final: "state",
+  datamodel: "state",
+  data: "state",
+  assign: "action",
+  onentry: "action",
+  onexit: "action",
+  transition: "action",
+  if: "action",
+  elseif: "action",
+  else: "action",
+  foreach: "action",
+  script: "action",
+  llm: "output",
+  toolcall: "action",
+  log: "action",
+  sendText: "output",
+  sendToolCalls: "output",
+  sendObject: "output",
+  onerror: "error",
+  onchunk: "action",
+  prompt: "user-input",
+  instructions: "user-input",
+  cancel: "action",
+  raise: "action",
+  send: "action",
+  scxml: "state",
+  initial: "state",
+  history: "state",
+  donedata: "state",
+  content: "state",
+  param: "state",
+  invoke: "action",
+  finalize: "state",
+};

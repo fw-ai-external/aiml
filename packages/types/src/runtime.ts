@@ -74,13 +74,14 @@ export interface BuildContext {
     ege: ExecutionGraphElement
   ): void;
   createNewContextForChild(child: any): BuildContext;
+  // No need to include private members in the interface
 }
 
 /**
  * ElementExecutionContext - Context for executing elements.
  */
 export interface ElementExecutionContext<PropValues = any, InputValue = any> {
-  input: any;
+  input: InputValue;
   workflowInput: {
     userMessage: any;
     systemMessage?: string;

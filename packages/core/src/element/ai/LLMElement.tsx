@@ -4,6 +4,7 @@ import { llmConfig } from "@fireworks/element-config";
 import { StepValue } from "../../runtime/StepValue";
 import { getProviderWithClient } from "../../utils/llm/provider";
 import { ErrorCode } from "../../utils/errorCodes";
+import { ExecutionGraphElement } from "../../runtime/types";
 
 const llmSchema = z.object({
   id: z.string().optional(),
@@ -31,7 +32,27 @@ export const LLM = createElementDefinition<z.infer<typeof llmSchema>>({
   elementType: "invoke",
   role: "action",
   allowedChildren: "text",
+  onExecutionGraphConstruction(buildContext) {
+    const llmNode: ExecutionGraphElement = {
+      id: buildContext.attributes.id,
+      key: buildContext.elementKey,
+      type: "action",
+      subType: "llm",
+      attributes: {
+        ...buildContext.attributes,
+      },
+      next: [],
+    };
+
+    buildContext.setCachedGraphElement(
+      [buildContext.elementKey, buildContext.attributes.id].filter(Boolean),
+      llmNode
+    );
+    return llmNode;
+  },
   async execute(ctx): Promise<StepValue> {
+    console.log("=-------------------- llmNode", ctx);
+
     const {
       model,
       prompt,

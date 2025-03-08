@@ -11,21 +11,33 @@ export async function GET(
   const resolvedParams = await params;
 
   // Mock data for now - replace with actual API call
-  let workflow = {};
+  let persistedWorkflow: any = {};
   try {
     const fileContent = fs.readFileSync(
       `./.workflows/${resolvedParams.workflowId}.json`,
       "utf8"
     );
-    workflow = JSON.parse(fileContent);
+    persistedWorkflow = JSON.parse(fileContent);
+
+    const elementTree = astToRunnableBaseElementTree(
+      persistedWorkflow.ast.nodes
+    );
+    const workflow = new Runtime(elementTree as any);
+    return NextResponse.json({
+      ...persistedWorkflow,
+      ast: persistedWorkflow.ast,
+      elementTree,
+      stepGraph: workflow.toGraph(),
+      executionGraph: workflow.getExecutionGraph(),
+    });
   } catch (error) {
     console.error(
       `Error reading workflow file: ${error instanceof Error ? error.message : "Unknown error"}`
     );
     // Continue with empty workflow object
   }
-  if (workflow && Object.keys(workflow).length > 0) {
-    return NextResponse.json(workflow);
+  if (persistedWorkflow && Object.keys(persistedWorkflow).length > 0) {
+    return NextResponse.json(persistedWorkflow);
   }
   return NextResponse.json({
     id: resolvedParams.workflowId,
@@ -121,6 +133,7 @@ export async function POST(
           stepGraph: workflow.toGraph(),
           ast,
           elementTree,
+          executionGraph: workflow.getExecutionGraph(),
         },
         null,
         2
@@ -133,6 +146,7 @@ export async function POST(
       ast,
       elementTree,
       stepGraph: workflow.toGraph(),
+      executionGraph: workflow.getExecutionGraph(),
     });
   } catch (error) {
     console.error(

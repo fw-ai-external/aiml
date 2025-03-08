@@ -30,7 +30,7 @@ export const defaultStepExecutionGraphMapper = (
             buildContext.attributes,
             buildContext.conditions,
             buildContext.spec
-          )
+          ) as any
         );
       }
       return null;

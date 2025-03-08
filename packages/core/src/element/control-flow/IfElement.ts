@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
 import type { BaseElement } from "../";
-import { BuildContext } from "../../runtime/BuildContext";
-import { ExecutionGraphElement } from "../../runtime/types";
+import { ExecutionGraphElement } from "@fireworks/types";
 import { v4 as uuidv4 } from "uuid";
 
 const ifSchema = z.object({
@@ -18,9 +17,7 @@ export const If = createElementDefinition({
   role: "state",
   elementType: "if",
   allowedChildren: ["elseif", "else"],
-  onExecutionGraphConstruction(
-    buildContext: BuildContext
-  ): ExecutionGraphElement {
+  onExecutionGraphConstruction(buildContext): ExecutionGraphElement {
     // If we have a cache system:
     const cached = buildContext.getCachedGraphElement(
       buildContext.attributes.id
@@ -138,7 +135,7 @@ function buildIfPartitionNode(
   partitionId: string,
   condition: string,
   subEls: BaseElement[],
-  buildContext: BuildContext
+  buildContext: any
 ): ExecutionGraphElement {
   // Build child actions
   const childEGs: ExecutionGraphElement[] = [];

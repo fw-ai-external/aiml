@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, memo } from "react";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { JSONHeroSearch, SearchResult } from "@jsonhero/fuzzy-json-search";
@@ -14,7 +14,74 @@ type JsonViewerProps = {
   parentExpanded?: boolean;
 };
 
-export function JsonViewer({
+/**
+ * Custom deep equality function that only checks for:
+ * 1. Keys added/removed at any level
+ * 2. Direct value changes to keys
+ *
+ * This is more efficient than a full deep equality check for our use case
+ */
+const deepEqual = (obj1: any, obj2: any): boolean => {
+  // Handle primitive types
+  if (obj1 === obj2) return true;
+
+  // If either is null or not an object, they're not equal
+  if (obj1 === null || obj2 === null) return false;
+  if (typeof obj1 !== "object" || typeof obj2 !== "object") return false;
+
+  // Handle arrays
+  if (Array.isArray(obj1) && Array.isArray(obj2)) {
+    if (obj1.length !== obj2.length) return false;
+
+    // Check each array element
+    for (let i = 0; i < obj1.length; i++) {
+      if (!deepEqual(obj1[i], obj2[i])) return false;
+    }
+
+    return true;
+  }
+
+  // Handle objects (but not arrays)
+  if (Array.isArray(obj1) !== Array.isArray(obj2)) return false;
+
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  // Check if keys are added/removed
+  if (keys1.length !== keys2.length) return false;
+
+  // Check if all keys in obj1 exist in obj2
+  for (const key of keys1) {
+    if (!Object.prototype.hasOwnProperty.call(obj2, key)) return false;
+
+    // Recursively check nested objects/arrays
+    if (!deepEqual(obj1[key], obj2[key])) return false;
+  }
+
+  return true;
+};
+
+// Helper function to check if two props objects are equal
+const arePropsEqual = (
+  prevProps: JsonViewerProps,
+  nextProps: JsonViewerProps
+) => {
+  // Only compare the data prop deeply
+  return (
+    deepEqual(prevProps.data, nextProps.data) &&
+    prevProps.searchTerm === nextProps.searchTerm &&
+    prevProps.searchMode === nextProps.searchMode &&
+    prevProps.level === nextProps.level &&
+    prevProps.path === nextProps.path &&
+    prevProps.parentExpanded === nextProps.parentExpanded
+  );
+};
+
+// Create a global cache to store expanded states for different paths
+// This ensures expanded state persists even when components unmount and remount
+const expandedStateCache = new Map<string, Record<string, boolean>>();
+
+function JsonViewerComponent({
   data,
   level = 0,
   path = "",
@@ -22,26 +89,43 @@ export function JsonViewer({
   searchMode = "fuzzy",
   parentExpanded = true,
 }: JsonViewerProps) {
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [matchedPaths, setMatchedPaths] = useState<Set<string>>(new Set());
-  const heroSearch = useRef<JSONHeroSearch | null>(new JSONHeroSearch(data));
+  // Generate a unique key for this component instance
+  const cacheKey = path || "root";
 
+  // Initialize expanded state from cache or empty object
+  const initialExpanded = expandedStateCache.get(cacheKey) || {};
+  const [expanded, setExpanded] =
+    useState<Record<string, boolean>>(initialExpanded);
+  const [matchedPaths, setMatchedPaths] = useState<Set<string>>(new Set());
+
+  // Memoize the heroSearch instance to prevent unnecessary recreation
+  const heroSearch = useRef<JSONHeroSearch | null>(null);
+
+  // Only recreate the heroSearch when data actually changes
   useEffect(() => {
     heroSearch.current = new JSONHeroSearch(data);
   }, [data]);
 
-  // Function to check if a value matches the search term (fuzzy search)
-  const matchesFuzzySearch = (value: any): boolean => {
-    if (!searchTerm) return false;
+  // Update the cache whenever expanded state changes
+  useEffect(() => {
+    expandedStateCache.set(cacheKey, expanded);
+  }, [expanded, cacheKey]);
 
-    const searchLower = searchTerm.toLowerCase();
+  // Memoize this function to prevent recreation on every render
+  const matchesFuzzySearch = useCallback(
+    (value: any): boolean => {
+      if (!searchTerm) return false;
 
-    if (value === null) return "null".includes(searchLower);
+      const searchLower = searchTerm.toLowerCase();
 
-    if (typeof value === "object") return false;
+      if (value === null) return "null".includes(searchLower);
 
-    return String(value).toLowerCase().includes(searchLower);
-  };
+      if (typeof value === "object") return false;
+
+      return String(value).toLowerCase().includes(searchLower);
+    },
+    [searchTerm]
+  );
 
   // Function to get all paths that match the search term
   const findMatchingPaths = useCallback(
@@ -128,7 +212,7 @@ export function JsonViewer({
     [searchTerm, searchMode]
   );
 
-  // Parse a dot notation path into parts (handles array indices too)
+  // Memoize the parsePath function
   const parsePath = useCallback((pathString: string): (string | number)[] => {
     const parts: (string | number)[] = [];
     let current = "";
@@ -172,36 +256,42 @@ export function JsonViewer({
     return parts;
   }, []);
 
-  // Check if a path should be expanded based on search results
-  const shouldExpand = (currentPath: string): boolean => {
-    if (!searchTerm) return false;
+  // Memoize the shouldExpand function
+  const shouldExpand = useCallback(
+    (currentPath: string): boolean => {
+      if (!searchTerm) return false;
 
-    // In path search mode, expand all parent paths
-    if (searchMode === "path") {
-      return (
-        searchTerm.startsWith(currentPath) ||
-        currentPath.startsWith(searchTerm) ||
-        matchedPaths.has(searchTerm)
-      );
-    }
-
-    // In fuzzy search mode, expand if any child matches
-    for (const matchedPath of Array.from(matchedPaths)) {
-      if (matchedPath.startsWith(currentPath)) {
-        return true;
+      // In path search mode, expand all parent paths
+      if (searchMode === "path") {
+        return (
+          searchTerm.startsWith(currentPath) ||
+          currentPath.startsWith(searchTerm) ||
+          matchedPaths.has(searchTerm)
+        );
       }
-    }
 
-    return false;
-  };
+      // In fuzzy search mode, expand if any child matches
+      for (const matchedPath of Array.from(matchedPaths)) {
+        if (matchedPath.startsWith(currentPath)) {
+          return true;
+        }
+      }
 
-  // Check if the current path matches the search path exactly
-  const isExactPathMatch = (currentPath: string): boolean => {
-    if (searchMode !== "path" || !searchTerm) return false;
-    return currentPath === searchTerm;
-  };
+      return false;
+    },
+    [searchTerm, searchMode, matchedPaths]
+  );
 
-  // Find all matching paths when search term changes
+  // Memoize the isExactPathMatch function
+  const isExactPathMatch = useCallback(
+    (currentPath: string): boolean => {
+      if (searchMode !== "path" || !searchTerm) return false;
+      return currentPath === searchTerm;
+    },
+    [searchMode, searchTerm]
+  );
+
+  // Find all matching paths when search term or data changes
   useEffect(() => {
     if (!searchTerm) {
       setMatchedPaths(new Set());
@@ -233,17 +323,31 @@ export function JsonViewer({
       });
     });
 
-    setExpanded((prev) => ({ ...prev, ...newExpanded }));
-  }, [searchTerm, data, findMatchingPaths, parsePath]);
+    // Preserve existing expanded state while adding new matches
+    setExpanded((prev) => {
+      const merged = { ...prev, ...newExpanded };
+      // Update the cache
+      expandedStateCache.set(cacheKey, merged);
+      return merged;
+    });
+  }, [searchTerm, data, findMatchingPaths, parsePath, cacheKey]);
 
-  const toggleExpand = (key: string) => {
-    setExpanded((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
+  const toggleExpand = useCallback(
+    (key: string) => {
+      setExpanded((prev) => {
+        const newExpanded = {
+          ...prev,
+          [key]: !prev[key],
+        };
+        // Update the cache
+        expandedStateCache.set(cacheKey, newExpanded);
+        return newExpanded;
+      });
+    },
+    [cacheKey]
+  );
 
-  const getValueColor = (value: any) => {
+  const getValueColor = useCallback((value: any) => {
     if (value === null) return "text-gray-500";
     switch (typeof value) {
       case "number":
@@ -255,95 +359,111 @@ export function JsonViewer({
       default:
         return "";
     }
-  };
+  }, []);
 
-  // Check if this value matches the search
-  const isMatch = (value: any, currentPath: string): boolean => {
-    if (!searchTerm) return false;
+  // Memoize the isMatch function
+  const isMatch = useCallback(
+    (value: any, currentPath: string): boolean => {
+      if (!searchTerm) return false;
 
-    if (searchMode === "fuzzy") {
-      return matchedPaths.has(currentPath);
-    } else if (searchMode === "path") {
-      return isExactPathMatch(currentPath);
-    }
+      if (searchMode === "fuzzy") {
+        return matchedPaths.has(currentPath);
+      } else if (searchMode === "path") {
+        return isExactPathMatch(currentPath);
+      }
 
-    return false;
-  };
+      return false;
+    },
+    [searchTerm, searchMode, matchedPaths, isExactPathMatch]
+  );
 
-  const renderValue = (value: any, key: string) => {
-    const currentPath = path
-      ? isNaN(Number(key))
-        ? `${path}.${key}`
-        : `${path}[${key}]`
-      : key;
-    const valueMatches = isMatch(value, currentPath);
+  // Memoize the renderValue function
+  const renderValue = useCallback(
+    (value: any, key: string) => {
+      const currentPath = path
+        ? isNaN(Number(key))
+          ? `${path}.${key}`
+          : `${path}[${key}]`
+        : key;
+      const valueMatches = isMatch(value, currentPath);
 
-    if (value === null) {
+      if (value === null) {
+        return (
+          <span
+            className={cn(
+              "text-gray-500",
+              valueMatches && "bg-yellow-100 dark:bg-yellow-900/30 px-1 rounded"
+            )}
+          >
+            null
+          </span>
+        );
+      }
+
+      if (Array.isArray(value) || typeof value === "object") {
+        const isArray = Array.isArray(value);
+        const itemCount = isArray ? value.length : Object.keys(value).length;
+        const itemLabel = isArray
+          ? `Array(${itemCount})`
+          : `Object{${itemCount}}`;
+        const isExpanded = expanded[currentPath] ?? shouldExpand(currentPath);
+        const pathMatches = isExactPathMatch(currentPath);
+
+        return (
+          <div>
+            <div
+              className={cn(
+                "flex items-center cursor-pointer hover:bg-muted/50 rounded px-1",
+                pathMatches && "bg-yellow-100 dark:bg-yellow-900/30 rounded"
+              )}
+              onClick={() => toggleExpand(currentPath)}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-3 w-3 mr-1 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="h-3 w-3 mr-1 text-muted-foreground" />
+              )}
+              <span className="text-muted-foreground">{itemLabel}</span>
+            </div>
+
+            {isExpanded && (
+              <div className="pl-4 border-l border-border mt-1">
+                <JsonViewer
+                  data={value}
+                  level={level + 1}
+                  path={currentPath}
+                  searchTerm={searchTerm}
+                  searchMode={searchMode}
+                  parentExpanded={isExpanded}
+                />
+              </div>
+            )}
+          </div>
+        );
+      }
+
       return (
         <span
           className={cn(
-            "text-gray-500",
+            getValueColor(value),
             valueMatches && "bg-yellow-100 dark:bg-yellow-900/30 px-1 rounded"
           )}
         >
-          null
+          {typeof value === "string" ? `"${value}"` : String(value)}
         </span>
       );
-    }
-
-    if (Array.isArray(value) || typeof value === "object") {
-      const isArray = Array.isArray(value);
-      const itemCount = isArray ? value.length : Object.keys(value).length;
-      const itemLabel = isArray
-        ? `Array(${itemCount})`
-        : `Object{${itemCount}}`;
-      const isExpanded = expanded[currentPath] ?? shouldExpand(currentPath);
-      const pathMatches = isExactPathMatch(currentPath);
-
-      return (
-        <div>
-          <div
-            className={cn(
-              "flex items-center cursor-pointer hover:bg-muted/50 rounded px-1",
-              pathMatches && "bg-yellow-100 dark:bg-yellow-900/30 rounded"
-            )}
-            onClick={() => toggleExpand(currentPath)}
-          >
-            {isExpanded ? (
-              <ChevronDown className="h-3 w-3 mr-1 text-muted-foreground" />
-            ) : (
-              <ChevronRight className="h-3 w-3 mr-1 text-muted-foreground" />
-            )}
-            <span className="text-muted-foreground">{itemLabel}</span>
-          </div>
-
-          {isExpanded && (
-            <div className="pl-4 border-l border-border mt-1">
-              <JsonViewer
-                data={value}
-                level={level + 1}
-                path={currentPath}
-                searchTerm={searchTerm}
-                searchMode={searchMode}
-                parentExpanded={isExpanded}
-              />
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    return (
-      <span
-        className={cn(
-          getValueColor(value),
-          valueMatches && "bg-yellow-100 dark:bg-yellow-900/30 px-1 rounded"
-        )}
-      >
-        {typeof value === "string" ? `"${value}"` : String(value)}
-      </span>
-    );
-  };
+    },
+    [
+      expanded,
+      getValueColor,
+      isExactPathMatch,
+      isMatch,
+      path,
+      searchMode,
+      searchTerm,
+      shouldExpand,
+    ]
+  );
 
   if (Array.isArray(data)) {
     return (
@@ -382,3 +502,6 @@ export function JsonViewer({
   // This should not happen at the top level, but just in case
   return <span className={getValueColor(data)}>{String(data)}</span>;
 }
+
+// Export a memoized version of the component that only re-renders when necessary
+export const JsonViewer = memo(JsonViewerComponent, arePropsEqual);

@@ -26,6 +26,8 @@ interface StepContext<T extends RunstepOutput> {
 
 export type ElementExecutionContextSerialized = Record<string, any>;
 
+// @deprecated get rid of this, its only used for testing now
+// use the ElementExecutionContext type instead
 export class ElementExecutionContext<
   PropValues extends {},
   InputValue extends RunstepOutput = RunstepOutput,

@@ -30,6 +30,7 @@ describe("StateElement", () => {
       columnEnd: 0,
       allowedChildren: "any",
       schema: z.object({}),
+      onExecutionGraphConstruction: () => ({}) as any,
     });
 
     ctx = new ElementExecutionContext({
@@ -85,7 +86,7 @@ describe("StateElement", () => {
     );
 
     const result = await (element as BaseElement).execute?.(ctx as any);
-    const value = await result?.value();
+    const value = await result?.result?.value();
     expect(value).toEqual({
       type: "object",
       object: { id: "state1", isActive: true },
@@ -113,7 +114,7 @@ describe("StateElement", () => {
     );
 
     const result = await (element as BaseElement).execute?.(ctx as any);
-    const value = await result?.value();
+    const value = await result?.result?.value();
     expect(value).toEqual({
       type: "object",
       object: { id: "state1", isActive: true },

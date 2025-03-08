@@ -9,8 +9,36 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { AssistantRuntimeProvider } from "@assistant-ui/react";
-import { useChatRuntime } from "@assistant-ui/react-ai-sdk";
+import {
+  AssistantRuntimeProvider,
+  ChatModelAdapter,
+  useLocalRuntime,
+} from "@assistant-ui/react";
+
+const AIMLRuntime = ({
+  workflowId,
+}: {
+  workflowId: string;
+}): ChatModelAdapter => ({
+  async *run({ messages, abortSignal, context }) {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ messages, workflowId, context }),
+    });
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error("No reader");
+    }
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+      const text = new TextDecoder().decode(value);
+      yield { content: [{ type: "text", text }] };
+    }
+  },
+});
 
 export default function WorkflowGraphPage(props: {
   params: Promise<{ workflowId: string }>;
@@ -21,12 +49,11 @@ export default function WorkflowGraphPage(props: {
     stepSubscriberGraph,
     isLoading: isWorkflowLoading,
   } = useWorkflow(params.workflowId);
-  const runtime = useChatRuntime({
-    api: "/api/chat",
-    body: {
+  const runtime = useLocalRuntime(
+    AIMLRuntime({
       workflowId: params.workflowId,
-    },
-  });
+    })
+  );
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
@@ -47,7 +74,10 @@ export default function WorkflowGraphPage(props: {
         <ResizableHandle />
         <ResizablePanel defaultSize={30}>
           <div className="flex flex-col">
-            <WorkflowInformation workflowId={params.workflowId} />
+            <WorkflowInformation
+              key={`workflowInformation-${params.workflowId}`}
+              workflowId={params.workflowId}
+            />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

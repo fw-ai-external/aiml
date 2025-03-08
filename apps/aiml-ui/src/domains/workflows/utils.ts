@@ -132,7 +132,7 @@ export const contructNodesAndEdges = ({
         const newStep = {
           ...step.step,
           label: step.step.id,
-          type: "default-node",
+          type: step.step.role === "state" ? "state-node" : "default-node",
           id: nodes.some((node) => node.id === step.step.id)
             ? `${step.step.id}-${i}`
             : step.step.id,
@@ -171,6 +171,7 @@ export const contructNodesAndEdges = ({
                 ? "AI Call"
                 : step.label,
           description: step.description,
+          actions: step.children,
           withoutTopHandle: subscriberGraph?.[step.id] ? false : index === 0,
           withoutBottomHandle: false,
         },

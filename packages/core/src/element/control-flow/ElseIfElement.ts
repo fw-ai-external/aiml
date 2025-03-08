@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { createElementDefinition } from "../createElementDefinition";
-import { BuildContext } from "../../runtime/BuildContext";
 import { ExecutionGraphElement } from "../../runtime/types";
 import { v4 as uuidv4 } from "uuid";
 import { BaseElement } from "../";
@@ -19,9 +18,7 @@ export const ElseIf = createElementDefinition({
   elementType: "elseif",
   allowedChildren: "any",
 
-  onExecutionGraphConstruction(
-    buildContext: BuildContext
-  ): ExecutionGraphElement {
+  onExecutionGraphConstruction(buildContext): ExecutionGraphElement {
     // In practice, we won't typically build anything stand-alone here,
     // because IfElement is gathering them.
     // But if you want to do a naive version:

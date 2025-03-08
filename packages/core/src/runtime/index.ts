@@ -4,10 +4,8 @@ import { z } from "zod";
 import { BuildContext } from "./BuildContext";
 import { StepValue } from "./StepValue";
 import { ExecutionGraphElement } from "./types";
-import { Workflow } from "@mastra/core/workflows";
+import { Workflow, WorkflowRunState } from "@mastra/core/workflows";
 import { RunValue } from "./RunValue";
-
-type WorkflowRunState = Awaited<ReturnType<Workflow["getState"]>>;
 
 export type RuntimeOptions = {
   onTransition?: (state: WorkflowRunState) => void;
@@ -22,6 +20,8 @@ export class Runtime<
   public workflow: Workflow;
   private readonly rootElement: BaseElement;
   private activeStates: Set<string> = new Set();
+  private value: RunValue | null = null;
+  private executionGraph: ExecutionGraphElement | null = null;
   constructor(
     private readonly spec: BaseElement,
     private options?: RuntimeOptions
@@ -48,8 +48,9 @@ export class Runtime<
       this.spec
     );
 
-    const executionGraph =
-      this.spec.onExecutionGraphConstruction?.(buildContext);
+    const executionGraph = this.spec.onExecutionGraphConstruction?.(
+      buildContext as any
+    );
     if (!executionGraph) {
       throw new Error(
         "Execution graph construction returned undefined",
@@ -57,50 +58,56 @@ export class Runtime<
       );
     }
 
+    this.executionGraph = executionGraph;
+
     // Start with the root execution graph element and add all elements recursively
-    this.addGraphElementToWorkflow(buildContext, executionGraph, true);
+    this.addGraphElementToWorkflow(buildContext, executionGraph, false, true);
   }
 
   private addGraphElementToWorkflow(
     buildContext: BuildContext,
     element: ExecutionGraphElement,
-    parallel: boolean = false
+    parallel: boolean = false,
+    root: boolean = false,
+    parent?: BaseElement
   ) {
     if (element.runAfter) {
-      console.log(
-        "=-------------------- runAfter",
-        element.runAfter,
-        element.key
-      );
       this.workflow.after(
         element.runAfter.map((key) => buildContext.getElementByKey(key)) as any
       ) as any;
     }
     // Add the current element to the workflow
-    console.log(
-      "=-------------------- addGraphElementToWorkflow",
-      element.subType,
-      element.key
-    );
+
     const step = buildContext.getElementByKey(element.key);
+    if (!step || element.key !== step.key || element.subType !== step.tag) {
+      throw new Error(
+        `Step mismatch: ${element.key} !== ${step?.key} || ${element.subType} !== ${step?.tag}`
+      );
+    }
     if (step) {
-      console.log("=-------------------- getElementById", step.tag);
-      if (parallel) {
+      if (parallel || root) {
         this.workflow.step(step, {
+          variables: {
+            input: root
+              ? { step: "trigger", path: "input" as any }
+              : { step: { id: parent?.id! } as any, path: "result" as any },
+          },
           // create a function that evaluates the when expression
           // this serves as a guard for the step
           // TODO use Step context here
-          when: async ({ context }: { context: Record<string, any> }) =>
-            element.when ? eval(element.when) : true,
+          // when: async ({ context }: { context: Record<string, any> }) =>
+          //   element.when ? eval(element.when) : true,
         });
       } else {
-        console.log("=-------------------- then", step.tag);
         this.workflow.then(step, {
+          variables: {
+            input: { step: { id: parent?.id! }, path: "result" },
+          },
           // create a function that evaluates the when expression
           // this serves as a guard for the step
           // TODO use Step context here
-          when: async ({ context }: { context: Record<string, any> }) =>
-            element.when ? eval(element.when) : true,
+          // when: async ({ context }: { context: Record<string, any> }) =>
+          //   element.when ? eval(element.when) : true,
         });
       }
     }
@@ -108,38 +115,65 @@ export class Runtime<
     // Recursively add all child elements
     if (element.next) {
       for (const child of element.next) {
-        this.addGraphElementToWorkflow(buildContext, child);
+        this.addGraphElementToWorkflow(buildContext, child, false, false, step);
       }
     }
 
     if (element.parallel) {
       for (const child of element.parallel) {
-        this.addGraphElementToWorkflow(buildContext, child, true);
+        this.addGraphElementToWorkflow(buildContext, child, true, false, step);
       }
     }
   }
 
   private async handleStateTransition(state: WorkflowRunState) {
     // Update active states
-    const newActiveStates = new Set(
-      Object.keys(state?.context ?? {}).filter(
+    const currentlyActiveStates = new Set(
+      Object.keys(state?.context.steps ?? {}).filter(
         (key) =>
-          (state?.context as Record<string, { isActive?: boolean }>)[key]
-            ?.isActive === true
+          (state?.context.steps)[key]?.status === "success" ||
+          (state?.context.steps)[key]?.status === "waiting" ||
+          (state?.context.steps)[key]?.status === "suspended"
       )
     );
 
+    const failedStates = Object.keys(state?.context.steps ?? {}).filter(
+      (key) => (state?.context.steps)[key]?.status === "failed"
+    );
+
+    const newActiveStates = Array.from(currentlyActiveStates).filter(
+      (stateId: string) => !this.activeStates.has(stateId)
+    );
+
+    for (const stateId of newActiveStates) {
+      const element = this.findElementById(stateId);
+      // const input = state?.context.steps?.[stateId].payload;
+      if (element) {
+        this.value?.addActiveStep({
+          elementType: element.elementType,
+          id: element.id,
+          path: [],
+          status: "active",
+          // TODO add input
+        });
+      }
+    }
+
     // Handle state exits
     for (const stateId of this.activeStates) {
-      if (!newActiveStates.has(stateId)) {
+      if (
+        !currentlyActiveStates.has(stateId) &&
+        failedStates.includes(stateId)
+      ) {
         const element = this.findElementById(stateId);
         if (element) {
+          this.value?.markStepAsFinished(element.id);
           // await (element as BaseElement).deactivate?.();
         }
       }
     }
 
-    this.activeStates = newActiveStates;
+    this.activeStates = currentlyActiveStates;
     this.options?.onTransition?.(state);
   }
 
@@ -164,6 +198,8 @@ export class Runtime<
   }
 
   async run(input: InputType) {
+    this.workflow = this.workflow.commit();
+
     const { runId, start } = this.workflow.createRun();
 
     // Set up state transition monitoring
@@ -176,12 +212,14 @@ export class Runtime<
     // });
 
     try {
+      console.log("=-------------------- run", input);
       const { results } = await start({
         triggerData: {
           input: new StepValue(input),
           chatHistory: [],
           userInput: null,
           datamodel: {},
+          secrets: {},
         },
       });
 
@@ -201,10 +239,15 @@ export class Runtime<
   }
 
   public runStream(input: InputType) {
+    this.workflow = this.workflow.commit();
+
     const { runId, start } = this.workflow.createRun();
 
-    const run = new RunValue({ runId });
-
+    this.value = new RunValue({ runId });
+    // Set up state transition monitoring
+    this.workflow.watch((state: WorkflowRunState) =>
+      this.handleStateTransition(state)
+    );
     const workflowOutput = start({
       triggerData: {
         input: new StepValue(input),
@@ -215,13 +258,16 @@ export class Runtime<
     });
 
     workflowOutput.then(async (results) => {
-      await run.finalize();
+      await this.value?.finalize();
     });
 
-    return run;
+    return this.value;
   }
   public toGraph() {
     return this.workflow.stepGraph;
+  }
+  public getExecutionGraph() {
+    return this.executionGraph;
   }
 }
 

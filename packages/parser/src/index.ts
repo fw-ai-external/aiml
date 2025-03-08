@@ -6,108 +6,16 @@ import remarkGfm from "remark-gfm";
 import { parse as parseYaml } from "yaml";
 import { VFile } from "vfile";
 import { Node } from "unist";
-import { AIMLNode } from "@fireworks/types";
+import {
+  aimlElements,
+  AIMLNode,
+  Diagnostic,
+  DiagnosticPosition,
+  DiagnosticSeverity,
+  ElementType,
+  elementRoleMap,
+} from "@fireworks/types";
 import { Root } from "remark-parse/lib";
-
-// Define the allowed AIML elements
-export const aimlElements = [
-  "workflow",
-  "state",
-  "parallel",
-  "final",
-  "datamodel",
-  "data",
-  "assign",
-  "onentry",
-  "onexit",
-  "transition",
-  "if",
-  "elseif",
-  "else",
-  "foreach",
-  "script",
-  "llm",
-  "toolcall",
-  "log",
-  "sendText",
-  "sendToolCalls",
-  "sendObject",
-  "onerror",
-  "onchunk",
-  "prompt",
-  "instructions",
-] as const;
-
-// Define element types and roles
-export type ElementType = (typeof aimlElements)[number];
-export type ElementRole =
-  | "state"
-  | "action"
-  | "error"
-  | "user-input"
-  | "output";
-
-// Map of element types to roles
-const elementRoleMap: Record<ElementType, ElementRole> = {
-  workflow: "state",
-  state: "state",
-  parallel: "state",
-  final: "state",
-  datamodel: "state",
-  data: "state",
-  assign: "action",
-  onentry: "action",
-  onexit: "action",
-  transition: "action",
-  if: "action",
-  elseif: "action",
-  else: "action",
-  foreach: "action",
-  script: "action",
-  llm: "output",
-  toolcall: "action",
-  log: "action",
-  sendText: "output",
-  sendToolCalls: "output",
-  sendObject: "output",
-  onerror: "error",
-  onchunk: "action",
-  prompt: "user-input",
-  instructions: "user-input",
-};
-
-export interface Attributes {
-  [key: string]: string | number | boolean | null;
-}
-
-export interface IBaseElement {
-  id?: string;
-  key: string;
-}
-
-// Define diagnostics types
-export enum DiagnosticSeverity {
-  Error = "error",
-  Warning = "warning",
-  Information = "information",
-  Hint = "hint",
-}
-
-export interface DiagnosticPosition {
-  line: number;
-  column: number;
-}
-
-export interface Diagnostic {
-  message: string;
-  severity: DiagnosticSeverity;
-  code?: string;
-  source?: string;
-  range: {
-    start: DiagnosticPosition;
-    end: DiagnosticPosition;
-  };
-}
 
 // Options for parsing MDX to AIML nodes
 export interface MDXToAIMLOptions {

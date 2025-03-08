@@ -216,6 +216,18 @@ function convertNodeToElement(
     lineEnd: node.lineEnd,
     columnStart: node.columnStart,
     columnEnd: node.columnEnd,
+    onExecutionGraphConstruction: (buildContext) => {
+      return {
+        id: buildContext.attributes.id,
+        key: buildContext.elementKey,
+        type: "action",
+        subType: "invoke",
+        attributes: {
+          ...buildContext.attributes,
+        },
+        next: [],
+      };
+    },
   });
 }
 

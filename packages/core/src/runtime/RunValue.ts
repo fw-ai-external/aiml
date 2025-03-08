@@ -2,6 +2,7 @@ import { ErrorCode } from "../utils/errorCodes";
 import { ReplayableAsyncIterableStream } from "../utils/streams";
 import type { RunEvent, APIStreamEvent, RunstepOutput } from "../types";
 import { StepValue } from "./StepValue";
+import { ElementType } from "@fireworks/types";
 
 export type RunStepStream = ReplayableAsyncIterableStream<APIStreamEvent>;
 
@@ -16,11 +17,11 @@ function maybeRunStepValue(
 // effectivly forming a tree of execution
 export type RunStep = {
   id: string;
-  node: any;
-  type: "state" | "action-entry" | "transition";
-  childNodes?: RunStep[];
-  input?: StepValue;
-  output?: RunstepOutput;
+  path: string[]; // the parent elements with a role of state
+  elementType: ElementType; // from the workflow graph
+  status: string;
+  input?: StepValue | null; // aka the triggerData
+  output?: StepValue | null;
 };
 
 export class RunValue {
@@ -49,81 +50,69 @@ export class RunValue {
     return this._generatedValues;
   }
 
-  public addState(event: any) {
+  public addActiveStep(step: RunStep) {
     this._runSteps.push({
-      id: event.id,
-      node: event.node,
-      type: "state",
-      input: event.input
-        ? (maybeRunStepValue(event.input) as StepValue)
+      id: step.id,
+      elementType: step.elementType,
+      path: step.path,
+      input: step.input
+        ? (maybeRunStepValue(step.input) as StepValue)
         : undefined,
+      status: step.status,
     });
 
-    if (event.path.length === 0) {
-      if (event.output) {
-        const output = maybeRunStepValue(event.output);
-        if (event.node.scxmlType === "final" || event.node.name === "final") {
-          this._finalOutput = output;
-        }
-        if (!this._generatedValues.find((value) => value.id === output?.id)) {
-          this._generatedValues.push(output!);
-        }
+    if (step.output) {
+      const output = maybeRunStepValue(step.output);
+      if (step.elementType === "final") {
+        this._finalOutput = output;
       } else {
-        this._finalOutput = new StepValue({
-          type: "text",
-          text: "No output",
-        });
+        this._generatedValues.push(output!);
       }
     }
-
-    this.processValue(event).catch(() => {
-      // TODO: Handle error
-    });
   }
 
-  public addActionEntry(event: any) {
-    this._runSteps.push({
-      id: event.id,
-      node: event.node,
-      type: "action-entry",
-      input: event.input
-        ? (maybeRunStepValue(event.input) as StepValue)
-        : undefined,
-      output: event.output as any,
-    });
-
-    this.processValue(event).catch(() => {
-      // TODO: Handle error
-    });
+  setStepOutput(id: string, output: RunstepOutput | StepValue) {
+    const thisStep = this._runSteps.find((s) => s.id === id);
+    if (thisStep) {
+      thisStep.output = maybeRunStepValue(output);
+      this.processValue(id, thisStep.elementType, output);
+    } else {
+      throw new Error(`Step ${id} not found, could not set output`);
+    }
   }
 
-  private async processValue(event: any) {
-    if (
-      "output" in event &&
-      event.output &&
-      !this._runStepValuesProcessed.has((event.output as any)?.id ?? event.id)
-    ) {
-      if ("id" in event.output) {
-        this._runStepValuesProcessed.add(event.output.id);
-      } else {
-        this._runStepValuesProcessed.add(event.id);
-      }
+  markStepAsFinished(id: string) {
+    const thisStep = this._runSteps.find((s) => s.id === id);
+    if (thisStep) {
+      thisStep.status = "finished";
+    } else {
+      throw new Error(`Step ${id} not found, could not mark as finished`);
+    }
+  }
 
-      // Ensure all values are streamable
-      const output: StepValue =
-        "streamIterator" in event.output
-          ? event.output
-          : new StepValue(event.output);
+  private async processValue(
+    stepID: string,
+    elementType: ElementType,
+    value: RunstepOutput | StepValue
+  ) {
+    if ("id" in value) {
+      this._runStepValuesProcessed.add(value.id);
+    } else {
+      this._runStepValuesProcessed.add(stepID);
+    }
 
-      for await (const chunk of output.streamIterator()) {
-        this._streamBuffer.push({
-          step: event.node.attributes.id?.toString() ?? event.node.name,
-          uuid: event.id,
-          type: event.node.name,
-          runId: this.uuid,
-          event: chunk,
-        });
-      }
+    // Ensure all values are streamable
+    const output: StepValue =
+      "streamIterator" in value ? value : new StepValue(value);
+
+    for await (const chunk of output.streamIterator()) {
+      this._streamBuffer.push({
+        step: elementType,
+        uuid: stepID,
+        type: "step-complete",
+        runId: this.uuid,
+        event: chunk,
+      });
     }
   }
   private async waitForStateStreamsToFinish() {
@@ -253,7 +242,7 @@ export class RunValue {
   //       uuid: step.id,
   //       type: step.type,
   //       runId: this.uuid,
-  //       output: await step.result?.value(),
+  //       output: await step.result?.result.value(),
   //     };
 
   //     if (this.machine.isFinishedState(step.name) || this.machine.isErrorState(step.name)) {
@@ -455,7 +444,9 @@ export class RunValue {
   }
 
   public get latestState() {
-    const stateSteps = this._runSteps.filter((step) => step.type === "state");
+    const stateSteps = this._runSteps.filter(
+      (step) => step.elementType === "state"
+    );
     return stateSteps[stateSteps.length - 1];
   }
 }

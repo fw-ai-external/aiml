@@ -55,6 +55,7 @@ type WorkflowContextType = {
         };
         stepGraph?: any;
         elementTree?: BaseElement;
+        executionGraph?: any;
       })
     | null;
   isLoading: boolean;
@@ -96,36 +97,39 @@ export const useWorkflow = (workflowId: string) => {
 
   const [isUpdating, setIsUpdating] = useState(false);
 
-  useEffect(() => {
-    const fetchWorkflow = async () => {
-      setIsLoading(true);
+  const fetchWorkflow = useCallback(async () => {
+    setIsLoading(true);
 
-      try {
-        if (!workflowId) {
-          setWorkflow(null);
-          setIsLoading(false);
-          return;
-        }
-        const res = await fetch(`/api/workflows/${workflowId}`);
-        if (!res.ok) {
-          const error = await res.json();
-          setWorkflow(null);
-          console.error("Error fetching workflow", error);
-          toast.error(error?.error || "Error fetching workflow");
-          return;
-        }
-        const workflow = await res.json();
-        setWorkflow(workflow);
-      } catch (error) {
+    try {
+      if (!workflowId) {
+        setWorkflow(null);
+        setIsLoading(false);
+        return;
+      }
+      const res = await fetch(`/api/workflows/${workflowId}`);
+      if (!res.ok) {
+        const error = await res.json();
         setWorkflow(null);
         console.error("Error fetching workflow", error);
-        toast.error("Error fetching workflow");
-      } finally {
-        setIsLoading(false);
+        toast.error(error?.error || "Error fetching workflow");
+        return;
       }
-    };
+      const workflow = await res.json();
+      setWorkflow(workflow);
+    } catch (error) {
+      setWorkflow(null);
+      console.error("Error fetching workflow", error);
+      toast.error("Error fetching workflow");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [workflowId]);
 
+  useEffect(() => {
+    // const interval = setInterval(() => {
     fetchWorkflow();
+    // }, 1000);
+    // return () => clearInterval(interval);
   }, [workflowId]);
 
   const updatePrompt = useCallback(
@@ -158,6 +162,7 @@ export const useWorkflow = (workflowId: string) => {
     stepSubscriberGraph: workflow?.stepSubscriberGraph,
     elementTree: workflow?.elementTree,
     triggerSchema: workflow?.triggerSchema,
+    executionGraph: workflow?.executionGraph,
     isLoading,
     isUpdating,
     updatePrompt,

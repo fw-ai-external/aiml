@@ -18,7 +18,7 @@ export function WorkflowDebug({
     astDiagnostics,
     elementTree,
     astNodes,
-    stepGraph,
+    executionGraph,
     updatePrompt,
     isUpdating,
   } = useWorkflow(workflowId);
@@ -47,13 +47,14 @@ export function WorkflowDebug({
         </Button>
       </div>
       <div className="space-y-4">
-        {isWorkflowLoading || isUpdating ? (
+        {!astNodes && (isWorkflowLoading || isUpdating) ? (
           <div className="flex items-center justify-center h-[calc(100vh-180px)]">
             <p className="text-gray-300/60">Building AST...</p>
           </div>
         ) : (
           <div className="h-[calc(100vh-180px)]">
             <JsonViewer
+              key={`${debugType}-${workflowId}`}
               data={
                 debugType === "ast"
                   ? {
@@ -62,7 +63,7 @@ export function WorkflowDebug({
                     }
                   : debugType === "elementTree"
                     ? elementTree
-                    : stepGraph
+                    : executionGraph
               }
             />
           </div>

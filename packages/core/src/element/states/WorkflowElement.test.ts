@@ -50,6 +50,7 @@ describe("WorkflowElement", () => {
         columnEnd: 0,
         allowedChildren: "any",
         schema: z.object({}),
+        onExecutionGraphConstruction: () => ({}) as any,
       });
     }
   }

@@ -50,6 +50,7 @@ describe("LLM Element", () => {
             columnEnd: 0,
             allowedChildren: [],
             schema: z.object({}),
+            onExecutionGraphConstruction: () => ({}) as any,
           })
         ),
       ]
@@ -86,6 +87,7 @@ describe("LLM Element", () => {
             columnEnd: 0,
             allowedChildren: [],
             schema: z.object({}),
+            onExecutionGraphConstruction: () => ({}) as any,
           })
         ),
       ]
@@ -94,7 +96,7 @@ describe("LLM Element", () => {
     const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
-    expect(await result.value()).toEqual({
+    expect(await result.result.value()).toEqual({
       type: "text",
       text: "Mock LLM response",
     });
@@ -124,6 +126,7 @@ describe("LLM Element", () => {
             columnEnd: 0,
             allowedChildren: [],
             schema: z.object({}),
+            onExecutionGraphConstruction: () => ({}) as any,
           })
         ),
       ]
@@ -132,7 +135,7 @@ describe("LLM Element", () => {
     const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
-    expect(await result.value()).toEqual({
+    expect(await result.result.value()).toEqual({
       type: "text",
       text: "Mock LLM response",
     });
@@ -162,6 +165,7 @@ describe("LLM Element", () => {
             columnEnd: 0,
             allowedChildren: [],
             schema: z.object({}),
+            onExecutionGraphConstruction: () => ({}) as any,
           })
         ),
       ]
@@ -175,7 +179,7 @@ describe("LLM Element", () => {
     const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
-    expect(await result.value()).toEqual({
+    expect(await result.result.value()).toEqual({
       type: "text",
       text: "Mock LLM response",
     });
@@ -211,6 +215,7 @@ describe("LLM Element", () => {
             columnEnd: 0,
             allowedChildren: [],
             schema: z.object({}),
+            onExecutionGraphConstruction: () => ({}) as any,
           })
         ),
       ]
@@ -219,8 +224,8 @@ describe("LLM Element", () => {
     const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
-    expect(await result.type()).toBe("error");
-    expect(await result.error()).toBeDefined();
+    expect(await result.result.type()).toBe("error");
+    expect(await result.result.error()).toBeDefined();
   });
 
   it("should handle response format configuration", async () => {
@@ -255,6 +260,7 @@ describe("LLM Element", () => {
             columnEnd: 0,
             allowedChildren: [],
             schema: z.object({}),
+            onExecutionGraphConstruction: () => ({}) as any,
           })
         ),
       ]
@@ -263,7 +269,7 @@ describe("LLM Element", () => {
     const result = await (llm as BaseElement).execute(stepContext);
 
     expect(result).toBeInstanceOf(StepValue);
-    expect(await result.value()).toEqual({
+    expect(await result.result.value()).toEqual({
       type: "text",
       text: "Mock LLM response",
     });

@@ -3,6 +3,7 @@ import { createElementDefinition } from "../createElementDefinition";
 import { ExecutionGraphElement } from "../../runtime/types";
 import { BaseElement } from "../";
 import { stateConfig } from "@fireworks/element-config";
+import { v4 as uuidv4 } from "uuid";
 const stateSchema = z.object({
   id: z.string(),
   initial: z.string().optional(),
@@ -12,17 +13,22 @@ type StateProps = z.infer<typeof stateSchema>;
 
 export const State = createElementDefinition({
   ...stateConfig,
-
   role: "state",
   elementType: "state",
   onExecutionGraphConstruction(buildContext) {
-    console.log(
-      "=-------------------- StateElement",
-      Object.keys(buildContext)
+    const existing = buildContext.getCachedGraphElement(
+      buildContext.elementKey
     );
+    if (existing) {
+      return existing;
+    }
+
+    const id = buildContext.attributes.id || `state_${uuidv4()}`;
+    const key = buildContext.elementKey;
+
     // 1. Create a "main" node for this state
     const mainStateNode: ExecutionGraphElement = {
-      id: buildContext.attributes.id + "_main",
+      id,
       key: buildContext.elementKey,
       type: "state",
       subType: "state",
@@ -35,31 +41,25 @@ export const State = createElementDefinition({
       next: [],
     };
 
-    // 2. Build onentry as child "actions" (sequence if multiple)
-    const onentryEl = buildContext.children.find(
-      (ch) => "tag" in ch && ch.tag === "onentry"
+    // store it in the cache
+    buildContext.setCachedGraphElement(
+      [key, buildContext.attributes.id].filter(Boolean),
+      mainStateNode
     );
-    if (onentryEl && "tag" in onentryEl) {
-      const onentryEG = (
-        onentryEl as BaseElement
-      ).onExecutionGraphConstruction?.(buildContext);
-      if (onentryEG) {
-        // We'll attach it as a child or we could flatten
-        mainStateNode.next!.push(onentryEG);
-      }
-    }
 
-    // 3. Build sub-states, transitions, etc.
+    // 2. Build sub-states, transitions, etc.
     //    but we have to treat transitions differently than sub-states
     for (const child of buildContext.children) {
-      if (child === onentryEl) continue; // skip already handled
       if (!(child instanceof BaseElement)) {
+        console.log("child is not a BaseElement", child);
         // TODO: handle as value in parser
         continue;
       }
       if (child.elementType === "transition") {
         // We'll build the transition action
-        const txEG = child.onExecutionGraphConstruction?.(buildContext);
+        const txEG = child.onExecutionGraphConstruction?.(
+          buildContext.createNewContextForChild(child)
+        );
         if (!txEG) {
           // TODO: handle as value in parser
           continue;
@@ -80,7 +80,9 @@ export const State = createElementDefinition({
         child.elementType === "parallel"
       ) {
         // Another sub-state => build it
-        const subEG = child.onExecutionGraphConstruction?.(buildContext);
+        const subEG = child.onExecutionGraphConstruction?.(
+          buildContext.createNewContextForChild(child)
+        );
         if (!subEG) {
           // TODO: handle as value in parser
           continue;
@@ -101,15 +103,31 @@ export const State = createElementDefinition({
         // We'll push this sub-state as a child, or as a sibling.
         mainStateNode.next!.push(subEG);
       } else if (child.elementType === "onexit") {
+        // TODO: onexit elements should run after any transition that leaves this state aka not going to a sub-state
+
         // or other sub constructs
         // you might store them differently
-        const onexitEG = child.onExecutionGraphConstruction?.(buildContext);
+        const onexitEG = child.onExecutionGraphConstruction(
+          buildContext.createNewContextForChild(child)
+        );
         if (!onexitEG) {
           // TODO: handle as value in parser
           continue;
         }
         // attach as child
         mainStateNode.next!.push(onexitEG);
+      } else {
+        const actionEG = child.onExecutionGraphConstruction(
+          buildContext.createNewContextForChild(child)
+        );
+        if (actionEG) {
+          // We'll attach it as a child or we could flatten
+          mainStateNode.next!.push(actionEG);
+        } else {
+          throw new Error(
+            `Error during onExecutionGraphConstruction for element of type ${child.elementType} with id ${child.id}. No graph config returned`
+          );
+        }
       }
     }
 

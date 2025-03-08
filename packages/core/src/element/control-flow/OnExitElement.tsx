@@ -1,10 +1,13 @@
 import { createElementDefinition } from "../createElementDefinition";
 import type { BaseElement } from "../";
-import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 import { v4 as uuidv4 } from "uuid";
 import type { RunstepOutput } from "../../types";
-import { onExitConfig, OnExitProps } from "@fireworks/element-config";
+import {
+  ElementExecutionContext,
+  onExitConfig,
+  OnExitProps,
+} from "@fireworks/element-config";
 
 export const OnExit = createElementDefinition<OnExitProps>({
   ...onExitConfig,
@@ -19,7 +22,7 @@ export const OnExit = createElementDefinition<OnExitProps>({
     for (const child of childrenNodes) {
       if (typeof child.execute === "function") {
         // Pass the context directly to child execution
-        const result = await child.execute(ctx);
+        const result = await child.execute(ctx as any);
         if (result) {
           results.push(result);
         }

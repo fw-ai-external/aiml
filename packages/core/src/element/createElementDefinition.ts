@@ -4,11 +4,11 @@ import type {
   FireAgentNode,
   IBaseElement,
   SCXMLNodeType,
+  ExecutionGraphElement,
+  BuildContext,
+  ElementExecutionContext,
 } from "@fireworks/types";
-import { ElementExecutionContext } from "../runtime/ElementExecutionContext";
 import { BaseElement } from "./";
-import { ExecutionGraphElement } from "../runtime/types";
-import { BuildContext } from "../runtime/BuildContext";
 import { v4 as uuidv4 } from "uuid";
 
 export type ElementProps = Record<string, any>;
@@ -17,7 +17,9 @@ export type ElementConfig<T> = z.ZodObject<any>;
 
 export type AllowedChildrenType = string[] | "none" | "any" | "text";
 
-function isBaseElement(node: FireAgentNode): node is IBaseElement {
+function isBaseElement(
+  node: FireAgentNode | BaseElement
+): node is IBaseElement {
   return (
     node.type === "element" &&
     typeof node.id === "string" &&
@@ -28,7 +30,8 @@ function isBaseElement(node: FireAgentNode): node is IBaseElement {
   );
 }
 
-function convertToBaseElement(node: FireAgentNode): BaseElement {
+function convertToBaseElement(node: FireAgentNode | BaseElement): BaseElement {
+  console.log("=-------------------- convertToBaseElement", node.tag);
   if (isBaseElement(node)) {
     return new BaseElement({
       id: node.id,
@@ -46,6 +49,8 @@ function convertToBaseElement(node: FireAgentNode): BaseElement {
       columnEnd: node.columnEnd,
       allowedChildren: "any", // Add missing property
       schema: z.any(), // Add missing property
+      onExecutionGraphConstruction: node.onExecutionGraphConstruction,
+      execute: (node as any).execute,
     });
   }
 
@@ -71,6 +76,8 @@ function convertToBaseElement(node: FireAgentNode): BaseElement {
       columnEnd: node.columnEnd ?? defaultColumnEnd,
       allowedChildren: "any", // Add missing property
       schema: z.any(), // Add missing property
+      onExecutionGraphConstruction: node.onExecutionGraphConstruction,
+      execute: (node as any).execute,
     });
   }
 
@@ -90,6 +97,8 @@ function convertToBaseElement(node: FireAgentNode): BaseElement {
     columnEnd: node.columnEnd ?? defaultColumnEnd,
     allowedChildren: "any", // Add missing property
     schema: z.any(), // Add missing property
+    onExecutionGraphConstruction: node.onExecutionGraphConstruction,
+    execute: (node as any).execute,
   });
 }
 
@@ -161,8 +170,8 @@ export const createElementDefinition = <
       return existing;
     }
 
-    const llmNode: ExecutionGraphElement = {
-      id: buildContext.attributes.id || `llm_${uuidv4()}`,
+    const defaultExecutionGraphConfig: ExecutionGraphElement = {
+      id: buildContext.attributes.id || `${config.tag}_${uuidv4()}`,
       type: config.role || "action",
       key: buildContext.elementKey,
       subType: config.tag as SCXMLNodeType,
@@ -171,11 +180,14 @@ export const createElementDefinition = <
 
     // store it in the cache
     buildContext.setCachedGraphElement(
-      [buildContext.attributes.id || llmNode.id, llmNode.key].filter(Boolean),
-      llmNode
+      [
+        buildContext.attributes.id || defaultExecutionGraphConfig.id,
+        defaultExecutionGraphConfig.key,
+      ].filter(Boolean),
+      defaultExecutionGraphConfig
     );
 
-    return llmNode;
+    return defaultExecutionGraphConfig;
   };
 
   const ReactTagNode = Object.assign(
@@ -264,10 +276,17 @@ export const createElementDefinition = <
           ? parentsOrMode[parentsOrMode.length - 1]
           : undefined;
 
+        console.log(
+          "=-------------------- config.execute",
+          config.tag,
+          config.execute
+        );
         const tagNode = new BaseElement({
           id:
-            config.tag === "scxml" ? "Incoming Request" : props.id || uuidv4(),
-          key: uuidv4(),
+            config.tag === "workflow"
+              ? "Incoming Request"
+              : props.id || uuidv4(),
+          key: props.id || uuidv4(),
           tag: config.tag,
           role: config.role || "action",
           elementType: config.scxmlType || (config.tag as SCXMLNodeType),
@@ -277,9 +296,8 @@ export const createElementDefinition = <
           enter: config.enter,
           exit: config.exit,
           onExecutionGraphConstruction:
-            "onExecutionGraphConstruction" in config
-              ? config.onExecutionGraphConstruction
-              : defaultExecutionGraphConstruction,
+            (config.onExecutionGraphConstruction as any) ||
+            defaultExecutionGraphConstruction,
           type: "element",
           lineStart: nodes[0]?.lineStart ?? 0,
           lineEnd: nodes[nodes.length - 1]?.lineEnd ?? 0,
@@ -290,6 +308,7 @@ export const createElementDefinition = <
               ? config.allowedChildren({} as Props)
               : config.allowedChildren || "any", // Add missing property
           schema: config.propsSchema || z.any(), // Add missing property
+          execute: config.execute as any,
         });
 
         return tagNode;

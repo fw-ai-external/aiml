@@ -1,6 +1,4 @@
 import { createElementDefinition } from "../createElementDefinition";
-import type { BaseElement } from "../";
-import { ElementExecutionContext } from "../../runtime/ElementExecutionContext";
 import { StepValue } from "../../runtime/StepValue";
 import { v4 as uuidv4 } from "uuid";
 import type { RunstepOutput } from "../../types";
@@ -10,10 +8,7 @@ export const OnEntry = createElementDefinition<OnEntryProps>({
   ...onEntryConfig,
   role: "action",
   elementType: "onentry",
-  async execute(
-    ctx: ElementExecutionContext<OnEntryProps>,
-    childrenNodes: BaseElement[]
-  ): Promise<StepValue<RunstepOutput>> {
+  async execute(ctx, childrenNodes): Promise<StepValue<RunstepOutput>> {
     // Execute all child actions in sequence
     const results: any[] = [];
     for (const child of childrenNodes) {
