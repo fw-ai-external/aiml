@@ -6,6 +6,7 @@ import {
   onExitConfig,
   OnExitProps,
 } from "@fireworks/element-config";
+import { RunstepOutput } from "@fireworks/types";
 
 export const OnExit = createElementDefinition<OnExitProps>({
   ...onExitConfig,
