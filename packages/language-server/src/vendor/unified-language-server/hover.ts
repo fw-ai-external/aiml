@@ -1,5 +1,13 @@
 import { Connection, Hover } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
+import { DebugLogger } from "../../vendor/utils/debug";
+import {
+  parseToTokens,
+  buildActiveToken,
+  getOwnerTagName,
+  getOwnerAttributeName,
+} from "../../vendor/acorn";
+
 import {
   generateElementHover,
   generateAttributeHover,

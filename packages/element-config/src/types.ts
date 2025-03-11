@@ -1,15 +1,23 @@
 import { z } from "zod";
-import type { ReactNode } from "react";
 import type {
   ElementRole,
   AllowedChildrenType,
   ElementType,
 } from "@fireworks/types";
 
+/**
+ * Element props type
+ */
 export type ElementProps = Record<string, any>;
 
+/**
+ * Element configuration type
+ */
 export type ElementConfig<T> = z.ZodObject<any>;
 
+/**
+ * Context for element execution
+ */
 export type ElementExecutionContext<Props = ElementProps> = {
   attributes: Props;
   datamodel: Record<string, unknown>;
@@ -40,28 +48,11 @@ export type ElementExecutionContext<Props = ElementProps> = {
   };
 };
 
-export type ElementRenderContext<Props = ElementProps> =
-  ElementExecutionContext<Props>;
+// StepValue type has been moved to @fireworks/runtime
 
-export type ElementRenderResult = Promise<ReactNode>;
-
-export type StepValue<
-  T = any,
-  Type =
-    | "object"
-    | "tool-result"
-    | "tool-call"
-    | "text"
-    | "merged-results"
-    | "api-call"
-    | "api-call-result"
-    | "error",
-> = {
-  type: Type;
-  value: T;
-  raw?: string;
-};
-
+/**
+ * Base definition for an element
+ */
 export interface BaseElementDefinition {
   /**
    * The actual tag name used in the config/tsx
@@ -100,6 +91,9 @@ export interface BaseElementDefinition {
   isRoot?: boolean;
 }
 
+/**
+ * Definition for a specific element type
+ */
 export type ElementDefinition<
   Props = any,
   Tag extends ElementType = ElementType,

@@ -49,11 +49,14 @@ Create ADRs in /design-docs/adr for:
 
 ## Before writing code:
 
+Note: Confirm no unfinished todo items exist. If the current request from user is not inline with the current todo list, ensure the user wants you to shift focus. If they do, you will have to delete the current unfinished todo list and start a new one!
+
 1. Analyze all code files thoroughly
 2. Get full context
 3. Write .MD implementation plan, including a mermade graph if the change is archatectual
 4. "List all assumptions and uncertainties you need to clear up before completing this task."
-5. Then implement code. "DO NOT BE LAZY. DO NOT OMIT CODE."
+5. in a TODO.MD file in the project root... create a checklist of tasks that need to be acomplished to implement the plan.
+6. Then implement code one task at a time. As you do, mark each task as complete by checking the box "DO NOT BE LAZY. DO NOT OMIT CODE."
 
 # Security
 

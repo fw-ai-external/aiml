@@ -1,4 +1,4 @@
-import { Runtime, astToRunnableBaseElementTree } from "@fireworks/core";
+import { Workflow, astToRunnableBaseElementTree } from "@fireworks/runtime";
 import fs from "node:fs";
 
 export const maxDuration = 30;
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   }
 
   const elementTree = astToRunnableBaseElementTree(persistedWorkflow.ast.nodes);
-  const workflow = new Runtime(elementTree as any);
+  const workflow = new Workflow(elementTree);
 
   const result = workflow.runStream({
     userMessage: messages[messages.length - 1].content,

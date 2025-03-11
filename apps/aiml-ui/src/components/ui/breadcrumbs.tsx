@@ -1,9 +1,9 @@
 import { Slot } from "@radix-ui/react-slot";
 import { ChevronDown, Ellipsis } from "lucide-react";
 import * as React from "react";
-import { Link } from "react-router";
 
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const BreadcrumbPrimitive = React.forwardRef<
   HTMLElement,
@@ -138,7 +138,7 @@ export default function Breadcrumb({
                     </BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink asChild>
-                      <Link to={item.href} className="text-aiml-el-3">
+                      <Link href={item.href} className="text-aiml-el-3">
                         {item.label}
                       </Link>
                     </BreadcrumbLink>

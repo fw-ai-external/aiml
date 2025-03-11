@@ -1,0 +1,19 @@
+{
+  "name": "@fireworks/elements",
+  "version": "0.1.0",
+  "description": "Element implementations for AIML",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@fireworks/types": "workspace:*",
+    "@fireworks/element-config": "workspace:*",
+    "@fireworks/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

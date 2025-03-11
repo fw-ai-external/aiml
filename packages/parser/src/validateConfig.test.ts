@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import { validateConfig } from "./validateConfig";
-import { AIMLNode } from "@fireworks/types";
+import { SerializedBaseElement } from "@fireworks/types";
 
 describe("validateConfig", () => {
   it("should validate the config", () => {
-    const config: AIMLNode = {
+    const config: SerializedBaseElement = {
       type: "element",
       key: "parent" as any,
       tag: "scxml",

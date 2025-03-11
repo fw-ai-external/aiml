@@ -12,21 +12,14 @@
   "engines": {
     "vscode": "^1.86.0"
   },
-  "activationEvents": [
-    "onLanguage:xml"
-  ],
+  "activationEvents": ["onLanguage:xml"],
   "main": "./.dist/extension.js",
   "contributes": {
     "languages": [
       {
         "id": "aiml",
-        "aliases": [
-          "Workflow",
-          "workflow"
-        ],
-        "extensions": [
-          ".aiml"
-        ],
+        "aliases": ["Workflow", "workflow"],
+        "extensions": [".aiml"],
         "configuration": "./language-configuration.json"
       }
     ],
@@ -50,11 +43,7 @@
         "scxml.trace.server": {
           "scope": "window",
           "type": "string",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
+          "enum": ["off", "messages", "verbose"],
           "default": "verbose",
           "description": "Traces the communication between VS Code and the language server."
         }
@@ -62,7 +51,7 @@
     }
   },
   "dependencies": {
-    "@fireworks/core": "workspace:*",
+    "@fireworks/shared": "workspace:*",
     "@fireworks/element-config": "workspace:*",
     "@fireworks/parser": "workspace:*",
     "@fireworks/types": "workspace:*",

@@ -1,6 +1,5 @@
-import { Ellipsis, Plus, Trash } from "lucide-react";
+import { Ellipsis, Link, Plus, Trash } from "lucide-react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
 
 import { AlertDialog } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 import { useDeleteThread, useThreads } from "@/hooks/use-memory";
+import { useRouter } from "next/navigation";
 
 export function AgentSidebar({
   agentId,
@@ -21,7 +21,7 @@ export function AgentSidebar({
 }) {
   const { threads, isLoading } = useThreads({ resourceid: agentId, agentId });
   const { deleteThread } = useDeleteThread();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -30,7 +30,7 @@ export function AgentSidebar({
     await deleteThread({ threadId: deleteId!, resourceid: agentId, agentId });
     setShowDeleteDialog(false);
     if (deleteId === threadId) {
-      navigate(`/agents/${agentId}/chat/${crypto.randomUUID()}`);
+      router.push(`/agents/${agentId}/chat/${crypto.randomUUID()}`);
     }
   };
 
@@ -58,7 +58,7 @@ export function AgentSidebar({
             variant="primary"
             size="icon"
             onClick={() =>
-              navigate(`/agents/${agentId}/chat/${crypto.randomUUID()}`)
+              router.push(`/agents/${agentId}/chat/${crypto.randomUUID()}`)
             }
           >
             <Plus />
@@ -80,7 +80,7 @@ export function AgentSidebar({
             variant="primary"
             size="icon"
             onClick={() =>
-              navigate(`/agents/${agentId}/chat/${crypto.randomUUID()}`)
+              router.push(`/agents/${agentId}/chat/${crypto.randomUUID()}`)
             }
           >
             <Plus />

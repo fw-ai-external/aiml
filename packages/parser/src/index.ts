@@ -8,7 +8,7 @@ import { VFile } from "vfile";
 import { Node } from "unist";
 import {
   aimlElements,
-  AIMLNode,
+  SerializedBaseElement,
   Diagnostic,
   DiagnosticPosition,
   DiagnosticSeverity,
@@ -26,7 +26,7 @@ export interface MDXToAIMLOptions {
 
 // Result of parsing MDX
 export interface MDXParseResult {
-  nodes: AIMLNode[];
+  nodes: SerializedBaseElement[];
   diagnostics: Diagnostic[];
 }
 
@@ -151,10 +151,10 @@ function transformToAIMLNodes(
   ast: Node,
   options: MDXToAIMLOptions,
   diagnostics: Diagnostic[]
-): AIMLNode[] {
-  const nodes: AIMLNode[] = [];
+): SerializedBaseElement[] {
+  const nodes: SerializedBaseElement[] = [];
   // Array to store additional nodes from paragraph processing
-  const additionalNodes: AIMLNode[] = [];
+  const additionalNodes: SerializedBaseElement[] = [];
 
   // Process root node's children
   if ("children" in ast && Array.isArray(ast.children)) {
@@ -178,7 +178,7 @@ function transformToAIMLNodes(
 
         if (match) {
           // Create a header node with a headerField for the name
-          const headerNode: AIMLNode = {
+          const headerNode: SerializedBaseElement = {
             type: "header",
             key: generateKey(),
             lineStart: getPosition(ast.children[0], "start", "line"),
@@ -257,7 +257,7 @@ function transformToAIMLNodes(
  * Merge all paragraph nodes, combining their children
  * @param nodes Array of AIML nodes to process
  */
-function mergeParagraphs(nodes: AIMLNode[]): void {
+function mergeParagraphs(nodes: SerializedBaseElement[]): void {
   if (nodes.length < 2) return;
 
   // Find the first paragraph node
@@ -318,8 +318,8 @@ function transformNode(
   node: any,
   options: MDXToAIMLOptions,
   diagnostics: Diagnostic[],
-  additionalNodes: AIMLNode[] = []
-): AIMLNode | null {
+  additionalNodes: SerializedBaseElement[] = []
+): SerializedBaseElement | null {
   if (!node) return null;
 
   // Skip yaml nodes as they're handled separately for frontmatter
@@ -328,7 +328,7 @@ function transformNode(
       const frontmatter = parseYaml(node.value || "");
 
       // Create a header node with fields for frontmatter
-      const headerNode: AIMLNode = {
+      const headerNode: SerializedBaseElement = {
         type: "header",
         key: generateKey(),
         lineStart: getPosition(node, "start", "line"),
@@ -520,7 +520,7 @@ function transformNode(
         tagName.charAt(0).toUpperCase() === tagName.charAt(0)
       ) {
         // This is a valid AIML element
-        const elementNode: AIMLNode = {
+        const elementNode: SerializedBaseElement = {
           type: "element",
           key: generateKey(),
           tag: tagName,
@@ -575,7 +575,7 @@ function transformNode(
             );
             if (childNode) {
               // Set parent reference if needed
-              childNode.parent = new WeakRef(elementNode);
+              childNode.parent = elementNode;
               elementNode.children!.push(childNode);
             }
           }
@@ -642,7 +642,7 @@ function transformNode(
       // Create a paragraph node with children
       if (node.children && node.children.length > 0) {
         // Create the paragraph node
-        const paragraphNode: AIMLNode = {
+        const paragraphNode: SerializedBaseElement = {
           type: "paragraph",
           key: generateKey(),
           children: [],

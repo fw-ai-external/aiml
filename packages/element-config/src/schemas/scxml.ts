@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { ElementDefinition } from "..";
 
 //   for SCXML root element
-export const workflowConfig: ElementDefinition = {
+export const scxmlConfig: ElementDefinition = {
   tag: "workflow",
   role: "state",
   allowedChildren: ["state", "parallel", "final", "datamodel", "initial"],

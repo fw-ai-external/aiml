@@ -6,11 +6,12 @@ import assert from "node:assert";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
+// Import from our new aiml-service file
 import {
   createAimlLanguagePlugin,
   createAimlServicePlugin,
   resolveRemarkPlugins,
-} from "../../depricated_language-service/src";
+} from "./aiml-service";
 import {
   createConnection,
   createServer,
@@ -96,7 +97,7 @@ connection.onInitialize(async (parameters) => {
       );
       plugins = await resolveRemarkPlugins(
         commandLine.raw?.aiml,
-        async (name) => {
+        async (name: string) => {
           const plugin = await loadPlugin(name, {
             prefix: "remark",
             from: pathToFileURL(cwd) + "/",

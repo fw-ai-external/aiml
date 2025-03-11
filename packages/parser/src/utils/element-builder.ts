@@ -5,7 +5,12 @@ import {
   JsxAttributeLike,
 } from "ts-morph";
 import { v4 as uuidv4 } from "uuid";
-import type { ElementRole, IBaseElement, ElementType } from "@fireworks/types";
+import type {
+  ElementRole,
+  SerializedBaseElement,
+  ElementType,
+  BuildContext,
+} from "@fireworks/types";
 import { z } from "zod";
 
 export class ElementBuilder {
@@ -70,8 +75,8 @@ export class ElementBuilder {
   static createBaseElement(
     node: JsxElement | JsxSelfClosingElement,
     attributes: Record<string, string>,
-    children: IBaseElement[] = []
-  ): IBaseElement {
+    children: SerializedBaseElement[] = []
+  ): SerializedBaseElement {
     const openingElement = Node.isJsxElement(node)
       ? node.getOpeningElement()
       : node;
@@ -110,7 +115,15 @@ export class ElementBuilder {
       lineEnd: 1,
       columnStart: startPos,
       columnEnd: endPos,
-    } as IBaseElement;
+      schema: this.createStubSchema(tagName, attributes),
+      onExecutionGraphConstruction: (buildContext: BuildContext) => ({
+        id,
+        key,
+        type: role,
+        subType: elementType,
+        attributes,
+      }),
+    } as SerializedBaseElement;
   }
 
   /**

@@ -261,7 +261,7 @@ function matchDocument(
 function lspDocumentToVfile(document: TextDocument, cwd: string) {
   return new VFile({
     cwd,
-    path: new URL(document.uri),
+    path: document.uri,
     value: document.getText(),
     data: { lspDocumentUri: document.uri },
   });
@@ -277,7 +277,7 @@ async function processWorkspace(
 
   try {
     processor = (await loadPlugin("aiml", {
-      from: pathToFileURL(cwd + "/"),
+      from: pathToFileURL(cwd + "/").toString(),
       key: "aiml-processor",
     })) as EngineOptions["processor"];
   } catch (error) {

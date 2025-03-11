@@ -10,10 +10,10 @@ import {
   getOwnerAttributeName,
   IActiveToken,
   getOwnerTagName,
-} from "../utils/token";
+} from "../../vendor/utils/token";
 import { allElementConfigs } from "@fireworks/element-config";
-import { DebugLogger } from "../utils/debug";
-import { parseToTokens, Token, TokenType } from "../acorn";
+import { DebugLogger } from "../../vendor/utils/debug";
+import { parseToTokens, Token, TokenType } from "../../vendor/acorn";
 
 type StateTracker = any;
 export class CompletionProvider {

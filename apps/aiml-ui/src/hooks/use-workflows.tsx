@@ -8,8 +8,8 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { AIMLNode } from "@fireworks/types";
-import { BaseElement } from "@fireworks/core";
+import { SerializedBaseElement } from "@fireworks/types";
+import { BaseElement } from "@fireworks/shared";
 
 export const useWorkflows = () => {
   const [workflows, setWorkflows] = useState<Record<string, Workflow>>({});
@@ -50,7 +50,7 @@ type WorkflowContextType = {
     | (Workflow & {
         prompt: string;
         ast?: {
-          nodes: AIMLNode[];
+          nodes: SerializedBaseElement[];
           diagnostics: any[];
         };
         stepGraph?: any;

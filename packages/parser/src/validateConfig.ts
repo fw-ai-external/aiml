@@ -1,4 +1,4 @@
-import type { IBaseElement } from "@fireworks/types";
+import type { SerializedBaseElement } from "@fireworks/types";
 
 interface ValidationError {
   type: "unreachable_state";
@@ -6,9 +6,9 @@ interface ValidationError {
   message: string;
 }
 
-export function validateConfig(config: IBaseElement): {
+export function validateConfig(config: SerializedBaseElement): {
   errors: ValidationError[];
-  config: IBaseElement;
+  config: SerializedBaseElement;
 } {
   return {
     errors: findUnreachableStates(config),
@@ -16,11 +16,13 @@ export function validateConfig(config: IBaseElement): {
   };
 }
 
-function hasTagProperties(node: IBaseElement): node is IBaseElement & {
+function hasTagProperties(
+  node: SerializedBaseElement
+): node is SerializedBaseElement & {
   kind: "tag";
   name: string;
   attributes: { [key: string]: string | number | undefined };
-  nodes?: IBaseElement[];
+  nodes?: SerializedBaseElement[];
 } {
   return (
     "kind" in node &&
@@ -30,12 +32,14 @@ function hasTagProperties(node: IBaseElement): node is IBaseElement & {
   );
 }
 
-function findUnreachableStates(element: IBaseElement): ValidationError[] {
+function findUnreachableStates(
+  element: SerializedBaseElement
+): ValidationError[] {
   const errors: ValidationError[] = [];
   const reachableStates = new Set<string>();
 
   // Helper function to collect all state IDs
-  function collectStateIds(elem: IBaseElement): Set<string> {
+  function collectStateIds(elem: SerializedBaseElement): Set<string> {
     const stateIds = new Set<string>();
 
     if (
@@ -47,7 +51,7 @@ function findUnreachableStates(element: IBaseElement): ValidationError[] {
     }
 
     if (hasTagProperties(elem) && elem.nodes) {
-      elem.nodes.forEach((child: IBaseElement) => {
+      elem.nodes.forEach((child: SerializedBaseElement) => {
         const childStateIds = collectStateIds(child);
         childStateIds.forEach((id) => stateIds.add(id));
       });
@@ -58,7 +62,7 @@ function findUnreachableStates(element: IBaseElement): ValidationError[] {
 
   // Helper function to collect all transitions and mark initial states
   function collectTransitionsAndInitials(
-    elem: IBaseElement
+    elem: SerializedBaseElement
   ): Map<string, string[]> {
     const transitions = new Map<string, string[]>();
 
@@ -69,7 +73,7 @@ function findUnreachableStates(element: IBaseElement): ValidationError[] {
       } else if (elem.nodes && elem.nodes.length > 0) {
         // If no initial attribute, first state child is initial
         const firstState = elem.nodes.find(
-          (child: IBaseElement) =>
+          (child: SerializedBaseElement) =>
             hasTagProperties(child) &&
             child.name === "state" &&
             child.attributes?.id
@@ -95,7 +99,7 @@ function findUnreachableStates(element: IBaseElement): ValidationError[] {
       } else if (elem.nodes) {
         // If no initial attribute, first state child is initial
         const firstState = elem.nodes.find(
-          (child: IBaseElement) =>
+          (child: SerializedBaseElement) =>
             hasTagProperties(child) &&
             child.role === "state" &&
             child.attributes?.id
@@ -129,7 +133,7 @@ function findUnreachableStates(element: IBaseElement): ValidationError[] {
     }
 
     if (hasTagProperties(elem) && elem.nodes) {
-      elem.nodes.forEach((child: IBaseElement) => {
+      elem.nodes.forEach((child: SerializedBaseElement) => {
         const childTransitions = collectTransitionsAndInitials(child);
         childTransitions.forEach((targets, source) => {
           const existing = transitions.get(source) || [];
@@ -141,7 +145,9 @@ function findUnreachableStates(element: IBaseElement): ValidationError[] {
     return transitions;
   }
 
-  function findParentState(elem: IBaseElement): IBaseElement | null {
+  function findParentState(
+    elem: SerializedBaseElement
+  ): SerializedBaseElement | null {
     let current = elem;
     while (current && hasTagProperties(current) && current.role !== "state") {
       current = findParent(current);
@@ -149,7 +155,7 @@ function findUnreachableStates(element: IBaseElement): ValidationError[] {
     return current || null;
   }
 
-  function findParent(elem: IBaseElement): IBaseElement {
+  function findParent(elem: SerializedBaseElement): SerializedBaseElement {
     let queue = [element];
     while (queue.length > 0) {
       const current = queue.shift()!;

@@ -1,6 +1,6 @@
 import { Hover } from "vscode-languageserver";
-import { Token } from "../acorn";
-import { DebugLogger } from "../utils/debug";
+import { Token } from "../../vendor/acorn";
+import { DebugLogger } from "../../vendor/utils/debug";
 
 type ElementConfig = {
   documentation: string;
@@ -53,7 +53,7 @@ export function generateAttributeHover(
   return {
     contents: {
       kind: "markdown",
-      value: `**${tagName}.${attrName}**\n\n${elementConfig.documentation || ""}\n\nAttribute type: ${typeName}`,
+      value: `**${tagName}.${attrName}**\n\n${schema.description || ""}\n\nAttribute type: ${typeName}`,
     },
     range,
   };

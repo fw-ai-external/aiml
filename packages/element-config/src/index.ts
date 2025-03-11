@@ -188,10 +188,5 @@ export type FinalizeProps = z.infer<typeof finalizeConfig.propsSchema>;
 
 export * from "./nodeDefinitions";
 
-// Export all schemas and types
-export * from "./schemas/states";
-export * from "./schemas/actions";
-export * from "./schemas/control-flow";
-export * from "./schemas/specialized";
-export * from "./schemas/scxml";
+// Export types only
 export * from "./types";

@@ -37,7 +37,7 @@ export default function AgentToolPage({
 
   return (
     <div className="flex flex-col h-full w-full">
-      <Header title={tool.name} />
+      <Header title={"tool"} />
       <div className="p-4">
         <p className="text-aiml-el-2">{tool.description}</p>
       </div>

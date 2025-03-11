@@ -1,20 +1,60 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Connection } from "vscode-languageserver";
-import { DebugLogger } from "../utils/debug";
+import { DebugLogger } from "../../vendor/utils/debug";
 import { describe, expect, it, beforeEach, mock } from "bun:test";
+import type { Token } from "../../vendor/acorn";
 
-// Import directly from the mock directory
-import { allElementConfigs } from "./__mocks__/@fireworks/element-config";
+// Create mock element configs
+const allElementConfigs = {
+  state: {
+    documentation: "State element documentation",
+    propsSchema: {
+      shape: {
+        id: {
+          type: "string",
+          description: "State identifier (unique within a workflow)",
+        },
+        final: {
+          _def: {
+            typeName: "ZodBoolean",
+          },
+        },
+      },
+    },
+  },
+  binding: {
+    documentation: "Binding element documentation",
+    propsSchema: {
+      shape: {
+        type: {
+          _def: {
+            typeName: "ZodEnum",
+            values: ["early", "late"],
+          },
+        },
+      },
+    },
+  },
+  transition: {
+    documentation: "Transition element documentation",
+    propsSchema: {
+      shape: {
+        target: {
+          type: "string",
+          description: "Target state ID",
+        },
+      },
+    },
+  },
+};
 
 // Mock the @fireworks/element-config module
 mock.module("@fireworks/element-config", () => ({
   allElementConfigs,
-  isSupportedNodeName: (nodeName: string) => nodeName === "state",
+  isSupportedNodeName: (nodeName: string) =>
+    ["state", "binding", "transition"].includes(nodeName),
   getNodeDefinitionClass: (tag: string) => {
-    if (tag === "state") {
-      return allElementConfigs.state;
-    }
-    return null;
+    return allElementConfigs[tag as keyof typeof allElementConfigs] || null;
   },
   registerNodeDefinitionClass: mock(() => {}),
   allStateElementConfigs: [],
@@ -22,20 +62,51 @@ mock.module("@fireworks/element-config", () => ({
 
 import { CompletionProvider } from "./completion";
 
-interface TokenResult {
-  token: Token | undefined;
-  prevToken: Token | undefined;
-  all: Token[];
-  index: number;
-}
+// Mock the token-related functions
+mock.module("../../vendor/acorn", () => ({
+  TokenType: {
+    None: "None",
+    Invalid: "Invalid",
+    Whitespace: "Whitespace",
+    TagName: "TagName",
+    AttributeName: "AttributeName",
+    AttributeString: "AttributeString",
+    AttributeExpression: "AttributeExpression",
+    Equal: "Equal",
+    StartTag: "StartTag",
+    EndTag: "EndTag",
+  },
+  parseToTokens: (content: string): Token[] => {
+    // Simple mock implementation
+    return [];
+  },
+  buildActiveToken: (tokens: Token[], offset: number) => {
+    return {
+      token: null,
+      prevToken: null,
+      nextToken: null,
+      all: tokens,
+      index: -1,
+    };
+  },
+  getOwnerTagName: () => null,
+  getOwnerAttributeName: () => null,
+}));
 
-// For TypeScript type checking
-interface Token {
-  type: string;
-  startIndex: number;
-  endIndex: number;
-  text: string;
-}
+// Mock the token-related functions in utils/token
+mock.module("../../vendor/utils/token", () => ({
+  buildActiveToken: (tokens: Token[], offset: number) => {
+    return {
+      token: null,
+      prevToken: null,
+      nextToken: null,
+      all: tokens,
+      index: -1,
+    };
+  },
+  getOwnerTagName: () => null,
+  getOwnerAttributeName: () => null,
+}));
 
 // Mock StateTracker class
 class StateTracker {
@@ -65,12 +136,10 @@ const mockConnection = {
   },
 } as unknown as Connection;
 
-const mockLogger: Partial<DebugLogger> = {
+const mockLogger: DebugLogger = {
   completion: mock(() => {}),
   error: mock(() => {}),
-  state: mock(() => {}),
   info: mock(() => {}),
-  token: mock(() => {}),
 };
 
 describe("CompletionProvider", () => {

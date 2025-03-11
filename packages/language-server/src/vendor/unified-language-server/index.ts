@@ -1,5 +1,7 @@
 import { VFileMessage } from "vfile-message";
 import { Options as EngineOptions } from "unified-engine";
+import { HoverProvider } from "./hover";
+import { CompletionProvider } from "./completion";
 
 type EngineFields = Pick<
   EngineOptions,
@@ -119,7 +121,7 @@ function vfileMessageToDiagnostic(message: VFileMessage) {
 function lspDocumentToVfile(document: TextDocument, cwd: string) {
   return new VFile({
     cwd,
-    path: new URL(document.uri),
+    path: document.uri,
     value: document.getText(),
     data: { lspDocumentUri: document.uri },
   });
@@ -187,7 +189,7 @@ export function createUnifiedLanguageServer({
 
     try {
       processor = (await loadPlugin(processorName, {
-        from: pathToFileURL(cwd + "/"),
+        from: pathToFileURL(cwd + "/").toString(),
         key: processorSpecifier,
       })) as EngineOptions["processor"];
     } catch (error) {
@@ -486,14 +488,62 @@ export function createUnifiedLanguageServer({
   connection.onHover((params) => {
     const doc = documents.get(params.textDocument.uri);
     if (!doc) return null;
-    //return hoverProvider.getHover(doc, params.position);
+
+    // Create a logger for hover requests
+    const logger = {
+      info: (msg: string) => connection.console.info(msg),
+      error: (msg: string) => connection.console.error(msg),
+      completion: (msg: string, data?: any) => {
+        if (process.env.DEBUG_HOVER) {
+          connection.console.log(
+            `[HOVER] ${msg}` + (data ? ` ${JSON.stringify(data)}` : "")
+          );
+        }
+      },
+    };
+
+    // Create and use the hover provider
+    const hoverProvider = new HoverProvider(connection, logger);
+    return hoverProvider.getHover(doc, params.position);
   });
 
   // Handle completions
   connection.onCompletion((params: TextDocumentPositionParams) => {
     const doc = documents.get(params.textDocument.uri);
     if (!doc) return [];
-    //return completionProvider.getCompletions(doc, params.position);
+
+    // Create a logger for completion requests
+    const logger = {
+      info: (msg: string) => connection.console.info(msg),
+      error: (msg: string, error?: Error) => {
+        connection.console.error(msg);
+        if (error) connection.console.error(error.toString());
+      },
+      completion: (msg: string, data?: any) => {
+        if (process.env.DEBUG_COMPLETION) {
+          connection.console.log(
+            `[COMPLETION] ${msg}` + (data ? ` ${JSON.stringify(data)}` : "")
+          );
+        }
+      },
+    };
+
+    // Create a simple state tracker for document states
+    const stateTracker = {
+      getStatesForDocument: (uri: string) => {
+        // This is a simplified implementation
+        return new Set(["state1", "state2", "state3"]);
+      },
+    };
+
+    // Create and use the completion provider
+    const completionProvider = new CompletionProvider(
+      connection,
+      logger,
+      stateTracker
+    );
+    const result = completionProvider.getCompletions(doc, params.position);
+    return result.completions;
   });
 
   connection.onCodeAction((event) => {

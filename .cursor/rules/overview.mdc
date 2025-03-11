@@ -16,16 +16,16 @@ This implementation extends Mastra's core functionality to support all SCXML ele
 ```typescript
 // src/elements/SCXMLElement.ts
 import { Step } from "@mastra/core";
-import type { SCXMLNodeType } from "./types";
+import type { ElementType } from "./types";
 
 export class SCXMLElement extends Step {
-  readonly elementType: SCXMLNodeType;
+  readonly elementType: ElementType;
   protected dataModel: Record<string, any> = {};
   protected eventQueue: Array<{ name: string; data: any }> = [];
 
   constructor(config: {
     id: string;
-    elementType: SCXMLNodeType;
+    elementType: ElementType;
     attributes?: Record<string, any>;
     parent?: SCXMLElement;
   }) {
@@ -192,7 +192,7 @@ export class TagNode extends SCXMLElement {
       // ... other element types
       default:
         return new SCXMLElement({
-          elementType: node.name as SCXMLNodeType,
+          elementType: node.name as ElementType,
           attributes: node.attributes,
         });
     }
@@ -388,7 +388,7 @@ export class SCXMLRuntime {
 
 ```typescript
 // src/types/scxml.ts
-export type SCXMLNodeType =
+export type ElementType =
   | "scxml"
   | "state"
   | "parallel"

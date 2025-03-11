@@ -103,11 +103,30 @@ bun run package    # Build VSIX package
 ```
 .
 ├── apps/
-│   ├── server/              # API server
-│   └── vscode-plugin/       # VSCode extension
+│   ├── aiml-ui/            # Web-based management UI
+│   ├── server/             # API server
+│   └── vscode-plugin/      # VSCode extension
 ├── packages/
-│   ├── core/               # Core AIML runtime
-│   ├── element-types/      # AIML element definitions shared between the backend and langauage server
-│   ├── parser/            # AIML prompt parser
-│   └── types/             # Shared TypeScript types
+│   ├── element-config/     # Element schemas and configurations
+│   ├── elements/           # Element implementations
+│   ├── language-server/    # Language server for VSCode extension
+│   ├── parser/             # AIML prompt parser
+│   ├── runtime/            # Runtime execution engine
+│   ├── shared/             # Base element class and factory
+│   ├── tsconfig/           # Shared TypeScript configurations
+│   ├── types/              # Shared TypeScript types
+│   └── vscode/             # VSCode extension utilities
 ```
+
+## Architecture
+
+The AIML architecture has been refactored to address circular dependencies and improve maintainability. The key components are:
+
+- **Types Package**: Contains all type definitions used throughout the codebase
+- **Element Config Package**: Contains element schemas and configurations
+- **Shared Package**: Contains the base element class and factory
+- **Elements Package**: Contains specific element implementations
+- **Runtime Package**: Contains the runtime execution engine
+- **Parser Package**: Responsible for parsing AIML files and creating element instances
+
+For more details on the architecture, see the [architecture documentation](design-docs/architecture.md).

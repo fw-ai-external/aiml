@@ -14,6 +14,7 @@ export const llmConfig: BaseElementDefinition = {
     id: z.string().optional(),
     model: z.string(),
     system: z.string().optional(),
+    prompt: z.string().optional(), // Add prompt field
     temperature: z.number().optional(),
     includeChatHistory: z.boolean().optional(),
     stopSequences: z.array(z.string()).optional(),

@@ -14,19 +14,36 @@
       "dependsOn": ["@fireworks/types#build"],
       "outputs": ["dist/**"]
     },
-    "@fireworks/core#build": {
+    "@fireworks/shared#build": {
       "dependsOn": ["@fireworks/types#build", "@fireworks/element-config#build"],
       "outputs": ["dist/**"]
     },
+    "@fireworks/elements#build": {
+      "dependsOn": ["@fireworks/types#build", "@fireworks/element-config#build", "@fireworks/shared#build"],
+      "outputs": ["dist/**"]
+    },
+    "@fireworks/runtime#build": {
+      "dependsOn": ["@fireworks/types#build", "@fireworks/shared#build", "@fireworks/elements#build"],
+      "outputs": ["dist/**"]
+    },
     "@fireworks/parser#build": {
-      "dependsOn": ["@fireworks/types#build", "@fireworks/element-config#build", "@fireworks/core#build"],
+      "dependsOn": [
+        "@fireworks/types#build",
+        "@fireworks/element-config#build",
+        "@fireworks/shared#build",
+        "@fireworks/elements#build",
+        "@fireworks/runtime#build"
+      ],
       "outputs": ["dist/**"]
     },
     "fireagent-plugin-vscode#build": {
       "dependsOn": [
         "@fireworks/types#build",
         "@fireworks/element-config#build",
-        "@fireworks/core#build",
+        "@fireworks/shared#build",
+        "@fireworks/elements#build",
+        "@fireworks/runtime#build",
+        "@fireworks/shared#build",
         "@fireworks/parser#build"
       ],
       "outputs": [".dist/**"]

@@ -1,7 +1,7 @@
 {
   "name": "aiml-prompting-language",
   "private": true,
-  "packageManager": "yarn@1.22.21",
+  "packageManager": "bun@1.1.42",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -11,12 +11,10 @@
     "test": "turbo run test"
   },
   "devDependencies": {
+    "@types/bun": "^1.2.5",
     "turbo": "latest"
   },
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
+  "workspaces": ["packages/*", "apps/*"],
   "dependencies": {
     "human-regex": "^2.1.5"
   }

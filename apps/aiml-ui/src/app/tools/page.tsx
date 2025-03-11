@@ -180,7 +180,9 @@ export default function Tools() {
               Object.entries(agent?.tools ?? {}).map(([name, tool], index) => (
                 <div
                   onClick={() => {
-                    router.push(`/tools/${selectedAgentId}/${tool.id}`);
+                    router.push(
+                      `/tools/${selectedAgentId}/${"id" in tool ? tool.id : ""}`
+                    );
                   }}
                   key={index}
                   className="hover:bg-aiml-bg-4/80 transition-colors flex flex-col gap-[0.62rem] bg-aiml-bg-13 px-[0.62rem] py-2 rounded-[0.375rem] cursor-pointer border-[0.5px] border-aiml-border-1"

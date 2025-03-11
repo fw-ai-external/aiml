@@ -4,8 +4,8 @@ import { Diagnostic, Connection } from "vscode-languageserver/node";
 import { DebugLogger } from "../utils/debug";
 import { Token, TokenType } from "../acorn";
 import { getOwnerAttributeName, getOwnerTagName } from "../utils/token";
-import { BaseElement } from "@fireworks/core";
-import { fromXML } from "@fireworks/parser";
+import { BaseElement } from "@fireworks/shared";
+import { parseMDXToAIML } from "@fireworks/parser";
 
 /**
  * Validates the document for errors and warnings.
@@ -107,8 +107,8 @@ export class DocumentValidator {
     document: TextDocument,
     tokens: Token[]
   ): Promise<BaseElement> {
-    const root = await fromXML(document.getText());
-    return root as BaseElement;
+    const result = await parseMDXToAIML(document.getText());
+    return result.nodes[0] as BaseElement;
   }
 
   /**

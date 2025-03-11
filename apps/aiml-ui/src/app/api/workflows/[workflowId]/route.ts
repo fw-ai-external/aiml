@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "node:fs";
 import { z } from "zod";
 import { parseMDXToAIML } from "@fireworks/parser";
-import { Runtime, astToRunnableBaseElementTree } from "@fireworks/core";
+import { Workflow, astToRunnableBaseElementTree } from "@fireworks/runtime";
 
 export async function GET(
   request: Request,
@@ -22,7 +22,7 @@ export async function GET(
     const elementTree = astToRunnableBaseElementTree(
       persistedWorkflow.ast.nodes
     );
-    const workflow = new Runtime(elementTree as any);
+    const workflow = new Workflow(elementTree);
     return NextResponse.json({
       ...persistedWorkflow,
       ast: persistedWorkflow.ast,
@@ -122,7 +122,7 @@ export async function POST(
 
     const ast = await parseMDXToAIML(body.prompt);
     const elementTree = astToRunnableBaseElementTree(ast.nodes);
-    const workflow = new Runtime(elementTree as any);
+    const workflow = new Workflow(elementTree as any);
 
     // Save workflow data to file
     fs.writeFileSync(

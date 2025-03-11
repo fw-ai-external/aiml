@@ -118,13 +118,12 @@ export type RunstepOutput = {
   [key: string]: any;
 };
 
-// Note: StepValue is a class that's implemented in the core package
-// We're just providing the type definition here for reference
-// The actual implementation is imported from core in the parser package
-export type StepValue<
+// Note: StepValue is a class that's implemented in the @fireworks/shared package
+// This is just the interface definition for type checking
+export interface StepValue<
   Value extends RunstepOutput = RunstepOutput,
   Type extends RunstepOutput["type"] = RunstepOutput["type"],
-> = {
+> {
   readonly id: string;
   readonly runStepUUID: string | null;
   readonly stats: any | null;
@@ -139,4 +138,4 @@ export type StepValue<
   stream(): Promise<ReadableStream<Uint8Array>>;
   error(): Promise<any | null>;
   streamIterator(): AsyncIterableIterator<any>;
-};
+}

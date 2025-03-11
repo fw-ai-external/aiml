@@ -1,0 +1,23 @@
+{
+  "name": "@fireworks/runtime",
+  "version": "0.1.0",
+  "description": "Runtime execution engine for AIML",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@fireworks/elements": "workspace:*",
+    "@fireworks/shared": "workspace:*",
+    "@fireworks/types": "workspace:*",
+    "@mastra/core": "^0.5.0",
+    "uuid": "^9.0.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.0",
+    "typescript": "^5.0.0"
+  }
+}

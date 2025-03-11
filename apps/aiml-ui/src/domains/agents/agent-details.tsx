@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useRouter } from "next/navigation";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,7 +7,7 @@ import { useAgent } from "@/hooks/use-agents";
 
 export function AgentDetails({ agentId }: { agentId: string }) {
   const { isLoading, agent } = useAgent(agentId);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   if (isLoading) {
     return (
@@ -72,11 +72,13 @@ export function AgentDetails({ agentId }: { agentId: string }) {
               <span
                 key={toolKey}
                 onClick={() => {
-                  navigate(`/tools/${agentId}/${tool.id}`);
+                  router.push(
+                    `/tools/${agentId}/${"id" in tool ? tool.id : toolKey}`
+                  );
                 }}
                 className="no-underline"
               >
-                {tool.id}
+                {"id" in tool ? tool.id : toolKey}
               </span>
             ))}
           </div>
