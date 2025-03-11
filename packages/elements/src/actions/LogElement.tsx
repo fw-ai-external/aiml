@@ -1,5 +1,4 @@
-import { createElementDefinition } from "@fireworks/shared";
-import { MockStepValue } from "../utils/mock-step-value";
+import { createElementDefinition, StepValue } from "@fireworks/shared";
 import { logConfig, LogProps } from "@fireworks/element-config";
 
 export const Log = createElementDefinition<LogProps>({
@@ -35,7 +34,7 @@ export const Log = createElementDefinition<LogProps>({
       const message = label ? `${label}: ${value}` : String(value);
       console.log(message);
 
-      return new MockStepValue({
+      return new StepValue({
         type: "object",
         object: { message, value },
         raw: JSON.stringify({ message, value }),

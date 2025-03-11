@@ -1,7 +1,6 @@
-import { createElementDefinition } from "@fireworks/shared";
+import { createElementDefinition, StepValue } from "@fireworks/shared";
 import { v4 as uuidv4 } from "uuid";
 import { assignConfig, AssignProps } from "@fireworks/element-config";
-import { MockStepValue } from "../utils/mock-step-value";
 
 export const Assign = createElementDefinition<AssignProps>({
   ...assignConfig,
@@ -42,7 +41,7 @@ export const Assign = createElementDefinition<AssignProps>({
     // Update the datamodel at the specified location
     // ctx.updateContext(location, value);
 
-    return new MockStepValue({
+    return new StepValue({
       type: "object",
       object: { location, value },
       raw: JSON.stringify({ location, value }),
