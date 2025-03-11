@@ -1,3 +1,6 @@
+// Initialize runtime services first to ensure they're available
+import "./initialize";
+
 // Export all runtime functionality
 export * from "./di";
 export * from "./graph-builder";
@@ -8,3 +11,4 @@ export * from "./workflow-utils";
 export * from "./types";
 export * from "@fireworks/shared/src/errors";
 export * from "./element-utils";
+export * from "./initialize";

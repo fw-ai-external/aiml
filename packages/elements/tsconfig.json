@@ -1,5 +1,5 @@
 {
-  "extends": "../../packages/tsconfig/library.json",
+  "extends": "@fireworks/tsconfig/library.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"
