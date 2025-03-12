@@ -87,6 +87,7 @@ export class Workflow<
    */
   private async handleStateTransition(state: WorkflowRunState) {
     // Update active states
+    console.log("state", state);
     const currentlyActiveStates = new Set(
       Object.keys(state?.context.steps ?? {}).filter(
         (key) =>
@@ -108,6 +109,7 @@ export class Workflow<
       const element = this.findElementById(stateId);
       // const input = state?.context.steps?.[stateId].payload;
       if (element) {
+        console.log("adding active step", element.tag);
         this.value?.addActiveStep({
           elementType: element.elementType,
           id: element.id,
@@ -126,6 +128,7 @@ export class Workflow<
       ) {
         const element = this.findElementById(stateId);
         if (element) {
+          console.log("marking step as finished", element.tag);
           this.value?.markStepAsFinished(element.id);
           // await (element as BaseElement).deactivate?.();
         }
@@ -244,6 +247,7 @@ export class Workflow<
     // Add the current element to the workflow
 
     const step = buildContext.getElementByKey(element.key);
+    console.log("step ***", step?.tag);
     if (!step || element.key !== step.key || element.subType !== step.tag) {
       throw new Error(
         `Step mismatch: ${element.key} !== ${step?.key} || ${element.subType} !== ${step?.tag}`

@@ -155,6 +155,9 @@ export class GraphBuilder {
       key,
       subType: tag,
       attributes,
+      next: [],
+      parallel: [],
+      runAfter: [],
     };
   }
 }

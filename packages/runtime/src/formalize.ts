@@ -73,8 +73,25 @@ export function astToRunnableBaseElementTree(
     const stateElements = rootLevelParagraphs.map((paragraph, index) =>
       createStateElement(`root-state-${index}`, [paragraph])
     );
+    console.log(
+      "=-------------------- stateElements",
+      stateElements.map((s) => s.children?.length)
+    );
     processedNodes.push(...stateElements);
   }
+  console.log("=-------------------- rootLevelParagraphs", rootLevelParagraphs);
+  console.log(
+    "=-------------------- processedNodes",
+    processedNodes.map((n) => ({
+      tag: n.tag,
+      children: n.children?.map((c) => ({
+        tag: c.tag,
+        children: c.children?.map((cc) => ({
+          tag: cc.tag,
+        })),
+      })),
+    }))
+  );
 
   for (const node of processedNodes) {
     if (node !== rootElement) {
@@ -135,7 +152,7 @@ function convertParagraphToLlm(
     }
   }
   const LLM = getElementClassByTagName("llm");
-
+  console.log("=-------------------- LLM", LLM);
   return LLM.initFromAttributesAndNodes(
     {
       prompt: promptText,
@@ -289,11 +306,8 @@ function ensureAllNodesAreElements(element: BaseElement): BaseElement {
 
 function createStateElement(id: string, children: BaseElement[]): BaseElement {
   const State = getElementClassByTagName("state");
-
-  return State.initFromAttributesAndNodes(
-    { id },
-    children as SerializedBaseElement[]
-  ) as BaseElement;
+  console.log("=-------------------- State", children.length);
+  return State.initFromAttributesAndNodes({ id }, children) as BaseElement;
 }
 
 function shouldConvertParagraphToLlm(

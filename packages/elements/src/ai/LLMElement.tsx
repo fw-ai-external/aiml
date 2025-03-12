@@ -12,6 +12,7 @@ export const LLM = createElementDefinition<LLMProps>({
   role: "action",
   allowedChildren: "text",
   onExecutionGraphConstruction(buildContext) {
+    console.log("=-------------------- onExecutionGraphConstruction llm");
     const llmNode: ExecutionGraphElement = {
       id: buildContext.attributes.id,
       key: buildContext.elementKey,

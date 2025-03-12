@@ -138,8 +138,14 @@ export const createElementDefinition = <
     ): BaseElement => {
       const validatedProps = factory.validateProps(props as Props);
 
+      console.log("=-------------------- nodes", nodes);
       // Convert nodes to BaseElement instances if needed
-      const childElements: BaseElement[] = [];
+      const childElements: BaseElement[] = nodes.every(
+        (n) => n instanceof BaseElement
+      )
+        ? nodes
+        : // TODO this is wrong, we need a real init loop
+          (nodes as BaseElement[]);
 
       const element = new BaseElement({
         id: props.id || uuidv4(),

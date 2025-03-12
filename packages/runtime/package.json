@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "bun test"
+    "test": "bun test",
+    "dev": "tsc --watch"
   },
   "dependencies": {
     "@fireworks/elements": "workspace:*",

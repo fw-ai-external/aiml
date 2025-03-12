@@ -19,6 +19,10 @@ export const State = createElementDefinition({
     const existing = buildContext.getCachedGraphElement(
       buildContext.elementKey
     );
+    console.log(
+      "=-------------------- mainStateNode state",
+      buildContext.children.length
+    );
     if (existing) {
       return existing;
     }
@@ -40,12 +44,6 @@ export const State = createElementDefinition({
       // or 'onentry' expansions
       next: [],
     };
-
-    // store it in the cache
-    buildContext.setCachedGraphElement(
-      [key, buildContext.attributes.id].filter(Boolean),
-      mainStateNode
-    );
 
     // 2. Build sub-states, transitions, etc.
     //    but we have to treat transitions differently than sub-states
@@ -74,11 +72,7 @@ export const State = createElementDefinition({
         // We might attach it as a separate sibling or a child.
         // Example: We'll add it as a child. The runtime can interpret it as a sub-action
         mainStateNode.next!.push(txEG);
-      } else if (
-        child.elementType === "state" ||
-        child.elementType === "final" ||
-        child.elementType === "parallel"
-      ) {
+      } else if (child.role === "state") {
         // Another sub-state => build it
         const subEG = child.onExecutionGraphConstruction?.(
           buildContext.createNewContextForChild(child)
@@ -130,6 +124,17 @@ export const State = createElementDefinition({
         }
       }
     }
+
+    // store it in the cache
+    buildContext.setCachedGraphElement(
+      [key, buildContext.attributes.id].filter(Boolean),
+      mainStateNode
+    );
+
+    console.log(
+      "=-------------------- mainStateNode sate child",
+      buildContext.children
+    );
 
     return mainStateNode;
   },

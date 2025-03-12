@@ -85,7 +85,7 @@ export class BuildContext implements BuildContextInterface {
     }
   }
 
-  public createNewContextForChild(child: BaseElement): BuildContextInterface {
+  public createNewContextForChild(child: BaseElement): BuildContext {
     if (child instanceof BaseElement) {
       return new BuildContext(
         this.workflow,
@@ -94,7 +94,7 @@ export class BuildContext implements BuildContextInterface {
         child.attributes,
         this.conditions,
         child
-      ) as any as BuildContextInterface;
+      );
     }
     throw new Error(
       "Child passed to createNewContextForChild is not a BaseElement"
