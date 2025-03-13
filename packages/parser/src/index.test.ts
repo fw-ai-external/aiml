@@ -17,13 +17,25 @@ describe("AIML Parsing Tests", () => {
       expect(result.nodes).not.toBeNull();
       expect(result.nodes).toBeArrayOfSize(1);
       expect(result.nodes[0].tag).toBe("workflow");
-      expect(result.nodes[0].children).toBeArrayOfSize(1);
-      expect(result.nodes[0].children?.[0].tag).toBe("state");
-      expect(result.nodes[0].children?.[0].children).toBeArrayOfSize(1);
-      expect(result.nodes[0].children?.[0].children?.[0].tag).toBe("llm");
-      expect(
-        result.nodes[0].children?.[0].children?.[0].attributes?.prompt
-      ).toBe("Hi!");
+
+      // Since we automatically add a final element if one is not present,
+      // we should expect at least 2 children: the state (for the paragraph) and the final element
+      expect(result.nodes[0].children!.length).toBeGreaterThanOrEqual(2);
+
+      // Check that there's a final element among the children
+      const hasFinalElement = result.nodes[0].children!.some(
+        (child) => child.type === "element" && child.tag === "final"
+      );
+      expect(hasFinalElement).toBe(true);
+
+      // Find the state element (not necessarily the first child now)
+      const stateElement = result.nodes[0].children!.find(
+        (child) => child.type === "element" && child.tag === "state"
+      );
+      expect(stateElement).not.toBeUndefined();
+      expect(stateElement?.children).toBeArrayOfSize(1);
+      expect(stateElement?.children?.[0].tag).toBe("llm");
+      expect(stateElement?.children?.[0].attributes?.prompt).toBe("Hi!");
     });
     it("should parse a basic  but full AIML file", async () => {
       const input = `

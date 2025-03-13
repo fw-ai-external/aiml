@@ -1,0 +1,36 @@
+---
+name: FinalStateTest
+description: Tests that the final state is always present and leaf nodes transition to it
+---
+
+<workflow id="main">
+  <state id="start">
+    <llm>
+      <prompt>
+        This is the start state. It should automatically transition to the final state
+        because it doesn't have any explicit transitions.
+      </prompt>
+    </llm>
+  </state>
+  
+  <state id="another_state">
+    <llm>
+      <prompt>
+        This state has an explicit transition so it should not automatically 
+        transition to the final state.
+      </prompt>
+    </llm>
+    <transition target="third_state" />
+  </state>
+  
+  <state id="third_state">
+    <llm>
+      <prompt>
+        This is the third state. It's also a leaf node, so it should
+        automatically transition to the final state.
+      </prompt>
+    </llm>
+  </state>
+  
+  {/* Note: final state is intentionally not included to test our auto-addition */}
+</workflow>

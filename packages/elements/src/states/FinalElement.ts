@@ -1,7 +1,5 @@
 import { z } from "zod";
 import { ExecutionGraphElement } from "@fireworks/types";
-import { BaseElement } from "@fireworks/shared";
-import { StepValue } from "@fireworks/shared";
 import { v4 as uuidv4 } from "uuid";
 import { createElementDefinition } from "@fireworks/shared";
 
@@ -18,19 +16,16 @@ export const Final = createElementDefinition({
   elementType: "final",
   allowedChildren: ["onentry", "onexit"],
   onExecutionGraphConstruction(buildContext) {
-    // final typically doesn't have sub-states, but might have onentry or data
-    const childEGs = buildContext.children
-      .map((child) => {
-        if (child instanceof BaseElement) {
-          return child.onExecutionGraphConstruction?.(
-            buildContext.createNewContextForChild(child)
-          );
-        }
-      })
-      .filter(Boolean) as ExecutionGraphElement[];
+    const existing = buildContext.getCachedGraphElement(
+      buildContext.elementKey
+    );
+
+    if (existing) {
+      return existing;
+    }
 
     // We might store any onentry blocks or <donedata> in children
-    return {
+    const finalEG: ExecutionGraphElement = {
       id: buildContext.attributes.id || `final_${uuidv4()}`,
       key: buildContext.elementKey,
       type: "output",
@@ -38,21 +33,16 @@ export const Final = createElementDefinition({
       attributes: {
         ...buildContext.attributes,
       },
-      next: childEGs,
     };
+
+    buildContext.setCachedGraphElement(
+      [buildContext.elementKey, buildContext.attributes.id].filter(Boolean),
+      finalEG
+    );
+
+    return finalEG;
   },
-  async execute(ctx, childrenNodes) {
-    // TODO: EMIT a done event
-    return new StepValue({
-      type: "object",
-      object: {
-        id: ctx.attributes.id ?? uuidv4(),
-        done: true,
-      },
-      raw: JSON.stringify({
-        id: ctx.attributes.id ?? uuidv4(),
-        done: true,
-      }),
-    });
+  async execute(ctx) {
+    return ctx.input;
   },
 });

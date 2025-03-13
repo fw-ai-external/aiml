@@ -21,6 +21,32 @@ export const Workflow = createElementDefinition({
       })
       .filter(Boolean) as ExecutionGraphElement[];
 
+    // Find the final element among children
+    const finalElement = childElements.find(
+      (element) => element.subType === "final"
+    );
+
+    // If no final element was found, this shouldn't happen as the parser should add one
+    // But we'll handle it gracefully and log a warning
+    if (!finalElement) {
+      console.warn(
+        "No final element found in workflow. Parser should have added one."
+      );
+    }
+
+    // Ensure all child elements that don't already have a transition end with a transition to final
+    for (const childElement of childElements) {
+      // Skip the final element itself
+      if (childElement.subType === "final") continue;
+
+      // If the element has no next elements defined (leaf node), make it transition to final
+      if (!childElement.next || childElement.next.length === 0) {
+        if (finalElement) {
+          childElement.next = [finalElement];
+        }
+      }
+    }
+
     return {
       id: "Incoming Request",
       type: "user-input", // SCXML is a container => state

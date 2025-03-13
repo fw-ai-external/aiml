@@ -400,6 +400,43 @@ function processFinalStructure(
     rootLevelNodes.push(workflowNode);
   }
 
+  // Check if workflow has a final element; if not, add one
+  let hasFinalElement = false;
+  if (workflowNode.children) {
+    hasFinalElement = workflowNode.children.some(
+      (child) => child.type === "element" && child.tag === "final"
+    );
+  }
+
+  if (!hasFinalElement && workflowNode) {
+    // Create a final element with a unique ID
+    const finalElement: SerializedBaseElement = {
+      type: "element",
+      key: generateKey(),
+      tag: "final",
+      role: "output",
+      elementType: "final",
+      attributes: {
+        id: "final_state",
+      },
+      children: [],
+      lineStart: workflowNode.lineStart,
+      lineEnd: workflowNode.lineEnd,
+      columnStart: workflowNode.columnStart,
+      columnEnd: workflowNode.columnEnd,
+    };
+
+    // Add the final element to the workflow
+    if (workflowNode.children) {
+      workflowNode.children.push(finalElement);
+    } else {
+      workflowNode.children = [finalElement];
+    }
+
+    // Set parent reference
+    finalElement.parentId = workflowNode.id;
+  }
+
   // Process root level paragraphs by converting them to LLM elements wrapped in state elements
   if (rootLevelParagraphs.length > 0) {
     for (const [index, paragraph] of rootLevelParagraphs.entries()) {
