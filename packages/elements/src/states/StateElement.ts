@@ -11,10 +11,11 @@ const stateSchema = z.object({
 
 type StateProps = z.infer<typeof stateSchema>;
 
-export const State = createElementDefinition({
+export const State = createElementDefinition<StateProps>({
   ...stateConfig,
-  role: "state",
-  elementType: "state",
+  role: "state" as const,
+  elementType: "state" as const,
+  tag: "state" as const,
   onExecutionGraphConstruction(buildContext) {
     const existing = buildContext.getCachedGraphElement(
       buildContext.elementKey
@@ -59,11 +60,6 @@ export const State = createElementDefinition({
           // TODO: handle as value in parser
           continue;
         }
-        // Make the transition depend on this state's node finishing "onentry"
-        if (!txEG.runAfter) {
-          txEG.runAfter = [];
-        }
-        txEG.runAfter.push(mainStateNode.id);
 
         // So the transition belongs in the same "level" as the state.
         // We might attach it as a separate sibling or a child.

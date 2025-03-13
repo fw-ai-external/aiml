@@ -42,7 +42,4 @@ export const Final = createElementDefinition({
 
     return finalEG;
   },
-  async execute(ctx) {
-    return ctx.input;
-  },
 });

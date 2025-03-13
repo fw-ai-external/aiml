@@ -18,6 +18,7 @@ import {
 import { BuildContext } from "./BuildContext";
 import { z } from "zod";
 import { RunValue } from "./RunValue";
+
 /**
  * Workflow execution options
  */
@@ -47,6 +48,7 @@ export class Workflow<
   InputSchema extends z.ZodType<any>,
   InputType extends z.infer<InputSchema>,
 > {
+  private debug: string = "";
   private graphBuilder: GraphBuilder;
   private workflow: MastraWorkflow;
   private activeStates: Set<string> = new Set();
@@ -61,10 +63,17 @@ export class Workflow<
     );
     // Build the execution graph
     this.executionGraph = this.graphBuilder.buildGraph(this.spec);
+
     this.workflow = new MastraWorkflow({
       name: "workflow",
       triggerSchema: z.object({}),
     });
+    // this.workflow.__setLogger(
+    //   createLogger({
+    //     name: "Mastra Core Runtime",
+    //     level: "debug",
+    //   })
+    // );
 
     this.addGraphElementToWorkflow(
       new BuildContext(
@@ -80,8 +89,10 @@ export class Workflow<
       false,
       true
     );
-
+    console.log("[DEBUG] mastra workflow 'code':\n", this.debug);
     this.workflow.commit();
+
+    console.log("=-------------------- workflow", this.workflow.steps);
   }
 
   /**
@@ -91,6 +102,7 @@ export class Workflow<
    * @returns The execution result
    */
   private async handleStateTransition(state: WorkflowRunState) {
+    console.log("=-------------------- handleStateTransition", state);
     // Update active states
     const currentlyActiveStates = new Set(
       Object.keys(state?.context.steps ?? {}).filter(
@@ -123,25 +135,29 @@ export class Workflow<
         });
       }
     }
-
+    console.log(
+      "=-------------------- currentlyActiveStates",
+      Array.from(currentlyActiveStates).map((id) => ({
+        id,
+        status: state.context.steps[id]?.status,
+      }))
+    );
     // Handle state exits
-    for (const stateId of this.activeStates) {
+    for (const stateId of currentlyActiveStates) {
+      console.log(
+        "=-------------------- state.context.steps[stateId]",
+        state.context.steps[stateId]
+      );
       if (
-        !currentlyActiveStates.has(stateId) ||
         failedStates.includes(stateId) ||
         state.context.steps[stateId]?.status === "success"
       ) {
+        console.log("=-------------------- markStepAsFinished", stateId);
         const element = this.findElementById(stateId);
         if (element) {
-          console.log(
-            "marking step as finished",
-            element.tag,
-            element.id,
-            state.context.steps
-          );
           this.value?.markStepAsFinished(
             element.id,
-            state.context.steps[element.id]?.payload
+            (state as any).context.steps[stateId].output?.result
           );
           // await (element as BaseElement).deactivate?.();
         }
@@ -186,6 +202,7 @@ export class Workflow<
     this.workflow.watch((state: WorkflowRunState) =>
       this.handleStateTransition(state)
     );
+
     // .catch((error) => {
     //   console.error("error", error);
     //   this.options?.onError?.(error as Error);
@@ -226,7 +243,11 @@ export class Workflow<
     this.value = new RunValue({ runId });
     // Set up state transition monitoring
     this.workflow.watch((state: WorkflowRunState) =>
-      this.handleStateTransition(state)
+      this.handleStateTransition(state).catch((error) => {
+        console.error("error", error);
+        this.options?.onError?.(error as Error);
+        throw error;
+      })
     );
     const workflowOutput = start({
       triggerData: {
@@ -235,9 +256,14 @@ export class Workflow<
         userInput: null,
         datamodel: {},
       },
+    }).catch((error) => {
+      console.error("error", error);
+      this.options?.onError?.(error as Error);
+      throw error;
     });
 
     workflowOutput.then(async (results) => {
+      console.log("=-------------------- workflowOutput", results);
       await this.value?.finalize();
     });
 
@@ -258,6 +284,7 @@ export class Workflow<
     parent?: BaseElement
   ) {
     if (element.runAfter) {
+      this.debug = `${this.debug}.runAfter([${element.runAfter.join(",")}])`;
       this.workflow.after(
         element.runAfter.map((key: string) =>
           buildContext.findElementByKey(key)
@@ -267,7 +294,7 @@ export class Workflow<
     // Add the current element to the workflow
 
     const step = buildContext.findElementByKey(element.key, buildContext.spec);
-    console.log("step ***", step?.tag);
+
     if (!step || element.key !== step.key || element.subType !== step.tag) {
       throw new Error(
         `Step mismatch: ${element.key} !== ${step?.key} || ${element.subType} !== ${step?.tag}`
@@ -275,6 +302,9 @@ export class Workflow<
     }
     if (step) {
       if (parallel || root) {
+        this.debug = root
+          ? `mastraWorkflow.step(${step.tag})`
+          : `${this.debug}.step(${step.tag})`;
         this.workflow.step(step, {
           variables: {
             input: root
@@ -288,6 +318,7 @@ export class Workflow<
           //   element.when ? eval(element.when) : true,
         });
       } else {
+        this.debug = `${this.debug}.then(${step.tag})`;
         this.workflow.then(step, {
           variables: {
             input: { step: { id: parent?.id! }, path: "result" },

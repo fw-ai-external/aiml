@@ -90,6 +90,7 @@ export class RunValue {
 
   markStepAsFinished(id: string, output?: RunstepOutput | StepValue) {
     const thisStep = this._runSteps.find((s) => s.id === id);
+    console.log("=-------------------- markStepAsFinished", id, thisStep);
     if (thisStep) {
       thisStep.status = "finished";
       if (output) {
