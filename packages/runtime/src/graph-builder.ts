@@ -6,7 +6,7 @@
  */
 
 import type { ExecutionGraphElement } from "@fireworks/types";
-import { BaseElement } from "@fireworks/shared";
+import { type BaseElement } from "@fireworks/shared";
 import { container, ServiceIdentifiers } from "./di";
 
 /**

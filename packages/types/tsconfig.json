@@ -8,9 +8,7 @@
     "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": false,
-    "composite": true,
-    "incremental": true,
     "skipLibCheck": true,
-    "moduleResolution": "Node"
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
   }
-} 
+}

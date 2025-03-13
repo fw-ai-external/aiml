@@ -2,12 +2,20 @@
   "name": "@fireworks/shared",
   "version": "0.1.0",
   "description": "Core element classes and factories for AIML",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "test": "bun test",
-    "dev": "tsc --watch"
+    "dev": "tsup --watch"
   },
   "dependencies": {
     "@fireworks/types": "workspace:*",

@@ -4,9 +4,47 @@ export * from "./errorCodes";
 export * from "./diagnostics";
 export * from "./elements";
 export * from "./values";
-import type { BuildContext } from "./runtime";
-import type { ExecutionGraphElement } from "./runtime";
+import type {
+  BuildContext,
+  ExecutionGraphElement,
+  RunstepOutput,
+  ElementExecutionContext,
+  ElementExecutionContextSerialized,
+  StepValue,
+} from "./runtime";
+import type {
+  ErrorResult,
+  JSONObject,
+  OpenAIToolCall,
+  RunStepInput,
+  APIStreamEvent,
+  ToolCall,
+  ToolCallSchema,
+  Secrets,
+  RunEvent,
+} from "./values";
 import type { z } from "zod";
+import { ErrorCode } from "./errorCodes";
+
+export type {
+  ExecutionGraphElement,
+  RunstepOutput,
+  BuildContext,
+  ElementExecutionContext,
+  ElementExecutionContextSerialized,
+  StepValue,
+  ErrorResult,
+  JSONObject,
+  OpenAIToolCall,
+  RunStepInput,
+  APIStreamEvent,
+  ToolCall,
+  ToolCallSchema,
+  Secrets,
+  RunEvent,
+};
+
+export { ErrorCode };
 
 /**
  * Configuration for a base element

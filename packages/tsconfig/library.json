@@ -4,7 +4,8 @@
   "extends": "./base.json",
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "module": "ESNext",
+    "module": "Node16",
+    "moduleResolution": "nodenext",
     "target": "ESNext",
     "jsx": "preserve",
     "noFallthroughCasesInSwitch": false,

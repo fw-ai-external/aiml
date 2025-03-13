@@ -7,14 +7,14 @@ import { VFile } from "vfile";
 import { Node } from "unist";
 import {
   SerializedBaseElement,
-  Diagnostic,
-  DiagnosticPosition,
-  DiagnosticSeverity,
+  type Diagnostic,
+  type DiagnosticPosition,
   CommentNode,
   TextNode,
   ExpressionNode,
+  DiagnosticSeverity,
 } from "@fireworks/types";
-import { Root } from "remark-parse/lib";
+import { Root } from "mdast";
 
 // Options for parsing MDX to AIML nodes
 export interface MDXToAIMLOptions {

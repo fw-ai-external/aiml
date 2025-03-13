@@ -1,5 +1,5 @@
 import { ExecutionGraphElement } from "@fireworks/types";
-import { Workflow } from "@mastra/core";
+import { Workflow } from "@mastra/core/workflows";
 import { BaseElement } from "@fireworks/shared";
 import { BuildContext as BuildContextInterface } from "@fireworks/types";
 // Define missing types

@@ -19,10 +19,9 @@
     "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
-    "emitDeclarationOnly": false,
-    "composite": true,
-    "incremental": true,
+    "emitDeclarationOnly": true,
     "skipLibCheck": true,
-    "moduleResolution": "Node"
+    "moduleResolution": "bundler",
+    "module": "esnext"
   }
 }

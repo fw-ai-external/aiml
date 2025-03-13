@@ -1,5 +1,5 @@
 import { ErrorCode } from "@fireworks/shared";
-import { ReplayableAsyncIterableStream } from "@fireworks/shared";
+import { type ReplayableAsyncIterableStream } from "@fireworks/shared";
 import type { APIStreamEvent, RunEvent, RunstepOutput } from "@fireworks/types";
 import { StepValue } from "@fireworks/shared";
 import { ElementType } from "@fireworks/types";
@@ -78,6 +78,7 @@ export class RunValue {
   }
 
   setStepOutput(id: string, output: RunstepOutput | StepValue) {
+    console.log("=-------------------- setStepOutput", id, output);
     const thisStep = this._runSteps.find((s) => s.id === id);
     if (thisStep) {
       thisStep.output = maybeRunStepValue(output);
@@ -87,10 +88,13 @@ export class RunValue {
     }
   }
 
-  markStepAsFinished(id: string) {
+  markStepAsFinished(id: string, output?: RunstepOutput | StepValue) {
     const thisStep = this._runSteps.find((s) => s.id === id);
     if (thisStep) {
       thisStep.status = "finished";
+      if (output) {
+        this.setStepOutput(id, output);
+      }
     } else {
       throw new Error(`Step ${id} not found, could not mark as finished`);
     }
@@ -135,6 +139,7 @@ export class RunValue {
    * Note that even if StateMachine Actor is finished, the values inside RunValue still may not be final.
    */
   public async finalize() {
+    console.log("=-------------------- finalize", this._runSteps.length);
     // Set the finished state immediately
     this._finished = true;
 
@@ -151,6 +156,7 @@ export class RunValue {
       const nonFinalValues = this._generatedValues.filter(
         (value) => value.id !== this._finalOutput?.id
       );
+      console.log("=-------------------- nonFinalValues", nonFinalValues);
 
       if (nonFinalValues.length === 1) {
         const stepValue = nonFinalValues[0];
@@ -395,8 +401,15 @@ export class RunValue {
       this._generatedValues.length > 0
     ) {
       this._finalOutput =
-        this._generatedValues[this._generatedValues.length - 1];
-      return this._finalOutput;
+        this._generatedValues[this._generatedValues.length - 1] || null;
+      return (
+        this._finalOutput ||
+        new StepValue({
+          type: "error",
+          error: "No final output available",
+          code: ErrorCode.SERVER_ERROR,
+        })
+      );
     }
 
     // Create a timeout promise that resolves after the timeout period
@@ -425,14 +438,14 @@ export class RunValue {
         this._generatedValues.length > 0
       ) {
         this._finalOutput =
-          this._generatedValues[this._generatedValues.length - 1];
+          this._generatedValues[this._generatedValues.length - 1] || null;
       }
 
       // If we still don't have a final output, create a default one
       if (!this._finalOutput) {
         this._finalOutput = new StepValue({
           type: "text",
-          text: "No output",
+          text: "No final output available",
         });
       }
 

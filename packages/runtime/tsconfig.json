@@ -1,9 +1,27 @@
 {
-  "extends": "@fireworks/tsconfig/library.json",
+  "extends": "@fireworks/tsconfig/base.json",
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.d.ts"
+  ],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.mts",
+    "src/**/*.mtsx",
+    "src/**/*.json"
+  ],
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "module": "esnext"
+  }
 }

@@ -6,11 +6,15 @@
  */
 
 import { BaseElement } from "@fireworks/shared";
-import { ExecutionGraphElement } from "@fireworks/types";
+// Use type-only import with resolution-mode
+import type { ExecutionGraphElement } from "@fireworks/types";
 import { StepValue } from "@fireworks/shared";
 import { container, ServiceIdentifiers } from "./di";
 import { GraphBuilder } from "./graph-builder";
-import { Workflow as MastraWorkflow, WorkflowRunState } from "@mastra/core";
+import {
+  Workflow as MastraWorkflow,
+  WorkflowRunState,
+} from "@mastra/core/workflows";
 import { BuildContext } from "./BuildContext";
 import { z } from "zod";
 import { RunValue } from "./RunValue";
@@ -123,19 +127,33 @@ export class Workflow<
     // Handle state exits
     for (const stateId of this.activeStates) {
       if (
-        !currentlyActiveStates.has(stateId) &&
-        failedStates.includes(stateId)
+        !currentlyActiveStates.has(stateId) ||
+        failedStates.includes(stateId) ||
+        state.context.steps[stateId]?.status === "success"
       ) {
         const element = this.findElementById(stateId);
         if (element) {
-          console.log("marking step as finished", element.tag);
-          this.value?.markStepAsFinished(element.id);
+          console.log(
+            "marking step as finished",
+            element.tag,
+            element.id,
+            state.context.steps
+          );
+          this.value?.markStepAsFinished(
+            element.id,
+            state.context.steps[element.id]?.payload
+          );
           // await (element as BaseElement).deactivate?.();
         }
       }
     }
 
-    this.activeStates = currentlyActiveStates;
+    // Filter out states that have succeeded from the active states
+    this.activeStates = new Set(
+      Array.from(currentlyActiveStates).filter(
+        (stateId) => state.context.steps[stateId]?.status !== "success"
+      )
+    );
     this.options?.onTransition?.(state);
   }
 
@@ -241,7 +259,9 @@ export class Workflow<
   ) {
     if (element.runAfter) {
       this.workflow.after(
-        element.runAfter.map((key) => buildContext.getElementByKey(key)) as any
+        element.runAfter.map((key: string) =>
+          buildContext.getElementByKey(key)
+        ) as any
       ) as any;
     }
     // Add the current element to the workflow

@@ -188,5 +188,11 @@ export type FinalizeProps = z.infer<typeof finalizeConfig.propsSchema>;
 
 export * from "./nodeDefinitions";
 
-// Export types only
-export * from "./types";
+// Export types from types.ts
+// Already exported above with duplicated interfaces, so we don't need
+// to re-export them explicitly
+export type {
+  ElementProps,
+  ElementConfig,
+  ElementExecutionContext,
+} from "./types";

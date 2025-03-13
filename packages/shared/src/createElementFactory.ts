@@ -19,7 +19,8 @@ import type {
 } from "@fireworks/types";
 import { BaseElement } from "./BaseElement";
 import { v4 as uuidv4 } from "uuid";
-import { ElementProps } from "@fireworks/element-config";
+// Define ElementProps since we're having import issues
+type ElementProps = Record<string, any>;
 
 export type ElementConfigSchema<T = any> = z.ZodType<T>;
 

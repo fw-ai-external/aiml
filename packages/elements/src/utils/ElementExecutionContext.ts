@@ -4,8 +4,7 @@ import type {
   CoreUserMessage,
   UserContent,
 } from "ai";
-import { StepValue } from "@fireworks/shared";
-import { Secrets, type RunstepOutput } from "@fireworks/types";
+import { Secrets, type RunstepOutput, type StepValue } from "@fireworks/types";
 import { ChatCompletionMessageToolCall } from "openai/resources/chat/completions";
 // import type { TagNodeDTO } from "@fireworks/parser";
 

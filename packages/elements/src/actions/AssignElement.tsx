@@ -1,13 +1,22 @@
 import { createElementDefinition, StepValue } from "@fireworks/shared";
 import { v4 as uuidv4 } from "uuid";
-import { assignConfig, AssignProps } from "@fireworks/element-config";
+import { assignConfig } from "@fireworks/element-config";
+import type { ElementExecutionContext } from "@fireworks/types";
 
-export const Assign = createElementDefinition<AssignProps>({
+// Define the props interface locally based on what's needed
+interface AssignAttributes {
+  id?: string;
+  location?: string;
+  expr?: string;
+}
+
+// Use any for now to bypass TypeScript's inferred type size limitation
+export const Assign: any = createElementDefinition({
   ...assignConfig,
   role: "action",
   elementType: "assign",
   allowedChildren: "none",
-  onExecutionGraphConstruction(buildContext) {
+  onExecutionGraphConstruction(buildContext: any) {
     return {
       id: buildContext.attributes.id,
       key: buildContext.attributes.id ?? uuidv4(),
@@ -18,7 +27,7 @@ export const Assign = createElementDefinition<AssignProps>({
       },
     };
   },
-  async execute(ctx) {
+  async execute(ctx: ElementExecutionContext<AssignAttributes>) {
     const { location, expr } = ctx.attributes;
 
     if (!location) {

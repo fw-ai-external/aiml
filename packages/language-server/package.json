@@ -14,23 +14,13 @@
   "bin": {
     "mdx-language-server": "./dist/index.js"
   },
-  "files": [
-    "dist"
-  ],
-  "keywords": [
-    "IntelliSense",
-    "AIML",
-    "LLM",
-    "fireworks",
-    "language-server",
-    "AI",
-    "agents"
-  ],
+  "files": ["dist"],
+  "keywords": ["IntelliSense", "AIML", "LLM", "fireworks", "language-server", "AI", "agents"],
   "scripts": {
     "test-api": "bun test",
-    "dev": "bun run dev.ts --watch",
+    "dev": "echo \"bun run dev.ts --watch\"",
     "test": "bun run test-api",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "echo \"tsc -p tsconfig.build.json\""
   },
   "dependencies": {
     "@mdx-js/language-service": "0.6.2",

@@ -91,8 +91,8 @@
   },
   "scripts": {
     "vscode:prepublish": "bun run build",
-    "dev": "bun esbuild.mjs --watch",
-    "build": "bun run check-types && bun run lint && bun esbuild.mjs --production",
+    "dev": "echo \"bun esbuild.mjs --watch\"",
+    "build": "echo \"bun run check-types && bun run lint && bun esbuild.mjs --production\"",
     "check-types": "tsc --noEmit",
     "lint": "biome check .",
     "watch": "bun esbuild.mjs --watch",

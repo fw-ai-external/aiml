@@ -45,7 +45,7 @@ function hydrateElement(
   }
 
   // Get the constructor for this element type
-  const Constructor = getElementClassByTagName(node.tag);
+  const Constructor = getElementClassByTagName(node.tag as any);
 
   // Create the element
   const element = Constructor.initFromAttributesAndNodes(
@@ -75,7 +75,9 @@ function hydrateElement(
 /**
  * Get the element class by tag name
  */
-export function getElementClassByTagName(tagName: string) {
+export function getElementClassByTagName<
+  Tag extends Exclude<keyof typeof allElements, "BaseElement">,
+>(tagName: Tag): (typeof allElements)[Tag] {
   const normalizedTagName = tagName.toLowerCase();
   const matchingKey = Object.keys(allElements).find(
     (key) => key.toLowerCase() === normalizedTagName
@@ -89,10 +91,8 @@ export function getElementClassByTagName(tagName: string) {
   }
 
   const ElementClass = allElements[matchingKey as keyof typeof allElements];
-  if (ElementClass === BaseElement) {
-    throw new Error(`BaseElement cannot be used directly for tag: ${tagName}`);
-  }
-  return ElementClass as Exclude<typeof ElementClass, typeof BaseElement>;
+
+  return ElementClass as (typeof allElements)[Tag];
 }
 
 /**

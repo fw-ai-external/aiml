@@ -4,7 +4,7 @@
   "packageManager": "bun@1.1.42",
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --concurrency 11",
     "dev:watch": "turbo run build && bun --watch turbo run dev",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
@@ -13,6 +13,8 @@
   },
   "devDependencies": {
     "@types/bun": "^1.2.5",
+    "concurrently": "^9.1.2",
+    "tsup": "^8.4.0",
     "turbo": "latest"
   },
   "workspaces": ["packages/*", "apps/*"],

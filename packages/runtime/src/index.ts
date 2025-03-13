@@ -9,6 +9,5 @@ export * from "./workflow";
 export * from "./hydrate";
 export * from "./workflow-utils";
 export * from "./types";
-export * from "@fireworks/shared/src/errors";
 export * from "./element-utils";
 export * from "./initialize";

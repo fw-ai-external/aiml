@@ -46,7 +46,18 @@
         "@fireworks/shared#build",
         "@fireworks/parser#build"
       ],
-      "outputs": [".dist/**"]
+      "outputs": ["dist/**"]
+    },
+    "@fireworks/aiml-ui#dev": {
+      "dependsOn": [
+        "@fireworks/types#build",
+        "@fireworks/shared#build",
+        "@fireworks/element-config#build",
+        "@fireworks/elements#build",
+        "@fireworks/parser#build",
+        "@fireworks/runtime#build"
+      ],
+      "persistent": true
     },
     "lint": {
       "outputs": []
