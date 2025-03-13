@@ -33,9 +33,19 @@ describe("AIML Parsing Tests", () => {
         (child) => child.type === "element" && child.tag === "state"
       );
       expect(stateElement).not.toBeUndefined();
-      expect(stateElement?.children).toBeArrayOfSize(1);
-      expect(stateElement?.children?.[0].tag).toBe("llm");
-      expect(stateElement?.children?.[0].attributes?.prompt).toBe("Hi!");
+      // The state should not be an error state that was added by the healing code
+      // it should be a new state created by the parser to wrap the paragraph/llm element
+      expect(stateElement?.attributes?.id).not.toBe("error");
+
+      // The state should have at least the llm element, and may have a transition added by the healing code
+      expect(stateElement?.children?.length).toBeGreaterThanOrEqual(1);
+
+      // Find the llm element
+      const llmElement = stateElement?.children?.find(
+        (child) => child.tag === "llm"
+      );
+      expect(llmElement).not.toBeUndefined();
+      expect(llmElement?.attributes?.prompt).toBe("Hi!");
     });
     it("should parse a basic  but full AIML file", async () => {
       const input = `
@@ -221,8 +231,13 @@ Some text here because why not
       expect(startState).not.toBeUndefined();
 
       if (startState) {
-        expect(startState.children).toBeArrayOfSize(1);
-        const importComponent = startState.children?.[0];
+        // The state should have the ImportedComponent element and may have transitions added by the healing code
+        expect(startState.children?.length).toBeGreaterThanOrEqual(1);
+
+        // Find the ImportedComponent element
+        const importComponent = startState.children?.find(
+          (child) => child.tag === "ImportedComponent"
+        );
         expect(importComponent?.type).toBe("element");
         expect(importComponent?.tag).toBe("ImportedComponent");
       }

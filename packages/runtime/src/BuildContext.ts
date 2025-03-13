@@ -17,7 +17,6 @@ export class BuildContext implements BuildContextInterface {
    * A cache of already-constructed ExecutionGraphElements,
    * keyed by their SCXML element's 'id'.
    */
-  public graphCache = new Map<string, ExecutionGraphElement>();
   public children: BaseElement[];
   constructor(
     public workflow: Workflow,
@@ -25,39 +24,29 @@ export class BuildContext implements BuildContextInterface {
     children: BaseElement[],
     public readonly attributes: Record<string, any> = {},
     public readonly conditions: StepConfig<any, any, any, any>,
-    public readonly spec: BaseElement
+    public readonly spec: BaseElement,
+    public readonly fullSpec: BaseElement | null,
+    public graphCache = new Map<string, ExecutionGraphElement>()
   ) {
     this.children = children;
   }
 
   public findElementByKey(
-    node: BaseElement,
-    targetKey: string
+    targetKey: string,
+    withinNode?: BaseElement
   ): BaseElement | undefined {
-    if (node instanceof BaseElement) {
-      if (node.key === targetKey) {
-        return node;
-      }
+    if ((withinNode ?? this.spec).key === targetKey) {
+      return withinNode;
+    }
 
-      for (const child of node.children) {
-        const found = this.findElementByKey(child, targetKey);
-        if (found) {
-          return found;
-        }
+    for (const child of (withinNode ?? this.fullSpec ?? this.spec).children) {
+      const found = this.findElementByKey(targetKey, child);
+      if (found) {
+        return found;
       }
     }
+
     return undefined;
-  }
-
-  public getElementByKey(
-    key: string,
-    childOf?: BaseElement
-  ): BaseElement | null {
-    const element = this.findElementByKey(childOf ?? this.spec, key);
-    if (!element) {
-      return null;
-    }
-    return element;
   }
 
   /**
@@ -67,7 +56,22 @@ export class BuildContext implements BuildContextInterface {
   public getCachedGraphElement(
     elementId: string
   ): ExecutionGraphElement | undefined {
-    return this.graphCache.get(elementId);
+    console.log("elementId", elementId);
+    if (
+      this.graphCache.has(elementId) ||
+      elementId === this.elementKey ||
+      elementId === this.attributes.id
+    ) {
+      return this.graphCache.get(elementId);
+    }
+    const found = this.findElementByKey(elementId);
+    console.log("found", found?.key);
+    if (found) {
+      return found.onExecutionGraphConstruction(
+        this.createNewContextForChild(found)
+      );
+    }
+    return undefined;
   }
 
   /**
@@ -93,7 +97,9 @@ export class BuildContext implements BuildContextInterface {
         child.children,
         child.attributes,
         this.conditions,
-        child
+        child,
+        this.fullSpec,
+        this.graphCache
       );
     }
     throw new Error(

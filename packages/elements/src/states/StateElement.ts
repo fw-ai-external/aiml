@@ -19,10 +19,7 @@ export const State = createElementDefinition({
     const existing = buildContext.getCachedGraphElement(
       buildContext.elementKey
     );
-    console.log(
-      "=-------------------- mainStateNode state",
-      buildContext.children.length
-    );
+
     if (existing) {
       return existing;
     }
@@ -129,11 +126,6 @@ export const State = createElementDefinition({
     buildContext.setCachedGraphElement(
       [key, buildContext.attributes.id].filter(Boolean),
       mainStateNode
-    );
-
-    console.log(
-      "=-------------------- mainStateNode sate child",
-      buildContext.children
     );
 
     return mainStateNode;

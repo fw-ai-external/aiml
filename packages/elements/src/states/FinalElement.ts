@@ -28,13 +28,13 @@ export const Final = createElementDefinition({
     const finalEG: ExecutionGraphElement = {
       id: buildContext.attributes.id || `final_${uuidv4()}`,
       key: buildContext.elementKey,
-      type: "output",
+      type: "state",
       subType: "final",
       attributes: {
         ...buildContext.attributes,
       },
     };
-
+    console.log("finalEG", finalEG);
     buildContext.setCachedGraphElement(
       [buildContext.elementKey, buildContext.attributes.id].filter(Boolean),
       finalEG

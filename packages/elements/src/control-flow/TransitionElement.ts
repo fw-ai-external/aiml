@@ -107,14 +107,15 @@ export const Transition = createElementDefinition({
 
     // 5. If 'target' is defined, link the target's ExecutionGraphElement
     if (target) {
-      const maybeTargetElement = buildContext.getElementByKey(target);
+      const maybeTargetElement: BaseElement | undefined =
+        buildContext.findElementByKey(target, buildContext.fullSpec);
       if (!maybeTargetElement) {
         throw new Error(
           `Transition ${id} has target ${target} which is not found in the workflow`
         );
       }
 
-      const targetElement = maybeTargetElement as BaseElement;
+      const targetElement = maybeTargetElement;
       if (!targetElement.onExecutionGraphConstruction) {
         throw new Error(
           `Transition ${id} has target ${target} which does not support execution graph construction`
@@ -130,15 +131,7 @@ export const Transition = createElementDefinition({
           `Transition ${id} has target ${target} which is not found`
         );
       }
-
-      targetEG.runAfter = targetEG.runAfter || [];
-
-      // push this transition's ID into the target's dependsOn
-      if (!targetEG.runAfter.includes(id)) {
-        targetEG.runAfter.push(id);
-      } else {
-        console.warn(`Transition ${id} already depends on ${targetEG.id}`);
-      }
+      transitionNode.next = [...(transitionNode.next || []), targetEG];
     }
 
     // return the newly built transition node

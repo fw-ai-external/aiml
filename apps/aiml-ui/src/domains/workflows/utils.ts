@@ -178,20 +178,7 @@ export const contructNodesAndEdges = ({
       };
     });
 
-    const responseNode = {
-      id: `response-to-user`,
-      position: { x: _index * 300, y: (steps.length + 1) * 100 },
-      type: "default-node",
-      data: {
-        label: "Response",
-        color: "blue",
-        description: "Response from the AI",
-        withoutTopHandle: false,
-        withoutBottomHandle: true,
-      },
-    };
-
-    nodes = [...nodes, ...newNodes, responseNode];
+    nodes = [...nodes, ...newNodes];
 
     const edgeSteps = [...steps].slice(0, -1);
 
@@ -202,14 +189,7 @@ export const contructNodesAndEdges = ({
       ...defaultEdgeOptions,
     }));
 
-    const responseEdge = {
-      id: `e${steps[steps.length - 1].id}-${responseNode.id}`,
-      source: nodes[nodes.length - 2].id,
-      target: responseNode.id,
-      ...defaultEdgeOptions,
-    };
-
-    edges = [...edges, ...newEdges, responseEdge];
+    edges = [...edges, ...newEdges];
   }
 
   if (!stepSubscriberGraph || !Object.keys(stepSubscriberGraph).length) {

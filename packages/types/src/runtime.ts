@@ -67,7 +67,7 @@ export interface BuildContext {
   readonly attributes: Record<string, any>;
   readonly conditions: any;
   readonly spec: any;
-  getElementByKey(key: string, childOf?: any): any | null;
+  findElementByKey(key: string, childOf?: any): any | null;
   getCachedGraphElement(elementId: string): ExecutionGraphElement | undefined;
   setCachedGraphElement(
     elementId: string | string[],

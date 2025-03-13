@@ -8,25 +8,7 @@
 import type { ExecutionGraphElement } from "@fireworks/types";
 import { type BaseElement } from "@fireworks/shared";
 import { container, ServiceIdentifiers } from "./di";
-
-/**
- * Context for building execution graph elements
- */
-export interface BuildContext {
-  workflow: BaseElement;
-  readonly elementKey: string;
-  children: BaseElement[];
-  readonly attributes: Record<string, any>;
-  readonly conditions: any;
-  readonly spec: any;
-  getElementByKey(key: string, childOf?: BaseElement): BaseElement | null;
-  getCachedGraphElement(elementId: string): ExecutionGraphElement | undefined;
-  setCachedGraphElement(
-    elementId: string | string[],
-    ege: ExecutionGraphElement
-  ): void;
-  createNewContextForChild(child: BaseElement): BuildContext;
-}
+import { BuildContext } from "./BuildContext";
 
 /**
  * Graph builder service
@@ -60,74 +42,18 @@ export class GraphBuilder {
     element: BaseElement,
     parent?: BuildContext
   ): BuildContext {
-    const context: BuildContext = {
-      workflow: parent?.workflow || element,
-      elementKey: element.key,
-      children: element.children as BaseElement[],
-      attributes: element.attributes,
-      conditions: element.conditions,
-      spec: element,
-      getElementByKey: (key: string, childOf?: BaseElement) => {
-        if (element.key === key) {
-          return element;
-        }
-
-        const searchIn = childOf ? childOf.children : element.children;
-        for (const child of searchIn) {
-          if ((child as BaseElement).key === key) {
-            return child as BaseElement;
-          }
-          const found = this.findElementByKey(child as BaseElement, key);
-          if (found) {
-            return found;
-          }
-        }
-        return null;
-      },
-      getCachedGraphElement: (elementId: string) => {
-        return this.graphElementCache.get(elementId);
-      },
-      setCachedGraphElement: (
-        elementId: string | string[],
-        ege: ExecutionGraphElement
-      ) => {
-        const ids = Array.isArray(elementId) ? elementId : [elementId];
-        for (const id of ids) {
-          if (id) {
-            this.graphElementCache.set(id, ege);
-          }
-        }
-      },
-      createNewContextForChild: (child: BaseElement) => {
-        return this.createBuildContext(child, context);
-      },
-    };
+    const context = new BuildContext(
+      parent?.workflow!,
+      element.key,
+      element.children as BaseElement[],
+      element.attributes,
+      element.conditions ?? {},
+      element,
+      element,
+      this.graphElementCache
+    );
 
     return context;
-  }
-
-  /**
-   * Find an element by key
-   * @param element The element to search in
-   * @param key The key to search for
-   * @returns The element with the key, or null if not found
-   */
-  private findElementByKey(
-    element: BaseElement,
-    key: string
-  ): BaseElement | null {
-    if (element.key === key) {
-      return element;
-    }
-
-    for (const child of element.children) {
-      const found = this.findElementByKey(child as BaseElement, key);
-      if (found) {
-        return found;
-      }
-    }
-
-    return null;
   }
 }
 

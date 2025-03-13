@@ -73,6 +73,7 @@ export class Workflow<
         this.spec.children,
         this.spec.attributes,
         {},
+        this.spec,
         this.spec
       ),
       this.executionGraph,
@@ -91,7 +92,6 @@ export class Workflow<
    */
   private async handleStateTransition(state: WorkflowRunState) {
     // Update active states
-    console.log("state", state);
     const currentlyActiveStates = new Set(
       Object.keys(state?.context.steps ?? {}).filter(
         (key) =>
@@ -260,13 +260,13 @@ export class Workflow<
     if (element.runAfter) {
       this.workflow.after(
         element.runAfter.map((key: string) =>
-          buildContext.getElementByKey(key)
+          buildContext.findElementByKey(key)
         ) as any
       ) as any;
     }
     // Add the current element to the workflow
 
-    const step = buildContext.getElementByKey(element.key);
+    const step = buildContext.findElementByKey(element.key, buildContext.spec);
     console.log("step ***", step?.tag);
     if (!step || element.key !== step.key || element.subType !== step.tag) {
       throw new Error(
@@ -312,34 +312,5 @@ export class Workflow<
         this.addGraphElementToWorkflow(buildContext, child, true, false, step);
       }
     }
-  }
-
-  /**
-   * Find an element by key
-   * @param elements The elements to search in
-   * @param key The key to search for
-   * @returns The element with the key, or undefined if not found
-   */
-  private findElementByKey(
-    elements: BaseElement[],
-    key: string
-  ): BaseElement | undefined {
-    for (const element of elements) {
-      if (element.key === key) {
-        return element;
-      }
-
-      if (element.children && element.children.length > 0) {
-        const found = this.findElementByKey(
-          element.children as BaseElement[],
-          key
-        );
-        if (found) {
-          return found;
-        }
-      }
-    }
-
-    return undefined;
   }
 }

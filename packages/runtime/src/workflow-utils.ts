@@ -29,7 +29,9 @@ export const defaultStepExecutionGraphMapper = (
             buildContext.children,
             buildContext.attributes,
             buildContext.conditions,
-            buildContext.spec
+            buildContext.spec,
+            buildContext.fullSpec,
+            buildContext.graphCache
           ) as any
         );
       }
