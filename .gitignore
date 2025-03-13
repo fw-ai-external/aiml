@@ -69,3 +69,9 @@ credentials.json
 # Token tracking logs
 token_logs/
 test_token_logs/
+
+.clinerules
+strategy_tasks/
+cline_docs/
+cline_utils
+design-docs
