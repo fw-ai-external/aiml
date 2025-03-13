@@ -73,5 +73,5 @@ test_token_logs/
 .clinerules
 strategy_tasks/
 cline_docs/
-cline_utils
-design-docs
+cline_utils/
+design-docs/

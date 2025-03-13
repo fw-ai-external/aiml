@@ -1,4 +1,4 @@
-import { Workflow, astToRunnableBaseElementTree } from "@fireworks/runtime";
+import { Workflow, hydreateElementTree } from "@fireworks/runtime";
 import fs from "node:fs";
 
 export const maxDuration = 30;
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     // Continue with empty workflow object
   }
 
-  const elementTree = astToRunnableBaseElementTree(persistedWorkflow.ast.nodes);
+  const elementTree = hydreateElementTree(persistedWorkflow.ast.nodes);
   const workflow = new Workflow(elementTree);
 
   const result = workflow.runStream({

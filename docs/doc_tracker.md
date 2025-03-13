@@ -1,9 +1,9 @@
 ---KEY_DEFINITIONS_START---
 Key Definitions:
-1A: design-docs
-1A1: design-docs/architecture.md
-1A2: design-docs/package-split-plan.md
-2Aa: design-docs/adr
+1A: docs
+1A1: docs/aiml-syntax.md
+1A2: docs/doc_tracker.md
+2Aa: docs/embeddings
 2Aa1: design-docs/adr/001-refactor-architecture-to-reduce-circular-dependencies.md
 2Aa2: design-docs/adr/template.md
 ---KEY_DEFINITIONS_END---

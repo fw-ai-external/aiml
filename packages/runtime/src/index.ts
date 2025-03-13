@@ -6,7 +6,7 @@ export * from "./di";
 export * from "./graph-builder";
 export * from "./execution-context";
 export * from "./workflow";
-export * from "./formalize";
+export * from "./hydrate";
 export * from "./workflow-utils";
 export * from "./types";
 export * from "@fireworks/shared/src/errors";

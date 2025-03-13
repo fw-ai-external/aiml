@@ -5,12 +5,7 @@
  * It separates the graph construction logic from the element definition and execution.
  */
 
-import { v4 as uuidv4 } from "uuid";
-import type {
-  ExecutionGraphElement,
-  ElementType,
-  ElementRole,
-} from "@fireworks/types";
+import type { ExecutionGraphElement } from "@fireworks/types";
 import { BaseElement } from "@fireworks/shared";
 import { container, ServiceIdentifiers } from "./di";
 
@@ -133,32 +128,6 @@ export class GraphBuilder {
     }
 
     return null;
-  }
-
-  /**
-   * Create a default execution graph element
-   * @param tag The element tag
-   * @param role The element role
-   * @param attributes The element attributes
-   * @param key The element key
-   * @returns The execution graph element
-   */
-  createDefaultExecutionGraphElement(
-    tag: ElementType,
-    role: ElementRole,
-    attributes: Record<string, any>,
-    key: string
-  ): ExecutionGraphElement {
-    return {
-      id: attributes.id || `${tag}_${uuidv4()}`,
-      type: role,
-      key,
-      subType: tag,
-      attributes,
-      next: [],
-      parallel: [],
-      runAfter: [],
-    };
   }
 }
 

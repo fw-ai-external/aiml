@@ -166,8 +166,8 @@ describe("ElementBuilder", () => {
       ]);
 
       expect(result.children).toHaveLength(1);
-      expect(result.children[0].tag).toBe("Action");
-      expect(result.children[0].role).toBe("action");
+      expect(result.children?.[0].tag).toBe("Action");
+      expect(result.children?.[0].role).toBe("action");
     });
   });
 });

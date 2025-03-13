@@ -2,7 +2,39 @@ import { NextResponse } from "next/server";
 import fs from "node:fs";
 import { z } from "zod";
 import { parseMDXToAIML } from "@fireworks/parser";
-import { Workflow, astToRunnableBaseElementTree } from "@fireworks/runtime";
+import { Workflow, hydreateElementTree } from "@fireworks/runtime";
+
+/**
+ * Helper function to strip circular references from any object
+ */
+function sanitizeForJSON(obj: any, seen = new WeakSet()): any {
+  // Check for null or non-objects
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+
+  // Handle circular references
+  if (seen.has(obj)) {
+    return "[Circular Reference]";
+  }
+  seen.add(obj);
+
+  // Handle arrays
+  if (Array.isArray(obj)) {
+    return obj.map((item) => sanitizeForJSON(item, seen));
+  }
+
+  // Handle objects
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    // Skip parent references entirely
+    if (key === "parent" || key === "_parent") {
+      continue;
+    }
+    result[key] = sanitizeForJSON(value, seen);
+  }
+  return result;
+}
 
 export async function GET(
   request: Request,
@@ -19,17 +51,19 @@ export async function GET(
     );
     persistedWorkflow = JSON.parse(fileContent);
 
-    const elementTree = astToRunnableBaseElementTree(
-      persistedWorkflow.ast.nodes
-    );
+    const elementTree = hydreateElementTree(persistedWorkflow.ast.nodes);
     const workflow = new Workflow(elementTree);
-    return NextResponse.json({
+
+    // Sanitize the response to remove any circular references
+    const responseData = {
       ...persistedWorkflow,
       ast: persistedWorkflow.ast,
-      elementTree,
+      elementTree: elementTree.toJSON(),
       stepGraph: workflow.toGraph(),
       executionGraph: workflow.getExecutionGraph(),
-    });
+    };
+
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error(
       `Error reading workflow file: ${error instanceof Error ? error.message : "Unknown error"}`
@@ -73,7 +107,6 @@ export async function POST(
     const body = await request.json();
 
     // Validate the workflow data using Zod
-
     const WorkflowSchema = z.object({
       id: z.string(),
       name: z.string(),
@@ -121,33 +154,31 @@ export async function POST(
     }
 
     const ast = await parseMDXToAIML(body.prompt);
-    const elementTree = astToRunnableBaseElementTree(ast.nodes);
-    const workflow = new Workflow(elementTree as any);
+    const elementTree = hydreateElementTree(ast.nodes);
+    const workflow = new Workflow(elementTree);
+
+    // Create a structure that excludes circular references for serialization
+    const workflowData = {
+      ...body,
+      stepGraph: workflow.toGraph(),
+      ast,
+      elementTree: elementTree.toJSON(),
+      executionGraph: workflow.getExecutionGraph(),
+    };
+
+    // Sanitize the workflow data to remove any circular references
+    const serializedWorkflow = sanitizeForJSON(workflowData);
 
     // Save workflow data to file
     fs.writeFileSync(
       `${dir}/${workflowId}.json`,
-      JSON.stringify(
-        {
-          ...body,
-          stepGraph: workflow.toGraph(),
-          ast,
-          elementTree,
-          executionGraph: workflow.getExecutionGraph(),
-        },
-        null,
-        2
-      ),
+      JSON.stringify(workflowData, null, 2),
       "utf8"
     );
+    console.log("saved workflow");
 
-    return NextResponse.json({
-      ...body,
-      ast,
-      elementTree,
-      stepGraph: workflow.toGraph(),
-      executionGraph: workflow.getExecutionGraph(),
-    });
+    // Return the sanitized response
+    return NextResponse.json(workflowData);
   } catch (error) {
     console.error(
       `Error updating workflow: ${error instanceof Error ? error.message : "Unknown error"}`

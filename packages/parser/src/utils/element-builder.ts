@@ -1,19 +1,46 @@
 import {
   Node,
-  JsxElement,
-  JsxSelfClosingElement,
   JsxAttributeLike,
+  JsxSelfClosingElement,
+  JsxElement,
 } from "ts-morph";
-import { v4 as uuidv4 } from "uuid";
-import type {
-  ElementRole,
-  SerializedBaseElement,
-  ElementType,
-  BuildContext,
-} from "@fireworks/types";
+import type { ElementRole, SerializedBaseElement } from "@fireworks/types";
 import { z } from "zod";
+import { v4 as uuidv4 } from "uuid";
 
 export class ElementBuilder {
+  /**
+   * Creates a serialized base element from a JSX element
+   */
+  static createBaseElement(
+    element: JsxSelfClosingElement | JsxElement,
+    attributes: Record<string, string>,
+    children: SerializedBaseElement[] = []
+  ): SerializedBaseElement {
+    const tagName = Node.isJsxSelfClosingElement(element)
+      ? element.getTagNameNode().getText()
+      : element.getOpeningElement().getTagNameNode().getText();
+
+    const role = this.determineRole(tagName);
+
+    // Generate a UUID if no id is provided
+    const id = attributes.id || uuidv4();
+
+    return {
+      type: "element",
+      id,
+      key: `element-${id}`,
+      tag: tagName,
+      role,
+      elementType: tagName.toLowerCase() as any,
+      attributes,
+      children,
+      lineStart: element.getStartLineNumber(),
+      lineEnd: element.getEndLineNumber(),
+      columnStart: 0, // Default to 0 since getStartColumnNumber() isn't available
+      columnEnd: 0, // Default to 0 since getEndColumnNumber() isn't available
+    };
+  }
   /**
    * Parses JSX attributes into a key-value record
    */
@@ -67,63 +94,6 @@ export class ElementBuilder {
       return "output";
     }
     return "state";
-  }
-
-  /**
-   * Creates a base element from a JSX node
-   */
-  static createBaseElement(
-    node: JsxElement | JsxSelfClosingElement,
-    attributes: Record<string, string>,
-    children: SerializedBaseElement[] = []
-  ): SerializedBaseElement {
-    const openingElement = Node.isJsxElement(node)
-      ? node.getOpeningElement()
-      : node;
-
-    const tagNameNode = openingElement.getTagNameNode();
-    const tagName = tagNameNode.getText();
-
-    if (!tagName) {
-      throw new Error("Missing element tag name");
-    }
-
-    const id = attributes.id || uuidv4();
-    const key = attributes.key || id;
-    const elementType = tagName as ElementType;
-    const role = this.determineRole(tagName);
-
-    // Create a stub schema that satisfies the ZodType interface
-    const schema = this.createStubSchema(tagName, attributes);
-
-    // Get approximate position information
-    const startPos = node.getPos();
-    const endPos = node.getEnd();
-
-    return {
-      id,
-      key,
-      tag: tagName,
-      role,
-      elementType,
-      attributes,
-      children: children,
-      parent: undefined,
-      allowedChildren: "any",
-      type: "element",
-      lineStart: 1, // Default values since we can't get exact line/column
-      lineEnd: 1,
-      columnStart: startPos,
-      columnEnd: endPos,
-      schema: this.createStubSchema(tagName, attributes),
-      onExecutionGraphConstruction: (buildContext: BuildContext) => ({
-        id,
-        key,
-        type: role,
-        subType: elementType,
-        attributes,
-      }),
-    } as SerializedBaseElement;
   }
 
   /**

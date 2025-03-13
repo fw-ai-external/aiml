@@ -96,10 +96,6 @@ export class BaseElement
     );
   }
 
-  get parent(): BaseElement | undefined {
-    return this._parent?.deref();
-  }
-
   get isActive(): boolean {
     return this._isActive;
   }
@@ -259,20 +255,20 @@ export class BaseElement
   protected getParentOfType<T extends BaseElement>(
     type: ElementType
   ): T | undefined {
-    let current: BaseElement | undefined = this.parent;
+    let current: BaseElement | undefined = this._parent?.deref();
     while (current) {
       if (current.elementType === type) {
         return current as T;
       }
-      current = current.parent;
+      current = current._parent?.deref();
     }
     return undefined;
   }
 
   protected getRootElement(): BaseElement {
     let current: BaseElement = this;
-    while (current.parent) {
-      current = current.parent;
+    while (current._parent) {
+      current = current._parent.deref() as BaseElement;
     }
     return current;
   }
@@ -288,7 +284,6 @@ export class BaseElement
       key: this.key,
       tag: this.tag,
       role: this.role,
-      parent: this.parent?.toJSON(),
       elementType: this.elementType,
       attributes: this.attributes,
       children: this.children.map((child) => child.toJSON()),
@@ -297,6 +292,9 @@ export class BaseElement
       columnStart: this.columnStart,
       columnEnd: this.columnEnd,
     };
+  }
+  toString(): string {
+    return JSON.stringify(this.toJSON());
   }
 }
 export type Literal = string | number | null | undefined | boolean;

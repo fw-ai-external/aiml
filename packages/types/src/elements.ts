@@ -142,7 +142,7 @@ export interface SerializedBaseElement {
   elementType?: ElementType;
   attributes?: Attributes;
   children?: SerializedBaseElement[];
-  parent?: SerializedBaseElement;
+  parentId?: string;
   value?: string | number | boolean;
   filePath?: string;
   namedImports?: string[];

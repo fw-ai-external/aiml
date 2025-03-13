@@ -8,7 +8,8 @@
     "dev:watch": "turbo run build && bun --watch turbo run dev",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "validate": "bun run build && bun test"
   },
   "devDependencies": {
     "@types/bun": "^1.2.5",
