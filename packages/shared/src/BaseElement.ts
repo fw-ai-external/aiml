@@ -160,7 +160,7 @@ export class BaseElement
       // this element is a pass-through element
       this._dataModel = {
         ...this._dataModel,
-        [this.id]: null,
+        [this.id]: context.context.input,
       };
       console.log("=-------------------- no execute", context.context.input);
 
@@ -195,12 +195,19 @@ export class BaseElement
           error: error instanceof Error ? error.message : String(error),
         };
       });
+      console.log(
+        "=-------------------- execute result 222",
+        this.tag,
+        !!result,
+        this._execute.toString(),
+        context.context?.input ? "has input" : context
+      );
       if (!result) {
         return {
           result: {
             type: "error",
             code: ErrorCode.SERVER_ERROR,
-            error: "No result",
+            error: "No result in element " + this.tag + " " + this.id,
           },
         };
       }

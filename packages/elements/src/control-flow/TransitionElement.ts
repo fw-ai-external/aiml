@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { BaseElement } from "@fireworks/shared";
 import { ExecutionGraphElement } from "@fireworks/types";
-import { StepValue } from "@fireworks/shared";
 import { v4 as uuidv4 } from "uuid";
 import { createElementDefinition } from "@fireworks/shared";
 
@@ -19,35 +18,6 @@ export const Transition = createElementDefinition({
   allowedChildren: "none" as const,
   role: "action",
   elementType: "transition",
-  async execute(ctx) {
-    const { event, cond, target } = ctx.attributes;
-
-    // Evaluate condition if it exists
-    let conditionMet = true;
-    if (cond) {
-      try {
-        // Use sandboxed evaluation if available
-        if (ctx.datamodel && typeof ctx.datamodel.evaluateExpr === "function") {
-          conditionMet = !!ctx.datamodel.evaluateExpr(cond, ctx);
-        } else {
-          // Simple fallback for tests
-          conditionMet = !cond || cond === "true";
-        }
-      } catch (error) {
-        console.error(`Error evaluating condition: ${cond}`, error);
-        conditionMet = false;
-      }
-    }
-
-    const resultObject = { event, target, conditionMet };
-
-    return new StepValue({
-      type: "object",
-      object: resultObject,
-      raw: JSON.stringify(resultObject),
-      wasHealed: false,
-    });
-  },
   onExecutionGraphConstruction(buildContext): ExecutionGraphElement {
     // 1. If we already built this node, return the cached version.
     const existing = buildContext.getCachedGraphElement(
@@ -108,6 +78,7 @@ export const Transition = createElementDefinition({
     // 5. If 'target' is defined, link the target's ExecutionGraphElement
     if (target) {
       const maybeTargetElement: BaseElement | undefined =
+        // @ts-expect-error
         buildContext.findElementByKey(target, buildContext.fullSpec);
       if (!maybeTargetElement) {
         throw new Error(
