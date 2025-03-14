@@ -448,7 +448,7 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
   public async text(): Promise<string | null> {
     await this.waitForValue();
 
-    const value = this.finalValue as any;
+    const value = this.finalValue;
     if (!value) return null;
 
     if (value.text) {
@@ -589,5 +589,15 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
 
       yield event;
     }
+  }
+
+  toJSON() {
+    return (
+      this._inputValue ?? this._streamRawCompletedValue ?? "...streaming..."
+    );
+  }
+
+  toString() {
+    return this.toJSON().toString();
   }
 }

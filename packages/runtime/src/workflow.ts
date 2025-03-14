@@ -146,7 +146,7 @@ export class Workflow<
     for (const stateId of currentlyActiveStates) {
       console.log(
         "=-------------------- state.context.steps[stateId]",
-        state.context.steps[stateId]
+        (state.context.steps[stateId] as any)?.output?.result
       );
       if (
         failedStates.includes(stateId) ||
@@ -263,7 +263,10 @@ export class Workflow<
     });
 
     workflowOutput.then(async (results) => {
-      console.log("=-------------------- workflowOutput", results);
+      console.log(
+        "=-------------------- workflowOutput",
+        JSON.stringify(results, null, 2)
+      );
       await this.value?.finalize();
     });
 
@@ -281,7 +284,7 @@ export class Workflow<
     element: ExecutionGraphElement,
     parallel: boolean = false,
     root: boolean = false,
-    parent?: BaseElement
+    parentId?: string
   ) {
     if (element.runAfter) {
       this.debug = `${this.debug}.runAfter([${element.runAfter.join(",")}])`;
@@ -309,7 +312,7 @@ export class Workflow<
           variables: {
             input: root
               ? { step: "trigger", path: "input" as any }
-              : { step: { id: parent?.id! } as any, path: "result" as any },
+              : { step: { id: parentId! } as any, path: "result" as any },
           },
           // create a function that evaluates the when expression
           // this serves as a guard for the step
@@ -318,10 +321,11 @@ export class Workflow<
           //   element.when ? eval(element.when) : true,
         });
       } else {
-        this.debug = `${this.debug}.then(${step.tag})`;
+        this.debug = `${this.debug}.then(Step: ${step.tag} Id:${step.id} ParentId:${parentId!})`;
         this.workflow.then(step, {
           variables: {
-            input: { step: { id: parent?.id! }, path: "result" },
+            input: { step: { id: parentId! }, path: "result" },
+            other: { step: { id: parentId! }, path: "" },
           },
           // create a function that evaluates the when expression
           // this serves as a guard for the step
@@ -334,13 +338,33 @@ export class Workflow<
 
     // Recursively add all child elements
     if (element.next) {
+      let lastChildId: string = step.id;
       for (const child of element.next) {
-        this.addGraphElementToWorkflow(buildContext, child, false, false, step);
+        this.addGraphElementToWorkflow(
+          buildContext,
+          child,
+          false,
+          false,
+          lastChildId
+        );
+        const childElement = buildContext.findElementByKey(child.key);
+        if (!childElement) {
+          throw new Error(
+            `childElement is undefined ${JSON.stringify(child, null, 2)}`
+          );
+        }
+        lastChildId = childElement.id;
       }
     }
     if (element.parallel) {
       for (const child of element.parallel) {
-        this.addGraphElementToWorkflow(buildContext, child, true, false, step);
+        this.addGraphElementToWorkflow(
+          buildContext,
+          child,
+          true,
+          false,
+          step.id
+        );
       }
     }
   }

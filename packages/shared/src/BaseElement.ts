@@ -19,6 +19,8 @@ export class BaseElement
 {
   public readonly inputSchema = z.object({
     input: z.any(),
+    other: z.any(),
+    debug: z.any(),
   });
   public readonly outputSchema = z.object({
     result: z.any(),
@@ -162,7 +164,11 @@ export class BaseElement
         ...this._dataModel,
         [this.id]: context.context.input,
       };
-      console.log("=-------------------- no execute", context.context.input);
+      console.log(
+        "=-------------------- no execute meee",
+        this.tag,
+        JSON.stringify(context, null, 2)
+      );
 
       return {
         result: context.context.input,
@@ -216,12 +222,7 @@ export class BaseElement
         ...this._dataModel,
         [this.id]: result,
       };
-      console.log(
-        "=-------------------- execute result",
-        this.tag,
-        await result.type(),
-        await result.value()
-      );
+
       return {
         result,
       };
