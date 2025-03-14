@@ -1,10 +1,10 @@
 import { ErrorCode } from "@fireworks/shared";
 import { type ReplayableAsyncIterableStream } from "@fireworks/shared";
-import type { APIStreamEvent, RunEvent, RunstepOutput } from "@fireworks/types";
+import type { StepValueChunk, RunEvent, RunstepOutput } from "@fireworks/types";
 import { StepValue } from "@fireworks/shared";
 import { ElementType } from "@fireworks/types";
 
-export type RunStepStream = ReplayableAsyncIterableStream<APIStreamEvent>;
+export type RunStepStream = ReplayableAsyncIterableStream<StepValueChunk>;
 
 function isStepValue(value: unknown): value is StepValue {
   return (
@@ -69,10 +69,12 @@ export class RunValue {
 
     if (step.output) {
       const output = maybeRunStepValue(step.output);
-      if (step.elementType === "final") {
-        this._finalOutput = output;
-      } else {
-        this._generatedValues.push(output!);
+      if (output) {
+        if (step.elementType === "final") {
+          this._finalOutput = output;
+        } else {
+          this._generatedValues.push(output);
+        }
       }
     }
   }
@@ -113,24 +115,55 @@ export class RunValue {
     }
 
     // Ensure all values are streamable
-    const output = maybeRunStepValue(value)!;
+    const output = maybeRunStepValue(value);
+    if (!output) return;
 
-    for await (const chunk of output.streamIterator()) {
+    try {
+      // Process all chunks from the stream iterator
+      for await (const chunk of output.streamIterator()) {
+        this._streamBuffer.push({
+          step: elementType,
+          uuid: stepID,
+          type: "step-complete",
+          runId: this.uuid,
+          event: chunk,
+        });
+      }
+    } catch (error) {
+      // Handle stream iteration errors by adding an error to the buffer
       this._streamBuffer.push({
         step: elementType,
         uuid: stepID,
         type: "step-complete",
         runId: this.uuid,
-        event: chunk,
+        event: {
+          type: "error" as any,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unknown error during stream processing",
+          code: ErrorCode.SERVER_ERROR,
+        } as any,
       });
     }
   }
+
   private async waitForStateStreamsToFinish() {
     // TODO refactor this to use events as this is CPU heavy and adds latency
     const statesWithActiveStreams = this._generatedValues.filter(
-      (values) => !values.valueReady
+      (value) => !value.valueReady
     );
-    while (statesWithActiveStreams.some((values) => !values.valueReady)) {
+
+    // Add timeout to ensure we don't wait forever
+    const timeout = 5000; // 5 second timeout
+    const startTime = Date.now();
+
+    while (statesWithActiveStreams.some((value) => !value.valueReady)) {
+      // Check for timeout
+      if (Date.now() - startTime > timeout) {
+        console.warn("Timeout waiting for state streams to finish");
+        break;
+      }
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
@@ -202,89 +235,33 @@ export class RunValue {
     };
   }
 
-  // TODO enable this for our full API
-  // public async multiplexedStream(): Promise<ReadableStream<Uint8Array>> {
-  //   const textEncoder = new TextEncoder();
-  //   const stream = new ReadableStream({
-  //     start: async (controller) => {
-  //       let enqueueChunkIndex = 0;
-  //       while (!this.finished) {
-  //         if (this._streamBuffer[enqueueChunkIndex]) {
-  //           controller.enqueue(textEncoder.encode(`[data] ${JSON.stringify(this._streamBuffer[enqueueChunkIndex])}`));
-  //           enqueueChunkIndex++;
-  //         }
-  //         await new Promise((resolve) => setTimeout(resolve, 2));
-  //       }
-  //       controller.enqueue(textEncoder.encode('[done]'));
-  //       controller.close();
-  //     },
-  //   });
-  //   return stream;
-  // }
-
-  // public async multiplexedValues(): Promise<RunOutput[]> {
-  //   while (!this.finished) {
-  //     await new Promise((resolve) => setTimeout(resolve, 2));
-  //   }
-
-  //   return await Promise.all(
-  //     this._runSteps
-  //       .filter((value) => value.type === 'transition')
-  //       .map(async (value) => ({
-  //         step: value.node.name,
-  //         uuid: value.id,
-  //         type: value.type,
-  //         runId: this.uuid,
-  //         output: 'value' in value.output ? await value.output?.value() : value.output,
-  //       })),
-  //   );
-  // }
-
-  // public async *multiplexedIterator(): AsyncIterableIterator<RunOutput> {
-  //   let index = 0;
-  //   while (true) {
-  //     while (!this._runStepValues[index] || !this._runStepValues[index]?.result) {
-  //       await new Promise((resolve) => setTimeout(resolve, 2));
-  //       continue;
-  //     }
-  //     const step = this._runStepValues[index];
-
-  //     const value = {
-  //       step: step.name,
-  //       uuid: step.id,
-  //       type: step.type,
-  //       runId: this.uuid,
-  //       output: await step.result?.result.value(),
-  //     };
-
-  //     if (this.machine.isFinishedState(step.name) || this.machine.isErrorState(step.name)) {
-  //       return yield value;
-  //     }
-  //     yield value;
-  //     index++;
-  //   }
-  // }
-
   public async responseStream(): Promise<ReadableStream<Uint8Array>> {
     const textEncoder = new TextEncoder();
     const stream = new ReadableStream({
       start: async (controller) => {
         try {
-          for await (const chunk of await this.responseIterator()) {
+          const iterator = await this.responseIterator();
+          for await (const chunk of iterator) {
+            // Encode and send the chunk data
             controller.enqueue(
               textEncoder.encode(`[data] ${JSON.stringify(chunk)}`)
             );
           }
         } catch (error) {
-          // If there's an error, send an error message
+          // If there's an error, send an error message with detailed information
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : "Unknown error in response stream";
+
+          console.error("Error in responseStream:", errorMessage);
+
           controller.enqueue(
             textEncoder.encode(
               `[data] ${JSON.stringify({
                 type: "error",
-                error:
-                  error instanceof Error
-                    ? error.message
-                    : "Unknown error in response stream",
+                error: errorMessage,
+                code: ErrorCode.SERVER_ERROR,
               })}`
             )
           );
@@ -298,16 +275,15 @@ export class RunValue {
     return stream;
   }
 
-  public async *responseIterator(): AsyncIterableIterator<APIStreamEvent> {
+  public async *responseIterator(): AsyncIterableIterator<StepValueChunk> {
     try {
       const finalOutput = await this.waitForFinalOutput();
 
       // If we don't have a proper final output, create a fallback
       if (!finalOutput) {
         yield {
-          type: "text",
           text: "No valid output available",
-        };
+        } as any;
         return;
       }
 
@@ -316,39 +292,69 @@ export class RunValue {
       if (outputType === "error") {
         const errorValue = await finalOutput.error();
         yield {
-          type: "error",
+          type: "error" as any,
           error: errorValue?.error || "Unknown error",
-        } as APIStreamEvent;
+          code: errorValue?.code || ErrorCode.SERVER_ERROR,
+        } as any;
         return;
       }
 
-      const responseStream = finalOutput.streamIterator();
+      // Get the stream iterator from finalOutput
+      const responseStream = await finalOutput.streamIterator();
+      const hasYieldedChunk = new Set<string>();
 
+      // Process all chunks from the stream
       for await (const chunk of responseStream) {
-        if (chunk.type !== "step-complete") {
-          yield chunk;
-        } else {
-          // Ensure we're properly finished
+        if ((chunk as any).type === "step-complete") {
+          // Ensure we're properly finished before yielding the completion chunk
           if (!this._finished) {
             await this.finalize();
           }
 
-          return yield {
-            type: "step-complete",
-            finishReason: (chunk as any).finishReason,
+          yield {
+            type: "step-complete" as any,
+            finishReason: (chunk as any).finishReason || "stop",
             usage: this.getTotalTokens(),
-          };
+          } as any;
+          return;
+        } else if ((chunk as any).type === "error") {
+          // If we encounter an error chunk, yield it and then return
+          yield chunk;
+          return;
+        } else {
+          // For other chunk types (like text-delta, tool-call, etc.)
+          // Create a unique identifier for the chunk to avoid duplicates
+          const chunkId = JSON.stringify(chunk);
+
+          if (!hasYieldedChunk.has(chunkId)) {
+            hasYieldedChunk.add(chunkId);
+            yield chunk;
+          }
         }
       }
-    } catch (error) {
-      // If there's an error, yield an error message
+
+      // If we didn't encounter a step-complete chunk, yield one now
+      if (!this._finished) {
+        await this.finalize();
+      }
+
       yield {
-        type: "error",
+        type: "step-complete" as any,
+        finishReason: "stop",
+        usage: this.getTotalTokens(),
+      } as any;
+    } catch (error) {
+      console.error("Error in responseIterator:", error);
+
+      // If there's an error, yield an error message with detailed information
+      yield {
+        type: "error" as any,
         error:
           error instanceof Error
             ? error.message
             : "Unknown error in response iterator",
-      } as APIStreamEvent;
+        code: ErrorCode.SERVER_ERROR,
+      } as any;
     }
   }
 
@@ -359,103 +365,157 @@ export class RunValue {
       // If we don't have a final output, return a default value
       if (!finalOutput) {
         return {
-          type: "text",
           text: "No output available",
-        };
+        } as any;
       }
 
-      const outputType = await finalOutput.type();
-      if (outputType === "error") {
-        const errorValue = await finalOutput.error();
+      // First check if there's an error
+      const errorValue = await finalOutput.error();
+      if (errorValue) {
         return {
-          type: "error",
-          error: errorValue?.error || "Unknown error",
-          code: errorValue?.code || ErrorCode.SERVER_ERROR,
-        };
+          type: "error" as any,
+          error: errorValue.error || "Unknown error",
+          code: errorValue.code || ErrorCode.SERVER_ERROR,
+        } as any;
       }
 
-      return await finalOutput.value();
+      // If no error, check the type and return the appropriate value
+      const outputType = await finalOutput.type();
+      switch (outputType) {
+        case "text": {
+          const text = await finalOutput.text();
+          return {
+            text: text || "",
+          } as any;
+        }
+        case "object": {
+          const object = await finalOutput.object();
+          return {
+            object: object || {},
+            raw: JSON.stringify(object),
+          } as any;
+        }
+        case "toolCalls": {
+          const toolCalls = await finalOutput.toolCalls();
+          return {
+            toolCalls: toolCalls || [],
+          } as any;
+        }
+        case "error": {
+          // This should be caught by the error check above, but just in case
+          return {
+            type: "error" as any,
+            error: "Unknown error",
+            code: ErrorCode.SERVER_ERROR,
+          } as any;
+        }
+        default:
+          // For any other type, return the raw value
+          return (await finalOutput.value()) as any;
+      }
     } catch (error) {
-      // If there's an error, return an error object
+      console.error("Error in responseValue:", error);
+
+      // If there's an error, return an error object with detailed information
       return {
-        type: "error",
+        type: "error" as any,
         error:
           error instanceof Error
             ? error.message
             : "Unknown error in responseValue",
         code: ErrorCode.SERVER_ERROR,
-      };
+      } as any;
     }
   }
 
   private async waitForFinalOutput(
     timeout: number = 15_000
   ): Promise<StepValue> {
-    if (this._finalOutput) {
+    // If we have a ready final output, return it immediately
+    if (this._finalOutput && this._finalOutput.valueReady) {
       return this._finalOutput;
     }
 
-    // If we're already finished but don't have a final output, create a default one
-    if (
-      this._finished &&
-      !this._finalOutput &&
-      this._generatedValues.length > 0
-    ) {
-      this._finalOutput =
-        this._generatedValues[this._generatedValues.length - 1] || null;
-      return (
-        this._finalOutput ||
-        new StepValue({
-          type: "error",
-          error: "No final output available",
-          code: ErrorCode.SERVER_ERROR,
-        })
-      );
+    // Create a default output value if we don't have one already
+    if (!this._finalOutput) {
+      // If we're already finished, try to get the last ready generated value
+      if (this._finished && this._generatedValues.length > 0) {
+        // Find the last generated value that is ready
+        const readyValues = this._generatedValues.filter(
+          (value) => value.valueReady
+        );
+        if (readyValues.length > 0) {
+          // Use non-null assertion since we know the array has elements
+          const lastReadyValue = readyValues[readyValues.length - 1]!;
+          this._finalOutput = lastReadyValue;
+          return lastReadyValue;
+        }
+      }
+
+      // If we couldn't find a ready value, create a default one
+      this._finalOutput = new StepValue({
+        text: "No final output available",
+      } as any);
     }
 
     // Create a timeout promise that resolves after the timeout period
     const timeoutPromise = new Promise<StepValue>((resolve) => {
       setTimeout(() => {
+        console.warn("Timeout waiting for final output");
+        // Create a new error StepValue instead of using this._finalOutput to avoid race conditions
         resolve(
           new StepValue({
-            type: "error",
+            type: "error" as any,
             error: "Timeout waiting for final output",
             code: ErrorCode.SERVER_ERROR,
-          })
+          } as any)
         );
       }, timeout);
     });
 
     // Create a wait promise that polls for the final output
     const waitPromise = new Promise<StepValue>(async (resolve) => {
-      while (!this._finalOutput && !this._finished) {
+      // At this point we're guaranteed to have a finalOutput (not null)
+      // Even if it's our default placeholder value
+      const finalOutput = this._finalOutput as StepValue;
+
+      // Wait for final output to be ready or until we're finished
+      while (!finalOutput.valueReady && !this._finished) {
         await new Promise((r) => setTimeout(r, 10));
       }
 
-      // If we're finished but don't have a final output, use the last generated value
+      // If we're finished but don't have a ready final output yet, try to find a ready value
       if (
         this._finished &&
-        !this._finalOutput &&
+        !finalOutput.valueReady &&
         this._generatedValues.length > 0
       ) {
-        this._finalOutput =
-          this._generatedValues[this._generatedValues.length - 1] || null;
+        const readyValues = this._generatedValues.filter(
+          (value) => value.valueReady
+        );
+        if (readyValues.length > 0) {
+          // Use non-null assertion since we know the array has elements
+          const lastReadyValue = readyValues[readyValues.length - 1]!;
+          this._finalOutput = lastReadyValue;
+          // Return this value instead of continuing
+          return resolve(lastReadyValue);
+        }
       }
 
-      // If we still don't have a final output, create a default one
-      if (!this._finalOutput) {
-        this._finalOutput = new StepValue({
-          type: "text",
-          text: "No final output available",
-        });
+      // If our final value isn't ready yet, wait for it
+      if (finalOutput && !finalOutput.valueReady) {
+        await finalOutput.waitForValue();
       }
 
-      resolve(this._finalOutput);
+      // At this point finalOutput should be ready
+      resolve(finalOutput);
     });
 
     // Race the timeout promise against the wait promise
-    this._finalOutput = await Promise.race([waitPromise, timeoutPromise]);
-    return this._finalOutput;
+    const result = await Promise.race([waitPromise, timeoutPromise]);
+    // Update our final output with the race result
+    this._finalOutput = result;
+    return result;
   }
 
   public get runSteps() {

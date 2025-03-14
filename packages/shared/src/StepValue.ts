@@ -2,20 +2,14 @@ import { v4 as uuidv4 } from "uuid";
 import type {
   RunstepOutput,
   StepValue as StepValueInterface,
+  StepValueResult,
+  StepValueResultType,
+  StepValueChunk,
 } from "@fireworks/types";
 import { ReplayableAsyncIterableStream, StreamState } from "./utils/streams";
 import { InternalError, RunStepError } from "./errors";
-import type {
-  ErrorResult,
-  JSONObject,
-  OpenAIToolCall,
-  RunStepInput,
-  APIStreamEvent,
-  ToolCall,
-  ToolCallSchema,
-} from "@fireworks/types";
+import type { ErrorResult, JSONObject, OpenAIToolCall } from "@fireworks/types";
 import { ErrorCode } from "./utils/errorCodes";
-import { z } from "zod";
 
 export type StepGenerationStats = {
   cached?: boolean;
@@ -37,10 +31,8 @@ export type StepGenerationStats = {
  * The StepValue is the input and output type of every run step, and the input into transition requirements.
  * It transforms JS primitives into the same format as streamed values.
  */
-export class StepValue<
-  Value extends RunstepOutput = RunstepOutput,
-  Type extends RunstepOutput["type"] = RunstepOutput["type"],
-> implements StepValueInterface<Value, Type>
+export class StepValue<Value extends StepValueResult = StepValueResult>
+  implements StepValueInterface<Value>
 {
   public readonly id: string;
   private _runstepUUID: string | null = null;
@@ -50,7 +42,7 @@ export class StepValue<
   private _stats: StepGenerationStats | null = null;
   private _inputValue: RunstepOutput | undefined;
   private readonly _inputStream:
-    | ReplayableAsyncIterableStream<APIStreamEvent>
+    | ReplayableAsyncIterableStream<StepValueChunk>
     | undefined;
 
   private readonly inputKind: "stream" | "value";
@@ -59,7 +51,9 @@ export class StepValue<
     return this._inputValue || this._streamRawCompletedValue;
   }
 
-  constructor(inputValue?: RunStepInput) {
+  constructor(
+    inputValue?: ReplayableAsyncIterableStream<StepValueChunk> | StepValueResult
+  ) {
     this.id = uuidv4();
     // Default... a stream input
     if (inputValue instanceof ReplayableAsyncIterableStream) {
@@ -79,13 +73,12 @@ export class StepValue<
 
       // A RunStepInput or RunstepOutput value that is not a stream
     } else {
-      this._inputValue = this.ensureValueIsRunstepOutput(
-        inputValue as RunStepInput
-      );
+      this._inputValue = this.ensureValueIsValid(inputValue as StepValueResult);
       this.inputKind = "value";
     }
   }
-  public async type(): Promise<"tool-call" | "text" | "object" | "error"> {
+
+  public async type(): Promise<StepValueResultType> {
     switch (this.inputKind) {
       case "value":
         await this.waitForValue();
@@ -93,35 +86,32 @@ export class StepValue<
         if (!this.finalValue) {
           return "error";
         }
-        if (this.finalValue.type === "text") {
+
+        const value = this.finalValue as any;
+
+        if (value.text) {
           return "text";
         }
-        if (
-          ["tool-call", "text", "object", "error"].includes(
-            this.finalValue.type
-          )
-        ) {
-          return this.finalValue.type as any;
+
+        if (value.toolCalls && Array.isArray(value.toolCalls)) {
+          return "toolCalls";
         }
-        if (
-          Array.isArray(this.finalValue) &&
-          this.finalValue.every(
-            (call) =>
-              call &&
-              typeof call === "object" &&
-              "type" in call &&
-              typeof call.type === "string" &&
-              call.type.includes("tool-call")
-          )
-        ) {
-          return "tool-call";
+
+        if (value.toolResults) {
+          return "toolResults";
         }
+
         if (
-          typeof this.finalValue === "object" &&
-          this.finalValue.type !== "error"
+          value.object ||
+          (typeof value === "object" && value.type !== "error")
         ) {
           return "object";
         }
+
+        if (value.items && Array.isArray(value.items)) {
+          return "items";
+        }
+
         return "error";
 
       case "stream":
@@ -134,23 +124,26 @@ export class StepValue<
         }
 
         const firstChunk = this._inputStream?.buffer[0];
-        const secondChunk: APIStreamEvent | undefined =
-          this._inputStream?.buffer[1];
+        const secondChunk = this._inputStream?.buffer[1];
 
         if (
-          this._inputStream?.buffer.some((chunk) =>
-            chunk.type.includes("tool-call")
-          )
+          this._inputStream?.buffer.some((chunk) => {
+            return (
+              (chunk as any).type === "tool-call" ||
+              (chunk as any).type === "tool-call-delta"
+            );
+          })
         ) {
-          return "tool-call";
+          return "toolCalls";
         }
-        if (firstChunk?.type.includes("object")) {
+
+        if ((firstChunk as any)?.type === "object") {
           return "object";
         }
 
         if (
-          firstChunk?.type.includes("text") ||
-          secondChunk?.type.includes("text")
+          (firstChunk as any)?.type === "text" ||
+          (secondChunk as any)?.type === "text"
         ) {
           return "text";
         }
@@ -159,64 +152,91 @@ export class StepValue<
     }
   }
 
-  private ensureValueIsRunstepOutput(input: RunStepInput): RunstepOutput {
+  private ensureValueIsValid(input: StepValueResult): RunstepOutput {
     if (typeof input === "string") {
-      return { type: "text", text: input };
-    }
-    if (typeof input === "object" && !("type" in input)) {
       return {
-        type: "object",
-        object: input as any,
-        raw: JSON.stringify(input),
-      };
+        type: "text",
+        text: input,
+        warnings: undefined,
+        logprobs: undefined,
+        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        finishReason: "stop",
+        reasoning: undefined,
+        reasoningDetails: [],
+        sources: [],
+      } as unknown as RunstepOutput;
     }
-    if ("type" in input) {
+
+    if (typeof input === "object" && input !== null) {
+      if (!("type" in input)) {
+        return {
+          type: "object",
+          object: input as any,
+          raw: JSON.stringify(input),
+          warnings: undefined,
+          logprobs: undefined,
+          usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          finishReason: "stop",
+          reasoning: undefined,
+          reasoningDetails: [],
+          sources: [],
+        } as unknown as RunstepOutput;
+      }
+
       return input as RunstepOutput;
     }
+
     throw new RunStepError(
-      `RunStepValue is not correctly initalizing with the input value ${JSON.stringify(
+      `RunStepValue is not correctly initializing with the input value ${JSON.stringify(
         input
       )}`
     );
   }
 
-  public get runStepUUID(): string | null {
+  public get stepUUID(): string | null {
     return this._runstepUUID || null;
   }
 
-  public set runStepUUID(id: string) {
+  public set stepUUID(id: string) {
     if (!!this._runstepUUID && this._runstepUUID !== id) {
       throw Error(`runStepUUID is already set to ${this._runstepUUID}`);
     }
     this._runstepUUID = id;
   }
+
   private async _getValueFromStream(): Promise<void> {
     if (!this._inputStream) return;
 
     // These are to parse Vercel AI SDK output
     for await (const chunk of this._inputStream) {
-      switch (chunk.type) {
+      const eventChunk = chunk as any;
+
+      switch (eventChunk.type) {
         case "error":
-          this._error = new RunStepError(chunk.error);
+          if (eventChunk.error) {
+            this._error = new RunStepError(eventChunk.error);
+          }
+          break;
         case "tool-call":
         case "text":
         case "object":
-          this._streamRawCompletedValue = chunk;
+          this._streamRawCompletedValue = eventChunk as RunstepOutput;
           break;
         case "tool-call-delta":
+          // Convert to tool-call format
           this._streamRawCompletedValue = {
-            ...chunk,
+            ...eventChunk,
             type: "tool-call",
-          }; // TODO: with OpenAI it's recently omitting the last tool-call event and go straight to step-complete.
+          } as RunstepOutput;
           break;
         case "step-complete":
           if (!this._streamRawCompletedValue) {
             throw new InternalError(
-              "Error durring generation, final delta(s) were never sent from the model"
+              "Error during generation, final delta(s) were never sent from the model"
             );
           }
-          // TODO: make sure non streaming token counting also works
-          // https://linear.app/fireworks/issue/FIR-1549/make-sure-token-counting-for-non-streaming-also-works
+
+          // Initialize stats and token usage if needed
           if (!this._stats?.tokenUsage) {
             if (this._stats) {
               this._stats.tokenUsage = {
@@ -235,14 +255,19 @@ export class StepValue<
             }
           }
 
-          this._stats!.tokenUsage!.completionTokens +=
-            chunk.usage.completionTokens;
-          this._stats!.tokenUsage!.promptTokens += chunk.usage.promptTokens;
-          this._stats!.tokenUsage!.totalTokens += chunk.usage.totalTokens;
+          // Update token usage if available in the chunk
+          if (eventChunk.usage) {
+            this._stats!.tokenUsage!.completionTokens +=
+              eventChunk.usage.completionTokens || 0;
+            this._stats!.tokenUsage!.promptTokens +=
+              eventChunk.usage.promptTokens || 0;
+            this._stats!.tokenUsage!.totalTokens +=
+              eventChunk.usage.totalTokens || 0;
+          }
           break;
         default:
-
-        // ignore, we only care about final values
+          // ignore, we only care about final values
+          break;
       }
     }
   }
@@ -286,7 +311,7 @@ export class StepValue<
       callback(
         this._error as E,
         this._streamRawCompletedValue as E extends Error ? undefined : T,
-        this.runStepUUID
+        this.stepUUID
       );
     });
   }
@@ -309,10 +334,10 @@ export class StepValue<
       };
     }
 
-    if (!this._streamRawCompletedValue?.type && !this._inputValue?.type) {
+    if (!this._streamRawCompletedValue && !this._inputValue) {
       return {
         type: "error",
-        error: "No value type found for the output",
+        error: "No value found for the output",
         code: ErrorCode.SERVER_ERROR,
       };
     }
@@ -334,35 +359,54 @@ export class StepValue<
       };
     }
 
-    switch (this.finalValue?.type) {
-      case "text":
-        return this.finalValue.text;
-      case "object":
-        return this.finalValue.object as JSONObject;
-      case "tool-call":
-        return [
-          {
-            id: this.finalValue.toolCallId,
-            type: "function",
-            function: {
-              name: this.finalValue.toolName,
-              arguments: JSON.stringify(this.finalValue.args),
-            },
-          },
-        ];
+    const value = this.finalValue as any;
+    if (!value) return null;
 
-      case "tool-result":
-        return this.finalValue.result;
-      case "api-call":
-        return JSON.stringify({
-          api: this.finalValue.apiName,
-          operation: this.finalValue.operationId,
-          request: this.finalValue.request,
-        });
-
-      default:
-        return null;
+    // Handle text content
+    if (value.text) {
+      return value.text;
     }
+
+    // Handle object content
+    if (value.object) {
+      return value.object as JSONObject;
+    }
+
+    // Handle tool calls
+    if (value.toolCalls && Array.isArray(value.toolCalls)) {
+      return value.toolCalls.map((tc: any) => ({
+        id: tc?.id || "unknown-id",
+        type: "function",
+        function: {
+          name: tc?.name || "unknown-name",
+          arguments:
+            typeof tc?.arguments === "string"
+              ? tc.arguments
+              : JSON.stringify(tc?.arguments || {}),
+        },
+      }));
+    }
+
+    // Handle legacy tool call format
+    if (value.type === "tool-call") {
+      return [
+        {
+          id: value.toolCallId || "unknown-id",
+          type: "function",
+          function: {
+            name: value.toolName || "unknown-name",
+            arguments: JSON.stringify(value.args || {}),
+          },
+        },
+      ];
+    }
+
+    // Handle tool results
+    if (value.type === "tool-result" && value.result) {
+      return value.result;
+    }
+
+    return null;
   }
 
   public async valueAsText(): Promise<string | null> {
@@ -376,34 +420,39 @@ export class StepValue<
       });
     }
 
-    switch (this.finalValue?.type) {
-      case "text":
-        return this.finalValue!.text;
-      case "object":
-        return JSON.stringify(this.finalValue!.object);
-      case "tool-call":
-        return JSON.stringify({
-          id: this.finalValue!.toolCallId,
-          name: this.finalValue!.toolName,
-          args: this.finalValue!.args,
-        });
-      case "api-call":
-        return JSON.stringify({
-          api: this.finalValue!.apiName,
-          operation: this.finalValue!.operationId,
-          request: this.finalValue!.request,
-        });
+    const value = this.finalValue as any;
+    if (!value) return null;
 
-      default:
-        return JSON.stringify(this.finalValue);
+    // Handle text content
+    if (value.text) {
+      return value.text;
     }
+
+    // Handle object content
+    if (value.object) {
+      return JSON.stringify(value.object);
+    }
+
+    // Handle tool calls
+    if (value.type === "tool-call") {
+      return JSON.stringify({
+        id: value.toolCallId,
+        name: value.toolName,
+        args: value.args,
+      });
+    }
+
+    return JSON.stringify(value);
   }
 
   public async text(): Promise<string | null> {
     await this.waitForValue();
 
-    if (this.finalValue?.type === "text") {
-      return this.finalValue.text;
+    const value = this.finalValue as any;
+    if (!value) return null;
+
+    if (value.text) {
+      return value.text;
     }
 
     return null;
@@ -412,23 +461,56 @@ export class StepValue<
   public async object(): Promise<JSONObject | null> {
     await this.waitForValue();
 
-    if (this.finalValue?.type !== "object") {
+    const value = this.finalValue as any;
+    if (!value || !value.object) {
       return null;
     }
-    return this.finalValue.object as JSONObject;
+
+    return value.object as JSONObject;
   }
 
-  public async toolCalls(): Promise<
-    Value extends z.infer<typeof ToolCallSchema>
-      ? [ToolCall<Value["toolName"], Value["args"]>]
-      : null
-  > {
+  public async toolCalls(): Promise<any> {
     await this.waitForValue();
 
-    if (this.finalValue?.type !== "tool-call") {
-      return null as any;
+    const value = this.finalValue as any;
+    if (!value) return null;
+
+    // Handle direct toolCalls property
+    if (value.toolCalls && Array.isArray(value.toolCalls)) {
+      return value.toolCalls;
     }
-    return [this.finalValue as any] as any;
+
+    // Handle legacy tool-call type
+    if (value.type === "tool-call" && value.toolCallId && value.toolName) {
+      return [
+        {
+          id: value.toolCallId,
+          name: value.toolName,
+          arguments: value.args || {},
+        },
+      ];
+    }
+
+    return null;
+  }
+
+  public async toolResults(): Promise<any> {
+    await this.waitForValue();
+
+    const value = this.finalValue as any;
+    if (!value) return null;
+
+    // Handle direct toolResults property
+    if (value.toolResults) {
+      return value.toolResults;
+    }
+
+    // Handle legacy tool-result type
+    if (value.type === "tool-result" && value.result) {
+      return value.result;
+    }
+
+    return null;
   }
 
   public async stream(): Promise<ReadableStream<Uint8Array>> {
@@ -457,57 +539,54 @@ export class StepValue<
       };
     }
 
-    if (this.finalValue && this.finalValue.type === "error") {
-      return this.finalValue as ErrorResult;
+    const value = this.finalValue as any;
+    if (value && value.type === "error") {
+      return value as ErrorResult;
     }
+
     return null;
   }
 
-  public async *streamIterator(): AsyncIterableIterator<APIStreamEvent> {
-    // if (!this.streamed && this._streamRawFinalValue) {
-    //   return yield this._streamRawFinalValue as RunStepStreamEvent;
-    // }
+  public async *streamIterator(): AsyncIterableIterator<StepValueChunk> {
     if (this._error) {
-      return yield {
+      yield {
         type: "error",
-        error: (this._error as any).message,
+        error: (this._error as Error).message,
         code: ErrorCode.SERVER_ERROR,
-      };
+      } as unknown as StepValueChunk;
+      return;
     }
+
     if (this._inputValue) {
-      // TODO support function calling and json objects
-      if (this.finalValue?.type === "text") {
-        if (typeof this.finalValue.text !== "string") {
-          console.log("this.finalValue", this.finalValue);
-        }
-        const words = this.finalValue.text.split(/\s+/);
-        let partial = "";
-        for (const word of words) {
-          partial += word + " ";
-          if (word === words[words.length - 1]) {
-            return yield {
-              type: "text",
-              text: partial.trim(),
-            };
-          }
+      // For text values, convert to text chunks
+      const value = this.finalValue as any;
+      if (value && value.type === "text") {
+        const text = value.text;
+        if (typeof text === "string") {
           yield {
             type: "text-delta",
-            partial,
-            delta: word + " ",
-          };
+            textDelta: text,
+          } as unknown as StepValueChunk;
+          return;
         }
-        return;
       }
-      return yield this.finalValue as APIStreamEvent;
+
+      // For other values, just yield as is
+      yield this.finalValue as unknown as StepValueChunk;
+      return;
     }
+
+    // Handle stream
     for await (const event of this._inputStream!) {
       if (this._error) {
-        return yield {
+        yield {
           type: "error",
-          error: (this._error as any).message,
+          error: (this._error as Error).message,
           code: ErrorCode.SERVER_ERROR,
-        };
+        } as unknown as StepValueChunk;
+        return;
       }
+
       yield event;
     }
   }

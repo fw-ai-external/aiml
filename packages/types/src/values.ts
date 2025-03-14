@@ -1,9 +1,8 @@
-import type { z } from "zod";
-import type { RunstepOutput } from "./runtime";
+import { StepValueChunk } from "./runtime";
 
 export interface ErrorResult {
   type: "error";
-  error: string;
+  error: string | number | any;
   code: string;
 }
 
@@ -20,25 +19,9 @@ export interface OpenAIToolCall {
   };
 }
 
-export type RunStepInput = string | RunstepOutput | any;
-
-export interface APIStreamEvent {
-  type: string;
-  [key: string]: any;
-}
-
-export interface ToolCall<Name extends string = string, Args = any> {
-  toolCallId: string;
-  toolName: Name;
-  args: Args;
-  type: "tool-call";
-}
-
-export const ToolCallSchema = {} as z.ZodType<ToolCall>;
-
 export type Secrets = Record<string, any>;
 
-export type RunEvent = {
+export type RunStreamEvent = {
   // The name of the step that produced the event
   step: string;
   // The uuid of the instance of  running step that produced the event
@@ -49,5 +32,5 @@ export type RunEvent = {
   // The id of the run that the event belongs to
   runId: string;
   // The event produced by the step
-  event: APIStreamEvent;
+  event: StepValueChunk;
 };

@@ -7,7 +7,7 @@ export * from "./values";
 import type {
   BuildContext,
   ExecutionGraphElement,
-  RunstepOutput,
+  StepValueResult,
   ElementExecutionContext,
   ElementExecutionContextSerialized,
   StepValue,
@@ -16,19 +16,15 @@ import type {
   ErrorResult,
   JSONObject,
   OpenAIToolCall,
-  RunStepInput,
-  APIStreamEvent,
-  ToolCall,
-  ToolCallSchema,
   Secrets,
-  RunEvent,
+  RunStreamEvent,
 } from "./values";
 import type { z } from "zod";
 import { ErrorCode } from "./errorCodes";
 
 export type {
   ExecutionGraphElement,
-  RunstepOutput,
+  StepValueResult as RunstepOutput,
   BuildContext,
   ElementExecutionContext,
   ElementExecutionContextSerialized,
@@ -36,12 +32,8 @@ export type {
   ErrorResult,
   JSONObject,
   OpenAIToolCall,
-  RunStepInput,
-  APIStreamEvent,
-  ToolCall,
-  ToolCallSchema,
   Secrets,
-  RunEvent,
+  RunStreamEvent as RunEvent,
 };
 
 export { ErrorCode };

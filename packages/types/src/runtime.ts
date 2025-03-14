@@ -1,3 +1,5 @@
+import { TextStreamPart, StepResult, ObjectStreamPart } from "ai";
+import { ErrorResult } from "./values";
 /**
  * ExecutionGraphElement - Represents a single node in the runtime execution graph.
  */
@@ -111,31 +113,97 @@ export interface ElementExecutionContext<PropValues = any, InputValue = any> {
 export type ElementExecutionContextSerialized = Record<string, any>;
 
 /**
- * RunstepOutput - Output from a run step.
+ * StepValueResult - Input/Output from a step / state / element.
+ * based on the normalized data in the AI SDK from vercel
  */
-export type RunstepOutput = {
-  type: string;
-  [key: string]: any;
+export type StepValueResultType =
+  | "object"
+  | "text"
+  | "toolCalls"
+  | "toolResults"
+  | "items"
+  | "error";
+export type StepValueResult =
+  | (Omit<
+      StepResult<TOOLS>,
+      | "request"
+      | "response"
+      | "providerMetadata"
+      | "experimental_providerMetadata"
+      | "stepType"
+      | "isContinued"
+      | "text"
+      | "toolCalls"
+      | "toolResults"
+    > &
+      (
+        | {
+            object: Record<string, any>;
+            items?: undefined;
+            text?: undefined;
+            toolCalls?: undefined;
+            toolResults?: undefined;
+          }
+        | {
+            object?: undefined;
+            items: any[];
+            text?: undefined;
+            toolCalls?: undefined;
+            toolResults?: undefined;
+          }
+        | {
+            object?: undefined;
+            items?: undefined;
+            text: string;
+            toolCalls?: StepResult<TOOLS>["toolCalls"];
+            toolResults: StepResult<TOOLS>["toolResults"];
+          }
+        | {
+            object?: undefined;
+            items?: undefined;
+            text?: undefined;
+            toolCalls?: undefined;
+            toolResults: StepResult<TOOLS>["toolResults"];
+          }
+      ))
+  | (ErrorResult & {
+      object?: undefined;
+      items?: undefined;
+      text?: undefined;
+      toolCalls?: undefined;
+      toolResults?: undefined;
+    });
+
+export type TOOLS = {
+  [key: string]: {
+    parameters: any;
+    description: string;
+  };
 };
 
-// Note: StepValue is a class that's implemented in the @fireworks/shared package
-// This is just the interface definition for type checking
-export interface StepValue<
-  Value extends RunstepOutput = RunstepOutput,
-  Type extends RunstepOutput["type"] = RunstepOutput["type"],
-> {
+/**
+ * StepValueChunk - Chunk of a step value.
+ * based on the normalized data in the AI SDK from vercel
+ */
+export type StepValueChunk =
+  | Omit<
+      TextStreamPart<TOOLS>,
+      | "experimental_providerMetadata"
+      | "providerMetadata"
+      | "experimental_providerMetadata"
+    >
+  | Omit<ObjectStreamPart<any>, "response" | "providerMetadata">;
+export interface StepValue<Value extends StepValueResult = StepValueResult> {
   readonly id: string;
-  readonly runStepUUID: string | null;
+  readonly stepUUID: string | null;
   readonly stats: any | null;
-
-  type(): Promise<"tool-call" | "text" | "object" | "error">;
+  type(): Promise<StepValueResultType>;
   value(): Promise<Value | any>;
-  simpleValue(): Promise<string | any | any[] | null>;
-  valueAsText(): Promise<string | null>;
   text(): Promise<string | null>;
-  object(): Promise<any | null>;
-  toolCalls(): Promise<any>;
+  object(): Promise<Record<string, any> | null>;
+  toolCalls(): Promise<StepValueResult["toolCalls"]>;
+  toolResults(): Promise<StepValueResult["toolResults"]>;
   stream(): Promise<ReadableStream<Uint8Array>>;
-  error(): Promise<any | null>;
-  streamIterator(): AsyncIterableIterator<any>;
+  error(): Promise<ErrorResult | null>;
+  streamIterator(): AsyncIterableIterator<StepValueChunk>;
 }

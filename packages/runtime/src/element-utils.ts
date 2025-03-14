@@ -31,9 +31,9 @@ export function createStepValue<T extends RunstepOutput = RunstepOutput>(
     typeof errorOrValue.error === "string"
   ) {
     return new StepValue<T>({
-      type: "error",
       code: errorOrValue.code || ErrorCode.SERVER_ERROR,
       error: errorOrValue.error,
+      type: "error",
     });
   }
 
@@ -64,9 +64,9 @@ export async function wrapElementExecution<
   } catch (error) {
     console.error("Error executing element:", error);
     return new StepValue<T>({
-      type: "error",
       code: ErrorCode.SERVER_ERROR,
       error: error instanceof Error ? error.message : String(error),
+      type: "error",
     });
   }
 }

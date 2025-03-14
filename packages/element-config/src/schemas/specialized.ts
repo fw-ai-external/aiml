@@ -9,7 +9,7 @@ import type { BaseElementDefinition } from "../types";
 
 // LLM Element - AI/Language Model Integration
 export const llmConfig: BaseElementDefinition = {
-  tag: "llm",
+  tag: "llm" as const,
   propsSchema: z.object({
     id: z.string().optional(),
     model: z.string(),
