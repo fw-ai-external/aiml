@@ -139,7 +139,6 @@ export const createElementDefinition = <
     ): BaseElement => {
       const validatedProps = factory.validateProps(props as Props);
 
-      console.log("=-------------------- nodes", nodes);
       // Convert nodes to BaseElement instances if needed
       const childElements: BaseElement[] = nodes.every(
         (n) => n instanceof BaseElement

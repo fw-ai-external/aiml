@@ -15,7 +15,6 @@ export const LLM = createElementDefinition({
   tag: "llm" as const,
   allowedChildren: "text",
   onExecutionGraphConstruction(buildContext) {
-    console.log("=-------------------- onExecutionGraphConstruction llm");
     const llmNode: ExecutionGraphElement = {
       id: buildContext.attributes.id,
       key: buildContext.elementKey,
@@ -32,8 +31,6 @@ export const LLM = createElementDefinition({
     return llmNode;
   },
   async execute(ctx): Promise<StepValue> {
-    console.log("=-------------------- llmNode", ctx);
-
     const { prompt, system } = ctx.attributes;
 
     try {
@@ -89,7 +86,6 @@ export const LLM = createElementDefinition({
 
       return value;
     } catch (error) {
-      console.error("Error calling LLM:", error);
       return new StepValue({
         type: "error",
         code: ErrorCode.SERVER_ERROR,

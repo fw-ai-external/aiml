@@ -80,7 +80,6 @@ export class RunValue {
   }
 
   setStepOutput(id: string, output: RunstepOutput | StepValue) {
-    console.log("=-------------------- setStepOutput", id, output);
     const thisStep = this._runSteps.find((s) => s.id === id);
     if (thisStep) {
       thisStep.output = maybeRunStepValue(output);
@@ -92,7 +91,6 @@ export class RunValue {
 
   markStepAsFinished(id: string, output?: RunstepOutput | StepValue) {
     const thisStep = this._runSteps.find((s) => s.id === id);
-    console.log("=-------------------- markStepAsFinished", id, thisStep);
     if (thisStep) {
       thisStep.status = "finished";
       if (output) {
@@ -173,7 +171,6 @@ export class RunValue {
    * Note that even if StateMachine Actor is finished, the values inside RunValue still may not be final.
    */
   public async finalize() {
-    console.log("=-------------------- finalize", this._runSteps.length);
     // Set the finished state immediately
     this._finished = true;
 
@@ -190,7 +187,6 @@ export class RunValue {
       const nonFinalValues = this._generatedValues.filter(
         (value) => value.id !== this._finalOutput?.id
       );
-      console.log("=-------------------- nonFinalValues", nonFinalValues);
 
       if (nonFinalValues.length === 1) {
         const stepValue = nonFinalValues[0];

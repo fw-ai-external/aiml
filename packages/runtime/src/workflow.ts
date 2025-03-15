@@ -91,8 +91,6 @@ export class Workflow<
     );
     console.log("[DEBUG] mastra workflow 'code':\n", this.debug);
     this.workflow.commit();
-
-    console.log("=-------------------- workflow", this.workflow.steps);
   }
 
   /**
@@ -102,7 +100,6 @@ export class Workflow<
    * @returns The execution result
    */
   private async handleStateTransition(state: WorkflowRunState) {
-    console.log("=-------------------- handleStateTransition", state);
     // Update active states
     const currentlyActiveStates = new Set(
       Object.keys(state?.context.steps ?? {}).filter(
@@ -136,7 +133,6 @@ export class Workflow<
       }
     }
     console.log(
-      "=-------------------- currentlyActiveStates",
       Array.from(currentlyActiveStates).map((id) => ({
         id,
         status: state.context.steps[id]?.status,
@@ -144,15 +140,11 @@ export class Workflow<
     );
     // Handle state exits
     for (const stateId of currentlyActiveStates) {
-      console.log(
-        "=-------------------- state.context.steps[stateId]",
-        (state.context.steps[stateId] as any)?.output?.result
-      );
+      console.log((state.context.steps[stateId] as any)?.output?.result);
       if (
         failedStates.includes(stateId) ||
         state.context.steps[stateId]?.status === "success"
       ) {
-        console.log("=-------------------- markStepAsFinished", stateId);
         const element = this.findElementById(stateId);
         if (element) {
           this.value?.markStepAsFinished(
@@ -209,7 +201,6 @@ export class Workflow<
     // });
 
     try {
-      console.log("=-------------------- run", input);
       const { results } = await start({
         triggerData: {
           input: new StepValue(input),
@@ -263,10 +254,7 @@ export class Workflow<
     });
 
     workflowOutput.then(async (results) => {
-      console.log(
-        "=-------------------- workflowOutput",
-        JSON.stringify(results, null, 2)
-      );
+      console.log(JSON.stringify(results, null, 2));
       await this.value?.finalize();
     });
 

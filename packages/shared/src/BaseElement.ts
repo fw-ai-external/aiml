@@ -90,12 +90,6 @@ export class BaseElement
     this.columnStart = config.columnStart ?? 0;
     this.columnEnd = config.columnEnd ?? 0;
     this._execute = config.execute;
-    console.log(
-      "=-------------------- config.execute internal",
-      this.tag,
-      config.execute,
-      this._execute
-    );
   }
 
   get isActive(): boolean {
@@ -150,13 +144,10 @@ export class BaseElement
     childrenNodes: BaseElement[] = []
   ): Promise<{ result: any }> => {
     // Will be StepValue at runtime
-    console.log("=-------------------- execute", this.tag);
     if (!this._isActive) {
       this._isActive = true;
       if (this.enter) await this.enter();
     }
-
-    console.log("=-------------------- execute after enter", this.tag);
 
     if (!this._execute) {
       // this element is a pass-through element
@@ -164,11 +155,6 @@ export class BaseElement
         ...this._dataModel,
         [this.id]: context.context.input,
       };
-      console.log(
-        "=-------------------- no execute meee",
-        this.tag,
-        JSON.stringify(context, null, 2)
-      );
 
       return {
         result: context.context.input,
@@ -201,13 +187,7 @@ export class BaseElement
           error: error instanceof Error ? error.message : String(error),
         };
       });
-      console.log(
-        "=-------------------- execute result 222",
-        this.tag,
-        !!result,
-        this._execute.toString(),
-        context.context?.input ? "has input" : context
-      );
+
       if (!result) {
         return {
           result: {
@@ -217,7 +197,7 @@ export class BaseElement
           },
         };
       }
-      console.log("=-------------------- execute after execute", this.tag);
+
       this._dataModel = {
         ...this._dataModel,
         [this.id]: result,
