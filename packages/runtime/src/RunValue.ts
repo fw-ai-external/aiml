@@ -71,6 +71,7 @@ export class RunValue {
       const output = maybeRunStepValue(step.output);
       if (output) {
         if (step.elementType === "final") {
+          console.log("=-------------------- final output", output);
           this._finalOutput = output;
         } else {
           this._generatedValues.push(output);
@@ -83,6 +84,14 @@ export class RunValue {
     const thisStep = this._runSteps.find((s) => s.id === id);
     if (thisStep) {
       thisStep.output = maybeRunStepValue(output);
+      if (thisStep.output) {
+        if (thisStep.elementType === "final") {
+          console.log("=-------------------- final output", output);
+          this._finalOutput = thisStep.output;
+        } else {
+          this._generatedValues.push(thisStep.output);
+        }
+      }
       this.processValue(id, thisStep.elementType, output);
     } else {
       throw new Error(`Step ${id} not found, could not set output`);

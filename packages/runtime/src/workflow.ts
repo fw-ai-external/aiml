@@ -132,15 +132,9 @@ export class Workflow<
         });
       }
     }
-    console.log(
-      Array.from(currentlyActiveStates).map((id) => ({
-        id,
-        status: state.context.steps[id]?.status,
-      }))
-    );
+
     // Handle state exits
     for (const stateId of currentlyActiveStates) {
-      console.log((state.context.steps[stateId] as any)?.output?.result);
       if (
         failedStates.includes(stateId) ||
         state.context.steps[stateId]?.status === "success"

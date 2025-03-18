@@ -1,0 +1,29 @@
+---CLINE_RULES_START---
+[LAST_ACTION_STATE]
+last_action: "Fixed heal-flow parser element loss issue"
+current_phase: "Strategy"
+next_action: "Complete Strategy Phase Planning"
+
+[CODE_ROOT_DIRECTORIES]
+- packages
+- apps
+
+[LEARNING_JOURNAL]
+- Initial setup started on March 12, 2025.
+- Project is an AIML runtime environment with TypeScript packages and applications.
+- Identified initial code roots: packages, apps.
+- Analyzed dependencies among packages: runtime depends on types, shared, and elements. 
+- Package 'types' is a core dependency for most modules.
+- Shared utilities package has dependencies on element-config and types packages.
+- Elements package depends on shared and types packages.
+- Established TDD practices for all package development with minimal mocks to ensure code quality.
+- Implemented build integrity requirements: no coding task is complete unless all packages build and all tests pass.
+- Refactored formalize.ts in runtime package to correctly hydrate serialized elements with required properties.
+- Fixed tests to ensure proper validation of element properties during hydration.
+- Addressed coordination issues between parser and runtime packages.
+- Updated documentation to explain AIML syntax is MDX syntax with 3 key exceptions: 1) for input that would produce syntax errors in an MDX parser, we just warn insted and treat those lines as text/strings/paragrahs. 2) The elements we support are custom, not html, and loosly inspired by scxml except with values passed primaraly based on document order between elements that are of role "action", and scxml element is renamed to workflow. 3) unlike regular jsx within MDX, we also validate the type/tag of children is of a valid type.
+- Fixed issue in parser's structure-processing.ts where the healing code was losing elements during transition creation by switching to tag/ID-based comparisons instead of object references
+- Added addAllTransitions function to ensure all states get proper transitions and called it in the parser pipeline
+---
+
+CLINE_RULES_END---
