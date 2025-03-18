@@ -77,7 +77,7 @@ export function convertParagraphToLlmNode(
     elementType: "llm",
     attributes: {
       prompt: promptText,
-      model: "gpt-4o", // Default model
+      model: "accounts/fireworks/models/llama-v3p1-8b-instruct", // Default model
     },
     children: [],
     lineStart: paragraphNode.lineStart,

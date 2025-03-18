@@ -32,11 +32,11 @@ export const LLM = createElementDefinition({
   },
   async execute(ctx): Promise<StepValue> {
     const { prompt, system } = ctx.attributes;
-
+    console.log("*** ctx", ctx);
     try {
       const { provider } = getProviderWithClient(
         ctx.attributes.model,
-        ctx.machine.secrets,
+        ctx.context.triggerData.secrets,
         ctx.attributes.grammar
           ? {
               type: "grammar",
@@ -86,6 +86,7 @@ export const LLM = createElementDefinition({
 
       return value;
     } catch (error) {
+      console.error("*** LLMElement error", error);
       return new StepValue({
         type: "error",
         code: ErrorCode.SERVER_ERROR,

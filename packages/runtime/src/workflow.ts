@@ -66,7 +66,16 @@ export class Workflow<
 
     this.workflow = new MastraWorkflow({
       name: "workflow",
-      triggerSchema: z.object({}),
+      triggerSchema: z.object({
+        chatHistory: z.array(
+          z.object({
+            role: z.enum(["user", "assistant"]),
+            content: z.string(),
+          })
+        ),
+        userInput: z.string(),
+        secrets: z.record(z.any()),
+      }),
     });
     // this.workflow.__setLogger(
     //   createLogger({
@@ -122,7 +131,6 @@ export class Workflow<
       const element = this.findElementById(stateId);
       // const input = state?.context.steps?.[stateId].payload;
       if (element) {
-        console.log("adding active step", element.tag);
         this.value?.addActiveStep({
           elementType: element.elementType,
           id: element.id,
@@ -197,15 +205,14 @@ export class Workflow<
     try {
       const { results } = await start({
         triggerData: {
-          input: new StepValue(input),
-          chatHistory: [],
-          userInput: null,
+          input: new StepValue(input.userMessage[0]),
+          chatHistory: input.chatHistory,
+          systemMessage: input.systemMessage,
+          userInput: input.userMessage[0],
           datamodel: {},
-          secrets: {},
+          secrets: input.secrets,
         },
       });
-
-      console.log("results", results);
 
       this.options?.onComplete?.();
 
@@ -234,12 +241,15 @@ export class Workflow<
         throw error;
       })
     );
+
     const workflowOutput = start({
       triggerData: {
-        input: new StepValue(input),
-        chatHistory: [],
-        userInput: null,
+        input: new StepValue(input.userMessage[0]),
+        chatHistory: input.chatHistory,
+        systemMessage: input.systemMessage,
+        userInput: input.userMessage[0],
         datamodel: {},
+        secrets: input.secrets,
       },
     }).catch((error) => {
       console.error("error", error);

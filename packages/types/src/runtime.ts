@@ -193,6 +193,7 @@ export type StepValueChunk =
       | "experimental_providerMetadata"
     >
   | Omit<ObjectStreamPart<any>, "response" | "providerMetadata">;
+
 export interface StepValue<Value extends StepValueResult = StepValueResult> {
   readonly id: string;
   readonly stepUUID: string | null;

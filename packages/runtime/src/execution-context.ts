@@ -208,6 +208,7 @@ export class ExecutionContextFactory {
         CoreUserMessage | CoreAssistantMessage | CoreToolMessage
       >;
       clientSideTools: ChatCompletionMessageToolCall.Function[];
+      secrets: Secrets;
     };
     datamodel: Record<string, any>;
     attributes: PropValues;

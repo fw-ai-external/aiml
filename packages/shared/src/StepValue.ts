@@ -1,13 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
 import type {
-  RunstepOutput,
   StepValue as StepValueInterface,
   StepValueResult,
   StepValueResultType,
   StepValueChunk,
 } from "@fireworks/types";
 import { ReplayableAsyncIterableStream, StreamState } from "./utils/streams";
-import { InternalError, RunStepError } from "./errors";
+import { RunStepError } from "./errors";
 import type { ErrorResult, JSONObject, OpenAIToolCall } from "@fireworks/types";
 import { ErrorCode } from "./utils/errorCodes";
 
@@ -18,7 +17,7 @@ export type StepGenerationStats = {
   logProbs?: number[];
   metadata?: {
     redteamFinalPrompt?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   tokenUsage?: {
     promptTokens: number;
@@ -40,14 +39,15 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
   // triggered once receive() or value() is called
   private _error?: Error;
   private _stats: StepGenerationStats | null = null;
-  private _inputValue: RunstepOutput | undefined;
+  private _inputValue: StepValueResult | undefined;
   private readonly _inputStream:
     | ReplayableAsyncIterableStream<StepValueChunk>
     | undefined;
 
   private readonly inputKind: "stream" | "value";
-  private _streamRawCompletedValue?: RunstepOutput;
-  private get finalValue(): RunstepOutput | undefined {
+  private _streamRawCompletedValue?: StepValueResult;
+  private _streamPartialValue: Partial<StepValueResult> = {};
+  private get finalValue(): StepValueResult | undefined {
     return this._inputValue || this._streamRawCompletedValue;
   }
 
@@ -66,12 +66,18 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
     } else if (
       inputValue instanceof ReadableStream ||
       inputValue instanceof TransformStream ||
-      (inputValue as any)[Symbol.asyncIterator]
+      (inputValue &&
+        typeof inputValue === "object" &&
+        Symbol.asyncIterator in inputValue)
     ) {
       this.inputKind = "stream";
-      this._inputStream = new ReplayableAsyncIterableStream(inputValue as any);
+      this._inputStream = new ReplayableAsyncIterableStream(
+        inputValue as AsyncIterable<StepValueChunk>
+      );
 
-      // A RunStepInput or RunstepOutput value that is not a stream
+      this._getValueFromStream().catch((e) => {
+        this._error = e;
+      });
     } else {
       this._inputValue = this.ensureValueIsValid(inputValue as StepValueResult);
       this.inputKind = "value";
@@ -87,63 +93,88 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
           return "error";
         }
 
-        const value = this.finalValue as any;
-
-        if (value.text) {
-          return "text";
+        if (this._error) {
+          return "error";
         }
 
-        if (value.toolCalls && Array.isArray(value.toolCalls)) {
-          return "toolCalls";
-        }
+        const value = this.finalValue;
 
-        if (value.toolResults) {
-          return "toolResults";
-        }
-
-        if (
-          value.object ||
-          (typeof value === "object" && value.type !== "error")
-        ) {
+        // Special case for plain objects
+        if ("object" in value && value.object) {
           return "object";
         }
 
-        if (value.items && Array.isArray(value.items)) {
+        if ("text" in value && value.text) {
+          return "text";
+        }
+
+        if (
+          "toolCalls" in value &&
+          value.toolCalls &&
+          Array.isArray(value.toolCalls)
+        ) {
+          return "toolCalls";
+        }
+
+        if ("toolResults" in value && value.toolResults) {
+          return "toolResults";
+        }
+
+        if ("items" in value && value.items && Array.isArray(value.items)) {
           return "items";
         }
 
         return "error";
 
       case "stream":
+        if (this._error) {
+          return "error";
+        }
+
         while (
-          (this._inputStream?.buffer.length || 0) < 2 &&
+          (this._inputStream?.buffer.length || 0) < 3 &&
           this._inputStream?.state !== StreamState.ERROR &&
           this._inputStream?.state !== StreamState.FINISHED
         ) {
           await new Promise((resolve) => setTimeout(resolve, 2));
         }
 
-        const firstChunk = this._inputStream?.buffer[0];
-        const secondChunk = this._inputStream?.buffer[1];
+        const buffer = this._inputStream?.buffer || [];
 
+        // Check for tool calls
         if (
-          this._inputStream?.buffer.some((chunk) => {
-            return (
-              (chunk as any).type === "tool-call" ||
-              (chunk as any).type === "tool-call-delta"
-            );
+          buffer.some((chunk) => {
+            if ("type" in chunk) {
+              return (
+                chunk.type === "tool-call" || chunk.type === "tool-call-delta"
+              );
+            }
+            return false;
           })
         ) {
           return "toolCalls";
         }
 
-        if ((firstChunk as any)?.type === "object") {
+        // Check for object
+        if (
+          buffer.some((chunk) => {
+            if ("type" in chunk) {
+              return chunk.type === "object";
+            }
+            return false;
+          })
+        ) {
           return "object";
         }
 
+        // Check for text
         if (
-          (firstChunk as any)?.type === "text" ||
-          (secondChunk as any)?.type === "text"
+          buffer.some((chunk) => {
+            if ("type" in chunk) {
+              return chunk.type === "text-delta";
+            }
+            return false;
+          })
         ) {
           return "text";
         }
@@ -152,10 +183,10 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
     }
   }
 
-  private ensureValueIsValid(input: StepValueResult): RunstepOutput {
+  private ensureValueIsValid(input: any): StepValueResult {
+    // Handle primitive string input
     if (typeof input === "string") {
       return {
-        type: "text",
         text: input,
         warnings: undefined,
         logprobs: undefined,
@@ -164,15 +195,48 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
         reasoning: undefined,
         reasoningDetails: [],
         sources: [],
-      } as unknown as RunstepOutput;
+        toolResults: [],
+      };
     }
 
-    if (typeof input === "object" && input !== null) {
-      if (!("type" in input)) {
+    // Handle object with text property
+    if (
+      typeof input === "object" &&
+      input !== null &&
+      "text" in input &&
+      typeof input.text === "string"
+    ) {
+      return {
+        text: input.text,
+        warnings: undefined,
+        logprobs: undefined,
+        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        finishReason: "stop",
+        reasoning: undefined,
+        reasoningDetails: [],
+        sources: [],
+        toolResults: [],
+        ...input,
+      };
+    }
+
+    // Handle object with object property
+    if (typeof input === "object" && input !== null && "object" in input) {
+      return input;
+    }
+
+    // Handle tool call
+    if (
+      typeof input === "object" &&
+      input !== null &&
+      (input.type === "tool-call" || (input.toolCallId && input.toolName))
+    ) {
+      // Convert to toolCalls array format
+      if (input.toolCallId && input.toolName) {
         return {
-          type: "object",
-          object: input as any,
-          raw: JSON.stringify(input),
+          toolCalls: [input],
+          text: "", // Required by StepValueResult type
+          toolResults: [], // Required by StepValueResult type
           warnings: undefined,
           logprobs: undefined,
           usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
@@ -180,14 +244,43 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
           reasoning: undefined,
           reasoningDetails: [],
           sources: [],
-        } as unknown as RunstepOutput;
+        };
       }
+      return input;
+    }
 
-      return input as RunstepOutput;
+    // Handle tool calls array
+    if (
+      typeof input === "object" &&
+      input !== null &&
+      "toolCalls" in input &&
+      Array.isArray(input.toolCalls)
+    ) {
+      return input;
+    }
+
+    // Handle plain object (no type field)
+    if (typeof input === "object" && input !== null) {
+      if (!("type" in input)) {
+        return {
+          object: input,
+          warnings: undefined,
+          logprobs: undefined,
+          usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          finishReason: "stop",
+          reasoning: undefined,
+          reasoningDetails: [],
+          sources: [],
+          toolResults: [],
+          // Add an empty text field to avoid the type system defaulting to toolResults
+          text: "",
+        };
+      }
+      return input;
     }
 
     throw new RunStepError(
-      `RunStepValue is not correctly initializing with the input value ${JSON.stringify(
+      `StepValue is not correctly initializing with the input value ${JSON.stringify(
         input
       )}`
     );
@@ -207,67 +300,112 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
   private async _getValueFromStream(): Promise<void> {
     if (!this._inputStream) return;
 
+    const eventChunks: StepValueChunk[] = [];
+    let hasReceivedFinalValue = false;
+
     // These are to parse Vercel AI SDK output
-    for await (const chunk of this._inputStream) {
-      const eventChunk = chunk as any;
+    for await (const eventChunk of this._inputStream) {
+      eventChunks.push(eventChunk);
 
-      switch (eventChunk.type) {
-        case "error":
-          if (eventChunk.error) {
-            this._error = new RunStepError(eventChunk.error);
-          }
-          break;
-        case "tool-call":
-        case "text":
-        case "object":
-          this._streamRawCompletedValue = eventChunk as RunstepOutput;
-          break;
-        case "tool-call-delta":
-          // Convert to tool-call format
+      // Handle text-delta chunks
+      if (eventChunk.type === "text-delta" && "textDelta" in eventChunk) {
+        this._streamPartialValue = {
+          ...this._streamPartialValue,
+          text: (this._streamPartialValue?.text || "") + eventChunk.textDelta,
+        } as Partial<StepValueResult>;
+
+        // If we have accumulated text, consider it a valid final value
+        if ((this._streamPartialValue.text || "").length > 0) {
+          hasReceivedFinalValue = true;
+        }
+      }
+
+      // Handle tool-call chunks
+      if (eventChunk.type === "tool-call") {
+        hasReceivedFinalValue = true;
+        this._streamPartialValue = {
+          ...this._streamPartialValue,
+          toolCalls: [
+            ...(this._streamPartialValue?.toolCalls || []),
+            eventChunk,
+          ],
+        } as Partial<StepValueResult>;
+        continue;
+      }
+
+      // Handle object chunks
+      if (eventChunk.type === "object" && "object" in eventChunk) {
+        hasReceivedFinalValue = true;
+        this._streamPartialValue = {
+          ...this._streamPartialValue,
+          object: eventChunk.object,
+        } as Partial<StepValueResult>;
+        continue;
+      }
+
+      // Handle error chunks
+      if (eventChunk.type === "error" && "error" in eventChunk) {
+        this._error = new Error(String(eventChunk.error));
+        return; // Exit early on error
+      }
+
+      // Handle step-complete chunks
+      if (eventChunk.type === "step-finish" || eventChunk.type === "finish") {
+        console.log("step-finish", eventChunks);
+        // Check if we have any valid content in the partial value
+        const hasValidContent =
+          hasReceivedFinalValue ||
+          (this._streamPartialValue.text &&
+            this._streamPartialValue.text.length > 0) ||
+          (this._streamPartialValue.toolCalls &&
+            this._streamPartialValue.toolCalls.length > 0) ||
+          this._streamPartialValue.object !== undefined;
+
+        if (hasValidContent) {
           this._streamRawCompletedValue = {
-            ...eventChunk,
-            type: "tool-call",
-          } as RunstepOutput;
-          break;
-        case "step-complete":
-          if (!this._streamRawCompletedValue) {
-            throw new InternalError(
-              "Error during generation, final delta(s) were never sent from the model"
-            );
-          }
+            ...this._streamPartialValue,
+          } as StepValueResult;
+        } else {
+          // If we received a finish event but no final value, set an error
+          this._error = new Error(
+            "Error during generation, final delta(s) were never sent from the model"
+          );
+        }
 
-          // Initialize stats and token usage if needed
-          if (!this._stats?.tokenUsage) {
-            if (this._stats) {
-              this._stats.tokenUsage = {
+        // Initialize stats and token usage if needed
+        if (!this._stats?.tokenUsage) {
+          if (this._stats) {
+            this._stats.tokenUsage = {
+              completionTokens: 0,
+              promptTokens: 0,
+              totalTokens: 0,
+            };
+          } else {
+            this._stats = {
+              tokenUsage: {
                 completionTokens: 0,
                 promptTokens: 0,
                 totalTokens: 0,
-              };
-            } else {
-              this._stats = {
-                tokenUsage: {
-                  completionTokens: 0,
-                  promptTokens: 0,
-                  totalTokens: 0,
-                },
-              };
-            }
+              },
+            };
           }
+        }
 
-          // Update token usage if available in the chunk
-          if (eventChunk.usage) {
-            this._stats!.tokenUsage!.completionTokens +=
-              eventChunk.usage.completionTokens || 0;
-            this._stats!.tokenUsage!.promptTokens +=
-              eventChunk.usage.promptTokens || 0;
-            this._stats!.tokenUsage!.totalTokens +=
-              eventChunk.usage.totalTokens || 0;
+        // Update token usage if available in the chunk
+        if ("usage" in eventChunk && eventChunk.usage) {
+          const usage = eventChunk.usage as {
+            completionTokens?: number;
+            promptTokens?: number;
+            totalTokens?: number;
+          };
+
+          if (this._stats && this._stats.tokenUsage) {
+            this._stats.tokenUsage.completionTokens +=
+              usage.completionTokens || 0;
+            this._stats.tokenUsage.promptTokens += usage.promptTokens || 0;
+            this._stats.tokenUsage.totalTokens += usage.totalTokens || 0;
           }
-          break;
-        default:
-          // ignore, we only care about final values
-          break;
+        }
       }
     }
   }
@@ -300,7 +438,7 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
     return true;
   }
 
-  public onValue<T extends RunstepOutput, E extends Error | undefined>(
+  public onValue<T extends StepValueResult, E extends Error | undefined>(
     callback: (
       error: E,
       value: E extends Error ? undefined : T,
@@ -310,7 +448,9 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
     this.waitForValue().then(() => {
       callback(
         this._error as E,
-        this._streamRawCompletedValue as E extends Error ? undefined : T,
+        (this._streamRawCompletedValue || this._inputValue) as E extends Error
+          ? undefined
+          : T,
         this.stepUUID
       );
     });
@@ -329,7 +469,7 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
     if (this._error) {
       return {
         type: "error",
-        error: (this._error as any).message,
+        error: this._error.message,
         code: ErrorCode.SERVER_ERROR,
       };
     }
@@ -346,7 +486,7 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
     if (!rawValue) {
       throw new RunStepError("No value found for the output");
     }
-    return (this.finalValue as Value) || rawValue;
+    return (this.finalValue as Value) || (rawValue as Value);
   }
 
   public async simpleValue(): Promise<
@@ -355,55 +495,38 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
     await this.waitForValue();
     if (this._error) {
       return {
-        error: (this._error as any).message,
+        error: this._error.message,
       };
     }
 
-    const value = this.finalValue as any;
+    const value = this.finalValue;
     if (!value) return null;
 
     // Handle text content
-    if (value.text) {
+    if ("text" in value && value.text) {
       return value.text;
     }
 
     // Handle object content
-    if (value.object) {
+    if ("object" in value && value.object) {
       return value.object as JSONObject;
     }
 
     // Handle tool calls
-    if (value.toolCalls && Array.isArray(value.toolCalls)) {
-      return value.toolCalls.map((tc: any) => ({
-        id: tc?.id || "unknown-id",
+    if (
+      "toolCalls" in value &&
+      value.toolCalls &&
+      Array.isArray(value.toolCalls)
+    ) {
+      // Convert to OpenAIToolCall format for tests
+      return value.toolCalls.map((toolCall) => ({
+        id: toolCall.toolCallId,
         type: "function",
         function: {
-          name: tc?.name || "unknown-name",
-          arguments:
-            typeof tc?.arguments === "string"
-              ? tc.arguments
-              : JSON.stringify(tc?.arguments || {}),
+          name: toolCall.toolName,
+          arguments: JSON.stringify(toolCall.args),
         },
       }));
-    }
-
-    // Handle legacy tool call format
-    if (value.type === "tool-call") {
-      return [
-        {
-          id: value.toolCallId || "unknown-id",
-          type: "function",
-          function: {
-            name: value.toolName || "unknown-name",
-            arguments: JSON.stringify(value.args || {}),
-          },
-        },
-      ];
-    }
-
-    // Handle tool results
-    if (value.type === "tool-result" && value.result) {
-      return value.result;
     }
 
     return null;
@@ -415,31 +538,37 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
     if (this._error) {
       return JSON.stringify({
         type: "error",
-        error: (this._error as any).message,
+        error: this._error.message,
         code: ErrorCode.SERVER_ERROR,
       });
     }
 
-    const value = this.finalValue as any;
+    const value = this.finalValue;
     if (!value) return null;
 
     // Handle text content
-    if (value.text) {
+    if ("text" in value && value.text) {
       return value.text;
     }
 
     // Handle object content
-    if (value.object) {
+    if ("object" in value && value.object) {
       return JSON.stringify(value.object);
     }
 
-    // Handle tool calls
-    if (value.type === "tool-call") {
-      return JSON.stringify({
-        id: value.toolCallId,
-        name: value.toolName,
-        args: value.args,
-      });
+    // Handle tool calls - special format for tests
+    if (
+      "toolCalls" in value &&
+      value.toolCalls &&
+      Array.isArray(value.toolCalls)
+    ) {
+      // Convert to OpenAI format for tests
+      const openAIFormat = value.toolCalls.map((toolCall) => ({
+        id: toolCall.toolCallId,
+        name: toolCall.toolName,
+        args: toolCall.args,
+      }));
+      return JSON.stringify(openAIFormat);
     }
 
     return JSON.stringify(value);
@@ -451,7 +580,7 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
     const value = this.finalValue;
     if (!value) return null;
 
-    if (value.text) {
+    if ("text" in value && value.text) {
       return value.text;
     }
 
@@ -461,56 +590,44 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
   public async object(): Promise<JSONObject | null> {
     await this.waitForValue();
 
-    const value = this.finalValue as any;
-    if (!value || !value.object) {
+    const value = this.finalValue;
+    if (!value || !("object" in value) || !value.object) {
       return null;
     }
 
     return value.object as JSONObject;
   }
 
-  public async toolCalls(): Promise<any> {
+  public async toolCalls(): Promise<StepValueResult["toolCalls"]> {
     await this.waitForValue();
 
-    const value = this.finalValue as any;
-    if (!value) return null;
+    const value = this.finalValue;
+    if (!value) return undefined;
 
     // Handle direct toolCalls property
-    if (value.toolCalls && Array.isArray(value.toolCalls)) {
+    if (
+      "toolCalls" in value &&
+      value.toolCalls &&
+      Array.isArray(value.toolCalls)
+    ) {
       return value.toolCalls;
     }
 
-    // Handle legacy tool-call type
-    if (value.type === "tool-call" && value.toolCallId && value.toolName) {
-      return [
-        {
-          id: value.toolCallId,
-          name: value.toolName,
-          arguments: value.args || {},
-        },
-      ];
-    }
-
-    return null;
+    return undefined;
   }
 
-  public async toolResults(): Promise<any> {
+  public async toolResults(): Promise<StepValueResult["toolResults"]> {
     await this.waitForValue();
 
-    const value = this.finalValue as any;
-    if (!value) return null;
+    const value = this.finalValue;
+    if (!value) return undefined;
 
     // Handle direct toolResults property
-    if (value.toolResults) {
+    if ("toolResults" in value && value.toolResults) {
       return value.toolResults;
     }
 
-    // Handle legacy tool-result type
-    if (value.type === "tool-result" && value.result) {
-      return value.result;
-    }
-
-    return null;
+    return undefined;
   }
 
   public async stream(): Promise<ReadableStream<Uint8Array>> {
@@ -539,8 +656,8 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
       };
     }
 
-    const value = this.finalValue as any;
-    if (value && value.type === "error") {
+    const value = this.finalValue;
+    if (value && "type" in value && value.type === "error") {
       return value as ErrorResult;
     }
 
@@ -551,7 +668,7 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
     if (this._error) {
       yield {
         type: "error",
-        error: (this._error as Error).message,
+        error: this._error.message,
         code: ErrorCode.SERVER_ERROR,
       } as unknown as StepValueChunk;
       return;
@@ -559,20 +676,43 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
 
     if (this._inputValue) {
       // For text values, convert to text chunks
-      const value = this.finalValue as any;
-      if (value && value.type === "text") {
+      const value = this.finalValue;
+      if (value && "text" in value && value.text) {
         const text = value.text;
+
         if (typeof text === "string") {
           yield {
             type: "text-delta",
             textDelta: text,
-          } as unknown as StepValueChunk;
+          } as StepValueChunk;
           return;
         }
       }
 
+      // For object values, convert to object chunks
+      if (value && "object" in value && value.object) {
+        yield {
+          type: "object",
+          // @ts-expect-error - TODO: fix this
+          object: value.object,
+        };
+        return;
+      }
+
+      // For tool call values, convert to tool-call chunks
+      if (
+        value &&
+        "toolCalls" in value &&
+        value.toolCalls &&
+        Array.isArray(value.toolCalls) &&
+        value.toolCalls.length > 0
+      ) {
+        const toolCall = value.toolCalls[0];
+        return yield toolCall;
+      }
+
       // For other values, just yield as is
-      yield this.finalValue as unknown as StepValueChunk;
+      yield this.finalValue as StepValueChunk;
       return;
     }
 
@@ -583,17 +723,19 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
           type: "error",
           error: (this._error as Error).message,
           code: ErrorCode.SERVER_ERROR,
-        } as unknown as StepValueChunk;
+        } as StepValueChunk;
         return;
       }
-
+      console.log("event", event);
       yield event;
     }
   }
 
   toJSON() {
     return (
-      this._inputValue ?? this._streamRawCompletedValue ?? "...streaming..."
+      this._inputValue ??
+      this._streamRawCompletedValue ??
+      "...streaming so can not toJSON the value yet..."
     );
   }
 

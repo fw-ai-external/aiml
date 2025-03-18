@@ -52,6 +52,7 @@ export class ElementExecutionContext<
       CoreUserMessage | CoreAssistantMessage | CoreToolMessage
     >;
     clientSideTools: ChatCompletionMessageToolCall.Function[];
+    secrets: Secrets;
   };
   datamodel: Record<string, any>;
   attributes: PropValues & { children?: TagNodeDTO[] } = {} as PropValues;
@@ -85,6 +86,7 @@ export class ElementExecutionContext<
         CoreUserMessage | CoreAssistantMessage | CoreToolMessage
       >;
       clientSideTools: ChatCompletionMessageToolCall.Function[];
+      secrets: Secrets;
     };
     datamodel: Record<string, any>;
     attributes: PropValues;
@@ -128,14 +130,14 @@ export class ElementExecutionContext<
 
   async serialize() {
     return {
-      input: await this.input.simpleValue(),
+      input: await this.input.value(),
       workflowInput: this.workflowInput,
       datamodel: this.datamodel.values,
       attributes: this.attributes,
       state: {
         id: this.state.id,
         attributes: this.state.attributes,
-        input: await this.state.input.simpleValue(),
+        input: await this.state.input.value(),
       },
       run: this.run,
       context: this.context,

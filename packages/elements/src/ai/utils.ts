@@ -82,10 +82,10 @@ export function getProviderWithClient(
     // Anthropic doesn't use OpenAI client
   } else {
     const baseURL =
-      secrets.system.FIREWORKS_BASE_URL ??
+      secrets?.system?.FIREWORKS_BASE_URL ??
       "https://api.fireworks.ai/inference/v1";
     provider = createOpenAI({
-      apiKey: secrets.system.FIREWORKS_API_KEY ?? "",
+      apiKey: secrets?.system?.FIREWORKS_API_KEY ?? "",
       baseURL,
       ...(extra_headers ? { headers: extra_headers } : {}),
       fetch: async (input: RequestInfo | URL, init?: RequestInit) => {

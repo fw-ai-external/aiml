@@ -27,6 +27,16 @@ export async function POST(req: Request) {
 
   const result = workflow.runStream({
     userMessage: messages[messages.length - 1].content,
+    secrets: {
+      system: {
+        FIREWORKS_API_KEY: process.env.FIREWORK_API_KEY,
+        FIREWORKS_BASE_URL: process.env.FIREWORKS_BASE_URL,
+      },
+    },
+    systemMessage: messages.find((m: any) => m.role === "system")?.content,
+    chatHistory: messages.filter(
+      (m: any, i: number) => i !== messages.length - 1 && m.role !== "system"
+    ),
   });
 
   // const fireworks = createFireworks({
