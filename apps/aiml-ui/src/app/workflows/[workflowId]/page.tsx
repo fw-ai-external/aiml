@@ -22,6 +22,7 @@ const AIMLOpenAIChatRuntime = ({
   workflowId: string;
 }): ChatModelAdapter => ({
   async *run({ messages, abortSignal, context }) {
+    console.log("==*** calling with messages", messages);
     const response = await fetch("/api/chat", {
       method: "POST",
       body: JSON.stringify({ messages, workflowId, context }),
