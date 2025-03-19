@@ -191,6 +191,7 @@ export type StepValueChunk =
       | "experimental_providerMetadata"
       | "providerMetadata"
       | "experimental_providerMetadata"
+      | "response"
     >
   | Omit<ObjectStreamPart<any>, "response" | "providerMetadata">;
 

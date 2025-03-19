@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { ErrorCode } from "./utils/errorCodes";
 import { ReplayableAsyncIterableStream } from "./utils/streams";
 import { StepValue } from "./StepValue";
+import type { StepValueChunk, StepValueResult } from "@fireworks/types";
 
 // Define a local interface for test chunks to avoid dependencies on deprecated types
 interface TestStreamChunk {
@@ -19,19 +20,11 @@ function toAsyncIterable<T>(items: T[]): AsyncIterable<T> {
   };
 }
 
-describe("new RunStepValue Class", () => {
+describe("StepValue", () => {
   test("Take a string and return a value of string", async () => {
     const runStepInput = new StepValue({
-      type: "text",
       text: "test",
-      warnings: undefined,
-      logprobs: undefined,
-      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-      finishReason: "stop",
-      reasoning: undefined,
-      reasoningDetails: [],
-      sources: [],
-    } as any);
+    } as StepValueResult);
     await expect(runStepInput.value()).resolves.toMatchObject({
       text: "test",
     });
@@ -39,231 +32,210 @@ describe("new RunStepValue Class", () => {
 
   test("Take a string and return an iterator", async () => {
     const runStepInput = new StepValue({
-      type: "text",
       text: "test of the stream.",
-      warnings: undefined,
-      logprobs: undefined,
-      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-      finishReason: "stop",
-      reasoning: undefined,
-      reasoningDetails: [],
-      sources: [],
-    } as any);
+    } as StepValueResult);
 
-    const result: TestStreamChunk[] = [];
+    const result: StepValueChunk[] = [];
     const stream = await runStepInput.streamIterator();
     for await (const chunk of stream) {
-      result.push(chunk as any);
+      result.push(chunk);
     }
 
-    // Testing that we receive one chunk with text-delta type
     expect(result.length).toBe(1);
     expect(result[0].type).toBe("text-delta");
-    expect(result[0].textDelta).toBe("test of the stream.");
+    expect("textDelta" in result[0] && result[0].textDelta).toBe(
+      "test of the stream."
+    );
   });
 
   test("Take an object and return an iterator", async () => {
     const testObject = { test: "test of the stream." };
     const runStepInput = new StepValue({
-      type: "object",
       object: testObject,
-      raw: JSON.stringify(testObject),
-      warnings: undefined,
-      logprobs: undefined,
-      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-      finishReason: "stop",
-      reasoning: undefined,
-      reasoningDetails: [],
-      sources: [],
-    } as any);
+    } as unknown as StepValueResult);
 
-    const result: TestStreamChunk[] = [];
+    const result: StepValueChunk[] = [];
     const stream = await runStepInput.streamIterator();
     for await (const chunk of stream) {
-      result.push(chunk as any);
+      result.push(chunk);
     }
 
-    // With the new implementation, we just pass through the object
     expect(result.length).toBe(1);
     expect(result[0].type).toBe("object");
-    expect(result[0].object).toEqual(testObject);
+    expect("object" in result[0] && result[0].object).toEqual(testObject);
   });
 
   test("Accumulates text-delta chunks into a valid final value", async () => {
-    const mockAsyncIterable = new ReplayableAsyncIterableStream(
-      toAsyncIterable([
-        { type: "text-delta", textDelta: "Hello" },
-        { type: "text-delta", textDelta: " world" },
-        {
-          type: "finish",
-          finishReason: "stop",
-          usage: {
-            promptTokens: 200,
-            completionTokens: 2000,
-            totalTokens: 300,
-          },
+    const chunks = [
+      { type: "text-delta", textDelta: "Hello" },
+      { type: "text-delta", textDelta: " world" },
+      {
+        type: "finish",
+        finishReason: "stop",
+        usage: {
+          promptTokens: 200,
+          completionTokens: 2000,
+          totalTokens: 300,
         },
-      ])
+      },
+    ] as unknown as StepValueChunk[];
+
+    const mockAsyncIterable = new ReplayableAsyncIterableStream(
+      toAsyncIterable(chunks)
     );
 
-    const runStepInput = new StepValue(mockAsyncIterable as any);
-
-    // The StepValue should accumulate text-delta chunks into a valid final value
+    const runStepInput = new StepValue(mockAsyncIterable);
     await expect(runStepInput.value()).resolves.toMatchObject({
       text: "Hello world",
     });
-
-    // We'll only test the value() response since the streamIterator behavior
-    // is implementation-specific and may change
   });
 
   test("Take an AsyncIterable<TextStreamPart> and returns a generator of chunks", async () => {
+    const chunks = [
+      { type: "text-delta", textDelta: "Hello" },
+      { type: "text-delta", textDelta: " world" },
+      { type: "finish", finishReason: "stop" },
+    ] as unknown as StepValueChunk[];
+
     const mockAsyncIterable = new ReplayableAsyncIterableStream(
-      toAsyncIterable([
-        { type: "text-delta", textDelta: "Hello" },
-        { type: "text-delta", textDelta: " world" },
-        { type: "text", text: "Hello world" },
-        {
-          type: "finish",
-          finishReason: "stop",
-          usage: {
-            promptTokens: 200,
-            completionTokens: 2000,
-            totalTokens: 300,
-          },
-        },
-      ])
+      toAsyncIterable(chunks)
     );
 
-    const runStepInput = new StepValue(mockAsyncIterable as any);
-
-    // First test that value() works correctly
+    const runStepInput = new StepValue(mockAsyncIterable);
     const finalResult = await runStepInput.value();
     expect(finalResult).toMatchObject({
       text: "Hello world",
     });
 
-    // Now test with a fresh instance for stream behavior
+    const freshChunks = [
+      { type: "text-delta", textDelta: "Hello" },
+      { type: "text-delta", textDelta: " world" },
+      { type: "finish", finishReason: "stop" },
+    ] as unknown as StepValueChunk[];
+
     const freshRunStepInput = new StepValue(
-      new ReplayableAsyncIterableStream(
-        toAsyncIterable([
-          { type: "text-delta", textDelta: "Hello" },
-          { type: "text-delta", textDelta: " world" },
-          { type: "text", text: "Hello world" },
-          {
-            type: "finish",
-            finishReason: "stop",
-            usage: {
-              promptTokens: 200,
-              completionTokens: 2000,
-              totalTokens: 300,
-            },
-          },
-        ])
-      ) as any
+      new ReplayableAsyncIterableStream(toAsyncIterable(freshChunks))
     );
 
     const iterator = await freshRunStepInput.streamIterator();
-    const result: TestStreamChunk[] = [];
+    const result: StepValueChunk[] = [];
     for await (const chunk of iterator) {
-      result.push(chunk as any);
+      result.push(chunk);
     }
 
-    // Verify we get at least one chunk (implementation details may vary)
     expect(result.length).toBeGreaterThan(0);
-
-    // Verify that we're eventually getting text data in some form
-    // (either as text-delta chunks or directly as text)
     expect(
       result.some(
-        (chunk) =>
-          (chunk.type === "text-delta" && chunk.textDelta) ||
-          (chunk.type === "text" && chunk.text)
+        (chunk) => chunk.type === "text-delta" && "textDelta" in chunk
       )
     ).toBe(true);
 
-    // Instead of checking specific content, just verify that we're getting some text content
-    // The final value extraction is the most important behavior, which we've already tested
-    const textChunks = result.filter(
-      (chunk) => chunk.type === "text-delta" || chunk.type === "text"
-    );
+    const textChunks = result.filter((chunk) => chunk.type === "text-delta");
     expect(textChunks.length).toBeGreaterThan(0);
   });
 
-  test("Take a ReadableStream<ToolCallStreamPart> and returns a generator of chunks", async () => {
-    // Skip this test for now as it's timing out
-    // This test is not critical for the functionality
-    expect(true).toBe(true);
+  test("Take a stream with tool calls and handle it correctly", async () => {
+    const chunks = [
+      {
+        type: "tool-call",
+        toolCallId: "call_123",
+        toolName: "simpleFunction",
+        args: { param1: "value1" },
+      },
+      { type: "finish", finishReason: "stop" },
+    ] as unknown as StepValueChunk[];
+
+    const mockAsyncIterable = new ReplayableAsyncIterableStream(
+      toAsyncIterable(chunks)
+    );
+
+    const runStepInput = new StepValue(mockAsyncIterable);
+    const value = await runStepInput.value();
+    expect(value).toMatchObject({
+      toolCalls: [
+        {
+          toolCallId: "call_123",
+          toolName: "simpleFunction",
+          args: { param1: "value1" },
+          type: "tool-call",
+        },
+      ],
+    });
+
+    const toolCalls = await runStepInput.toolCalls();
+    expect(toolCalls).toEqual([
+      {
+        toolCallId: "call_123",
+        toolName: "simpleFunction",
+        args: { param1: "value1" },
+        type: "tool-call",
+      },
+    ]);
   });
 
   test("Take an AsyncIterable<TextStreamPart> with error and handles it correctly", async () => {
+    const complexChunks = [
+      {
+        type: "tool-call-delta",
+        toolCallId: "call_789",
+        toolName: "complexTool",
+        argsTextDelta: "",
+      },
+      {
+        type: "tool-call",
+        toolCallId: "call_789",
+        toolName: "complexTool",
+        args: { input: "test" },
+      },
+      {
+        type: "error",
+        error: "An unexpected error occurred",
+        code: ErrorCode.SERVER_ERROR,
+      },
+    ] as unknown as StepValueChunk[];
+
     const mockComplexAsyncIterable = new ReplayableAsyncIterableStream(
-      toAsyncIterable([
-        {
-          type: "tool-call-delta",
-          toolCallId: "call_789",
-          toolName: "complexTool",
-          argsTextDelta: "",
-        },
-        {
-          type: "tool-call",
-          toolCallId: "call_789",
-          toolName: "complexTool",
-          args: { input: "test" },
-        },
-        {
-          type: "error",
-          error: "An unexpected error occurred",
-          code: ErrorCode.SERVER_ERROR,
-        },
-      ])
+      toAsyncIterable(complexChunks)
     );
 
-    const runStepInput = new StepValue(mockComplexAsyncIterable as any);
-
-    // First verify that value() correctly returns the error
+    const runStepInput = new StepValue(mockComplexAsyncIterable);
     await expect(runStepInput.value()).resolves.toMatchObject({
       type: "error",
       error: "An unexpected error occurred",
       code: ErrorCode.SERVER_ERROR,
     });
 
-    // Create a fresh instance to test stream behavior
+    const freshComplexChunks = [
+      {
+        type: "tool-call-delta",
+        toolCallId: "call_789",
+        toolName: "complexTool",
+        argsTextDelta: "",
+      },
+      {
+        type: "tool-call",
+        toolCallId: "call_789",
+        toolName: "complexTool",
+        args: { input: "test" },
+      },
+      {
+        type: "error",
+        error: "An unexpected error occurred",
+        code: ErrorCode.SERVER_ERROR,
+      },
+    ] as unknown as StepValueChunk[];
+
     const freshRunStepInput = new StepValue(
-      new ReplayableAsyncIterableStream(
-        toAsyncIterable([
-          {
-            type: "tool-call-delta",
-            toolCallId: "call_789",
-            toolName: "complexTool",
-            argsTextDelta: "",
-          },
-          {
-            type: "tool-call",
-            toolCallId: "call_789",
-            toolName: "complexTool",
-            args: { input: "test" },
-          },
-          {
-            type: "error",
-            error: "An unexpected error occurred",
-            code: ErrorCode.SERVER_ERROR,
-          },
-        ])
-      ) as any
+      new ReplayableAsyncIterableStream(toAsyncIterable(freshComplexChunks))
     );
 
     const iterator = await freshRunStepInput.streamIterator();
-    const result: TestStreamChunk[] = [];
+    const result: StepValueChunk[] = [];
     for await (const chunk of iterator) {
-      result.push(chunk as any);
+      result.push(chunk);
     }
 
-    // Verify we get at least one chunk
     expect(result.length).toBeGreaterThan(0);
-
-    // Instead of checking for specific error chunks in the stream (implementation detail),
-    // verify that we can extract the error from the value() method, which is the important behavior
     const errorResult = await freshRunStepInput.value();
     expect(errorResult).toMatchObject({
       type: "error",
@@ -272,55 +244,46 @@ describe("new RunStepValue Class", () => {
     });
   });
 
-  test("get valueReady returns true for a stream", async () => {
-    // Skip this test for now as it's timing out
-    // This test is not critical for the functionality
-    expect(true).toBe(true);
+  test("get valueReady returns true when stream processing completes", async () => {
+    const chunks = [
+      { type: "text-delta", textDelta: "Hello" },
+      { type: "finish", finishReason: "stop" },
+    ] as unknown as StepValueChunk[];
+
+    const mockAsyncIterable = new ReplayableAsyncIterableStream(
+      toAsyncIterable(chunks)
+    );
+
+    const runStepInput = new StepValue(mockAsyncIterable);
+    await runStepInput.waitForValue();
+    expect(runStepInput.valueReady).toBe(true);
   });
 
   test("get valueReady returns true immediately for a non-streaming value", async () => {
     const runStepInput = new StepValue({
-      type: "text",
       text: "test",
-      warnings: undefined,
-      logprobs: undefined,
-      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-      finishReason: "stop",
-      reasoning: undefined,
-      reasoningDetails: [],
-      sources: [],
-    } as any);
+    } as StepValueResult);
 
     expect(runStepInput.valueReady).toBe(true);
   });
 
   test("streams text content with non-space ending correctly", async () => {
     const runStepInput = new StepValue({
-      type: "text",
       text: "Here is my calculation: \\boxed{42}",
-      warnings: undefined,
-      logprobs: undefined,
-      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-      finishReason: "stop",
-      reasoning: undefined,
-      reasoningDetails: [],
-      sources: [],
-    } as any);
+    } as StepValueResult);
 
-    const result: TestStreamChunk[] = [];
+    const result: StepValueChunk[] = [];
     const stream = await runStepInput.streamIterator();
     for await (const chunk of stream) {
-      result.push(chunk as any);
+      result.push(chunk);
     }
 
-    // With the updated implementation, we get a single chunk for the whole text
     expect(result.length).toBe(1);
     expect(result[0]).toMatchObject({
       type: "text-delta",
       textDelta: "Here is my calculation: \\boxed{42}",
     });
 
-    // Also verify the final value
     const value = await runStepInput.value();
     expect(value).toMatchObject({
       text: "Here is my calculation: \\boxed{42}",
@@ -329,16 +292,8 @@ describe("new RunStepValue Class", () => {
 
   test("type() returns the correct type for text value", async () => {
     const runStepInput = new StepValue({
-      type: "text",
       text: "test text",
-      warnings: undefined,
-      logprobs: undefined,
-      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-      finishReason: "stop",
-      reasoning: undefined,
-      reasoningDetails: [],
-      sources: [],
-    } as any);
+    } as StepValueResult);
 
     expect(await runStepInput.type()).toBe("text");
   });
@@ -346,60 +301,41 @@ describe("new RunStepValue Class", () => {
   test("type() returns the correct type for object value", async () => {
     const testObject = { name: "test", value: 42 };
     const runStepInput = new StepValue({
-      type: "object",
       object: testObject,
-      raw: JSON.stringify(testObject),
-      warnings: undefined,
-      logprobs: undefined,
-      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-      finishReason: "stop",
-      reasoning: undefined,
-      reasoningDetails: [],
-      sources: [],
-    } as any);
+    });
 
     expect(await runStepInput.type()).toBe("object");
   });
 
   test("type() returns the correct type for tool calls value", async () => {
-    // Create a test object with the toolCalls array format that the StepValue.type() method looks for
     const runStepInput = new StepValue({
-      type: "toolCalls",
       toolCalls: [
         {
-          id: "call_123",
-          type: "function",
-          function: {
-            name: "weather",
-            arguments: JSON.stringify({ location: "New York" }),
-          },
+          toolCallId: "call_123",
+          toolName: "weather",
+          args: { location: "New York" },
         },
       ],
-      warnings: undefined,
-      logprobs: undefined,
-      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-      finishReason: "stop",
-      reasoning: undefined,
-      reasoningDetails: [],
-      sources: [],
-    } as any);
+    } as StepValueResult);
 
     expect(await runStepInput.type()).toBe("toolCalls");
   });
 
   test("type() returns the correct type for error value", async () => {
+    const errorChunks = [
+      { type: "text-delta", textDelta: "Hello" },
+      {
+        type: "error",
+        error: "Test error",
+        code: ErrorCode.SERVER_ERROR,
+      },
+    ] as unknown as StepValueChunk[];
+
     const mockAsyncIterable = new ReplayableAsyncIterableStream(
-      toAsyncIterable([
-        { type: "text-delta", textDelta: "Hello" },
-        {
-          type: "error",
-          error: "Test error",
-          code: ErrorCode.SERVER_ERROR,
-        },
-      ])
+      toAsyncIterable(errorChunks)
     );
 
-    const runStepInput = new StepValue(mockAsyncIterable as any);
+    const runStepInput = new StepValue(mockAsyncIterable);
     // Force error resolution
     await runStepInput.value().catch(() => {});
     expect(await runStepInput.type()).toBe("error");
@@ -407,16 +343,8 @@ describe("new RunStepValue Class", () => {
 
   test("simpleValue() returns the correct value for text", async () => {
     const runStepInput = new StepValue({
-      type: "text",
       text: "simple text value",
-      warnings: undefined,
-      logprobs: undefined,
-      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-      finishReason: "stop",
-      reasoning: undefined,
-      reasoningDetails: [],
-      sources: [],
-    } as any);
+    } as StepValueResult);
 
     await expect(runStepInput.simpleValue()).resolves.toBe("simple text value");
   });
@@ -424,41 +352,28 @@ describe("new RunStepValue Class", () => {
   test("simpleValue() returns the correct value for object", async () => {
     const testObject = { name: "test object", value: 42 };
     const runStepInput = new StepValue({
-      type: "object",
       object: testObject,
-      raw: JSON.stringify(testObject),
-      warnings: undefined,
-      logprobs: undefined,
-      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-      finishReason: "stop",
-      reasoning: undefined,
-      reasoningDetails: [],
-      sources: [],
-    } as any);
+      type: "object",
+    } as unknown as StepValueResult);
 
     await expect(runStepInput.simpleValue()).resolves.toEqual(testObject);
   });
 
   test("simpleValue() returns the correct value for tool call", async () => {
     const runStepInput = new StepValue({
-      type: "tool-call",
-      toolCallId: "call_123",
-      toolName: "weather",
-      args: { location: "New York" },
-      warnings: undefined,
-      logprobs: undefined,
-      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-      finishReason: "stop",
-      reasoning: undefined,
-      reasoningDetails: [],
-      sources: [],
-    } as any);
+      toolCalls: [
+        {
+          toolCallId: "call_123",
+          toolName: "weather",
+          args: { location: "New York" },
+        },
+      ],
+    } as StepValueResult);
 
     const result = await runStepInput.simpleValue();
     expect(result).not.toBeNull();
     expect(Array.isArray(result)).toBe(true);
 
-    // Type guard to ensure we're working with OpenAIToolCall[]
     if (Array.isArray(result)) {
       expect(result.length).toBeGreaterThan(0);
       expect(result[0].id).toBe("call_123");
@@ -473,27 +388,28 @@ describe("new RunStepValue Class", () => {
   test("valueAsText() returns string representation for different types", async () => {
     // Test text input
     const textInput = new StepValue({
-      type: "text",
       text: "text value",
-    } as any);
+    } as unknown as StepValueResult);
     await expect(textInput.valueAsText()).resolves.toBe("text value");
 
     // Test object input
     const objectInput = new StepValue({
-      type: "object",
       object: { key: "value" },
-    } as any);
+    } as unknown as StepValueResult);
     await expect(objectInput.valueAsText()).resolves.toBe(
       JSON.stringify({ key: "value" })
     );
 
     // Test tool call input
     const toolCallInput = new StepValue({
-      type: "tool-call",
-      toolCallId: "call_123",
-      toolName: "search",
-      args: { query: "test" },
-    } as any);
+      toolCalls: [
+        {
+          toolCallId: "call_123",
+          toolName: "search",
+          args: { query: "test" },
+        },
+      ],
+    } as StepValueResult);
     await expect(toolCallInput.valueAsText()).resolves.toBe(
       JSON.stringify([
         {
@@ -505,16 +421,18 @@ describe("new RunStepValue Class", () => {
     );
 
     // Test error input
+    const errorChunks = [
+      {
+        type: "error",
+        error: "Test error message",
+        code: ErrorCode.SERVER_ERROR,
+      },
+    ] as unknown as StepValueChunk[];
+
     const mockErrorIterable = new ReplayableAsyncIterableStream(
-      toAsyncIterable([
-        {
-          type: "error",
-          error: "Test error message",
-          code: ErrorCode.SERVER_ERROR,
-        },
-      ])
+      toAsyncIterable(errorChunks)
     );
-    const errorInput = new StepValue(mockErrorIterable as any);
+    const errorInput = new StepValue(mockErrorIterable);
     await expect(errorInput.valueAsText()).resolves.toBe(
       JSON.stringify({
         type: "error",
@@ -524,47 +442,170 @@ describe("new RunStepValue Class", () => {
     );
   });
 
-  test("primitive string input handling", async () => {
-    // Test with a plain string rather than an object
-    const runStepInput = new StepValue("This is a plain string input" as any);
+  test("handling plain object without type field", async () => {
+    const plainObject = { name: "test", value: 123, nested: { key: "value" } };
 
-    // Check value() returns correctly formatted object
-    await expect(runStepInput.value()).resolves.toMatchObject({
-      text: "This is a plain string input",
-    });
+    // When passing a plain object directly to StepValue
+    const runStepInput = new StepValue(plainObject);
 
-    // Check text() returns just the string
-    await expect(runStepInput.text()).resolves.toBe(
-      "This is a plain string input"
-    );
+    // The object should be accessible via the value method
+    const value = (await runStepInput.value()) as any;
+    expect(value).toHaveProperty("object");
+    expect(value.object).toEqual(plainObject);
 
-    // Check streamIterator() yields correctly formatted chunk
-    const result: TestStreamChunk[] = [];
-    const stream = await runStepInput.streamIterator();
-    for await (const chunk of stream) {
-      result.push(chunk as any);
-    }
+    // Type should be object for plain object wrapper
+    await expect(runStepInput.type()).resolves.toBe("object");
 
-    expect(result.length).toBe(1);
-    expect(result[0]).toMatchObject({
-      type: "text-delta",
-      textDelta: "This is a plain string input",
+    // Should be accessible via the object method
+    const objectValue = await runStepInput.object();
+    expect(objectValue).toEqual(plainObject);
+  });
+
+  test("onValue callback is triggered when value is ready", async () => {
+    const runStepInput = new StepValue({
+      text: "callback test",
+    } as StepValueResult);
+
+    return new Promise<void>((resolve) => {
+      runStepInput.onValue((error, value, runStepUUID) => {
+        expect(error).toBeUndefined();
+        expect(value).toMatchObject({ text: "callback test" });
+        expect(runStepUUID).toBeNull();
+        resolve();
+      });
     });
   });
 
-  test("handling plain object without type field", async () => {
-    const plainObject = { name: "test", value: 123, nested: { key: "value" } };
-    const runStepInput = new StepValue(plainObject as any);
+  test("error() returns the correct error result", async () => {
+    const errorChunks = [
+      {
+        type: "error",
+        error: "Test error for error() method",
+        code: ErrorCode.SERVER_ERROR,
+      },
+    ] as unknown as StepValueChunk[];
 
-    // Check value() returns object wrapped correctly
-    await expect(runStepInput.value()).resolves.toMatchObject({
-      object: plainObject,
-    });
+    const mockErrorIterable = new ReplayableAsyncIterableStream(
+      toAsyncIterable(errorChunks)
+    );
 
-    // Check object() returns the original object
-    await expect(runStepInput.object()).resolves.toEqual(plainObject);
+    const errorInput = new StepValue(mockErrorIterable);
+    const errorResult = await errorInput.error();
 
-    // Check type() correctly identifies it as object
-    await expect(runStepInput.type()).resolves.toBe("object");
+    expect(errorResult).not.toBeNull();
+    expect(errorResult?.type).toBe("error");
+    expect(errorResult?.error).toBe("Test error for error() method");
+    expect(errorResult?.code).toBe(ErrorCode.SERVER_ERROR);
+  });
+
+  test("stream() returns a ReadableStream", async () => {
+    const runStepInput = new StepValue({
+      text: "stream test",
+    } as StepValueResult);
+
+    const stream = await runStepInput.stream();
+    expect(stream).toBeInstanceOf(ReadableStream);
+  });
+
+  // New tests for the extended constructor functionality
+
+  test("Constructor accepts a raw string", async () => {
+    const stringInput = "This is a raw string input";
+    const runStepInput = new StepValue(stringInput);
+
+    // Check value
+    const value = await runStepInput.value();
+    expect(value).toHaveProperty("text", stringInput);
+
+    // Check type
+    await expect(runStepInput.type()).resolves.toBe("text");
+
+    // Check simpleValue
+    await expect(runStepInput.simpleValue()).resolves.toBe(stringInput);
+
+    // Check text method
+    await expect(runStepInput.text()).resolves.toBe(stringInput);
+  });
+
+  test("Constructor accepts a raw array", async () => {
+    const arrayInput = [1, 2, "three", { four: 4 }];
+    const runStepInput = new StepValue(arrayInput);
+
+    // Check value
+    const value = (await runStepInput.value()) as any;
+    expect(value).toHaveProperty("items");
+    expect(value.items).toEqual(arrayInput);
+
+    // Check simpleValue - should return the array
+    const simpleValue = await runStepInput.simpleValue();
+    expect(simpleValue).not.toBeNull();
+
+    // Type detection for arrays
+    await expect(runStepInput.type()).resolves.toBe("items");
+  });
+
+  test("Constructor accepts direct toolCalls object", async () => {
+    const toolCallsInput = {
+      toolCalls: [
+        {
+          toolCallId: "direct-call-123",
+          toolName: "directTool",
+          args: { direct: true },
+          type: "tool-call" as const,
+        },
+      ],
+    };
+
+    const runStepInput = new StepValue(toolCallsInput);
+
+    // Check value
+    const value = (await runStepInput.value()) as any;
+    expect(value).toHaveProperty("toolCalls");
+    expect(value.toolCalls).toEqual(toolCallsInput.toolCalls);
+
+    // Check type
+    await expect(runStepInput.type()).resolves.toBe("toolCalls");
+
+    // Check toolCalls method
+    const toolCalls = await runStepInput.toolCalls();
+    expect(toolCalls).toEqual(toolCallsInput.toolCalls);
+  });
+
+  test("Constructor accepts objects with text property", async () => {
+    const textObjectInput = { text: "Text within an object" };
+    const runStepInput = new StepValue(textObjectInput);
+
+    // Check value
+    const value = (await runStepInput.value()) as any;
+    expect(value).toHaveProperty("text", textObjectInput.text);
+
+    // Check type
+    await expect(runStepInput.type()).resolves.toBe("text");
+  });
+
+  test("Constructor accepts nested objects and preserves structure", async () => {
+    const nestedObject = {
+      level1: {
+        level2: {
+          level3: "deep value",
+        },
+        array: [1, 2, 3],
+      },
+    };
+
+    const runStepInput = new StepValue(nestedObject);
+
+    // Check value - should be wrapped as an object property
+    const value = (await runStepInput.value()) as any;
+    expect(value).toHaveProperty("object");
+    expect(value.object).toEqual(nestedObject);
+
+    // Check object access method
+    const objectValue = await runStepInput.object();
+    expect(objectValue).toEqual(nestedObject);
+
+    // Verify the nested structure is preserved
+    expect(objectValue?.level1?.level2?.level3).toBe("deep value");
+    expect(objectValue?.level1?.array).toEqual([1, 2, 3]);
   });
 });

@@ -18,8 +18,9 @@
     "dev": "tsup --watch"
   },
   "dependencies": {
+    "@fireworks/element-config": "workspace:*",
     "@fireworks/types": "workspace:*",
-    "@fireworks/element-config": "workspace:*"
+    "ai": "^4.1.63"
   },
   "devDependencies": {
     "typescript": "^5.0.0"
