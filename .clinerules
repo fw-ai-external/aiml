@@ -2,7 +2,7 @@
 [LAST_ACTION_STATE]
 last_action: "Created data model implementation plan"
 current_phase: "Strategy"
-next_action: "Implement data and datamodel elements with type validation, document-based scoping, readonly properties, and request-based values"
+next_action: "Implement data and datamodel elements with type validation, document-based scoping, readonly properties, and request-based values following TDD approach"
 next_phase: "Execution"
 
 [CODE_ROOT_DIRECTORIES]
@@ -28,11 +28,13 @@ next_phase: "Execution"
 - Created parser error handling instructions to enhance validation for critical elements like LLM
 - Updated dependency tracker to resolve placeholder dependencies for core packages
 - Generated mini-trackers for runtime, parser, and elements packages to track file-level dependencies
-- Created comprehensive implementation plan for enhanced data and datamodel elements with type validation, document-based scoping, readonly properties, and request-based values
-- Designed system for ElementExecutionContext to respect document-based scoping and type validations during variable access and assignment
+- Created comprehensive implementation plan for enhanced data and datamodel elements with type validation, document-based scoping, readonly properties, and request-based values following TDD approach
+- Designed system for ElementExecutionContext to provide scoped datamodel with only accessible variables based on document hierarchy
 - Added fromRequest flag to source values directly from user input with automatic readonly protection
 - Implemented validation to ensure data elements have either fromRequest=true or an expr attribute
+- Created detailed test cases for all components following TDD principles
 - Planned improvements to AssignElement to check for readonly properties before updating values
+- Enhanced parser to provide diagnostic errors for assign elements with type mismatches or scope violations
 ---
 
 CLINE_RULES_END---

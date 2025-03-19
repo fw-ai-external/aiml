@@ -2,7 +2,7 @@
 
 ## Overview
 
-This plan outlines the implementation of enhanced data and datamodel elements that define shape, type, and scope of context. The ElementExecutionContext will be updated to respect scope and type validations, and the assign element will be modified to respect readonly properties.
+This plan outlines the implementation of enhanced data and datamodel elements that define shape, type, and scope of context. The ElementExecutionContext will be updated to respect scope and type validations, and the assign element will be modified to respect readonly properties. The parser will also be enhanced to provide diagnostic errors for type mismatches and scope violations.
 
 ## Current State Analysis
 
@@ -13,6 +13,7 @@ Based on code review, we have:
 3. **DataModelElement**: Container for data elements without validation capabilities.
 4. **AssignElement**: Updates datamodel values without checking for readonly properties.
 5. **ElementExecutionContext**: Manages execution context but doesn't validate scope or types.
+6. **Parser**: Processes AIML files but doesn't validate assign elements for type mismatches or scope violations.
 
 ## Implementation Goals
 
@@ -21,6 +22,7 @@ Based on code review, we have:
 3. Update DataModelElement to validate the model and enforce type constraints
 4. Enhance ElementExecutionContext to respect scope and type validations
 5. Update AssignElement to check for readonly properties before updating values
+6. Enhance Parser to provide diagnostic errors for assign elements with type mismatches or scope violations
 
 ## Detailed Implementation Plan
 
@@ -386,16 +388,46 @@ function getDefaultForType(type: ValueType): any {
 
 ### 3. Update ElementExecutionContext
 
+The ElementExecutionContext is responsible for providing the datamodel to elements during execution. It needs to be enhanced to respect document-based scoping and type validations.
+
 ```typescript
 // packages/elements/src/utils/ElementExecutionContext.ts
 // Add these methods to the ElementExecutionContext class
 
-// Add these methods to the ElementExecutionContext class
 export class ElementExecutionContext<
   PropValues extends {},
   InputValue extends RunstepOutput = RunstepOutput,
 > {
   // ... existing code ...
+
+  // Build a scoped datamodel for the current context
+  buildScopedDatamodel(currentStateId: string): Record<string, any> {
+    // Start with an empty datamodel
+    const scopedDatamodel: Record<string, any> = {};
+
+    // Add metadata namespace
+    scopedDatamodel.__metadata = {};
+
+    // Iterate through all variables in the global datamodel
+    for (const [variableId, value] of Object.entries(this.datamodel)) {
+      // Skip metadata
+      if (variableId === "__metadata") continue;
+
+      // Check if this variable should be accessible in the current scope
+      if (this.validateScopeAccess(variableId, currentStateId)) {
+        // Add the variable to the scoped datamodel
+        scopedDatamodel[variableId] = value;
+
+        // Also copy its metadata
+        if (this.datamodel.__metadata?.[variableId]) {
+          scopedDatamodel.__metadata[variableId] =
+            this.datamodel.__metadata[variableId];
+        }
+      }
+    }
+
+    return scopedDatamodel;
+  }
 
   // Check if a variable can be accessed based on scope
   validateScopeAccess(variableId: string, currentStateId: string): boolean {
@@ -520,6 +552,22 @@ export class ElementExecutionContext<
     this.datamodel[variableId] = value;
     return true;
   }
+
+  // Create a new execution context for a child element with the appropriate scoped datamodel
+  createChildContext(childStateId: string): ElementExecutionContext {
+    // Create a new context with the scoped datamodel
+    const scopedDatamodel = this.buildScopedDatamodel(childStateId);
+
+    // Clone the current context with the scoped datamodel
+    return new ElementExecutionContext({
+      ...this,
+      datamodel: scopedDatamodel,
+      state: {
+        ...this.state,
+        id: childStateId,
+      },
+    });
+  }
 }
 ```
 
@@ -621,42 +669,304 @@ export const Assign: any = createElementDefinition({
 });
 ```
 
-## Testing Strategy
+### 5. Enhance Parser with Assign Element Validation
 
-1. **Unit Tests for DataElement**:
+The parser needs to be enhanced to provide diagnostic errors for assign elements with type mismatches or scope violations. This will involve adding a validation phase to the parser pipeline that checks assign elements against the datamodel.
 
-   - Test type validation for different value types
-   - Test readonly property enforcement
-   - Test scope validation
+```typescript
+// packages/parser/src/parser/validate-assign.ts
+import { visit } from "unist-util-visit";
+import { Root } from "mdast";
+import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-types";
 
-2. **Unit Tests for DataModelElement**:
+// Interface for variable metadata
+interface VariableMetadata {
+  type: string;
+  readonly: boolean;
+  parentStateId: string | null;
+}
 
-   - Test initialization of multiple data elements
-   - Test validation of the entire model
+// Interface for datamodel
+interface Datamodel {
+  [key: string]: {
+    metadata: VariableMetadata;
+  };
+}
 
-3. **Unit Tests for ElementExecutionContext**:
+// Function to validate assign elements
+export function validateAssignElements(
+  ast: Root,
+  datamodel: Datamodel
+): Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
 
-   - Test scope validation logic
-   - Test readonly property checks
-   - Test type validation
+  // Visit all assign elements in the AST
+  visit(ast, (node) => {
+    if (node.type === "mdxJsxFlowElement" && node.name === "assign") {
+      // Extract location and value from assign element
+      const locationAttr = node.attributes.find(
+        (attr) => attr.name === "location"
+      );
+      const exprAttr = node.attributes.find((attr) => attr.name === "expr");
 
-4. **Integration Tests**:
-   - Test AssignElement with readonly DataElement
-   - Test accessing variables from different scopes
-   - Test type validation during assignment
+      if (!locationAttr) {
+        // Missing location attribute
+        diagnostics.push({
+          severity: DiagnosticSeverity.Error,
+          range: {
+            start: {
+              line: node.position.start.line - 1,
+              character: node.position.start.column - 1,
+            },
+            end: {
+              line: node.position.end.line - 1,
+              character: node.position.end.column - 1,
+            },
+          },
+          message: "Assign element requires a location attribute",
+          source: "AIML",
+        });
+        return;
+      }
 
-## Implementation Steps
+      const location = locationAttr.value as string;
 
-1. Update DataElement.tsx with type, scope, and readonly properties
-2. Update DataModelElement.ts to validate the model
-3. Enhance ElementExecutionContext.ts with validation methods
-4. Update AssignElement.tsx to respect readonly properties
-5. Add unit tests for each component
-6. Add integration tests for the complete workflow
+      // Check if variable exists in datamodel
+      if (!datamodel[location]) {
+        diagnostics.push({
+          severity: DiagnosticSeverity.Error,
+          range: {
+            start: {
+              line: locationAttr.position.start.line - 1,
+              character: locationAttr.position.start.column - 1,
+            },
+            end: {
+              line: locationAttr.position.end.line - 1,
+              character: locationAttr.position.end.column - 1,
+            },
+          },
+          message: `Variable '${location}' does not exist in datamodel`,
+          source: "AIML",
+        });
+        return;
+      }
 
-## Considerations
+      // Check if variable is readonly
+      if (datamodel[location].metadata.readonly) {
+        diagnostics.push({
+          severity: DiagnosticSeverity.Error,
+          range: {
+            start: {
+              line: locationAttr.position.start.line - 1,
+              character: locationAttr.position.start.column - 1,
+            },
+            end: {
+              line: locationAttr.position.end.line - 1,
+              character: locationAttr.position.end.column - 1,
+            },
+          },
+          message: `Cannot assign to readonly variable '${location}'`,
+          source: "AIML",
+        });
+      }
 
-1. **Backward Compatibility**: Ensure existing workflows continue to work by providing defaults for new properties
-2. **Error Handling**: Provide clear error messages for validation failures
-3. **Performance**: Optimize validation logic to minimize runtime overhead
-4. **Documentation**: Update documentation to explain the new features and how to use them
+      // Check if variable is in scope
+      const currentStateId = getCurrentStateId(node);
+      if (!isInScope(location, currentStateId, datamodel)) {
+        diagnostics.push({
+          severity: DiagnosticSeverity.Error,
+          range: {
+            start: {
+              line: locationAttr.position.start.line - 1,
+              character: locationAttr.position.start.column - 1,
+            },
+            end: {
+              line: locationAttr.position.end.line - 1,
+              character: locationAttr.position.end.column - 1,
+            },
+          },
+          message: `Variable '${location}' is not accessible from current scope`,
+          source: "AIML",
+        });
+      }
+
+      // Check type compatibility if expr is provided
+      if (exprAttr) {
+        const expr = exprAttr.value as string;
+        const expectedType = datamodel[location].metadata.type;
+
+        // This is a simplified type check - in a real implementation, we would need to evaluate the expression
+        // and check its type against the expected type
+        if (!isTypeCompatible(expr, expectedType)) {
+          diagnostics.push({
+            severity: DiagnosticSeverity.Error,
+            range: {
+              start: {
+                line: exprAttr.position.start.line - 1,
+                character: exprAttr.position.start.column - 1,
+              },
+              end: {
+                line: exprAttr.position.end.line - 1,
+                character: exprAttr.position.end.column - 1,
+              },
+            },
+            message: `Type mismatch: cannot assign to '${location}' of type '${expectedType}'`,
+            source: "AIML",
+          });
+        }
+      }
+    }
+  });
+
+  return diagnostics;
+}
+
+// Helper function to get the current state ID
+function getCurrentStateId(node: any): string {
+  // In a real implementation, we would traverse up the AST to find the parent state
+  // This is a placeholder
+  return "currentState";
+}
+
+// Helper function to check if a variable is in scope
+function isInScope(
+  variableId: string,
+  currentStateId: string,
+  datamodel: Datamodel
+): boolean {
+  const metadata = datamodel[variableId].metadata;
+  const variableParentStateId = metadata.parentStateId;
+
+  // If no parent state ID (root level datamodel), it's globally accessible
+  if (!variableParentStateId) {
+    return true;
+  }
+
+  // Check if the current state is the same as or a descendant of the variable's parent state
+  // In a real implementation, we would need to traverse the state hierarchy
+  // This is a placeholder
+  return currentStateId === variableParentStateId;
+}
+
+// Helper function to check type compatibility
+function isTypeCompatible(expr: string, expectedType: string): boolean {
+  // In a real implementation, we would need to evaluate the expression and check its type
+  // This is a placeholder
+  return true;
+}
+```
+
+### 6. Update Parser Pipeline
+
+```typescript
+// packages/parser/src/parser/transform-nodes.ts
+import { validateAssignElements } from "./validate-assign";
+
+// Add to the main transformation pipeline
+export async function processDocument(text: string) {
+  const ast = await parseMDX(text);
+  const transformed = transformAST(ast);
+
+  // Build datamodel from data elements
+  const datamodel = buildDatamodel(transformed);
+
+  // Validate assign elements
+  const diagnostics = validateAssignElements(transformed, datamodel);
+
+  // Add diagnostics to the result
+  const result = finalizeAST(transformed);
+  result.diagnostics = diagnostics;
+
+  return result;
+}
+
+// Helper function to build datamodel from data elements
+function buildDatamodel(ast: Root): Datamodel {
+  const datamodel: Datamodel = {};
+
+  // Visit all data elements in the AST
+  visit(ast, (node) => {
+    if (node.type === "mdxJsxFlowElement" && node.name === "data") {
+      const idAttr = node.attributes.find((attr) => attr.name === "id");
+      const typeAttr = node.attributes.find((attr) => attr.name === "type");
+      const readonlyAttr = node.attributes.find(
+        (attr) => attr.name === "readonly"
+      );
+      const fromRequestAttr = node.attributes.find(
+        (attr) => attr.name === "fromRequest"
+      );
+
+      if (idAttr) {
+        const id = idAttr.value as string;
+        const type = typeAttr ? (typeAttr.value as string) : "string";
+        const readonly = readonlyAttr ? readonlyAttr.value === "true" : false;
+        const fromRequest = fromRequestAttr
+          ? fromRequestAttr.value === "true"
+          : false;
+
+        // If fromRequest is true, readonly should also be true
+        const isReadonly = readonly || fromRequest;
+
+        // Get parent state ID
+        const parentStateId = getParentStateId(node);
+
+        // Add to datamodel
+        datamodel[id] = {
+          metadata: {
+            type,
+            readonly: isReadonly,
+            parentStateId,
+          },
+        };
+      }
+    }
+  });
+
+  return datamodel;
+}
+
+// Helper function to get parent state ID
+function getParentStateId(node: any): string | null {
+  // In a real implementation, we would traverse up the AST to find the parent state
+  // This is a placeholder
+  return null;
+}
+```
+
+## Testing Strategy (TDD Approach)
+
+Following the TDD approach, we'll write tests before implementing the actual functionality. Here's a comprehensive testing strategy:
+
+### 1. DataElement Tests (`packages/elements/src/context/DataElement.test.ts`)
+
+```typescript
+import { DataElement } from "./DataElement";
+import { ElementExecutionContext } from "../utils/ElementExecutionContext";
+import { mockExecutionContext } from "../utils/mock-execution-context";
+
+describe("DataElement", () => {
+  // Test 1: Basic initialization with expr
+  test("should initialize with expr attribute", async () => {
+    const dataElement = new DataElement({
+      id: "testData",
+      attributes: {
+        id: "testData",
+        expr: "5 + 5",
+      },
+    });
+
+    const ctx = mockExecutionContext();
+    const result = await dataElement.execute(ctx, []);
+
+    expect(await result.value()).toEqual({
+      id: "testData",
+      value: 10,
+      metadata: expect.objectContaining({
+        type: "string",
+        readonly: false,
+        id: "testData",
+      }),
+    });
+    expect(ctx.datamodel.testData).toBe(10);
+  });
+```
