@@ -1,0 +1,50 @@
+---KEY_DEFINITIONS_START---
+Key Definitions:
+1A: packages/types
+1A1: packages/types/package.json
+1A2: packages/types/tsconfig.json
+1A3: packages/types/tsconfig.tsbuildinfo
+1A4: packages/types/tsup.config.ts
+2Aa: packages/types/dist
+2Aa1: packages/types/dist/index.cjs
+2Aa2: packages/types/dist/index.cjs.map
+2Aa3: packages/types/dist/index.d.cts
+2Aa4: packages/types/dist/index.d.ts
+2Aa5: packages/types/dist/index.js
+2Aa6: packages/types/dist/index.js.map
+2Ab: packages/types/src
+2Ab1: packages/types/src/diagnostics.ts
+2Ab2: packages/types/src/elements.ts
+2Ab3: packages/types/src/errorCodes.ts
+2Ab4: packages/types/src/index.ts
+2Ab5: packages/types/src/openai.ts
+2Ab6: packages/types/src/runtime.ts
+2Ab7: packages/types/src/utils.ts
+2Ab8: packages/types/src/values.ts
+---KEY_DEFINITIONS_END---
+last_KEY_edit: 2Ab8
+last_GRID_edit: 
+---GRID_START---
+X 1A 1A1 1A2 1A3 1A4 2Aa 2Aa1 2Aa2 2Aa3 2Aa4 2Aa5 2Aa6 2Ab 2Ab1 2Ab2 2Ab3 2Ab4 2Ab5 2Ab6 2Ab7 2Ab8
+1A = op20
+1A1 = pop19
+1A2 = ppop18
+1A3 = p3op17
+1A4 = p4op16
+2Aa = p5op15
+2Aa1 = p6op14
+2Aa2 = p7op13
+2Aa3 = p8op12
+2Aa4 = p9op11
+2Aa5 = p10op10
+2Aa6 = p11op9
+2Ab = p12op8
+2Ab1 = p13op7
+2Ab2 = p14op6
+2Ab3 = p15op5
+2Ab4 = p16op4
+2Ab5 = p17op3
+2Ab6 = p18opp
+2Ab7 = p19op
+2Ab8 = p20o
+---GRID_END---

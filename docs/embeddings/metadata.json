@@ -1,0 +1,27 @@
+{
+    "1A1": {
+        "path": "docs/aiml-syntax.md",
+        "embedding_file": "1A1.embedding",
+        "text": "# AIML Syntax Guide\n\n## Introduction\n\nAIML (Agentic Interface Markup Language) is designed to provide a developer-friendly syntax for creating structured, multi-turn interactions with large language m..."
+    },
+    "1A2": {
+        "path": "docs/doc_tracker.md",
+        "embedding_file": "1A2.embedding",
+        "text": "---KEY_DEFINITIONS_START---\nKey Definitions:\n1A: docs\n1A1: docs/aiml-syntax.md\n1A2: docs/doc_tracker.md\n1B: design-docs\n1B1: design-docs/architecture.md\n2Aa: docs/embeddings\n2Aa1: docs/embeddings/1A1...."
+    },
+    "2Aa3": {
+        "path": "docs/embeddings/metadata.json",
+        "embedding_file": "2Aa3.embedding",
+        "text": "{\n    \"1A1\": {\n        \"path\": \"docs/aiml-syntax.md\",\n        \"embedding_file\": \"1A1.embedding\",\n        \"text\": \"# AIML Syntax Guide\\n\\n## Introduction\\n\\nAIML (Agentic Interface Markup Language) is ..."
+    },
+    "2Ba1": {
+        "path": "design-docs/adr/template.md",
+        "embedding_file": "2Ba1.embedding",
+        "text": "# Decision record template for Alexandrian pattern\n\n## Introduction\n\n- Prologue (Summary)\n- Discussion (Context)\n- Solution (Decision)\n- Consequences (Results)\n\n## Specifics\n\n- Prologue (Summary)\n  - ..."
+    },
+    "1B1": {
+        "path": "design-docs/architecture.md",
+        "embedding_file": "1B1.embedding",
+        "text": "# AIML Architecture Documentation\n\n## Overview\n\nThe AIML architecture has been refactored to address several issues with the previous design, including circular dependencies, duplicate type definition..."
+    }
+}

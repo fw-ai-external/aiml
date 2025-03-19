@@ -1,0 +1,150 @@
+---KEY_DEFINITIONS_START---
+Key Definitions:
+1A: packages/elements
+1A1: packages/elements/package.json
+1A2: packages/elements/tsconfig.json
+1A3: packages/elements/tsconfig.tsbuildinfo
+1A4: packages/elements/tsup.config.ts
+2Aa: packages/elements/.turbo
+2Aa1: packages/elements/.turbo/turbo-build.log
+2Ab: packages/elements/dist
+2Ab1: packages/elements/dist/index.cjs
+2Ab2: packages/elements/dist/index.cjs.map
+2Ab3: packages/elements/dist/index.js
+2Ab4: packages/elements/dist/index.js.map
+2Ac: packages/elements/src
+2Ac1: packages/elements/src/index.ts
+3Aba: packages/elements/dist/actions
+3Abb: packages/elements/dist/ai
+3Abc: packages/elements/dist/context
+3Abd: packages/elements/dist/control-flow
+3Abe: packages/elements/dist/states
+3Abf: packages/elements/dist/utils
+3Aca: packages/elements/src/actions
+3Aca1: packages/elements/src/actions/AssignElement.tsx
+3Aca2: packages/elements/src/actions/CancelElement.tsx
+3Aca3: packages/elements/src/actions/LogElement.tsx
+3Aca4: packages/elements/src/actions/RaiseElement.test.ts
+3Aca5: packages/elements/src/actions/RaiseElement.tsx
+3Aca6: packages/elements/src/actions/ScriptElement.tsx
+3Aca7: packages/elements/src/actions/SendElement.tsx
+3Aca8: packages/elements/src/actions/index.ts
+3Acb: packages/elements/src/ai
+3Acb1: packages/elements/src/ai/LLMElement.test.tsx
+3Acb2: packages/elements/src/ai/LLMElement.tsx
+3Acb3: packages/elements/src/ai/index.ts
+3Acb4: packages/elements/src/ai/utils.ts
+3Acc: packages/elements/src/context
+3Acc1: packages/elements/src/context/DataElement.tsx
+3Acc2: packages/elements/src/context/DataModelElement.ts
+3Acc3: packages/elements/src/context/index.ts
+3Acd: packages/elements/src/control-flow
+3Acd1: packages/elements/src/control-flow/ElseElement.ts
+3Acd2: packages/elements/src/control-flow/ElseIfElement.ts
+3Acd3: packages/elements/src/control-flow/ForEachElement.ts
+3Acd4: packages/elements/src/control-flow/IfElement.ts
+3Acd5: packages/elements/src/control-flow/OnEntryElement.tsx
+3Acd6: packages/elements/src/control-flow/OnExitElement.tsx
+3Acd7: packages/elements/src/control-flow/TransitionElement.test.ts
+3Acd8: packages/elements/src/control-flow/TransitionElement.ts
+3Acd9: packages/elements/src/control-flow/index.ts
+3Ace: packages/elements/src/states
+3Ace1: packages/elements/src/states/FinalElement.test.ts
+3Ace2: packages/elements/src/states/FinalElement.ts
+3Ace3: packages/elements/src/states/HistoryElement.ts
+3Ace4: packages/elements/src/states/ParallelElement.test.ts
+3Ace5: packages/elements/src/states/ParallelElement.ts
+3Ace6: packages/elements/src/states/StateElement.test.ts
+3Ace7: packages/elements/src/states/StateElement.ts
+3Ace8: packages/elements/src/states/WorkflowElement.ts
+3Ace9: packages/elements/src/states/index.ts
+3Acf: packages/elements/src/utils
+3Acf1: packages/elements/src/utils/ElementExecutionContext.d.ts
+3Acf2: packages/elements/src/utils/ElementExecutionContext.d.ts.map
+3Acf3: packages/elements/src/utils/ElementExecutionContext.js
+3Acf4: packages/elements/src/utils/ElementExecutionContext.js.map
+3Acf5: packages/elements/src/utils/ElementExecutionContext.test.d.ts
+3Acf6: packages/elements/src/utils/ElementExecutionContext.test.d.ts.map
+3Acf7: packages/elements/src/utils/ElementExecutionContext.test.js
+3Acf8: packages/elements/src/utils/ElementExecutionContext.test.js.map
+3Acf9: packages/elements/src/utils/ElementExecutionContext.test.ts
+3Acf10: packages/elements/src/utils/ElementExecutionContext.ts
+3Acf11: packages/elements/src/utils/mock-execution-context.ts
+3Acf12: packages/elements/src/utils/mock-step-value.ts
+---KEY_DEFINITIONS_END---
+last_KEY_edit: 3Acf12
+last_GRID_edit: 
+---GRID_START---
+X 1A 1A1 1A2 1A3 1A4 2Aa 2Aa1 2Ab 2Ab1 2Ab2 2Ab3 2Ab4 2Ac 2Ac1 3Aba 3Abb 3Abc 3Abd 3Abe 3Abf 3Aca 3Aca1 3Aca2 3Aca3 3Aca4 3Aca5 3Aca6 3Aca7 3Aca8 3Acb 3Acb1 3Acb2 3Acb3 3Acb4 3Acc 3Acc1 3Acc2 3Acc3 3Acd 3Acd1 3Acd2 3Acd3 3Acd4 3Acd5 3Acd6 3Acd7 3Acd8 3Acd9 3Ace 3Ace1 3Ace2 3Ace3 3Ace4 3Ace5 3Ace6 3Ace7 3Ace8 3Ace9 3Acf 3Acf1 3Acf2 3Acf3 3Acf4 3Acf5 3Acf6 3Acf7 3Acf8 3Acf9 3Acf10 3Acf11 3Acf12
+1A = op70
+1A1 = pop69
+1A2 = ppop68
+1A3 = p3op67
+1A4 = p4op66
+2Aa = p5op65
+2Aa1 = p6op64
+2Ab = p7op63
+2Ab1 = p8op62
+2Ab2 = p9op61
+2Ab3 = p10op60
+2Ab4 = p11op59
+2Ac = p12op58
+2Ac1 = p13op57
+3Aba = p14op56
+3Abb = p15op55
+3Abc = p16op54
+3Abd = p17op53
+3Abe = p18op52
+3Abf = p19op51
+3Aca = p20op50
+3Aca1 = p21op49
+3Aca2 = p22op48
+3Aca3 = p23op47
+3Aca4 = p24op46
+3Aca5 = p25op45
+3Aca6 = p26op44
+3Aca7 = p27op43
+3Aca8 = p28op42
+3Acb = p29op41
+3Acb1 = p30op40
+3Acb2 = p31op39
+3Acb3 = p32op38
+3Acb4 = p33op37
+3Acc = p34op36
+3Acc1 = p35op35
+3Acc2 = p36op34
+3Acc3 = p37op33
+3Acd = p38op32
+3Acd1 = p39op31
+3Acd2 = p40op30
+3Acd3 = p41op29
+3Acd4 = p42op28
+3Acd5 = p43op27
+3Acd6 = p44op26
+3Acd7 = p45op25
+3Acd8 = p46op24
+3Acd9 = p47op23
+3Ace = p48op22
+3Ace1 = p49op21
+3Ace2 = p50op20
+3Ace3 = p51op19
+3Ace4 = p52op18
+3Ace5 = p53op17
+3Ace6 = p54op16
+3Ace7 = p55op15
+3Ace8 = p56op14
+3Ace9 = p57op13
+3Acf = p58op12
+3Acf1 = p59op11
+3Acf2 = p60op10
+3Acf3 = p61op9
+3Acf4 = p62op8
+3Acf5 = p63op7
+3Acf6 = p64op6
+3Acf7 = p65op5
+3Acf8 = p66op4
+3Acf9 = p67op3
+3Acf10 = p68opp
+3Acf11 = p69op
+3Acf12 = p70o
+---GRID_END---

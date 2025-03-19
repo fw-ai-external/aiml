@@ -1,8 +1,9 @@
 ---CLINE_RULES_START---
 [LAST_ACTION_STATE]
-last_action: "Fixed heal-flow parser element loss issue"
-current_phase: "Strategy"
-next_action: "Complete Strategy Phase Planning"
+last_action: "Completed Set-up/Maintenance Phase"
+current_phase: "Set-up/Maintenance"
+next_action: "Phase Complete - User Action Required"
+next_phase: "Strategy"
 
 [CODE_ROOT_DIRECTORIES]
 - packages
@@ -24,6 +25,9 @@ next_action: "Complete Strategy Phase Planning"
 - Updated documentation to explain AIML syntax is MDX syntax with 3 key exceptions: 1) for input that would produce syntax errors in an MDX parser, we just warn insted and treat those lines as text/strings/paragrahs. 2) The elements we support are custom, not html, and loosly inspired by scxml except with values passed primaraly based on document order between elements that are of role "action", and scxml element is renamed to workflow. 3) unlike regular jsx within MDX, we also validate the type/tag of children is of a valid type.
 - Fixed issue in parser's structure-processing.ts where the healing code was losing elements during transition creation by switching to tag/ID-based comparisons instead of object references
 - Added addAllTransitions function to ensure all states get proper transitions and called it in the parser pipeline
+- Created parser error handling instructions to enhance validation for critical elements like LLM
+- Updated dependency tracker to resolve placeholder dependencies for core packages
+- Generated mini-trackers for runtime, parser, and elements packages to track file-level dependencies
 ---
 
 CLINE_RULES_END---

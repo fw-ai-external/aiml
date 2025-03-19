@@ -1,0 +1,22 @@
+---KEY_DEFINITIONS_START---
+Key Definitions:
+1A: packages/tsconfig
+1A1: packages/tsconfig/base.json
+1A2: packages/tsconfig/library.json
+1A3: packages/tsconfig/node.json
+1A4: packages/tsconfig/package.json
+1A5: packages/tsconfig/react.json
+1A6: packages/tsconfig/tsup.config.base.ts
+---KEY_DEFINITIONS_END---
+last_KEY_edit: 1A6
+last_GRID_edit: 
+---GRID_START---
+X 1A 1A1 1A2 1A3 1A4 1A5 1A6
+1A = op6
+1A1 = pop5
+1A2 = ppop4
+1A3 = p3op3
+1A4 = p4opp
+1A5 = p5op
+1A6 = p6o
+---GRID_END---
