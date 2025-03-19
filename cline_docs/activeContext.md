@@ -15,14 +15,18 @@
 - CRCT System re-initialization and dependency tracking
 - Completion of mini-trackers for all packages
 - Preparation for parser error handling enhancement
+- Implementation of data and datamodel elements with type validation, document-based scoping, readonly properties, and request-based values
 
 ## Next Steps:
 
 1. Complete the Set-up/Maintenance phase by resolving all placeholder dependencies
 2. Implement parser error handling for critical elements like LLM that require specific attributes
-3. Consider creating technical documentation for StepValue and RunValue APIs
-4. Explore additional documentation needs for the parsing and execution flow
-5. Move to Strategy phase for planning next development tasks
+3. Implement enhanced data and datamodel elements with type validation, document-based scoping, readonly properties, and request-based values
+4. Update ElementExecutionContext to respect scope and type validations
+5. Update AssignElement to check for readonly properties before updating values
+6. Consider creating technical documentation for StepValue and RunValue APIs
+7. Explore additional documentation needs for the parsing and execution flow
+8. Move to Strategy phase for planning next development tasks
 
 ## Recent Updates:
 
@@ -40,3 +44,5 @@
 - Potential optimization strategies for the element system
 - Implementation of validation scripts for enforcing build and test integrity
 - Balancing real implementations vs. minimal mocks in test strategies
+- Data validation strategy: how to balance type safety with flexibility in the datamodel
+- Document-based scoping: ensuring proper variable access based on the hierarchical structure of states and datamodels
