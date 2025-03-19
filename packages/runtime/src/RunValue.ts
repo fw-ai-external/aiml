@@ -72,7 +72,6 @@ export class RunValue {
       const output = maybeRunStepValue(step.output);
       if (output) {
         if (step.elementType === "final") {
-          console.log("=-------------------- final output", output);
           this._finalOutput = output;
         }
         this._generatedValues.push(output);
@@ -86,13 +85,8 @@ export class RunValue {
       thisStep.output = maybeRunStepValue(output);
       if (thisStep.output) {
         if (thisStep.elementType === "final") {
-          console.log("=-------------------- final output", output);
           this._finalOutput = thisStep.output;
         } else {
-          console.log(
-            "=-------------------- adding to generated values",
-            thisStep.output
-          );
           this._generatedValues.push(thisStep.output);
         }
       }
@@ -447,7 +441,6 @@ export class RunValue {
   ): Promise<StepValue> {
     // If we have a ready final output, return it immediately
     if (this._finalOutput && this._finalOutput.valueReady) {
-      console.log("*** ____finalOutput early return", this._finalOutput);
       return this._finalOutput;
     }
 
@@ -472,7 +465,6 @@ export class RunValue {
       while (!this._finalOutput?.valueReady && !this._finished) {
         await new Promise((r) => setTimeout(r, 10));
       }
-      console.log("*** ____finalOutput", this._finalOutput);
 
       // At this point finalOutput should be ready
       resolve(this._finalOutput as StepValue);
