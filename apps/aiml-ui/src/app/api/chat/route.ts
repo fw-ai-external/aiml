@@ -52,5 +52,5 @@ export async function POST(req: Request) {
   //   messages,
   // });
 
-  return new Response(await result.responseStream());
+  return new Response(await result.openaiChatStream());
 }

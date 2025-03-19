@@ -20,5 +20,8 @@
   "devDependencies": {
     "@fireworks/tsconfig": "workspace:*",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "openai": "^4.87.4"
   }
 }

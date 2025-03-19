@@ -14,8 +14,9 @@ import {
   ChatModelAdapter,
   useLocalRuntime,
 } from "@assistant-ui/react";
+import { OpenAIChatCompletionChunk } from "@fireworks/types";
 
-const AIMLRuntime = ({
+const AIMLOpenAIChatRuntime = ({
   workflowId,
 }: {
   workflowId: string;
@@ -24,18 +25,44 @@ const AIMLRuntime = ({
     const response = await fetch("/api/chat", {
       method: "POST",
       body: JSON.stringify({ messages, workflowId, context }),
+      signal: abortSignal,
     });
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
     const reader = response.body?.getReader();
     if (!reader) {
       throw new Error("No reader");
     }
+    let delta = "";
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
         break;
       }
       const text = new TextDecoder().decode(value);
-      yield { content: [{ type: "text", text }] };
+      const events: OpenAIChatCompletionChunk[] = text
+        .replaceAll("[data]", "")
+        .replaceAll("[done]", "")
+        .split("\n")
+        .filter((line) => line.trim() !== "")
+        .map((line) => {
+          try {
+            return JSON.parse(line.trim());
+          } catch (error) {
+            console.error("Error parsing line", line, error);
+            return null;
+          }
+        })
+        .filter((event) => event !== null);
+
+      for (const event of events) {
+        delta += event.choices[0]?.delta?.content || "";
+      }
+      yield {
+        content: [{ type: "text", text: delta }],
+      };
     }
   },
 });
@@ -50,7 +77,7 @@ export default function WorkflowGraphPage(props: {
     isLoading: isWorkflowLoading,
   } = useWorkflow(params.workflowId);
   const runtime = useLocalRuntime(
-    AIMLRuntime({
+    AIMLOpenAIChatRuntime({
       workflowId: params.workflowId,
     })
   );

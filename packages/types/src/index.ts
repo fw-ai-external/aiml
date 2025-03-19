@@ -4,6 +4,7 @@ export * from "./errorCodes";
 export * from "./diagnostics";
 export * from "./elements";
 export * from "./values";
+export * from "./openai";
 import type {
   BuildContext,
   ExecutionGraphElement,
