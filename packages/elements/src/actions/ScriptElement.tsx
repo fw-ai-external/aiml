@@ -1,14 +1,18 @@
 import { createElementDefinition } from "@fireworks/shared";
-import type { ElementExecutionContext } from "@fireworks/types";
+import type {
+  ElementExecutionContext,
+  ExecutionReturnType,
+} from "@fireworks/types";
 import { StepValue } from "@fireworks/shared";
-import { scriptConfig, ScriptProps } from "@fireworks/element-config";
+import { scriptConfig } from "@fireworks/element-config";
 
-export const Script = createElementDefinition<ScriptProps>({
+export const Script = createElementDefinition({
   ...scriptConfig,
-  role: "action",
-  elementType: "script",
-  allowedChildren: "text",
-  async execute(ctx, children): Promise<StepValue> {
+  tag: "script" as const,
+  role: "action" as const,
+  elementType: "script" as const,
+  allowedChildren: "text" as const,
+  async execute(ctx, children): Promise<ExecutionReturnType> {
     const { src } = ctx.attributes;
     const content = children[0]?.toString();
 
@@ -27,11 +31,13 @@ export const Script = createElementDefinition<ScriptProps>({
         await executeScript(content, ctx);
       }
 
-      return new StepValue({
-        type: "object",
-        object: { src, content },
-        raw: JSON.stringify({ src, content }),
-      });
+      return {
+        result: new StepValue({
+          type: "object",
+          object: { src, content },
+          raw: JSON.stringify({ src, content }),
+        }),
+      };
     } catch (error) {
       console.error("Error executing script:", error);
       throw error;
@@ -39,10 +45,7 @@ export const Script = createElementDefinition<ScriptProps>({
   },
 });
 
-async function executeScript(
-  script: string,
-  ctx: ElementExecutionContext<ScriptProps>
-) {
+async function executeScript(script: string, ctx: ElementExecutionContext) {
   try {
     // Create a new Function with the script content and execute it with the context
     const fn = new Function(

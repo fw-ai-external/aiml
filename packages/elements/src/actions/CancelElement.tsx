@@ -1,12 +1,13 @@
 import { createElementDefinition } from "@fireworks/shared";
 import { StepValue } from "@fireworks/shared";
-import { cancelConfig, CancelProps } from "@fireworks/element-config";
+import { cancelConfig } from "@fireworks/element-config";
 
-export const Cancel = createElementDefinition<CancelProps>({
+export const Cancel = createElementDefinition({
   ...cancelConfig,
-  role: "action",
-  elementType: "cancel",
-  allowedChildren: "none",
+  tag: "cancel" as const,
+  role: "action" as const,
+  elementType: "cancel" as const,
+  allowedChildren: "none" as const,
   async execute(ctx) {
     const { sendid, sendidexpr } = ctx.attributes;
 
@@ -38,11 +39,13 @@ export const Cancel = createElementDefinition<CancelProps>({
         delete ctx.datamodel[`_timeoutId_${targetId}`];
       }
 
-      return new StepValue({
-        type: "object",
-        object: { sendid: targetId },
-        raw: JSON.stringify({ sendid: targetId }),
-      });
+      return {
+        result: new StepValue({
+          type: "object",
+          object: { sendid: targetId },
+          raw: JSON.stringify({ sendid: targetId }),
+        }),
+      };
     } catch (error) {
       console.error(
         `Error in cancel element (${sendid || sendidexpr}):`,

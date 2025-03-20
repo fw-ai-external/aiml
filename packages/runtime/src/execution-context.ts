@@ -14,7 +14,7 @@ import type {
 import { StepValue, BaseElement } from "@fireworks/shared";
 import {
   ScopedDataModel,
-  type RunstepOutput,
+  type StepValueResult,
   type Secrets,
 } from "@fireworks/types";
 import { ChatCompletionMessageToolCall } from "openai/resources/chat/completions";
@@ -26,7 +26,7 @@ type TagNodeDTO = any;
 /**
  * Step context for execution
  */
-export interface StepContext<T extends RunstepOutput> {
+export interface StepContext<T extends StepValueResult> {
   input: StepValue<T>;
   datamodel: Record<string, any>;
   state: {
@@ -50,7 +50,7 @@ export type ElementExecutionContextSerialized = Record<string, any>;
  */
 export class ExecutionContext<
   PropValues extends {} = {},
-  InputValue extends RunstepOutput = RunstepOutput,
+  InputValue extends StepValueResult = StepValueResult,
 > {
   // Static property for built-in keys that should match the serialized output
   static builtinKeys = [
@@ -266,7 +266,7 @@ export class ExecutionContext<
    * @param element The element for which to create the context
    * @returns The child execution context
    */
-  createChildContext<ChildProps extends {}, ChildInput extends RunstepOutput>(
+  createChildContext<ChildProps extends {}, ChildInput extends StepValueResult>(
     childAttributes: ChildProps,
     childInput: StepValue<ChildInput>,
     element?: BaseElement
@@ -299,7 +299,7 @@ export class ExecutionContextFactory {
    */
   createContext<
     PropValues extends {} = {},
-    InputValue extends RunstepOutput = RunstepOutput,
+    InputValue extends StepValueResult = StepValueResult,
   >(params: {
     input: StepValue<InputValue>;
     workflowInput: {
@@ -338,7 +338,7 @@ export class ExecutionContextFactory {
    */
   createFromSerialized<
     PropValues extends {} = {},
-    InputValue extends RunstepOutput = RunstepOutput,
+    InputValue extends StepValueResult = StepValueResult,
   >(
     serialized: ElementExecutionContextSerialized,
     element?: BaseElement,

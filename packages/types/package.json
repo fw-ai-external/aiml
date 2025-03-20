@@ -12,13 +12,15 @@
     }
   },
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsc",
+    "build:tsup": "tsup",
+    "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@fireworks/tsconfig": "workspace:*",
+    "tsup": "^8.4.0",
     "typescript": "^5.3.3"
   },
   "dependencies": {

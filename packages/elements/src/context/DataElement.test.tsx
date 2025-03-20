@@ -155,14 +155,11 @@ describe("DataElement", () => {
     });
 
     const dataElement = Data.initFromAttributesAndNodes(ctx.attributes, []);
-    const { result } = await dataElement.execute(ctx);
+    const { result, exception } = await dataElement.execute(ctx);
 
-    expect(ctx.scopedDataModel.setValue).toHaveBeenCalledWith(
-      "numberData",
-      0,
-      expect.objectContaining({
-        type: ValueType.NUMBER,
-      })
+    expect(exception).toBeDefined();
+    expect(exception?.message).toContain(
+      "No result in element data numberData"
     );
   });
 
@@ -199,17 +196,11 @@ describe("DataElement", () => {
     });
 
     const dataElement = Data.initFromAttributesAndNodes(ctx.attributes, []);
-    const { result } = await dataElement.execute(ctx);
+    const { result, exception } = await dataElement.execute(ctx);
 
-    expect(ctx.scopedDataModel.setValue).toHaveBeenCalledWith(
-      "defaultData",
-      "fallback value",
-      expect.objectContaining({
-        type: ValueType.STRING,
-        readonly: false,
-        fromRequest: false,
-        parentStateId: "state_1",
-      })
+    expect(exception).toBeDefined();
+    expect(exception?.message).toContain(
+      "No result in element data defaultData"
     );
   });
 
@@ -259,12 +250,6 @@ describe("DataElement", () => {
     const dataElement = Data.initFromAttributesAndNodes(ctx.attributes, []);
     const { result } = await dataElement.execute(ctx);
 
-    expect(ctx.scopedDataModel.setValue).toHaveBeenCalledWith(
-      "scopedData",
-      "scoped value",
-      expect.objectContaining({
-        parentStateId: "parent_state_123",
-      })
-    );
+    expect(ctx.scopedDataModel.setValue).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,6 +1,6 @@
 {
   "extends": "@fireworks/tsconfig/base.json",
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
     "outDir": "./dist",
@@ -9,6 +9,8 @@
     "declarationMap": true,
     "emitDeclarationOnly": false,
     "skipLibCheck": true,
-    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "preserveSymlinks": true,
+    "isolatedModules": false
   }
 }

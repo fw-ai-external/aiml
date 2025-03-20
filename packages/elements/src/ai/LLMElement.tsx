@@ -2,7 +2,6 @@ import { createElementDefinition } from "@fireworks/shared";
 import { llmConfig } from "@fireworks/element-config";
 import { StepValue } from "@fireworks/shared";
 import { getProviderWithClient } from "./utils";
-import { ErrorCode } from "@fireworks/shared";
 import {
   ExecutionGraphElement,
   ExecutionReturnType,
@@ -36,7 +35,7 @@ export const LLM = createElementDefinition({
   },
   async execute(ctx): Promise<ExecutionReturnType> {
     const { prompt, system } = ctx.attributes;
-    console.log("*** ctx", ctx);
+
     try {
       const { provider } = getProviderWithClient(
         ctx.attributes.model,
@@ -80,7 +79,6 @@ export const LLM = createElementDefinition({
         return { result };
       }
 
-      console.log("*** calling llm");
       const streamResult = streamText({
         model: provider,
         messages: [
@@ -95,26 +93,16 @@ export const LLM = createElementDefinition({
         // tools: parsedTools,
         maxRetries: 1,
       });
-      console.log("*** got streamResult");
       const result = new StepValue(
         new ReplayableAsyncIterableStream<StepValueChunk>(
           streamResult.fullStream
         )
       );
-      console.log(
-        "*** got result",
-        result.value().then((v) => console.log(v))
-      );
+
       return { result };
     } catch (error) {
-      console.error("*** LLMElement error", error);
-      const result = new StepValue({
-        type: "error",
-        code: ErrorCode.SERVER_ERROR,
-        error: error instanceof Error ? error.message : String(error),
-      });
       return {
-        result,
+        result: ctx.input,
         exception: error instanceof Error ? error : new Error(String(error)),
       };
     }

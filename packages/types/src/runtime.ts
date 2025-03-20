@@ -1,5 +1,12 @@
 import { TextStreamPart, StepResult, ObjectStreamPart } from "ai";
-import { ErrorResult } from "./values";
+
+// Define ErrorResult locally to avoid circular dependency
+export interface ErrorResult {
+  type: "error";
+  error: string | number | any;
+  code: string;
+}
+
 /**
  * ExecutionGraphElement - Represents a single node in the runtime execution graph.
  */

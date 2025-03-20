@@ -1,38 +1,18 @@
 import { z } from "zod";
-import { createElementDefinition, StepValue } from "@fireworks/shared";
-import type { BaseElement } from "@fireworks/shared";
-import type { ElementExecutionContext } from "@fireworks/types";
+import { createElementDefinition } from "@fireworks/shared";
 import { dataConfig } from "@fireworks/element-config";
 
 import {
   ValueType,
   DataElementMetadata as ImportedDataElementMetadata,
   JSONSchema as ImportedJSONSchema,
-  validateValueType as validateValueTypeImported,
-  getDefaultForType as getDefaultForTypeImported,
+  validateValueType,
 } from "@fireworks/types";
-import { ExecutionReturnType } from "@fireworks/types";
 
 // Re-export for backward compatibility
 export { ValueType };
 export type DataElementMetadata = ImportedDataElementMetadata;
 export type JSONSchema = ImportedJSONSchema;
-
-// Use the imported functions but provide wrappers for backward compatibility
-export function validateValueType(
-  value: any,
-  type: ValueType | string,
-  schema?: JSONSchema
-): any {
-  return validateValueTypeImported(value, type, schema);
-}
-
-export function getDefaultForType(
-  type: ValueType | string,
-  schema?: JSONSchema
-): any {
-  return getDefaultForTypeImported(type, schema);
-}
 
 // Define our own schema that extends the dataConfig schema
 const dataSchema = z.object({
@@ -63,10 +43,7 @@ export const Data = createElementDefinition({
   elementType: "data" as const,
   propsSchema: dataSchema as z.ZodType<DataProps>,
   allowedChildren: "none" as const,
-  async execute(
-    ctx: ElementExecutionContext<DataProps>,
-    childrenNodes: BaseElement[]
-  ): Promise<ExecutionReturnType> {
+  async execute(ctx) {
     const {
       id,
       src,
@@ -95,8 +72,11 @@ export const Data = createElementDefinition({
           value = await response.json();
         } catch (error) {
           console.error(`Error fetching data from ${src}:`, error);
-          value =
-            defaultValue !== undefined ? defaultValue : getDefaultForType(type);
+          return {
+            result: ctx.input,
+            exception:
+              error instanceof Error ? error : new Error(String(error)),
+          };
         }
       } else if (expr) {
         // Evaluate expression and assign result
@@ -123,15 +103,21 @@ export const Data = createElementDefinition({
           } catch (evalError) {
             // If the expression fails, log and use default
             console.error(`Error evaluating expression: ${evalError}`);
-            value =
-              defaultValue !== undefined
-                ? defaultValue
-                : getDefaultForType(type);
+            return {
+              result: ctx.input,
+              exception:
+                evalError instanceof Error
+                  ? evalError
+                  : new Error(String(evalError)),
+            };
           }
         } catch (error) {
           console.error(`Error evaluating expression ${expr}:`, error);
-          value =
-            defaultValue !== undefined ? defaultValue : getDefaultForType(type);
+          return {
+            result: ctx.input,
+            exception:
+              error instanceof Error ? error : new Error(String(error)),
+          };
         }
       } else if (content) {
         // If no src or expr, use the text content as a JSON string
@@ -140,8 +126,11 @@ export const Data = createElementDefinition({
           value = textContent ? JSON.parse(textContent) : null;
         } catch (error) {
           console.error(`Error parsing content as JSON:`, error);
-          value =
-            defaultValue !== undefined ? defaultValue : getDefaultForType(type);
+          return {
+            result: ctx.input,
+            exception:
+              error instanceof Error ? error : new Error(String(error)),
+          };
         }
       } else if (fromRequest) {
         // Get value from the request context
@@ -151,17 +140,20 @@ export const Data = createElementDefinition({
         value = defaultValue;
       } else {
         // This should not happen due to the schema refinement, but just in case
-        throw new Error(
-          "Either fromRequest must be true or expr/src must be set"
-        );
+        return {
+          result: ctx.input,
+          exception: new Error("No value provided for data element"),
+        };
       }
 
       // Validate value against type and schema
       try {
         value = validateValueType(value, type, schema as JSONSchema);
       } catch (error) {
-        console.error(`Type validation error for ${id}:`, error);
-        value = getDefaultForType(type, schema as JSONSchema);
+        return {
+          result: ctx.input,
+          exception: error instanceof Error ? error : new Error(String(error)),
+        };
       }
 
       // Store metadata about the data element
@@ -181,21 +173,10 @@ export const Data = createElementDefinition({
       }
       scopedModel.setValue(id, value, metadata);
 
-      const result = new StepValue({
-        type: "object",
-        object: { id, value, metadata },
-      });
-
-      return { result };
+      return { result: ctx.input };
     } catch (error) {
-      const result = new StepValue({
-        type: "error",
-        code: "DATA_ERROR",
-        error: `Failed to process data element: ${error}`,
-      });
-
       return {
-        result,
+        result: ctx.input,
         exception: error instanceof Error ? error : new Error(String(error)),
       };
     }

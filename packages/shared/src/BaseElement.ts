@@ -7,9 +7,8 @@ import {
   type BuildContext,
   type ExecutionGraphElement,
   type ElementExecutionContext,
-  type RunstepOutput,
-  ErrorCode,
   SerializedBaseElement,
+  ExecutionReturnType,
 } from "@fireworks/types";
 import { z } from "zod";
 import { ActionContext } from "@mastra/core";
@@ -54,15 +53,13 @@ export class BaseElement
   protected _parentElementId?: string;
   protected _childrenIds: string[] = [];
   private stepConditions?: {
-    when: (
-      context: ElementExecutionContext<any, RunstepOutput>
-    ) => Promise<boolean>;
+    when: (context: ElementExecutionContext) => Promise<boolean>;
   };
   private _isActive: boolean = false;
   private _execute?: (
     context: ElementExecutionContext,
     childrenNodes: BaseElement[]
-  ) => Promise<any>; // Will be cast to StepValue
+  ) => Promise<ExecutionReturnType>;
 
   constructor(
     config: Omit<SerializedElementConfig, "parent" | "children"> & {
@@ -129,9 +126,7 @@ export class BaseElement
 
   get conditions():
     | {
-        when: (
-          context: ElementExecutionContext<any, RunstepOutput>
-        ) => Promise<boolean>;
+        when: (context: ElementExecutionContext) => Promise<boolean>;
       }
     | undefined {
     return this.stepConditions;
@@ -140,9 +135,7 @@ export class BaseElement
   set conditions(
     value:
       | {
-          when: (
-            context: ElementExecutionContext<any, RunstepOutput>
-          ) => Promise<boolean>;
+          when: (context: ElementExecutionContext) => Promise<boolean>;
         }
       | undefined
   ) {
@@ -153,7 +146,7 @@ export class BaseElement
   execute = async (
     context: ActionContext<any>,
     childrenNodes: BaseElement[] = []
-  ): Promise<{ result: any }> => {
+  ): Promise<ExecutionReturnType> => {
     // Will be StepValue at runtime
     if (!this._isActive) {
       this._isActive = true;
@@ -166,7 +159,6 @@ export class BaseElement
         ...this._dataModel,
         [this.id]: context.context.input,
       };
-
       return {
         result: context.context.input,
       };
@@ -175,41 +167,46 @@ export class BaseElement
       const executeResult = await this._execute(
         {
           ...context,
+          input: context.context.input,
+          workflowInput: (context as any).workflowInput || {},
+          datamodel: this._dataModel,
+          state: {
+            id: this.id,
+            attributes: this.attributes,
+            input: context.context.input,
+          },
           attributes: this.attributes,
           machine: {
             id: (context as any)?.machine?.id,
             secrets: {
-              ...context,
+              system: {},
+              ...(context as any)?.machine?.secrets,
             },
           },
           run: {
             id: (context as any)?.run?.id,
           },
           runId: (context as any)?.runId,
-        } as any,
+          serialize: async () => JSON.stringify(context),
+        },
         childrenNodes
       ).catch((error) => {
         console.error("Error executing element:", error);
         console.error("Error executing element:", error);
         // Return an error object that will be handled by the runtime
         return {
-          result: {
-            type: "error",
-            code: ErrorCode.SERVER_ERROR,
-            error: error instanceof Error ? error.message : String(error),
-          },
+          result: context.context.input,
           exception: error instanceof Error ? error : new Error(String(error)),
-        };
+        } as ExecutionReturnType;
       });
 
-      if (!executeResult || !executeResult.result) {
+      if (!executeResult?.result) {
         return {
-          result: {
-            type: "error",
-            code: ErrorCode.SERVER_ERROR,
-            error: "No result in element " + this.tag + " " + this.id,
-          },
-        };
+          result: context.context.input,
+          exception: new Error(
+            "No result in element " + this.tag + " " + this.id
+          ),
+        } as ExecutionReturnType;
       }
 
       // Store the result in the datamodel
@@ -227,18 +224,15 @@ export class BaseElement
         }
       }
 
-      return {
-        result: executeResult.result,
-      };
+      return executeResult;
     } catch (error) {
       console.error("Error executing element:", error);
       return {
-        result: {
-          type: "error",
-          code: ErrorCode.SERVER_ERROR,
-          error: error instanceof Error ? error.message : String(error),
-        },
-      };
+        result: context.context.input,
+        exception: new Error(
+          "Error executing element " + this.tag + " " + this.id
+        ),
+      } as ExecutionReturnType;
     }
   };
 
@@ -251,9 +245,7 @@ export class BaseElement
 
   protected getDefaultStepConditions():
     | {
-        when: (
-          context: ElementExecutionContext<any, RunstepOutput>
-        ) => Promise<boolean>;
+        when: (context: ElementExecutionContext) => Promise<boolean>;
       }
     | undefined {
     return undefined;
@@ -261,9 +253,7 @@ export class BaseElement
 
   public getStepConditions():
     | {
-        when: (
-          context: ElementExecutionContext<any, RunstepOutput>
-        ) => Promise<boolean>;
+        when: (context: ElementExecutionContext) => Promise<boolean>;
       }
     | undefined {
     return this.stepConditions ?? this.getDefaultStepConditions();

@@ -24,6 +24,8 @@
     "@fireworks/shared": "workspace:*"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
     "typescript": "^5.0.0"
   }
 }

@@ -6,7 +6,7 @@
  */
 
 import { StepValue, ErrorCode } from "@fireworks/shared";
-import type { RunstepOutput } from "@fireworks/types";
+import type { StepValueResult } from "@fireworks/types";
 
 /**
  * Creates a StepValue from an error object or converts a raw error object to a StepValue.
@@ -15,7 +15,7 @@ import type { RunstepOutput } from "@fireworks/types";
  * @param errorOrValue Either an error object with type, code, and error properties, or a value to wrap in a StepValue
  * @returns A StepValue instance containing the error or value
  */
-export function createStepValue<T extends RunstepOutput = RunstepOutput>(
+export function createStepValue<T extends StepValueResult = StepValueResult>(
   errorOrValue: any
 ): StepValue<T> {
   // If it's already a StepValue, return it
@@ -52,7 +52,7 @@ export function createStepValue<T extends RunstepOutput = RunstepOutput>(
  * @returns A StepValue instance
  */
 export async function wrapElementExecution<
-  T extends RunstepOutput = RunstepOutput,
+  T extends StepValueResult = StepValueResult,
 >(
   executeFunc: (context: any, childrenNodes: any[]) => Promise<any>,
   context: any,

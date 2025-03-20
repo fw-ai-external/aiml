@@ -1,5 +1,4 @@
 import type { z } from "zod";
-import type { RunstepOutput } from "@fireworks/types";
 
 export interface ErrorResult {
   type: "error";
@@ -19,8 +18,6 @@ export interface OpenAIToolCall {
     arguments: string;
   };
 }
-
-export type RunStepInput = string | RunstepOutput | any;
 
 export interface APIStreamEvent {
   type: string;

@@ -65,7 +65,6 @@ export class RunValue {
   }
 
   public addActiveStep(step: RunStep) {
-    console.log("*** adding step", step);
     this._runSteps.push({
       id: step.id,
       elementType: step.elementType,
@@ -93,14 +92,8 @@ export class RunValue {
       thisStep.output = maybeRunStepValue(output);
       if (thisStep.output) {
         if (thisStep.elementType === "final") {
-          console.log(
-            "*** setting final output",
-            thisStep.elementType,
-            thisStep.output
-          );
           this._finalOutput = thisStep.output;
         } else {
-          console.log("*** adding to generated values", thisStep.output);
           this._generatedValues.push(thisStep.output);
         }
       }
@@ -115,7 +108,6 @@ export class RunValue {
     if (thisStep) {
       thisStep.status = "finished";
       if (output) {
-        console.log("*** setting step output", thisStep.elementType, output);
         this.setStepOutput(id, output);
       }
     } else {
@@ -262,7 +254,6 @@ export class RunValue {
         );
         const textEncoder = new TextEncoder();
         for await (const chunk of iterator) {
-          console.log("oai==*** chunk", chunk);
           controller.enqueue(
             textEncoder.encode(`[data] ${JSON.stringify(chunk)}\n`)
           );

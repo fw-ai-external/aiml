@@ -1,5 +1,23 @@
-import { StepValueChunk } from "./runtime";
-export * from "./values/data-types";
+import { TextStreamPart, ObjectStreamPart } from "ai";
+
+// Basic type for tool definitions
+export type TOOLS = {
+  [key: string]: {
+    parameters: any;
+    description: string;
+  };
+};
+
+// Define StepValueChunk locally to avoid circular dependency
+export type StepValueChunk =
+  | Omit<
+      TextStreamPart<TOOLS>,
+      | "experimental_providerMetadata"
+      | "providerMetadata"
+      | "experimental_providerMetadata"
+      | "response"
+    >
+  | Omit<ObjectStreamPart<any>, "response" | "providerMetadata">;
 
 export interface ErrorResult {
   type: "error";

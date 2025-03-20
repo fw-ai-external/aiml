@@ -18,6 +18,7 @@ import {
 import { BuildContext } from "./BuildContext";
 import { z } from "zod";
 import { RunValue } from "./RunValue";
+import { getScopedDataModelForContext } from "./ScopedElementExecutionContext";
 
 /**
  * Workflow execution options
@@ -40,6 +41,12 @@ export type RuntimeOptions = {
   onError?: (error: Error) => void;
   onComplete?: () => void;
 };
+
+// Define interfaces for missing types to help with type safety
+interface WorkflowRun {
+  id: string;
+  getExecutionContext?: () => any;
+}
 
 /**
  * Workflow runner
@@ -269,6 +276,228 @@ export class Workflow<
   }
   public getExecutionGraph() {
     return this.executionGraph;
+  }
+
+  /**
+   * Helper function to strip circular references from any object
+   */
+  private sanitizeForJSON(obj: any, seen = new WeakSet()): any {
+    // Check for null or non-objects
+    if (obj === null || typeof obj !== "object") {
+      return obj;
+    }
+
+    // Handle circular references
+    if (seen.has(obj)) {
+      return "[Circular Reference]";
+    }
+    seen.add(obj);
+
+    // Handle arrays
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.sanitizeForJSON(item, seen));
+    }
+
+    // Handle objects
+    const result: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Skip parent references entirely
+      if (key === "parent" || key === "_parent") {
+        continue;
+      }
+      result[key] = this.sanitizeForJSON(value, seen);
+    }
+    return result;
+  }
+
+  /**
+   * Gets all context values from the workflow
+   * @returns A record of all context values
+   */
+  public getContextValues(): Record<string, any> {
+    try {
+      const result: Record<string, any> = {};
+
+      // Safely access workflow state if available
+      try {
+        // Since we're not sure about the exact signature or implementation of getState,
+        // let's use a safer approach using any to bypass type checking
+        // This isn't ideal, but it's a pragmatic solution given the constraints
+        const state = (this.workflow as any).getState?.(this.workflow as any);
+
+        if (state && typeof state === "object") {
+          // Handle both direct object and promise responses
+          const processState = (stateObj: any) => {
+            if (stateObj && typeof stateObj === "object" && stateObj.context) {
+              const context = stateObj.context;
+
+              // Extract datamodel
+              if (context.datamodel) {
+                result.datamodel = this.sanitizeForJSON(context.datamodel);
+              }
+
+              // Extract steps data
+              if (context.steps) {
+                result.steps = this.sanitizeForJSON(context.steps);
+              }
+            }
+          };
+
+          // Handle potential promise
+          if (state.then && typeof state.then === "function") {
+            // Just log that we found a promise but can't handle it synchronously
+            console.log(
+              "Workflow state is a promise. Cannot extract synchronously."
+            );
+          } else {
+            processState(state);
+          }
+        }
+      } catch (e) {
+        console.error("Error accessing workflow state:", e);
+      }
+
+      // Safely extract data from runs if available
+      try {
+        // Careful optional access to getRuns method which might not exist
+        const getRuns = (this.workflow as any).getRuns;
+        if (typeof getRuns === "function") {
+          const runs = getRuns.call(this.workflow);
+
+          if (Array.isArray(runs) && runs.length > 0) {
+            result.runs = runs.map((run: WorkflowRun) => {
+              const runData: Record<string, any> = { id: run.id };
+
+              if (typeof run.getExecutionContext === "function") {
+                const executionContext = run.getExecutionContext();
+
+                if (executionContext) {
+                  // Try to get data from scoped model
+                  if (typeof getScopedDataModelForContext === "function") {
+                    const dataModel =
+                      getScopedDataModelForContext(executionContext);
+                    if (
+                      dataModel &&
+                      typeof dataModel.getAllVariables === "function"
+                    ) {
+                      runData.datamodel = this.sanitizeForJSON(
+                        dataModel.getAllVariables()
+                      );
+                    }
+                  }
+
+                  // Fall back to context datamodel
+                  if (!runData.datamodel && executionContext.datamodel) {
+                    runData.datamodel = this.sanitizeForJSON(
+                      executionContext.datamodel
+                    );
+                  }
+                }
+              }
+
+              return runData;
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Error accessing workflow runs:", e);
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error getting context values:", error);
+      return {};
+    }
+  }
+
+  /**
+   * Rehydrates context values into the workflow
+   * @param contextValues The context values to set
+   */
+  public rehydrateContextValues(contextValues: Record<string, any>): void {
+    if (!contextValues || typeof contextValues !== "object") {
+      return;
+    }
+
+    try {
+      // Recreate the workflow
+      this.workflow = new MastraWorkflow({
+        name: "workflow",
+        triggerSchema: z.object({
+          chatHistory: z.array(
+            z.object({
+              role: z.enum(["user", "assistant"]),
+              content: z.string(),
+            })
+          ),
+          userInput: z.string(),
+          secrets: z.record(z.any()),
+        }),
+      });
+
+      // Reset active states
+      this.activeStates = new Set();
+
+      // Rebuild the graph
+      this.addGraphElementToWorkflow(
+        new BuildContext(
+          this.workflow,
+          this.spec.key,
+          this.spec.children,
+          this.spec.attributes,
+          {},
+          this.spec,
+          this.spec
+        ),
+        this.executionGraph,
+        false,
+        true
+      );
+
+      // Commit the changes
+      this.workflow.commit();
+
+      // Create a new run with the rehydrated context
+      if (contextValues.datamodel || contextValues.steps) {
+        // Safely create a run
+        const runCreation = this.workflow.createRun();
+
+        if (
+          runCreation &&
+          typeof runCreation === "object" &&
+          "start" in runCreation
+        ) {
+          const { runId, start } = runCreation;
+
+          // Prepare the input data with the rehydrated context
+          const triggerData: Record<string, any> = {
+            // Default empty values
+            chatHistory: [],
+            userInput: "",
+            secrets: {},
+          };
+
+          // Include restored datamodel if available
+          if (contextValues.datamodel) {
+            triggerData.datamodel = contextValues.datamodel;
+          }
+
+          // Start the run with the rehydrated context
+          if (typeof start === "function") {
+            start({ triggerData }).catch((error: Error) => {
+              console.error(
+                "Error starting workflow with rehydrated context:",
+                error
+              );
+            });
+          }
+
+          console.log(`Rehydrated workflow context with run ID: ${runId}`);
+        }
+      }
+    } catch (error) {
+      console.error("Error rehydrating context values:", error);
+    }
   }
 
   private addGraphElementToWorkflow(

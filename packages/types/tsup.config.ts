@@ -1,7 +1,16 @@
+import { defineConfig } from "tsup";
 import baseConfig from "../tsconfig/tsup.config.base";
 
-export default {
+export default defineConfig({
   ...baseConfig,
-  // Instead of using tsup, we'll rely on tsc for the types package
-  // name: "types",
-};
+  treeshake: true,
+  bundle: true,
+  // Use esbuild to handle circular dependencies better
+  esbuildOptions(options) {
+    options.treeShaking = true;
+    // Preserve the call structure in the module
+    options.keepNames = true;
+    // Handle circular dependencies
+    options.mainFields = ["module", "main"];
+  },
+});

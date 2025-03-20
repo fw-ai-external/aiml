@@ -1,12 +1,13 @@
 import { createElementDefinition } from "@fireworks/shared";
 import { StepValue } from "@fireworks/shared";
-import { sendConfig, SendProps } from "@fireworks/element-config";
+import { sendConfig } from "@fireworks/element-config";
 
-export const Send = createElementDefinition<SendProps>({
+export const Send = createElementDefinition({
   ...sendConfig,
-  role: "action",
-  elementType: "send",
-  allowedChildren: "none",
+  tag: "send" as const,
+  role: "action" as const,
+  elementType: "send" as const,
+  allowedChildren: "none" as const,
   async execute(ctx) {
     const {
       event,
@@ -102,19 +103,21 @@ export const Send = createElementDefinition<SendProps>({
           throw new Error(`Unsupported send type: ${type}`);
       }
 
-      return new StepValue({
-        type: "object",
-        object: {
-          event: eventName,
-          target: targetName,
-          data: eventData,
-        },
-        raw: JSON.stringify({
-          event: eventName,
-          target: targetName,
-          data: eventData,
+      return {
+        result: new StepValue({
+          type: "object",
+          object: {
+            event: eventName,
+            target: targetName,
+            data: eventData,
+          },
+          raw: JSON.stringify({
+            event: eventName,
+            target: targetName,
+            data: eventData,
+          }),
         }),
-      });
+      };
     } catch (error) {
       console.error(`Error in send element (${event || eventexpr}):`, error);
       throw error;

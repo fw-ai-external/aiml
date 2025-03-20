@@ -118,7 +118,6 @@ export class ReplayableAsyncIterableStream<T> implements AsyncIterable<T> {
         this.emitter.emit("chunk", result.value);
       }
     } catch (error) {
-      console.error("*** ReplayableAsyncIterableStream error", error);
       this.error = error as Error;
       this.state = StreamState.ERROR;
       this.emitter.emit("error", this.error);

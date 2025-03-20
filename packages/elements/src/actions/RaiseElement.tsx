@@ -1,12 +1,13 @@
 import { createElementDefinition } from "@fireworks/shared";
 import { StepValue } from "@fireworks/shared";
-import { raiseConfig, RaiseProps } from "@fireworks/element-config";
+import { raiseConfig } from "@fireworks/element-config";
 
-export const Raise = createElementDefinition<RaiseProps>({
+export const Raise = createElementDefinition({
   ...raiseConfig,
-  role: "action",
-  elementType: "raise",
-  allowedChildren: "none",
+  tag: "raise" as const,
+  role: "action" as const,
+  elementType: "raise" as const,
+  allowedChildren: "none" as const,
   async execute(ctx) {
     const { event } = ctx.attributes;
 
@@ -21,11 +22,13 @@ export const Raise = createElementDefinition<RaiseProps>({
 
       const resultObject = { event };
 
-      return new StepValue({
-        type: "object",
-        object: resultObject,
-        raw: JSON.stringify(resultObject),
-      });
+      return {
+        result: new StepValue({
+          type: "object",
+          object: resultObject,
+          raw: JSON.stringify(resultObject),
+        }),
+      };
     } catch (error) {
       console.error(`Error in raise element (${event}):`, error);
       throw error;

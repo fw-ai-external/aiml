@@ -1,21 +1,15 @@
-import { createElementDefinition, BaseElement } from "@fireworks/shared";
+import { createElementDefinition } from "@fireworks/shared";
 import { StepValue } from "@fireworks/shared";
 import { v4 as uuidv4 } from "uuid";
-import {
-  ElementExecutionContext,
-  onExitConfig,
-  OnExitProps,
-} from "@fireworks/element-config";
-import { RunstepOutput } from "@fireworks/types";
+import { onExitConfig } from "@fireworks/element-config";
 
-export const OnExit = createElementDefinition<OnExitProps>({
+export const OnExit = createElementDefinition({
   ...onExitConfig,
+  tag: "onexit" as const,
+  allowedChildren: "any",
   role: "action",
   elementType: "onexit",
-  async execute(
-    ctx: ElementExecutionContext<OnExitProps>,
-    childrenNodes: BaseElement[]
-  ): Promise<StepValue<RunstepOutput>> {
+  async execute(ctx, childrenNodes) {
     // Execute all child actions in sequence
     const results: any[] = [];
     for (const child of childrenNodes) {
@@ -28,16 +22,13 @@ export const OnExit = createElementDefinition<OnExitProps>({
       }
     }
 
-    return new StepValue({
-      type: "object",
-      object: {
-        id: ctx.attributes.id ?? uuidv4(),
-        results,
-      },
-      raw: JSON.stringify({
-        id: ctx.attributes.id ?? uuidv4(),
-        results,
+    return {
+      result: new StepValue({
+        object: {
+          id: ctx.attributes.id ?? uuidv4(),
+          results,
+        },
       }),
-    });
+    };
   },
 });

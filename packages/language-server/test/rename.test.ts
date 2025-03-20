@@ -1,7 +1,7 @@
 import { type LanguageServerHandle } from "@volar/test-utils";
 
 import assert from "node:assert/strict";
-import { afterEach, beforeEach, test } from "node:test";
+import { afterEach, beforeEach, test } from "bun:test";
 import { createServer, fixturePath, fixtureUri, tsdk } from "./utils.js";
 
 let serverHandle: LanguageServerHandle;

@@ -54,6 +54,9 @@ export async function GET(
     const elementTree = hydreateElementTree(persistedWorkflow.ast.nodes);
     const workflow = new Workflow(elementTree);
 
+    // Get the context values from the workflow
+    const contextValues = workflow.getContextValues();
+
     // Sanitize the response to remove any circular references
     const responseData = {
       ...persistedWorkflow,
@@ -61,6 +64,7 @@ export async function GET(
       elementTree: elementTree.toJSON(),
       stepGraph: workflow.toGraph(),
       executionGraph: workflow.getExecutionGraph(),
+      contextValues,
     };
 
     return NextResponse.json(responseData);
@@ -132,6 +136,7 @@ export async function POST(
         .optional(),
       elementTree: z.any().optional(),
       stepSubscriberGraph: z.record(z.any()).optional(),
+      contextValues: z.record(z.any()).optional(),
     });
 
     const validationResult = WorkflowSchema.safeParse(body);
@@ -164,7 +169,20 @@ export async function POST(
       ast,
       elementTree: elementTree.toJSON(),
       executionGraph: workflow.getExecutionGraph(),
+      contextValues: workflow.getContextValues(),
     };
+
+    // Also check if we're rehydrating with existing context values
+    if (body.contextValues && Object.keys(body.contextValues).length > 0) {
+      try {
+        workflow.rehydrateContextValues(body.contextValues);
+
+        // Re-fetch the context values after rehydration to include in response
+        workflowData.contextValues = workflow.getContextValues();
+      } catch (error) {
+        console.error("Error rehydrating context values:", error);
+      }
+    }
 
     // Sanitize the workflow data to remove any circular references
     const serializedWorkflow = sanitizeForJSON(workflowData);

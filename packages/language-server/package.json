@@ -20,7 +20,7 @@
     "test-api": "bun test",
     "dev": "echo \"bun run dev.ts --watch\"",
     "test": "echo \"bun run test-api\"",
-    "build": "echo \"tsc -p tsconfig.build.json\""
+    "prod-build": "echo \"tsc -p tsconfig.build.json\""
   },
   "dependencies": {
     "@mdx-js/language-service": "0.6.2",

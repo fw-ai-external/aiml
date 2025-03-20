@@ -1,11 +1,11 @@
 import { describe, expect, it, beforeEach } from "bun:test";
 import { Parallel } from "./ParallelElement";
 import { State } from "./StateElement";
-import { ElementExecutionContext } from "@fireworks/types";
 import { z } from "zod";
 import { BaseElement } from "@fireworks/shared";
 import { StepValue } from "@fireworks/shared";
-import { MockElementExecutionContext } from "../utils/mock-execution-context";
+import { MockMastraContext } from "../utils/MockMastraContext";
+import { ActionContext } from "@mastra/core";
 
 const parallelSchema = z.object({
   id: z.string().optional(),
@@ -14,7 +14,7 @@ const parallelSchema = z.object({
 type ParallelProps = z.infer<typeof parallelSchema>;
 
 describe("ParallelElement", () => {
-  let ctx: ElementExecutionContext<ParallelProps>;
+  let ctx: ActionContext<any>;
   let root: BaseElement;
 
   beforeEach(() => {
@@ -34,30 +34,8 @@ describe("ParallelElement", () => {
       onExecutionGraphConstruction: () => ({}) as any,
     });
 
-    ctx = new MockElementExecutionContext({
+    ctx = new MockMastraContext({
       input: new StepValue({ type: "text", text: "" }),
-      workflowInput: {
-        userMessage: "",
-        chatHistory: [],
-        clientSideTools: [],
-      },
-      datamodel: {},
-
-      attributes: {},
-      state: {
-        id: "test",
-        attributes: {},
-        input: new StepValue({ type: "text", text: "" }),
-      },
-      machine: {
-        id: "test",
-        secrets: {
-          system: {},
-        },
-      },
-      run: {
-        id: "test",
-      },
     });
   });
 

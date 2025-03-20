@@ -118,7 +118,9 @@ export const If = createElementDefinition({
         );
         if (cEG) {
           const lastPartition = ifNode.next![partitionIndex];
-          lastPartition.next!.push(cEG);
+          if (lastPartition) {
+            lastPartition.next!.push(cEG);
+          }
         }
       }
     }

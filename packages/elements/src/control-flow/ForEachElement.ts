@@ -68,11 +68,11 @@ export const ForEach = createElementDefinition<ForEachAttributes>({
         }
       }
 
-      return new StepValue({
-        type: "object",
-        object: { iterations: arrayValue.length },
-        raw: JSON.stringify({ iterations: arrayValue.length }),
-      });
+      return {
+        result: new StepValue({
+          object: { iterations: arrayValue.length },
+        }),
+      };
     } catch (error) {
       console.error("Error in foreach element:", error);
       throw error;

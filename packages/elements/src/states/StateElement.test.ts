@@ -2,9 +2,9 @@ import { describe, expect, it, beforeEach } from "bun:test";
 import { State } from "./StateElement";
 import { z } from "zod";
 import { StepValue } from "@fireworks/shared";
-import { ElementExecutionContext } from "@fireworks/types";
 import { BaseElement } from "@fireworks/shared";
-import { MockElementExecutionContext } from "../utils/mock-execution-context";
+import { MockMastraContext } from "../utils/MockMastraContext";
+import { ActionContext } from "@mastra/core";
 
 const stateSchema = z.object({
   id: z.string().optional(),
@@ -14,7 +14,7 @@ const stateSchema = z.object({
 type StateProps = z.infer<typeof stateSchema>;
 
 describe("StateElement", () => {
-  let ctx: ElementExecutionContext<StateProps>;
+  let ctx: ActionContext<any>;
   let root: BaseElement;
 
   beforeEach(() => {
@@ -34,7 +34,7 @@ describe("StateElement", () => {
       onExecutionGraphConstruction: () => ({}) as any,
     });
 
-    ctx = new MockElementExecutionContext({
+    ctx = new MockMastraContext({
       input: new StepValue({ type: "text", text: "" }),
       datamodel: {},
       workflowInput: {
@@ -43,12 +43,6 @@ describe("StateElement", () => {
         systemMessage: "you are a helpful assistant",
         clientSideTools: [],
       },
-      attributes: {},
-      state: {
-        id: "test",
-        attributes: {},
-        input: new StepValue({ type: "text", text: "" }),
-      },
       machine: {
         id: "test",
         secrets: {
@@ -56,9 +50,6 @@ describe("StateElement", () => {
             OPENAI_API_KEY: "test-key",
           },
         },
-      },
-      run: {
-        id: "test",
       },
     });
   });

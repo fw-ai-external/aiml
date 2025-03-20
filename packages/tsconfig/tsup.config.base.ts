@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts", "!src/**/*.test.ts", "!src/**/*.test.tsx"],
+  entry: ["src/index.ts"],
   format: ["esm", "cjs"], // Generate both ESM and CommonJS
   dts: true, // Generate declaration files
   splitting: false,

@@ -1,44 +1,90 @@
-export * from "./utils";
-export * from "./runtime";
-export * from "./errorCodes";
-export * from "./diagnostics";
-export * from "./elements";
-export * from "./values";
-export * from "./openai";
-export * from "./datamodel";
-import type {
+// Import everything explicitly from each module to avoid ambiguity
+import { isAIMLElement, Unpack } from "./utils";
+import {
   BuildContext,
   ExecutionGraphElement,
   StepValueResult,
   ElementExecutionContext,
   ElementExecutionContextSerialized,
   StepValue,
+  StepValueResultType,
 } from "./runtime";
-import type {
+import { ErrorCode } from "./errorCodes";
+import {
   ErrorResult,
   JSONObject,
   OpenAIToolCall,
   Secrets,
   RunStreamEvent,
+  TOOLS,
 } from "./values";
 import type { z } from "zod";
-import { ErrorCode } from "./errorCodes";
+import type {
+  ElementRole,
+  AllowedChildrenType,
+  SerializedElement,
+  ElementType,
+} from "./elements";
+export * from "./values/data-types";
+export * from "./values";
+// Re-export everything explicitly
+export {
+  // From utils
+  isAIMLElement,
+};
 
 export type {
-  ExecutionGraphElement,
-  StepValueResult as RunstepOutput,
+  // From utils
+  ElementType,
+  Unpack,
+
+  // From runtime
   BuildContext,
+  ExecutionGraphElement,
+  StepValueResult,
   ElementExecutionContext,
   ElementExecutionContextSerialized,
   StepValue,
+  StepValueResultType,
+
+  // From values
   ErrorResult,
   JSONObject,
   OpenAIToolCall,
   Secrets,
   RunStreamEvent as RunEvent,
+  TOOLS,
 };
 
+// From errorCodes
 export { ErrorCode };
+
+// Re-export modules
+export * from "./diagnostics";
+export * from "./elements";
+export * from "./openai";
+export * from "./datamodel";
+
+// Re-export types from elements.ts to maintain backward compatibility
+export type {
+  ElementType as ElementsElementType,
+  ElementRole,
+  AllowedChildrenType,
+  SerializedBaseElement,
+  SerializedElement,
+  Attributes,
+  ASTNodeType,
+  CommentNode,
+  TextNode,
+  ExpressionNode,
+  ParagraphNode,
+  HeaderNode,
+  HeaderFieldNode,
+  ImportNode,
+  FireAgentNode,
+} from "./elements";
+
+export { elementRoleMap } from "./elements";
 
 /**
  * Configuration for a base element
@@ -78,44 +124,3 @@ export interface ExecutionReturnType {
   contextUpdate?: Record<string, any>;
   exception?: Error;
 }
-
-// Re-export types from elements.ts to maintain backward compatibility
-import type {
-  ElementType,
-  ElementRole,
-  AllowedChildrenType,
-  SerializedBaseElement,
-  SerializedElement,
-  Attributes,
-  ASTNodeType,
-  CommentNode,
-  TextNode,
-  ExpressionNode,
-  ParagraphNode,
-  HeaderNode,
-  HeaderFieldNode,
-  ImportNode,
-  FireAgentNode,
-} from "./elements";
-
-import { elementRoleMap } from "./elements";
-
-export type {
-  ElementType,
-  ElementRole,
-  AllowedChildrenType,
-  SerializedBaseElement,
-  SerializedElement,
-  Attributes,
-  ASTNodeType,
-  CommentNode,
-  TextNode,
-  ExpressionNode,
-  ParagraphNode,
-  HeaderNode,
-  HeaderFieldNode,
-  ImportNode,
-  FireAgentNode,
-};
-
-export { elementRoleMap };
