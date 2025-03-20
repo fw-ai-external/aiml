@@ -34,11 +34,21 @@ export const Final = createElementDefinition({
         ...buildContext.attributes,
       },
     };
-    console.log("finalEG", finalEG);
+
+    console.log(
+      `Registering final state with ID: ${finalEG.id} and key: ${finalEG.key}`
+    );
+
+    // Register with specific ID
     buildContext.setCachedGraphElement(
       [buildContext.elementKey, buildContext.attributes.id].filter(Boolean),
       finalEG
     );
+
+    // Also register with generic 'final' ID to help transitions that target 'final'
+    buildContext.setCachedGraphElement("final", finalEG);
+
+    console.log("Final element registered successfully");
 
     return finalEG;
   },

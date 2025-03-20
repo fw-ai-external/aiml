@@ -16,13 +16,12 @@ import type {
   ElementExecutionContext,
   ElementType,
   ElementRole,
+  ExecutionReturnType,
 } from "@fireworks/types";
 import { BaseElement } from "./BaseElement";
 import { v4 as uuidv4 } from "uuid";
 // Define ElementProps since we're having import issues
 type ElementProps = Record<string, any>;
-
-export type ElementConfigSchema<T = any> = z.ZodType<T>;
 
 export type AllowedChildrenType = string[] | "none" | "any" | "text";
 
@@ -50,11 +49,11 @@ export type ElementDefinition<
   tag: ElementType;
   role: ElementRole;
   elementType: ElementType;
-  propsSchema: ElementConfigSchema<Props>;
+  propsSchema: z.ZodType<Props>;
   execute?: (
     ctx: ElementExecutionContext<Props>,
     childrenNodes: BaseElement[]
-  ) => Promise<Result>;
+  ) => Promise<ExecutionReturnType>;
   render?: (
     ctx: ElementExecutionContext<Props>,
     childrenNodes: BaseElement[]

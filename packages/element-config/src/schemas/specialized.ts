@@ -73,10 +73,18 @@ export const dataConfig: BaseElementDefinition = {
     id: z.string(),
     expr: z.string().optional(),
     src: z.string().optional(),
+    type: z
+      .enum(["string", "number", "boolean", "object", "array"])
+      .default("string"),
+    readonly: z.boolean().default(false),
+    fromRequest: z.boolean().default(false),
+    defaultValue: z.any().optional(),
+    content: z.string().optional(),
   }),
-  description: "Declares a data item",
+  description: "Declares a data item with type validation and scope control",
   allowedChildren: "text" as AllowedChildrenType,
-  documentation: "Declares a data item",
+  documentation:
+    "Declares a data item with type validation, scope control, and readonly properties",
 };
 
 export type DataProps = z.infer<typeof dataConfig.propsSchema>;

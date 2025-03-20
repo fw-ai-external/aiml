@@ -25,10 +25,6 @@ export async function POST(req: Request) {
   const elementTree = hydreateElementTree(persistedWorkflow.ast.nodes);
   const workflow = new Workflow(elementTree);
 
-  console.log(
-    "==*** workflow userMessage",
-    messages[messages.length - 1].content
-  );
   const result = workflow.runStream({
     userMessage: messages[messages.length - 1].content,
     secrets: {

@@ -5,6 +5,7 @@ export * from "./diagnostics";
 export * from "./elements";
 export * from "./values";
 export * from "./openai";
+export * from "./datamodel";
 import type {
   BuildContext,
   ExecutionGraphElement,
@@ -62,11 +63,20 @@ export interface SerializedElementConfig {
   allowedChildren: AllowedChildrenType;
   schema: z.ZodType<any>;
   type: "element";
-  execute?: any;
+  execute?: (
+    context: ElementExecutionContext,
+    childrenNodes: any[]
+  ) => Promise<ExecutionReturnType>;
   lineStart: number;
   lineEnd: number;
   columnStart: number;
   columnEnd: number;
+}
+
+export interface ExecutionReturnType {
+  result: StepValue;
+  contextUpdate?: Record<string, any>;
+  exception?: Error;
 }
 
 // Re-export types from elements.ts to maintain backward compatibility

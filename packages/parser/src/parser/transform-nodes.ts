@@ -5,6 +5,10 @@ import {
   ExpressionNode,
   DiagnosticSeverity,
 } from "@fireworks/types";
+import {
+  validateAssignElements,
+  buildDatamodelFromAST,
+} from "./validate-assign.js";
 import { MDXToAIMLOptions } from "../types.js";
 import { Node } from "unist";
 import { extractTextFromNode } from "../utils/text-extraction.js";
@@ -123,6 +127,15 @@ export function transformToAIMLNodes(
 
     // Merge adjacent paragraphs
     mergeParagraphs(nodes);
+
+    // Build datamodel from data elements
+    const datamodel = buildDatamodelFromAST(ast);
+
+    // Validate assign elements
+    const assignDiagnostics = validateAssignElements(ast, datamodel);
+
+    // Add assign diagnostics to the result
+    diagnostics.push(...assignDiagnostics);
   }
 
   return nodes;

@@ -11,3 +11,4 @@ export * from "./workflow-utils";
 export * from "./types";
 export * from "./element-utils";
 export * from "./initialize";
+export * from "./RunValue";

@@ -98,13 +98,16 @@ describe("TransitionElement", () => {
     const value = await result?.result.value();
     expect(value).toEqual({
       type: "object",
-      object: { event: "next", target: "state2", conditionMet: true },
+      object: {
+        event: "next",
+        target: "state2",
+        conditionMet: true,
+      },
       raw: JSON.stringify({
         event: "next",
         target: "state2",
         conditionMet: true,
       }),
-      wasHealed: false,
     });
   });
 
@@ -124,13 +127,16 @@ describe("TransitionElement", () => {
     const value = await result?.result?.value();
     expect(value).toEqual({
       type: "object",
-      object: { event: "next", target: "state2", conditionMet: true },
+      object: {
+        event: "next",
+        target: "state2",
+        conditionMet: true,
+      },
       raw: JSON.stringify({
         event: "next",
         target: "state2",
         conditionMet: true,
       }),
-      wasHealed: false,
     });
   });
 
@@ -150,13 +156,16 @@ describe("TransitionElement", () => {
     const value = await result?.result?.value();
     expect(value).toEqual({
       type: "object",
-      object: { event: "next", target: "state2", conditionMet: false },
+      object: {
+        event: "next",
+        target: "state2",
+        conditionMet: false,
+      },
       raw: JSON.stringify({
         event: "next",
         target: "state2",
         conditionMet: false,
       }),
-      wasHealed: false,
     });
   });
 });

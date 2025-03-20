@@ -372,7 +372,7 @@ export class StepValue<Value extends StepValueResult = StepValueResult>
         } else {
           // If we received a finish event but no final value, set an error
           this._error = new Error(
-            "Error during generation, final delta(s) were never sent from the model"
+            `Error during generation, final delta(s) were never sent from the model ${JSON.stringify(eventChunk)}`
           );
         }
 

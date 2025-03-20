@@ -1,4 +1,5 @@
 import { StepValueChunk } from "./runtime";
+export * from "./values/data-types";
 
 export interface ErrorResult {
   type: "error";

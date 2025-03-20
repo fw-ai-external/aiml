@@ -11,6 +11,8 @@ const transitionSchema = z.object({
   target: z.string().optional(),
 });
 
+type TransitionProps = z.infer<typeof transitionSchema>;
+
 // Override the initFromAttributesAndNodes method to return a TransitionElement instance
 export const Transition = createElementDefinition({
   tag: "transition",
@@ -69,17 +71,16 @@ export const Transition = createElementDefinition({
       next: actionChildren.length > 0 ? actionChildren : undefined,
     };
 
-    // store it in the cache
-    buildContext.setCachedGraphElement(
-      [key, buildContext.attributes.id].filter(Boolean),
-      transitionNode
-    );
-
     // 5. If 'target' is defined, link the target's ExecutionGraphElement
     if (target) {
       const maybeTargetElement: BaseElement | undefined =
-        // @ts-expect-error
-        buildContext.findElementByKey(target, buildContext.fullSpec);
+        buildContext.findElementByKey(target, buildContext.workflow);
+
+      // Log the result of the search
+      console.log(
+        `Search result for '${target}': ${maybeTargetElement ? "Found" : "Not found"}`
+      );
+
       if (!maybeTargetElement) {
         throw new Error(
           `Transition ${id} has target ${target} which is not found in the workflow`
@@ -104,6 +105,12 @@ export const Transition = createElementDefinition({
       }
       transitionNode.next = [...(transitionNode.next || []), targetEG];
     }
+
+    // store it in the cache
+    buildContext.setCachedGraphElement(
+      [key, buildContext.attributes.id].filter(Boolean),
+      transitionNode
+    );
 
     // return the newly built transition node
     return transitionNode;

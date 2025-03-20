@@ -1,6 +1,45 @@
 # Changelog
 
+## March 20, 2025
+
+### Element Definition Return Type Enhancement
+
+- Updated ElementDefinition execute functions to return a more specific type instead of 'any'
+- Changed return type to include result: StepValue, contextUpdate?: Record<string, any>, exception?: Error
+- Updated BaseElement class to handle the new return type structure
+- Modified AssignElement to use the new return type structure
+- Updated SerializedElementConfig interface to reflect the new execute function type
+- Ensured all packages build successfully with the new return type structure
+- Improved error handling and context updates in element execution
+
 ## March 19, 2025
+
+### Data Model Type System Simplification
+
+- Simplified the type system by consolidating complex types into a single JSON type
+- Renamed ValueType.COMPLEX to ValueType.JSON and removed redundant ValueType.OBJECT and ValueType.ARRAY
+- Renamed ComplexTypeSchema to JSONSchema for better semantic clarity
+- Updated validateValueType and getDefaultForType functions to handle JSON validation with schema requirements
+- Made schema attribute required for JSON types to ensure proper validation
+- Updated documentation in docs/data-model.md to reflect the new type system
+- Updated tests to use the new type system and ensure compatibility
+- Ensured all packages build successfully with the simplified type system
+
+### Data Model Implementation
+
+- Implemented enhanced data and datamodel elements with type validation, document-based scoping, readonly properties, and request-based values
+- Added ValueType enum to define supported data types (string, number, boolean, object, array)
+- Implemented type validation functions to ensure values match their declared types
+- Added metadata storage for data elements to track type, readonly status, and parent state ID
+- Enhanced DataElement to support fromRequest flag for sourcing values directly from user input
+- Made fromRequest values automatically readonly to prevent unauthorized modifications
+- Added validation to ensure data elements have either fromRequest=true or an expr/src attribute
+- Implemented default value handling for type validation failures
+- Updated DataModelElement to validate the entire model and enforce type constraints
+- Enhanced AssignElement to check for readonly properties before updating values
+- Added error handling for attempts to assign to variables that don't exist or are readonly
+- Created test cases for DataModelElement to validate type constraints and readonly properties
+- Ensured all packages build successfully with the new implementation
 
 ### Data Model Implementation Plan
 

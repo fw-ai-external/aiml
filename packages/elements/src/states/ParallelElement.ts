@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createElementDefinition } from "@fireworks/shared";
+import { createElementDefinition, StepValue } from "@fireworks/shared";
 import { ExecutionGraphElement } from "@fireworks/types";
 import { BaseElement } from "@fireworks/shared";
 
@@ -23,6 +23,32 @@ export const Parallel = createElementDefinition({
     "history",
     "datamodel",
   ],
+  async execute(ctx, childrenNodes) {
+    const { id } = ctx.attributes;
+
+    // Execute all child nodes in parallel
+    const childPromises: Promise<any>[] = [];
+    if (childrenNodes && childrenNodes.length > 0) {
+      for (const child of childrenNodes) {
+        if (child.execute) {
+          childPromises.push(child.execute(ctx));
+        }
+      }
+    }
+
+    // Wait for all child executions to complete
+    await Promise.all(childPromises);
+
+    // Return parallel state information
+    return {
+      result: new StepValue({
+        type: "object",
+        object: { id, isActive: true },
+        raw: JSON.stringify({ id, isActive: true }),
+        wasHealed: false,
+      }),
+    };
+  },
   onExecutionGraphConstruction(buildContext) {
     // 1. Check cache to avoid building multiple times
     const cached = buildContext.getCachedGraphElement(

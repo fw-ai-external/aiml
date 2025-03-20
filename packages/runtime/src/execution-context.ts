@@ -11,10 +11,15 @@ import type {
   CoreUserMessage,
   UserContent,
 } from "ai";
-import { StepValue } from "@fireworks/shared";
-import { type RunstepOutput, type Secrets } from "@fireworks/types";
+import { StepValue, BaseElement } from "@fireworks/shared";
+import {
+  ScopedDataModel,
+  type RunstepOutput,
+  type Secrets,
+} from "@fireworks/types";
 import { ChatCompletionMessageToolCall } from "openai/resources/chat/completions";
 import { container, ServiceIdentifiers } from "./di";
+import { createScopedDataModel } from "@fireworks/elements";
 
 type TagNodeDTO = any;
 
@@ -92,6 +97,9 @@ export class ExecutionContext<
   context: StepContext<InputValue>;
   suspend: () => Promise<void>;
 
+  // Store the scoped data model for child contexts to access
+  private _scopedDataModel?: ScopedDataModel;
+
   constructor(params: {
     input: StepValue<InputValue>;
     workflowInput: {
@@ -116,11 +124,35 @@ export class ExecutionContext<
     run: {
       id: string;
     };
+    element?: BaseElement;
+    parentContext?: ExecutionContext<any, any>;
   }) {
     // TODO: validate input using input schema
     this.input = params.input;
     this.workflowInput = params.workflowInput;
-    this.datamodel = params.datamodel;
+
+    // Create a scoped data model if an element is provided
+    if (params.element) {
+      const parentDataModel = params.parentContext?._scopedDataModel;
+
+      // Create a scoped data model for this element
+      this._scopedDataModel = createScopedDataModel(
+        params.element.id,
+        params.datamodel,
+        params.datamodel.__metadata as Record<string, any>,
+        parentDataModel
+      );
+
+      // Create a proxy for the datamodel that enforces scoping rules
+      this.datamodel = this._createDataModelProxy(
+        this._scopedDataModel,
+        params.element.id
+      );
+    } else {
+      // If no element is provided, use the datamodel as is
+      this.datamodel = params.datamodel;
+    }
+
     this.machine = params.machine;
     this.run = params.run;
     this.attributes = params.attributes ?? ({} as PropValues);
@@ -130,7 +162,7 @@ export class ExecutionContext<
     this.runId = params.run.id;
     this.context = {
       input: params.input,
-      datamodel: params.datamodel,
+      datamodel: this.datamodel,
       state: params.state,
       stepResults: {},
       triggerData: {},
@@ -140,6 +172,71 @@ export class ExecutionContext<
     this.suspend = async () => {
       // Implementation for suspend
     };
+  }
+
+  /**
+   * Creates a proxy for the datamodel that enforces scoping rules
+   */
+  private _createDataModelProxy(
+    scopedModel: ScopedDataModel,
+    elementId: string
+  ): Record<string, any> {
+    return new Proxy(
+      {},
+      {
+        get(target, prop) {
+          const key = String(prop);
+
+          // Special case for __metadata
+          if (key === "__metadata") {
+            return scopedModel.getAllMetadata();
+          }
+
+          return scopedModel.get(key);
+        },
+
+        set(target, prop, value) {
+          const key = String(prop);
+
+          // Don't allow setting __metadata directly
+          if (key === "__metadata") {
+            console.warn("Cannot set __metadata directly");
+            return false;
+          }
+
+          try {
+            return scopedModel.set(key, value);
+          } catch (error) {
+            console.error(`Error setting ${key}:`, error);
+            return false;
+          }
+        },
+
+        has(target, prop) {
+          const key = String(prop);
+          return scopedModel.has(key);
+        },
+
+        ownKeys() {
+          // Return all accessible variables
+          const allVars = scopedModel.getAllVariables();
+          return Object.keys(allVars);
+        },
+
+        getOwnPropertyDescriptor(target, prop) {
+          const key = String(prop);
+          if (scopedModel.has(key)) {
+            return {
+              value: scopedModel.get(key),
+              writable: !scopedModel.getMetadata(key)?.readonly,
+              enumerable: true,
+              configurable: true,
+            };
+          }
+          return undefined;
+        },
+      }
+    );
   }
 
   /**
@@ -166,11 +263,13 @@ export class ExecutionContext<
    * Create a child execution context
    * @param childAttributes The child attributes
    * @param childInput The child input
+   * @param element The element for which to create the context
    * @returns The child execution context
    */
   createChildContext<ChildProps extends {}, ChildInput extends RunstepOutput>(
     childAttributes: ChildProps,
-    childInput: StepValue<ChildInput>
+    childInput: StepValue<ChildInput>,
+    element?: BaseElement
   ): ExecutionContext<ChildProps, ChildInput> {
     return new ExecutionContext<ChildProps, ChildInput>({
       input: childInput,
@@ -183,6 +282,8 @@ export class ExecutionContext<
       },
       machine: this.machine,
       run: this.run,
+      element,
+      parentContext: this,
     });
   }
 }
@@ -224,6 +325,8 @@ export class ExecutionContextFactory {
     run: {
       id: string;
     };
+    element?: BaseElement;
+    parentContext?: ExecutionContext<any, any>;
   }): ExecutionContext<PropValues, InputValue> {
     return new ExecutionContext<PropValues, InputValue>(params);
   }
@@ -237,7 +340,9 @@ export class ExecutionContextFactory {
     PropValues extends {} = {},
     InputValue extends RunstepOutput = RunstepOutput,
   >(
-    serialized: ElementExecutionContextSerialized
+    serialized: ElementExecutionContextSerialized,
+    element?: BaseElement,
+    parentContext?: ExecutionContext<any, any>
   ): ExecutionContext<PropValues, InputValue> {
     // Create a StepValue from the serialized input
     const input = new StepValue(serialized.input);
@@ -255,6 +360,8 @@ export class ExecutionContextFactory {
       },
       machine: serialized.machine,
       run: serialized.run,
+      element,
+      parentContext,
     });
   }
 }

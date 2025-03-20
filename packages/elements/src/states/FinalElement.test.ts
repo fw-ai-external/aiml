@@ -14,7 +14,7 @@ const finalSchema = z.object({
 type FinalProps = z.infer<typeof finalSchema>;
 
 describe("FinalElement", () => {
-  let ctx: ElementExecutionContext<FinalProps>;
+  let ctx: ElementExecutionContext<any>;
   let root: BaseElement;
 
   beforeEach(() => {
@@ -63,7 +63,7 @@ describe("FinalElement", () => {
       run: {
         id: "test",
       },
-    });
+    }) as any;
   });
 
   it("should create instance with correct properties", () => {
@@ -99,9 +99,14 @@ describe("FinalElement", () => {
     const value = await result?.result?.value();
     expect(value).toEqual({
       type: "object",
-      object: { id: "final1", isActive: true },
-      raw: JSON.stringify({ id: "final1", isActive: true }),
-      wasHealed: false,
+      object: {
+        id: "final1",
+        isActive: true,
+      },
+      raw: JSON.stringify({
+        id: "final1",
+        isActive: true,
+      }),
     });
   });
 
@@ -126,9 +131,14 @@ describe("FinalElement", () => {
     const value = await result?.result?.value();
     expect(value).toEqual({
       type: "object",
-      object: { id: "final1", isActive: true },
-      raw: JSON.stringify({ id: "final1", isActive: true }),
-      wasHealed: false,
+      object: {
+        id: "final1",
+        isActive: true,
+      },
+      raw: JSON.stringify({
+        id: "final1",
+        isActive: true,
+      }),
     });
   });
 });

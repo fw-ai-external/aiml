@@ -51,6 +51,8 @@ export class BaseElement
   protected _dataModel: Record<string, unknown> = {};
   protected _eventQueue: Array<{ name: string; data: unknown }> = [];
   protected _parent?: WeakRef<BaseElement>;
+  protected _parentElementId?: string;
+  protected _childrenIds: string[] = [];
   private stepConditions?: {
     when: (
       context: ElementExecutionContext<any, RunstepOutput>
@@ -78,6 +80,15 @@ export class BaseElement
     this._parent = config.parent
       ? (config.parent as WeakRef<BaseElement>)
       : undefined;
+
+    // Set parent ID if parent is provided
+    if (this._parent) {
+      const parent = this._parent.deref();
+      if (parent) {
+        this._parentElementId = parent.id;
+        parent.addChild(this);
+      }
+    }
     this.allowedChildren = config.allowedChildren;
     this.schema = config.schema;
     this.onExecutionGraphConstruction = config.onExecutionGraphConstruction;
@@ -161,7 +172,7 @@ export class BaseElement
       };
     }
     try {
-      const result = await this._execute(
+      const executeResult = await this._execute(
         {
           ...context,
           attributes: this.attributes,
@@ -182,13 +193,16 @@ export class BaseElement
         console.error("Error executing element:", error);
         // Return an error object that will be handled by the runtime
         return {
-          type: "error",
-          code: ErrorCode.SERVER_ERROR,
-          error: error instanceof Error ? error.message : String(error),
+          result: {
+            type: "error",
+            code: ErrorCode.SERVER_ERROR,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          exception: error instanceof Error ? error : new Error(String(error)),
         };
       });
 
-      if (!result) {
+      if (!executeResult || !executeResult.result) {
         return {
           result: {
             type: "error",
@@ -198,13 +212,23 @@ export class BaseElement
         };
       }
 
+      // Store the result in the datamodel
       this._dataModel = {
         ...this._dataModel,
-        [this.id]: result,
+        [this.id]: executeResult.result,
       };
 
+      // Apply any context updates if provided
+      if (executeResult.contextUpdate) {
+        for (const [key, value] of Object.entries(
+          executeResult.contextUpdate
+        )) {
+          this._dataModel[key] = value;
+        }
+      }
+
       return {
-        result,
+        result: executeResult.result,
       };
     } catch (error) {
       console.error("Error executing element:", error);
@@ -248,6 +272,45 @@ export class BaseElement
   protected evaluateExpr(expr: string, context: unknown): unknown {
     const fnBody = `with(_data) { with(context) { return ${expr}; } }`;
     return new Function("context", "_data", fnBody)(context, this._dataModel);
+  }
+
+  /**
+   * Get the parent element ID
+   */
+  get parentElementId(): string | undefined {
+    return this._parentElementId;
+  }
+
+  /**
+   * Get the IDs of all child elements
+   */
+  get childrenIds(): string[] {
+    return [...this._childrenIds]; // Return a copy to prevent direct modification
+  }
+
+  /**
+   * Add a child element and establish the parent-child relationship
+   */
+  addChild(child: BaseElement): void {
+    if (!this._childrenIds.includes(child.id)) {
+      this._childrenIds.push(child.id);
+      child._parentElementId = this.id;
+    }
+  }
+
+  /**
+   * Get all ancestor IDs in order from parent to root
+   */
+  getAncestorIds(): string[] {
+    const ancestors: string[] = [];
+    let current: BaseElement | undefined = this._parent?.deref();
+
+    while (current) {
+      ancestors.push(current.id);
+      current = current._parent?.deref();
+    }
+
+    return ancestors;
   }
 
   protected getParentOfType<T extends BaseElement>(

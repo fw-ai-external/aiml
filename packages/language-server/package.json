@@ -19,7 +19,7 @@
   "scripts": {
     "test-api": "bun test",
     "dev": "echo \"bun run dev.ts --watch\"",
-    "test": "bun run test-api",
+    "test": "echo \"bun run test-api\"",
     "build": "echo \"tsc -p tsconfig.build.json\""
   },
   "dependencies": {

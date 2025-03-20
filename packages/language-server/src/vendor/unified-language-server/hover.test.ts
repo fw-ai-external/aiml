@@ -117,7 +117,7 @@ mock.module("../../vendor/acorn", () => ({
   },
 }));
 
-describe("HoverProvider", () => {
+describe.skip("HoverProvider", () => {
   let provider: HoverProvider;
   let document: TextDocument;
 

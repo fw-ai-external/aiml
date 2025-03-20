@@ -24,7 +24,7 @@ export function getProvider(
 
 export function getProviderWithClient(
   model: string = "accounts/fireworks/models/llama-v3p1-8b-instruct",
-  secrets: Secrets,
+  secrets: Secrets = { system: {}, user: {} },
   response_format: {
     type: string;
     grammar?: string;
@@ -33,6 +33,9 @@ export function getProviderWithClient(
   repetitionPenalty: number | undefined = undefined,
   extra_headers?: Record<string, string>
 ): { provider: LanguageModelV1; client: OpenAI | null } {
+  // Ensure secrets.system exists to prevent undefined errors
+  if (!secrets) secrets = { system: {}, user: {} };
+  if (!secrets.system) secrets.system = {};
   const cerebrasModels = ["llama3.1-8b", "llama3.1-70b"];
   const openaiModels = [
     "gpt-4o",
