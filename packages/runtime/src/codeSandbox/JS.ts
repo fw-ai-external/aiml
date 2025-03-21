@@ -1,5 +1,5 @@
 import Sandbox from "@nyariv/sandboxjs";
-import { type ElementExecutionContextSerialized } from "@fireworks/shared";
+import { ElementExecutionContextSerialized } from "../ElementExecutionContext";
 
 type SandboxOptions = {
   timeLimit?: number;

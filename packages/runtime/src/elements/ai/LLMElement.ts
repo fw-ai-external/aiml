@@ -6,7 +6,7 @@ import { ExecutionGraphElement, ExecutionReturnType } from "../../types";
 import { StepValueChunk } from "@fireworks/shared";
 import { streamText } from "ai";
 import { ReplayableAsyncIterableStream } from "@fireworks/shared";
-import { parseTemplateLiteral } from "../utils/strings";
+import { parseTemplateLiteral } from "../../utils/strings";
 
 // Use the LLMProps type from element-config
 export const LLM = createElementDefinition({

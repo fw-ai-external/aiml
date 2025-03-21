@@ -4,7 +4,7 @@ di.initializeRuntime();
 
 // Export all runtime functionality
 export * from "./graphBuilder";
-export * from "./ExecutionContext";
+export * from "./ElementExecutionContext";
 export * from "./workflow";
 export * from "./hydrateElementTree";
 export * from "./utils";

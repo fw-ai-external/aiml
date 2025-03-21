@@ -16,7 +16,7 @@ import {
 import { BuildContext } from "./graphBuilder/Context";
 import { z } from "zod";
 import { RunValue } from "./RunValue";
-import { ExecutionContext } from "./ExecutionContext";
+import { ExecutionContext } from "./ElementExecutionContext";
 import { ExecutionGraphElement } from "./types";
 
 /**

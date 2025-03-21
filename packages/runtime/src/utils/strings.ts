@@ -1,5 +1,5 @@
-import { ElementExecutionContextSerialized } from "@fireworks/shared";
-import { sandboxedEval } from "./JSSandbox";
+import { ElementExecutionContextSerialized } from "../ElementExecutionContext";
+import { sandboxedEval } from "../codeSandbox/JS";
 
 export function parseTemplateLiteral(
   template: string,

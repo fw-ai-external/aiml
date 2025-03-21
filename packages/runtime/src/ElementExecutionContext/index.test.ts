@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { ElementExecutionContext } from "./ElementExecutionContext";
-import { StepValue } from "@fireworks/shared";
+import { ElementExecutionContext } from ".";
+import { StepValue } from "../StepValue";
 
 describe("ElementExecutionContext", () => {
   it("builtinKeys array  should map 1:1 to serialized method's returnd keys ensuring validation of data elements works", async () => {
@@ -13,6 +13,7 @@ describe("ElementExecutionContext", () => {
         systemMessage: "",
         chatHistory: [],
         clientSideTools: [],
+        secrets: { system: {}, user: {} },
       },
       attributes: {},
       run: { id: "run_0" },

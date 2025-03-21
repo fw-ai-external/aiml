@@ -1,25 +1,34 @@
 import { describe, expect, it } from "bun:test";
-import type { ElementExecutionContextSerialized } from "@fireworks/shared";
-import { sandboxedEval } from "./JSSandbox";
-
+import { sandboxedEval } from "./JS";
+import { ElementExecutionContextSerialized } from "../ElementExecutionContext";
+import { StepValue } from "../StepValue";
 // Helper function to create a base context with required properties
 function createBaseContext(
   overrides: Record<string, any> = {}
 ): ElementExecutionContextSerialized {
   return {
-    input: null,
-    inputs: null,
-    chatHistory: [],
-    userInput: "",
-    context: {},
-    props: {},
-    step: { id: "rs_test-step", name: "test", type: "test" },
-    output: null,
-    _event: { name: "test", data: {} },
-    _sessionid: "test-session",
-    _name: "test",
-    _ioprocessors: {},
-    _x: {},
+    input: new StepValue({ type: "text", text: "" }),
+    workflowInput: {
+      chatHistory: [],
+      userMessage: "",
+      systemMessage: "",
+      clientSideTools: [],
+      secrets: {
+        system: {},
+        user: {},
+      },
+    },
+    datamodel: {},
+    attributes: {},
+    state: {
+      id: "rs_test-step",
+      attributes: {},
+      input: new StepValue({ type: "text", text: "" }),
+    },
+    run: { id: "test-run" },
+    machine: { id: "test-machine", secrets: { system: {}, user: {} } },
+    runId: "test-run-id",
+    suspend: async () => {},
     ...overrides,
   };
 }

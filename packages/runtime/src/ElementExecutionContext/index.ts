@@ -11,8 +11,8 @@ import type {
   CoreUserMessage,
   UserContent,
 } from "ai";
-import { StepValue } from "./StepValue";
-import { BaseElement } from "./elements/BaseElement";
+import { StepValue } from "../StepValue";
+import { BaseElement } from "../elements/BaseElement";
 import {
   ScopedDataModel,
   type StepValueResult,
@@ -20,28 +20,11 @@ import {
   SerializedBaseElement,
 } from "@fireworks/shared";
 import { ChatCompletionMessageToolCall } from "openai/resources/chat/completions";
-import { container, ServiceIdentifiers } from "./di";
-import { hydreateElementTree } from "./hydrateElementTree";
-import { createScopedDataModel } from "./elements";
+import { container, ServiceIdentifiers } from "../di";
+import { hydreateElementTree } from "../hydrateElementTree";
+import { createScopedDataModel } from "../elements";
 
 type TagNodeDTO = any;
-
-/**
- * Step context for execution
- */
-export interface StepContext<T extends StepValueResult> {
-  input: StepValue<T>;
-  datamodel: Record<string, any>;
-  state: {
-    id: string;
-    attributes: Record<string, any>;
-    input: StepValue<T>;
-  };
-  stepResults: Record<string, any>;
-  triggerData: Record<string, any>;
-  attempts: Record<string, number>;
-  getStepPayload: () => any;
-}
 
 /**
  * Serialized execution context
@@ -90,6 +73,7 @@ export class ExecutionContext<
       CoreUserMessage | CoreAssistantMessage | CoreToolMessage
     >;
     clientSideTools: ChatCompletionMessageToolCall.Function[];
+    secrets: Secrets;
   };
   datamodel: Record<string, any>;
   attributes: PropValues & { children?: TagNodeDTO[] } = {} as PropValues;
