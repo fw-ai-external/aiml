@@ -4,7 +4,7 @@ import { ElementDefinition } from "@fireworks/shared";
 import { BaseElement } from "./elements/BaseElement";
 import { z } from "zod";
 import { BuildContext } from "./graphBuilder/Context";
-
+import { ElementExecutionContext } from "./ElementExecutionContext";
 // Define ErrorResult locally to avoid circular dependency
 export interface ErrorResult {
   type: "error";
@@ -71,39 +71,6 @@ export interface ExecutionGraphElement {
   parallel?: ExecutionGraphElement[];
 }
 
-/**
- * ElementExecutionContext - Context for executing elements.
- */
-export interface ElementExecutionContext<PropValues = any, InputValue = any> {
-  input: InputValue;
-  workflowInput: {
-    userMessage: any;
-    systemMessage?: string;
-    chatHistory: Array<any>;
-    clientSideTools: any[];
-  };
-  datamodel: Record<string, any>;
-  attributes: PropValues & { children?: any[] };
-  state: {
-    id: string;
-    attributes: Record<string, any>;
-    input: any;
-  };
-  machine: {
-    id: string;
-    secrets: any;
-  };
-  run: {
-    id: string;
-  };
-  runId: string;
-  context: any;
-  suspend: () => Promise<void>;
-  serialize(): Promise<any>;
-}
-
-export type ElementExecutionContextSerialized = Record<string, any>;
-
 export type TOOLS = {
   [key: string]: {
     parameters: any;
@@ -139,11 +106,11 @@ export type RuntimeElementDefinition<
   Props extends z.infer<PropsSchema> = z.infer<PropsSchema>,
 > = ElementDefinition<PropsSchema, Props> & {
   execute?: (
-    ctx: ElementExecutionContext<Props>,
+    ctx: InstanceType<typeof ElementExecutionContext<Props>>,
     childrenNodes: BaseElement[]
   ) => Promise<ExecutionReturnType>;
   render?: (
-    ctx: ElementExecutionContext<Props>,
+    ctx: InstanceType<typeof ElementExecutionContext<Props>>,
     childrenNodes: BaseElement[]
   ) => Promise<any>;
   enter?: () => Promise<void>;

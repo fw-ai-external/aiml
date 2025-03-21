@@ -1,5 +1,4 @@
 import { createElementDefinition } from "../createElementFactory";
-import { StepValue } from "../../StepValue";
 import { ExecutionGraphElement } from "../../types";
 import { BaseElement } from "../BaseElement";
 import { stateConfig } from "@fireworks/shared";
@@ -10,28 +9,6 @@ export const State = createElementDefinition({
   role: "state" as const,
   elementType: "state" as const,
   tag: "state" as const,
-  async execute(ctx, childrenNodes) {
-    const { id } = ctx.attributes;
-
-    // Execute any child nodes if needed
-    if (childrenNodes && childrenNodes.length > 0) {
-      for (const child of childrenNodes) {
-        if (child.execute) {
-          await child.execute(ctx);
-        }
-      }
-    }
-
-    // Return state information
-    return {
-      result: new StepValue({
-        type: "object",
-        object: { id, isActive: true },
-        raw: JSON.stringify({ id, isActive: true }),
-        wasHealed: false,
-      }),
-    };
-  },
   onExecutionGraphConstruction(buildContext) {
     const existing = buildContext.getCachedGraphElement(
       buildContext.elementKey

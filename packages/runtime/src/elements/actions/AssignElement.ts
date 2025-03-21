@@ -1,17 +1,17 @@
 import { createElementDefinition } from "../createElementFactory";
 import { v4 as uuidv4 } from "uuid";
 import { assignConfig, AssignProps } from "@fireworks/shared";
-import type { ElementExecutionContext } from "../../types";
 import { validateValueType } from "@fireworks/shared";
 import { StepValue } from "../../StepValue";
 import { ExecutionReturnType } from "../../types";
 import { BuildContext } from "../../graphBuilder/Context";
+import { ElementExecutionContext } from "../../ElementExecutionContext";
 
 /**
  * Resolves the value to assign from either an expression or input
  */
 async function resolveAssignValue(
-  ctx: ElementExecutionContext<AssignProps>,
+  ctx: InstanceType<typeof ElementExecutionContext<AssignProps>>,
   expr?: string
 ): Promise<any> {
   // If expr is provided, evaluate it
@@ -52,7 +52,7 @@ async function resolveAssignValue(
  * Checks type constraints and readonly status
  */
 function validateAssignment(
-  ctx: ElementExecutionContext<AssignProps>,
+  ctx: InstanceType<typeof ElementExecutionContext<AssignProps>>,
   location: string,
   value: any
 ): void {

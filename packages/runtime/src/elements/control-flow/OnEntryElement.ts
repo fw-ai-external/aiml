@@ -5,21 +5,14 @@ export const OnEntry = createElementDefinition({
   ...onEntryConfig,
   role: "action",
   elementType: "onentry",
-  async execute(ctx, childrenNodes) {
-    // Execute all child actions in sequence
-    const results: any[] = [];
-    for (const child of childrenNodes) {
-      if (typeof child.execute === "function") {
-        // Pass the context directly to child execution
-        const result = await child.execute(ctx);
-        if (result) {
-          results.push(result);
-        }
-      }
-    }
-
+  onExecutionGraphConstruction: (buildContext) => {
     return {
-      result: ctx.input,
+      id: buildContext.attributes.id,
+      key: buildContext.elementKey,
+      type: "action",
+      subType: "onentry",
+      attributes: buildContext.attributes,
+      next: [],
     };
   },
 });

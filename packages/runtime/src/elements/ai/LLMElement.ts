@@ -43,7 +43,7 @@ export const LLM = createElementDefinition({
     try {
       const { provider } = getProviderWithClient(
         ctx.attributes.model,
-        ctx.context.triggerData?.secrets || { system: {}, user: {} },
+        ctx.machine?.secrets || { system: {}, user: {} },
         ctx.attributes.grammar
           ? {
               type: "grammar",

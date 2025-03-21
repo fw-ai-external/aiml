@@ -4,8 +4,8 @@ import { LLM } from "./LLMElement";
 import { BaseElement } from "../BaseElement";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { ElementExecutionContext } from "../../ExecutionContext";
-import { MockMastraContext } from "../utils/MockMastraContext";
+import { ElementExecutionContext } from "../../ElementExecutionContext";
+import { MockMastraContext } from "../../utils/MockMastraContext";
 
 /**
  * Helper function to extract the value from an execution result

@@ -1,7 +1,8 @@
 import { createElementDefinition } from "../createElementFactory";
-import { ElementExecutionContext, ExecutionReturnType } from "../../types";
+import { ExecutionReturnType } from "../../types";
 import { scriptConfig } from "@fireworks/shared";
 import { StepValue } from "../../StepValue";
+import { ElementExecutionContext } from "../../ElementExecutionContext";
 
 export const Script = createElementDefinition({
   ...scriptConfig,
@@ -42,7 +43,10 @@ export const Script = createElementDefinition({
   },
 });
 
-async function executeScript(script: string, ctx: ElementExecutionContext) {
+async function executeScript(
+  script: string,
+  ctx: InstanceType<typeof ElementExecutionContext>
+) {
   try {
     // Create a new Function with the script content and execute it with the context
     const fn = new Function(

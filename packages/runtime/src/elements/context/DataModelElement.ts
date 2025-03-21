@@ -10,7 +10,7 @@ import {
   getDefaultForType,
 } from "@fireworks/shared";
 import type { ScopedDataModel } from "./ScopedDataModel";
-import { ElementExecutionContext } from "../../types";
+import { ElementExecutionContext } from "../../ElementExecutionContext";
 
 export const DataModel = createElementDefinition({
   ...dataModelConfig,
@@ -63,7 +63,7 @@ export const DataModel = createElementDefinition({
 
 async function initializeDataElement(
   element: BaseElement,
-  ctx: ElementExecutionContext<DataModelProps>
+  ctx: InstanceType<typeof ElementExecutionContext<DataModelProps>>
 ): Promise<void> {
   const id = element.id;
   const expr = element.attributes["expr"];
@@ -159,7 +159,9 @@ async function initializeDataElement(
   scopedModel.setValue(id, value, metadata);
 }
 
-function validateDataModel(ctx: ElementExecutionContext<DataModelProps>): void {
+function validateDataModel(
+  ctx: InstanceType<typeof ElementExecutionContext<DataModelProps>>
+): void {
   const scopedModel = (ctx as any).scopedDataModel as ScopedDataModel;
   const metadata = scopedModel.getAllMetadata();
   const ids = Object.keys(metadata);

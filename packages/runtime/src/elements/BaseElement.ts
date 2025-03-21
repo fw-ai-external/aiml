@@ -12,11 +12,10 @@ import { BuildContext } from "../graphBuilder/Context";
 import {
   ExecutionGraphElement,
   ExecutionReturnType,
-  ElementExecutionContext,
   RuntimeElementDefinition,
 } from "../types";
 import { defaultStepExecutionGraphMapper } from "../utils";
-
+import { ElementExecutionContext } from "../ElementExecutionContext";
 export class BaseElement
   implements Omit<SerializedElement, "parent" | "children">
 {
@@ -57,11 +56,13 @@ export class BaseElement
   protected _parentElementId?: string;
   protected _childrenIds: string[] = [];
   private stepConditions?: {
-    when: (context: ElementExecutionContext) => Promise<boolean>;
+    when: (
+      context: InstanceType<typeof ElementExecutionContext>
+    ) => Promise<boolean>;
   };
   private _isActive: boolean = false;
   private _execute?: (
-    context: ElementExecutionContext<any, any>,
+    context: InstanceType<typeof ElementExecutionContext<any, any>>,
     childrenNodes: BaseElement[]
   ) => Promise<ExecutionReturnType>;
 
@@ -132,7 +133,9 @@ export class BaseElement
 
   get conditions():
     | {
-        when: (context: ElementExecutionContext) => Promise<boolean>;
+        when: (
+          context: InstanceType<typeof ElementExecutionContext>
+        ) => Promise<boolean>;
       }
     | undefined {
     return this.stepConditions;
@@ -141,7 +144,9 @@ export class BaseElement
   set conditions(
     value:
       | {
-          when: (context: ElementExecutionContext) => Promise<boolean>;
+          when: (
+            context: InstanceType<typeof ElementExecutionContext>
+          ) => Promise<boolean>;
         }
       | undefined
   ) {
@@ -171,7 +176,7 @@ export class BaseElement
     }
     try {
       const executeResult = await this._execute(
-        {
+        new ElementExecutionContext({
           ...context,
           input: context.context.input,
           workflowInput: (context as any).workflowInput || {},
@@ -192,9 +197,7 @@ export class BaseElement
           run: {
             id: (context as any)?.run?.id,
           },
-          runId: (context as any)?.runId,
-          serialize: async () => JSON.stringify(context),
-        },
+        }),
         childrenNodes
       ).catch((error) => {
         console.error("Error executing element:", error);
@@ -251,7 +254,9 @@ export class BaseElement
 
   protected getDefaultStepConditions():
     | {
-        when: (context: ElementExecutionContext) => Promise<boolean>;
+        when: (
+          context: InstanceType<typeof ElementExecutionContext>
+        ) => Promise<boolean>;
       }
     | undefined {
     return undefined;
@@ -259,7 +264,9 @@ export class BaseElement
 
   public getStepConditions():
     | {
-        when: (context: ElementExecutionContext) => Promise<boolean>;
+        when: (
+          context: InstanceType<typeof ElementExecutionContext>
+        ) => Promise<boolean>;
       }
     | undefined {
     return this.stepConditions ?? this.getDefaultStepConditions();
