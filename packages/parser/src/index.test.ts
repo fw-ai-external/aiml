@@ -45,7 +45,7 @@ describe("AIML Parsing Tests", () => {
         (child) => child.tag === "llm"
       );
       expect(llmElement).not.toBeUndefined();
-      expect(llmElement?.attributes?.prompt).toBe("Hi!");
+      expect(llmElement?.attributes?.instructions).toBe("Hi!");
     });
     it("should parse a basic  but full AIML file", async () => {
       const input = `
