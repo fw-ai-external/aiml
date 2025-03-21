@@ -6,7 +6,7 @@ import { ElementExecutionContext } from "../ElementExecutionContext";
 function createBaseContext(overrides: Record<string, any> = {}) {
   return new ElementExecutionContext({
     input: new StepValue({ type: "text", text: "" }),
-    workflowInput: {
+    requestInput: {
       chatHistory: [],
       userMessage: "",
       systemMessage: "",
@@ -17,10 +17,10 @@ function createBaseContext(overrides: Record<string, any> = {}) {
       },
     },
     datamodel: {},
-    attributes: {},
+    props: {},
     state: {
       id: "rs_test-step",
-      attributes: {},
+      props: {},
       input: new StepValue({ type: "text", text: "" }),
     },
     run: { id: "test-run" },
@@ -39,28 +39,31 @@ describe("sandboxedEval", () => {
   // Test with custom sandbox variables
   it("should access sandbox variables correctly", async () => {
     const context = createBaseContext({
-      x: 10,
-      y: 20,
+      datamodel: {
+        x: 10,
+        y: 20,
+      },
     });
-    const result = await sandboxedEval("x + y", context);
+    const result = await sandboxedEval("datamodel.x + datamodel.y", context);
     expect(result).toBe(30);
   });
 
   // Test nested object access
   it("should handle nested object access", async () => {
     const context = createBaseContext({
-      "data.value": 42,
-      data: { nested: { value: 100 } },
+      datamodel: {
+        data: { nested: { value: 100 } },
+      },
     });
-    const result = await sandboxedEval("data.nested.value", context);
+    const result = await sandboxedEval("datamodel.data.nested.value", context);
     expect(result).toBe(100);
   });
 
   // Test with codeInReturn option
   it("should respect codeInReturn option", async () => {
-    const context = createBaseContext({ x: 5 });
+    const context = createBaseContext({ datamodel: { x: 5 } });
     const result = await sandboxedEval(
-      "let y = x * 2; y += 1; return y;",
+      "let y = datamodel.x * 2; y += 1; return y;",
       context,
       {
         codeInReturn: false,
@@ -71,45 +74,59 @@ describe("sandboxedEval", () => {
 
   // Test error handling for invalid code
   it("should throw SandboxEvalError for syntax errors", async () => {
-    await expect(async () => {
-      await sandboxedEval("invalid syntax }", createBaseContext());
-    }).rejects.toThrow(Error);
+    await expect(
+      sandboxedEval("invalid syntax }", createBaseContext())
+    ).rejects.toThrow(Error);
   });
 
   // Test undefined handling
   it("should handle undefined values in context", async () => {
     const context = createBaseContext({
-      definedValue: 42,
-      undefinedValue: undefined,
+      datamodel: {
+        definedValue: 42,
+        undefinedValue: undefined,
+      },
     });
-    const result = await sandboxedEval("definedValue", context);
+    const result = await sandboxedEval("datamodel.definedValue", context);
     expect(result).toBe(42);
   });
 
   // Test built-in constants
   it("should handle RunStepContext built-in keys correctly", async () => {
     const context = createBaseContext({
-      _event: { name: "test", data: {} },
-      customVar: "value",
+      datamodel: {
+        _event: { name: "test", data: {} },
+        customVar: "value",
+      },
     });
-    const result = await sandboxedEval("_event.name + customVar", context);
+    const result = await sandboxedEval(
+      "datamodel._event.name + datamodel.customVar",
+      context
+    );
     expect(result).toBe("testvalue");
   });
 
   // Test array operations
   it("should handle array operations", async () => {
     const context = createBaseContext({
-      arr: [1, 2, 3],
+      datamodel: {
+        arr: [1, 2, 3],
+      },
     });
-    const result = await sandboxedEval("arr.map(x => x * 2)", context);
+    const result = await sandboxedEval(
+      "datamodel.arr.map(x => x * 2)",
+      context
+    );
     expect(result).toEqual([2, 4, 6]);
   });
 
   // Test multiple statements
   it("should execute multiple statements with codeInReturn false", async () => {
-    const context = createBaseContext({ initial: 5 });
+    const context = createBaseContext({
+      datamodel: { initial: 5 },
+    });
     const code = `
-      let result = initial;
+      let result = datamodel.initial;
       result *= 2;
       result += 1;
       return result;
@@ -120,19 +137,23 @@ describe("sandboxedEval", () => {
 
   // Test error for accessing forbidden globals
   it("should prevent access to forbidden globals", async () => {
-    await expect(async () => {
-      await sandboxedEval("process.env", createBaseContext());
-    }).rejects.toThrow();
+    const promise = expect(
+      sandboxedEval("process.env", createBaseContext())
+    ).rejects.toThrow();
+
+    await promise;
   });
 
   // Test string operations
   it("should handle string operations", async () => {
     const context = createBaseContext({
-      firstName: "John",
-      lastName: "Doe",
+      datamodel: {
+        firstName: "John",
+        lastName: "Doe",
+      },
     });
     const result = await sandboxedEval(
-      "firstName.toUpperCase() + ' ' + lastName",
+      "datamodel.firstName.toUpperCase() + ' ' + datamodel.lastName",
       context
     );
     expect(result).toBe("JOHN Doe");
@@ -141,11 +162,16 @@ describe("sandboxedEval", () => {
   // Test mathematical operations
   it("should handle complex mathematical operations", async () => {
     const context = createBaseContext({
-      a: 10,
-      b: 5,
-      c: 2,
+      datamodel: {
+        a: 10,
+        b: 5,
+        c: 2,
+      },
     });
-    const result = await sandboxedEval("Math.pow(a, 2) + b * c", context);
+    const result = await sandboxedEval(
+      "Math.pow(datamodel.a, 2) + datamodel.b * datamodel.c",
+      context
+    );
     expect(result).toBe(110); // 100 + 10
   });
 });
