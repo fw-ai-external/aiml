@@ -78,7 +78,7 @@ async function testFinalStateAddition() {
   console.log("\n===== Testing Workflow Graph Construction =====");
 
   // Now we need to build the execution graph to check transitions
-  // Import necessary code from @fireworks/elements and @fireworks/runtime
+  // Import necessary code from @fireworks/runtime
   // This is a simplified version since we don't have those modules available directly
 
   console.log("\nWorkflow children:");

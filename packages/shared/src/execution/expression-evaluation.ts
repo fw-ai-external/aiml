@@ -42,3 +42,4 @@ export function extractValueFromInput(inputValue: any): any {
 
   return inputValue;
 }
+

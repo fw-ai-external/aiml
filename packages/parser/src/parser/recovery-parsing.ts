@@ -1,7 +1,7 @@
 import { Processor } from "unified";
 import { Root } from "mdast";
 import { VFile } from "vfile";
-import { Diagnostic, DiagnosticSeverity } from "@fireworks/types";
+import { Diagnostic, DiagnosticSeverity } from "@fireworks/shared";
 
 /**
  * Parses MDX content recursively, handling missing closing tags and removing problematic lines

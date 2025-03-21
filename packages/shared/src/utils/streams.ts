@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { simulateStreamingMiddleware } from "ai";
-import { StepValueChunk, StepValueResult } from "@fireworks/types";
+import { StepValueChunk, StepValueResult } from "../types";
 
 export enum StreamState {
   ACTIVE = "active",

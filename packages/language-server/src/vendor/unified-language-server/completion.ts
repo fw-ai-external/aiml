@@ -11,9 +11,10 @@ import {
   IActiveToken,
   getOwnerTagName,
 } from "../../vendor/utils/token";
-import { allElementConfigs } from "@fireworks/element-config";
+import { allElementConfigs } from "@fireworks/shared";
 import { DebugLogger } from "../../vendor/utils/debug";
 import { parseToTokens, Token, TokenType } from "../../vendor/acorn";
+import { ZodTypeAny } from "zod";
 
 type StateTracker = any;
 export class CompletionProvider {
@@ -270,7 +271,9 @@ export class CompletionProvider {
       return [];
     }
 
-    const schema = elementConfig.propsSchema.shape[attrName];
+    const schema = elementConfig.propsSchema.shape[
+      attrName as keyof typeof elementConfig.propsSchema.shape
+    ] as ZodTypeAny;
     if (!schema) {
       this.logger.completion("No schema found", { attrName });
       return [];

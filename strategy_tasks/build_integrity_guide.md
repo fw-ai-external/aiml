@@ -177,24 +177,15 @@ When reviewing PRs, verify that:
 - [ ] No untested code was added
 - [ ] Build performance was not significantly degraded
 
-## Emergency Hotfix Protocol
-
-In rare emergency situations requiring immediate fixes:
-
-1. The fix must still build successfully
-2. Tests must be added immediately after the fix
-3. A follow-up PR must be created to increase test coverage
-4. The emergency nature must be documented in the PR
-
 ## Example: Fixing a Failed Build
 
 ```bash
 # 1. Attempt to build all packages
 bun run build
 
-# Output shows error in @fireworks/elements package
+# Output shows error in @fireworks/runtime package
 
-# 2. Fix the issue in packages/elements/src/problem-file.ts
+# 2. Fix the issue in packages/runtime/src/problem-file.ts
 
 # 3. Build just the affected package to verify fix
 cd packages/elements

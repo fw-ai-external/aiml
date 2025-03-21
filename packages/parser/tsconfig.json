@@ -10,15 +10,11 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
-    "src/**/*.mts",
-    "src/**/*.mtsx",
     "src/**/*.json",
   ],
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "declaration": true,
-    "declarationMap": true,
-    "noEmit": false
+    "noEmit": true
   }
 }

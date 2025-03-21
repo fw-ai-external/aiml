@@ -8,31 +8,24 @@ The AIML architecture has been refactored to address several issues with the pre
 
 ```mermaid
 graph TD
-    subgraph types["@fireworks/types"]
-        TypeDefs["Type Definitions"]
-    end
-
-    subgraph element-config["@fireworks/element-config"]
-        ElementSchemas["Element Schemas"]
-    end
 
     subgraph element-core["@fireworks/shared"]
         BaseElement["BaseElement"]
         Factory["Element Factory"]
+        TypeDefs["Type Definitions"]
+        ElementSchemas["Element Schemas"]
     end
 
-    subgraph elements["@fireworks/elements"]
-        ElementDefs["Element Definitions"]
-        StateElements["State Elements"]
-        ActionElements["Action Elements"]
-        ControlFlowElements["Control Flow Elements"]
-    end
 
     subgraph runtime["@fireworks/runtime"]
         DI["Dependency Injection"]
         GraphBuilder["Graph Builder"]
         ExecutionContext["Execution Context"]
         WorkflowRunner["Workflow Runner"]
+        ElementDefs["Element Definitions"]
+        StateElements["State Elements"]
+        ActionElements["Action Elements"]
+        ControlFlowElements["Control Flow Elements"]
     end
 
     subgraph parser["@fireworks/parser"]
@@ -75,12 +68,9 @@ graph TD
 
 The codebase is organized into the following packages:
 
-- **@fireworks/types**: Contains all type definitions used throughout the codebase. This is the foundation of the architecture and has no dependencies on other packages.
-- **@fireworks/element-config**: Contains element schemas and configurations. Depends only on @fireworks/types.
-- **@fireworks/shared**: Contains the base element class and factory. Depends on @fireworks/types and @fireworks/element-config.
-- **@fireworks/elements**: Contains specific element implementations. Depends on @fireworks/types, @fireworks/element-config, and @fireworks/shared.
-- **@fireworks/runtime**: Contains the runtime execution engine. Depends on @fireworks/types, @fireworks/shared, and @fireworks/elements.
-- **@fireworks/parser**: Responsible for parsing AIML files and creating element instances. Depends on @fireworks/types, @fireworks/element-config, @fireworks/shared, and @fireworks/elements.
+- **@fireworks/shared**: Contains the base element class and factory.
+- **@fireworks/runtime**: Contains the runtime execution engine. Depends on @fireworks/shared,
+- **@fireworks/parser**: Responsible for parsing AIML files and creating element instances. Depends on @fireworks/shared.
 
 ## Key Components
 

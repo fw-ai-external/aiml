@@ -22,10 +22,8 @@
   },
   "dependencies": {
     "@fireworks/element-config": "workspace:*",
-    "@fireworks/elements": "workspace:*",
     "@fireworks/runtime": "workspace:*",
     "@fireworks/shared": "workspace:*",
-    "@fireworks/types": "workspace:*",
     "@mdx-js/typescript-plugin": "^0.0.8",
     "ajv": "^8.17.1",
     "arktype": "^2.1.0",

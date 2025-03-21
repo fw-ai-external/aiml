@@ -14,7 +14,7 @@ import {
   ChatModelAdapter,
   useLocalRuntime,
 } from "@assistant-ui/react";
-import { OpenAIChatCompletionChunk } from "@fireworks/types";
+import { OpenAIChatCompletionChunk } from "@fireworks/shared";
 
 const AIMLOpenAIChatRuntime = ({
   workflowId,

@@ -11,7 +11,7 @@ import {
   getOwnerTagName,
 } from "./utils/token";
 // Remove the problematic import and create a mock version
-// import { allElementConfigs } from "@fireworks/element-config";
+// import { allElementConfigs } from "@fireworks/shared";
 
 // Mock version of allElementConfigs
 const mockElementConfigs = {

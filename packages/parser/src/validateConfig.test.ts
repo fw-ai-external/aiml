@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { validateConfig } from "./validateConfig";
-import { SerializedBaseElement } from "@fireworks/types";
+import { SerializedBaseElement } from "@fireworks/shared";
 
 describe("validateConfig", () => {
   it("should validate the config", () => {

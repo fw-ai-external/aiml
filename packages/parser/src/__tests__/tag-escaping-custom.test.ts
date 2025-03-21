@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { isAIMLElement } from "@fireworks/types";
-import { aimlElements } from "@fireworks/types";
+import { isAIMLElement } from "@fireworks/shared";
+import { aimlElements } from "@fireworks/shared";
 import { parseMDXFilesToAIML } from "..";
 import { VFile } from "vfile";
 

@@ -5,9 +5,9 @@ import type {
   RunEvent,
   OpenAIChatCompletion,
   StepValueResult,
-} from "@fireworks/types";
-import { StepValue } from "@fireworks/shared";
-import { ElementType } from "@fireworks/types";
+} from "@fireworks/shared";
+import { StepValue } from "./StepValue";
+import { ElementType } from "@fireworks/shared";
 import { FinishReason } from "ai";
 import {
   stepValueChunkToOpenAIChatCompletionChunk,
@@ -269,7 +269,18 @@ export class RunValue {
     if (!value) {
       throw new Error("No final output available");
     }
-    const openaiValue = stepValueResultToOpenAIChatCompletion(value);
+
+    // Add the missing files property if not present
+    let completeValue: StepValueResult;
+    if ("type" in value && value.type === "error") {
+      completeValue = value as StepValueResult;
+    } else if (!("files" in value)) {
+      completeValue = { ...value, files: [] } as StepValueResult;
+    } else {
+      completeValue = value as StepValueResult;
+    }
+
+    const openaiValue = stepValueResultToOpenAIChatCompletion(completeValue);
     if (!openaiValue) {
       throw new Error("No OpenAI value available");
     }
@@ -414,7 +425,19 @@ export class RunValue {
         } as any;
       }
 
-      return finalOutput.value();
+      const result = await finalOutput.value();
+
+      // Handle the result type appropriately
+      let completeValue: StepValueResult;
+      if ("type" in result && result.type === "error") {
+        completeValue = result as StepValueResult;
+      } else if (!("files" in result)) {
+        completeValue = { ...result, files: [] } as StepValueResult;
+      } else {
+        completeValue = result as StepValueResult;
+      }
+
+      return completeValue;
     } catch (error) {
       console.error("Error in responseValue:", error);
       return {

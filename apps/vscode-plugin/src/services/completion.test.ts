@@ -2,12 +2,10 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { Connection } from "vscode-languageserver";
 import { DebugLogger } from "../utils/debug";
 import { describe, expect, it, beforeEach, mock } from "bun:test";
-
-// Import directly from the mock directory
-import { allElementConfigs } from "./__mocks__/@fireworks/element-config";
+import { allElementConfigs } from "@fireworks/shared";
 
 // Mock the @fireworks/element-config module
-mock.module("@fireworks/element-config", () => ({
+mock.module("@fireworks/shared", () => ({
   allElementConfigs,
   isSupportedNodeName: (nodeName: string) => nodeName === "state",
   getNodeDefinitionClass: (tag: string) => {

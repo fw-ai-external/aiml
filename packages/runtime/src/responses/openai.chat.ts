@@ -3,7 +3,7 @@ import {
   OpenAIChatCompletionChunk,
   StepValueResult,
   StepValueChunk,
-} from "@fireworks/types";
+} from "@fireworks/shared";
 import { type ChatCompletionMessage } from "openai/resources/chat/completions";
 
 // Map a StepValueResult to an OpenAIChatCompletion type

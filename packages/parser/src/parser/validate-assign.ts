@@ -1,6 +1,6 @@
 import { visit } from "unist-util-visit";
-import { Diagnostic, DiagnosticSeverity } from "@fireworks/types";
-import { ValueType } from "@fireworks/types";
+import { Diagnostic, DiagnosticSeverity } from "@fireworks/shared";
+import { ValueType } from "@fireworks/shared";
 
 /**
  * Interface for variable metadata

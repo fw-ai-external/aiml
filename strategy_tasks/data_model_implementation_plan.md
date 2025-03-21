@@ -31,9 +31,9 @@ Based on code review, we have:
 ```typescript
 // packages/elements/src/context/DataElement.tsx
 import { z } from "zod";
-import { createElementDefinition } from "@fireworks/shared";
+import { createElementDefinition } from "../createElementFactory";
 import type { BaseElement } from "@fireworks/shared";
-import type { ElementExecutionContext } from "@fireworks/types";
+import type { ElementExecutionContext } from "@fireworks/shared";
 import { StepValue } from "@fireworks/shared";
 
 // Define value type enum
@@ -195,8 +195,8 @@ function validateValueType(value: any, type: ValueType): any {
 ```typescript
 // packages/elements/src/context/DataModelElement.ts
 import { z } from "zod";
-import { createElementDefinition } from "@fireworks/shared";
-import type { ElementExecutionContext } from "@fireworks/types";
+import { createElementDefinition } from "../createElementFactory";
+import type { ElementExecutionContext } from "@fireworks/shared";
 import { StepValue } from "@fireworks/shared";
 import type { BaseElement } from "@fireworks/shared";
 import { ValueType } from "./DataElement";
@@ -577,8 +577,8 @@ export class ElementExecutionContext<
 // packages/elements/src/actions/AssignElement.tsx
 import { createElementDefinition, StepValue } from "@fireworks/shared";
 import { v4 as uuidv4 } from "uuid";
-import { assignConfig } from "@fireworks/element-config";
-import type { ElementExecutionContext } from "@fireworks/types";
+import { assignConfig } from "@fireworks/shared";
+import type { ElementExecutionContext } from "@fireworks/shared";
 
 // Define the props interface locally based on what's needed
 interface AssignAttributes {

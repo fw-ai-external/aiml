@@ -2,7 +2,7 @@ import {
   DiagnosticPosition,
   Diagnostic,
   DiagnosticSeverity,
-} from "@fireworks/types";
+} from "@fireworks/shared";
 import { VFile } from "vfile";
 
 // Counter for generating unique keys

@@ -4,7 +4,7 @@ import remarkMdx from "remark-mdx";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
 import remarkGfm from "remark-gfm";
 import { VFile } from "vfile";
-import { Diagnostic, DiagnosticSeverity } from "@fireworks/types";
+import { Diagnostic, DiagnosticSeverity } from "@fireworks/shared";
 
 import { MDXToAIMLOptions, MDXParseResult } from "./types.js";
 import { resetKeyCounter } from "./utils/helpers.js";

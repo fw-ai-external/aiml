@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 // @ts-expect-error no types on @codingame/monaco-editor-wrapper
 import { initialize } from "@codingame/monaco-editor-wrapper";
 import Editor from "@codingame/monaco-editor-react";
-import { Diagnostic, DiagnosticSeverity } from "@fireworks/types";
+import { Diagnostic, DiagnosticSeverity } from "@fireworks/shared";
 import { MarkerSeverity } from "monaco-editor";
 
 // This should only be initialized once

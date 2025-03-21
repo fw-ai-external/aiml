@@ -5,20 +5,19 @@
  * It uses dependency injection to decouple from other components.
  */
 
-import { BaseElement } from "@fireworks/shared";
-// Use type-only import with resolution-mode
-import type { ExecutionGraphElement } from "@fireworks/types";
-import { StepValue } from "@fireworks/shared";
+import { BaseElement } from "./elements/BaseElement";
+import { StepValue } from "./StepValue";
 import { container, ServiceIdentifiers } from "./di";
-import { GraphBuilder } from "./graph-builder";
+import { GraphBuilder } from "./graphBuilder";
 import {
   Workflow as MastraWorkflow,
   WorkflowRunState,
 } from "@mastra/core/workflows";
-import { BuildContext } from "./BuildContext";
+import { BuildContext } from "./graphBuilder/Context";
 import { z } from "zod";
 import { RunValue } from "./RunValue";
-import { getScopedDataModelForContext } from "./ScopedElementExecutionContext";
+import { ExecutionContext } from "./ExecutionContext";
+import { ExecutionGraphElement } from "./types";
 
 /**
  * Workflow execution options
@@ -45,7 +44,7 @@ export type RuntimeOptions = {
 // Define interfaces for missing types to help with type safety
 interface WorkflowRun {
   id: string;
-  getExecutionContext?: () => any;
+  getExecutionContext?: () => ExecutionContext;
 }
 
 /**
@@ -355,52 +354,6 @@ export class Workflow<
         }
       } catch (e) {
         console.error("Error accessing workflow state:", e);
-      }
-
-      // Safely extract data from runs if available
-      try {
-        // Careful optional access to getRuns method which might not exist
-        const getRuns = (this.workflow as any).getRuns;
-        if (typeof getRuns === "function") {
-          const runs = getRuns.call(this.workflow);
-
-          if (Array.isArray(runs) && runs.length > 0) {
-            result.runs = runs.map((run: WorkflowRun) => {
-              const runData: Record<string, any> = { id: run.id };
-
-              if (typeof run.getExecutionContext === "function") {
-                const executionContext = run.getExecutionContext();
-
-                if (executionContext) {
-                  // Try to get data from scoped model
-                  if (typeof getScopedDataModelForContext === "function") {
-                    const dataModel =
-                      getScopedDataModelForContext(executionContext);
-                    if (
-                      dataModel &&
-                      typeof dataModel.getAllVariables === "function"
-                    ) {
-                      runData.datamodel = this.sanitizeForJSON(
-                        dataModel.getAllVariables()
-                      );
-                    }
-                  }
-
-                  // Fall back to context datamodel
-                  if (!runData.datamodel && executionContext.datamodel) {
-                    runData.datamodel = this.sanitizeForJSON(
-                      executionContext.datamodel
-                    );
-                  }
-                }
-              }
-
-              return runData;
-            });
-          }
-        }
-      } catch (e) {
-        console.error("Error accessing workflow runs:", e);
       }
 
       return result;

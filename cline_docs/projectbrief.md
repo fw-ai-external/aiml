@@ -66,11 +66,8 @@ The RunValue is the primary interface between the runtime and consumers, creatin
 
 **Key Packages:**
 
-- **@fireworks/types:** Type definitions used throughout the codebase
-- **@fireworks/element-config:** Element schemas and configurations
-- **@fireworks/shared:** Base element class and factory
-- **@fireworks/elements:** Specific element implementations
-- **@fireworks/runtime:** Runtime execution engine
+- **@fireworks/shared:** Base element classes, shared types, and element configurations
+- **@fireworks/runtime:** Runtime execution engine, and element implementations
 - **@fireworks/parser:** AIML file parsing
 - **@fireworks/language-server:** Language services for editor integration
 - **VSCode Plugin:** Editor support for AIML syntax

@@ -1,5 +1,5 @@
 import { VFile } from "vfile";
-import { SerializedBaseElement, Diagnostic } from "@fireworks/types";
+import { SerializedBaseElement, Diagnostic } from "@fireworks/shared";
 
 // Options for parsing MDX to AIML nodes
 export interface MDXToAIMLOptions {

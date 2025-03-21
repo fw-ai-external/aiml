@@ -6,10 +6,10 @@
 
 import { describe, expect, test, beforeEach, mock } from "bun:test";
 import { ReplayableAsyncIterableStream, ErrorCode } from "@fireworks/shared";
-import { StepValue } from "@fireworks/shared";
+import { StepValue } from "./StepValue";
 import { RunValue } from "./RunValue";
-import type { StepValueChunk, StepValueResult } from "@fireworks/types";
-import type { ElementType } from "@fireworks/types";
+import type { StepValueChunk, StepValueResult } from "@fireworks/shared";
+import type { ElementType } from "@fireworks/shared";
 
 type MockStepValueData =
   | {

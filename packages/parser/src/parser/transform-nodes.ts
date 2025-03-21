@@ -4,7 +4,7 @@ import {
   TextNode,
   ExpressionNode,
   DiagnosticSeverity,
-} from "@fireworks/types";
+} from "@fireworks/shared";
 import {
   validateAssignElements,
   buildDatamodelFromAST,
@@ -77,10 +77,11 @@ export function convertParagraphToLlmNode(
     type: "element",
     key: generateKey(),
     tag: "llm",
-    role: "output",
+    role: "action",
     elementType: "llm",
     attributes: {
-      prompt: promptText,
+      prompt: "${input}",
+      instructions: promptText,
       model: "accounts/fireworks/models/llama-v3p1-8b-instruct", // Default model
     },
     children: [],
@@ -88,7 +89,7 @@ export function convertParagraphToLlmNode(
     lineEnd: paragraphNode.lineEnd,
     columnStart: paragraphNode.columnStart,
     columnEnd: paragraphNode.columnEnd,
-  };
+  } as SerializedBaseElement;
 }
 
 /**

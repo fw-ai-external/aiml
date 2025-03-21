@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { ElementBuilder } from "../utils/element-builder";
 import { Project, SyntaxKind } from "ts-morph";
-import type { ElementRole } from "@fireworks/types";
+import type { ElementRole } from "@fireworks/shared";
 
 describe("ElementBuilder", () => {
   describe("determineRole", () => {

@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, spyOn } from "bun:test";
 import { Workflow } from "./workflow";
-import { BaseElement } from "@fireworks/shared";
+import { BaseElement } from "./elements";
 import path from "path";
 import fs from "fs";
 import { container } from "./di";
-import { registerGraphBuilder } from "./graph-builder";
+import { registerGraphBuilder } from "./graphBuilder";
 
 // Sample workflow data for testing
 const createTestElement = () => {

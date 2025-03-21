@@ -2,7 +2,7 @@ import {
   SerializedBaseElement,
   Diagnostic,
   CommentNode,
-} from "@fireworks/types";
+} from "@fireworks/shared";
 import { convertParagraphToLlmNode } from "./transform-nodes.js";
 import { generateKey } from "../utils/helpers.js";
 

@@ -6,57 +6,24 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**/*"]
     },
-    "@fireworks/types#build": {
-      "outputs": ["dist/**"],
-      "cache": false
-    },
-    "@fireworks/element-config#build": {
-      "dependsOn": ["@fireworks/types#build"],
-      "outputs": ["dist/**"]
-    },
     "@fireworks/shared#build": {
-      "dependsOn": ["@fireworks/types#build", "@fireworks/element-config#build"],
       "outputs": ["dist/**"]
     },
-    "@fireworks/elements#build": {
-      "dependsOn": ["@fireworks/types#build", "@fireworks/element-config#build", "@fireworks/shared#build"],
-      "outputs": ["dist/**"]
-    },
+
     "@fireworks/runtime#build": {
-      "dependsOn": ["@fireworks/types#build", "@fireworks/shared#build", "@fireworks/elements#build"],
+      "dependsOn": ["^@fireworks/shared#build"],
       "outputs": ["dist/**"]
     },
     "@fireworks/parser#build": {
-      "dependsOn": [
-        "@fireworks/types#build",
-        "@fireworks/element-config#build",
-        "@fireworks/shared#build",
-        "@fireworks/elements#build",
-        "@fireworks/runtime#build"
-      ],
+      "dependsOn": ["^@fireworks/shared#build"],
       "outputs": ["dist/**"]
     },
     "fireagent-plugin-vscode#build": {
-      "dependsOn": [
-        "@fireworks/types#build",
-        "@fireworks/element-config#build",
-        "@fireworks/shared#build",
-        "@fireworks/elements#build",
-        "@fireworks/runtime#build",
-        "@fireworks/shared#build",
-        "@fireworks/parser#build"
-      ],
+      "dependsOn": ["^@fireworks/shared#build", "^@fireworks/parser#build"],
       "outputs": ["dist/**"]
     },
     "@fireworks/aiml-ui#dev": {
-      "dependsOn": [
-        "@fireworks/types#build",
-        "@fireworks/shared#build",
-        "@fireworks/element-config#build",
-        "@fireworks/elements#build",
-        "@fireworks/parser#build",
-        "@fireworks/runtime#build"
-      ],
+      "dependsOn": ["@fireworks/shared#build", "@fireworks/parser#build", "@fireworks/runtime#build"],
       "persistent": true
     },
     "lint": {

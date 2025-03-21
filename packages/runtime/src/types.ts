@@ -1,34 +1,154 @@
-import type { z } from "zod";
+import { TextStreamPart, ObjectStreamPart } from "ai";
+import { StepValue } from "./StepValue";
+import { ElementDefinition } from "@fireworks/shared";
+import { BaseElement } from "./elements/BaseElement";
+import { z } from "zod";
+import { BuildContext } from "./graphBuilder/Context";
 
+// Define ErrorResult locally to avoid circular dependency
 export interface ErrorResult {
   type: "error";
-  error: string;
+  error: string | number | any;
   code: string;
 }
 
-export interface JSONObject {
-  [key: string]: any;
-}
-
-export interface OpenAIToolCall {
+/**
+ * ExecutionGraphElement - Represents a single node in the runtime execution graph.
+ */
+export interface ExecutionGraphElement {
+  /**
+   * Unique identifier provided by the user.
+   */
   id: string;
-  type: "function";
-  function: {
-    name: string;
-    arguments: string;
+  /**
+   * Unique identifier for every element, even if an id is not provided by the user or supported by the element.
+   */
+  key: string;
+
+  /**
+   * "step" or "action".
+   * - "step" => a control-flow node that may have children (e.g. sequence, parallel, state, etc.)
+   * - "action" => an executable operation node (log, assign, script, etc.)
+   * - "shadow" => a control-flow node that does not execute, but is used to track dependencies.
+   *   (e.g. parallelDone, historyDone, etc.)
+   */
+  type: "state" | "action" | "error" | "user-input" | "output";
+
+  /**
+   * subType clarifies the exact kind of step/action, e.g.
+   *   - "scxml", "state", "parallel", "final", "history" for step
+   *   - "transition", "log", "assign", "script", "send", "invoke" etc. for action
+   */
+  subType: string;
+
+  /**
+   * Arbitrary set of key-value pairs storing original SCXML attributes
+   * (id, event, cond, location, etc.), and any additional runtime config.
+   */
+  attributes: Record<string, any>;
+
+  /**
+   * Optional expression that, if false, means we skip this node at runtime.
+   */
+  when?: string;
+
+  /**
+   * List of other node IDs that must complete before this node can run.
+   * Used for complex flow with multi-joins or ordering constraints.
+   */
+  runAfter?: string[];
+
+  /**
+   * If this is a "step" that can have nested structure, we store them here.
+   * "action" nodes usually do not have children.
+   */
+  next?: ExecutionGraphElement[];
+
+  /**
+   * If this is a "step" that can have nested structure, we store them here.
+   * "action" nodes usually do not have children.
+   */
+  parallel?: ExecutionGraphElement[];
+}
+
+/**
+ * ElementExecutionContext - Context for executing elements.
+ */
+export interface ElementExecutionContext<PropValues = any, InputValue = any> {
+  input: InputValue;
+  workflowInput: {
+    userMessage: any;
+    systemMessage?: string;
+    chatHistory: Array<any>;
+    clientSideTools: any[];
   };
+  datamodel: Record<string, any>;
+  attributes: PropValues & { children?: any[] };
+  state: {
+    id: string;
+    attributes: Record<string, any>;
+    input: any;
+  };
+  machine: {
+    id: string;
+    secrets: any;
+  };
+  run: {
+    id: string;
+  };
+  runId: string;
+  context: any;
+  suspend: () => Promise<void>;
+  serialize(): Promise<any>;
 }
 
-export interface APIStreamEvent {
-  type: string;
-  [key: string]: any;
-}
+export type ElementExecutionContextSerialized = Record<string, any>;
 
-export interface ToolCall<Name extends string = string, Args = any> {
-  toolCallId: string;
-  toolName: Name;
-  args: Args;
-  type: "tool-call";
-}
+export type TOOLS = {
+  [key: string]: {
+    parameters: any;
+    description: string;
+  };
+};
 
-export const ToolCallSchema = {} as z.ZodType<ToolCall>;
+/**
+ * StepValueChunk - Chunk of a step value.
+ * based on the normalized data in the AI SDK from vercel
+ */
+export type StepValueChunk =
+  | Omit<
+      TextStreamPart<TOOLS>,
+      | "experimental_providerMetadata"
+      | "providerMetadata"
+      | "experimental_providerMetadata"
+      | "response"
+    >
+  | Omit<ObjectStreamPart<any>, "response" | "providerMetadata">;
+
+export interface ExecutionReturnType {
+  result: StepValue;
+  contextUpdate?: Record<string, any>;
+  exception?: Error;
+}
+export type RuntimeElementDefinition<
+  PropsSchema extends z.ZodObject<any> = z.ZodObject<
+    {
+      id: z.ZodOptional<z.ZodString>;
+    } & Record<string, z.ZodTypeAny>
+  >,
+  Props extends z.infer<PropsSchema> = z.infer<PropsSchema>,
+> = ElementDefinition<PropsSchema, Props> & {
+  execute?: (
+    ctx: ElementExecutionContext<Props>,
+    childrenNodes: BaseElement[]
+  ) => Promise<ExecutionReturnType>;
+  render?: (
+    ctx: ElementExecutionContext<Props>,
+    childrenNodes: BaseElement[]
+  ) => Promise<any>;
+  enter?: () => Promise<void>;
+  exit?: () => Promise<void>;
+  onExecutionGraphConstruction?: (
+    buildContext: BuildContext
+  ) => ExecutionGraphElement;
+};

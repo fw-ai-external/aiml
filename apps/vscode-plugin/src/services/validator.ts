@@ -4,8 +4,8 @@ import { Diagnostic, Connection } from "vscode-languageserver/node";
 import { DebugLogger } from "../utils/debug";
 import { Token, TokenType } from "../acorn";
 import { getOwnerAttributeName, getOwnerTagName } from "../utils/token";
-import { BaseElement } from "@fireworks/shared";
 import { parseMDXToAIML } from "@fireworks/parser";
+import { SerializedBaseElement } from "@fireworks/shared";
 
 /**
  * Validates the document for errors and warnings.
@@ -106,59 +106,8 @@ export class DocumentValidator {
   async documentToElementTree(
     document: TextDocument,
     tokens: Token[]
-  ): Promise<BaseElement> {
+  ): Promise<SerializedBaseElement> {
     const result = await parseMDXToAIML(document.getText());
-    return result.nodes[0] as BaseElement;
+    return result.nodes[0] as SerializedBaseElement;
   }
-
-  /**
-   * Ensures that elements are only used as children where the parent has defined that it is a supported child element.
-   * If issues are found, send a diagnostic to the user.
-   */
-  private validateElementChildren(
-    elementTree: BaseElement,
-    stateIds: Set<string>
-  ) {}
-
-  /**
-   * Ensures that elements have the correct attributes and that values are valid.
-   * Do this using zod, and then errors should be cleaned up and formatted nicely for the user.
-   * If issues are found, send a diagnostic to the user.
-   */
-  private validateElementAttributes(
-    elementTree: BaseElement,
-    stateIds: Set<string>
-  ) {}
-  /**
-   * Ensures that state IDs are unique and that they are valid.
-   * If issues are found, send a diagnostic to the user.
-   */
-
-  private validateStateIds(elementTree: BaseElement, stateIds: Set<string>) {}
-
-  /**
-   * Ensures that transition IDs are unique and that they are valid.
-   * Invalid means any of the following:
-   * - that the transition ID is a state ID that does not exist
-   * - that the transition ID is the grandchild or great grandchild of the current state
-   * - that the transition ID is the child of a sibling of the current state,
-   * - that the transition ID is the child of a sibling to an ancestor of the current state
-   * - that the transition ID is the current state
-   * - that the transition ID is the child of a parallel element
-   *
-   * If issues are found, send a diagnostic to the user.
-   */
-  private validateTransitionIds(
-    elementTree: BaseElement,
-    stateIds: Set<string>
-  ) {}
-
-  /**
-   * Ensures that there are no infinite loops without the possibility of a conditional transition to exit the loop
-   * If issues are found, send a diagnostic to the user.
-   */
-  private validateForInfiniteLoops(
-    elementTree: BaseElement,
-    stateIds: Set<string>
-  ) {}
 }

@@ -4,7 +4,7 @@ import {
   JsxSelfClosingElement,
   JsxElement,
 } from "ts-morph";
-import type { ElementRole, SerializedBaseElement } from "@fireworks/types";
+import type { ElementRole, SerializedBaseElement } from "@fireworks/shared";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 
