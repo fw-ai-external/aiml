@@ -54,7 +54,7 @@ export class ExecutionContext<
   // Static property for built-in keys that should match the serialized output
   static builtinKeys = [
     "input",
-    "workflowInput",
+    "requestInput",
     "datamodel",
     "props",
     "state",
