@@ -114,7 +114,7 @@ async function initializeDataElement(
   } else if (fromRequest) {
     // Get value from the request context
     try {
-      value = ctx.workflowInput.userMessage;
+      value = ctx.requestInput.userMessage;
     } catch (error) {
       console.error(
         `Error getting value from request for data element ${id}:`,

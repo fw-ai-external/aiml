@@ -9,7 +9,7 @@ export const Cancel = createElementDefinition({
   elementType: "cancel" as const,
   allowedChildren: "none" as const,
   async execute(ctx) {
-    const { sendid, sendidexpr } = ctx.attributes;
+    const { sendid, sendidexpr } = ctx.props;
 
     if (!sendid && !sendidexpr) {
       throw new Error(

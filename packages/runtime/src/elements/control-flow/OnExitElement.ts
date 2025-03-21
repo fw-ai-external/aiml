@@ -25,7 +25,7 @@ export const OnExit = createElementDefinition({
     return {
       result: new StepValue({
         object: {
-          id: ctx.attributes.id ?? uuidv4(),
+          id: ctx.props.id ?? uuidv4(),
           results,
         },
       }),

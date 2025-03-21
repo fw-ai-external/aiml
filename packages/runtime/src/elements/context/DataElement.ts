@@ -30,7 +30,7 @@ export const Data = createElementDefinition({
       fromRequest = false,
       defaultValue,
       schema,
-    } = ctx.attributes;
+    } = ctx.props;
 
     // If fromRequest is true, readonly should also be true
     const isReadonly = readonly || fromRequest;
@@ -110,7 +110,7 @@ export const Data = createElementDefinition({
         }
       } else if (fromRequest) {
         // Get value from the request context
-        value = ctx.workflowInput.userMessage;
+        value = ctx.requestInput.userMessage;
       } else if (defaultValue !== undefined) {
         // Use default value if provided
         value = defaultValue;

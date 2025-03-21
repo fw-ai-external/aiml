@@ -1,5 +1,4 @@
 import { registerGraphBuilder } from "./graphBuilder";
-import { registerExecutionContextFactory } from "./ElementExecutionContext";
 /**
  * Dependency Injection Module
  *
@@ -121,11 +120,6 @@ export function initializeRuntime(): void {
   // Register the graph builder service
   if (!container.has(ServiceIdentifiers.GRAPH_BUILDER)) {
     registerGraphBuilder();
-  }
-
-  // Register the execution context factory
-  if (!container.has(ServiceIdentifiers.EXECUTION_CONTEXT)) {
-    registerExecutionContextFactory();
   }
 
   // Add any other service registrations here

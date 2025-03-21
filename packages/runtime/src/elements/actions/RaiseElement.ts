@@ -9,7 +9,7 @@ export const Raise = createElementDefinition({
   elementType: "raise" as const,
   allowedChildren: "none" as const,
   async execute(ctx) {
-    const { event } = ctx.attributes;
+    const { event } = ctx.props;
 
     if (!event) {
       throw new Error("Raise element requires an 'event' attribute");

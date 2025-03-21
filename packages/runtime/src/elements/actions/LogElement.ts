@@ -20,7 +20,7 @@ export const Log = createElementDefinition({
     };
   },
   async execute(ctx) {
-    const { label, expr } = ctx.attributes;
+    const { label, expr } = ctx.props;
 
     try {
       // Create a function that evaluates the expression in the context of the datamodel

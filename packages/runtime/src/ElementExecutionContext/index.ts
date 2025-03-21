@@ -20,7 +20,6 @@ import {
   SerializedBaseElement,
 } from "@fireworks/shared";
 import { ChatCompletionMessageToolCall } from "openai/resources/chat/completions";
-import { container, ServiceIdentifiers } from "../di";
 import { hydreateElementTree } from "../hydrateElementTree";
 import { createScopedDataModel } from "../elements";
 
@@ -57,16 +56,16 @@ export class ExecutionContext<
     "input",
     "workflowInput",
     "datamodel",
-    "attributes",
+    "props",
     "state",
     "run",
-    "context",
+    "machine",
   ];
 
   // Input into the active element via the output of the last
   input: StepValue<InputValue>;
   // Input into the machine from the Request
-  workflowInput: {
+  requestInput: {
     userMessage: UserContent;
     systemMessage?: string;
     chatHistory: Array<
@@ -76,11 +75,11 @@ export class ExecutionContext<
     secrets: Secrets;
   };
   datamodel: Record<string, any>;
-  attributes: PropValues & { children?: TagNodeDTO[] } = {} as PropValues;
+  props: PropValues & { children?: TagNodeDTO[] } = {} as PropValues;
 
   state: {
     id: string;
-    attributes: Record<string, any>;
+    props: Record<string, any>;
     // input into the nearest parent state
     input: StepValue<InputValue>;
   };
@@ -105,7 +104,7 @@ export class ExecutionContext<
 
   constructor(params: {
     input: StepValue<InputValue>;
-    workflowInput: {
+    requestInput: {
       userMessage: UserContent;
       systemMessage?: string;
       chatHistory: Array<
@@ -115,10 +114,10 @@ export class ExecutionContext<
       secrets: Secrets;
     };
     datamodel: Record<string, any>;
-    attributes: PropValues;
+    props: PropValues;
     state: {
       id: string;
-      attributes: Record<string, any>;
+      props: Record<string, any>;
       input: StepValue<InputValue>;
     };
     machine: {
@@ -133,7 +132,7 @@ export class ExecutionContext<
   }) {
     // TODO: validate input using input schema
     this.input = params.input;
-    this.workflowInput = params.workflowInput;
+    this.requestInput = params.requestInput;
 
     // Create a scoped data model if an element is provided
     if (params.element) {
@@ -159,7 +158,7 @@ export class ExecutionContext<
 
     this.machine = params.machine;
     this.run = params.run;
-    this.attributes = params.attributes ?? ({} as PropValues);
+    this.props = params.props ?? ({} as PropValues);
     this.state = params.state;
 
     // Initialize StepExecutionContext properties
@@ -257,9 +256,13 @@ export class ExecutionContext<
       if (value instanceof WeakRef) {
         return [key, value.deref()?.toJSON()];
       }
+      if (!ExecutionContext.builtinKeys.includes(key)) return [null, null];
       return [key, value];
     });
-    return Object.fromEntries(await Promise.all(entries));
+
+    return Object.fromEntries(
+      (await Promise.all(entries)).filter(([key]) => key !== null)
+    );
   }
 
   toJSON() {
@@ -288,12 +291,12 @@ export class ExecutionContext<
   ): ExecutionContext<ChildProps, ChildInput> {
     return new ExecutionContext<ChildProps, ChildInput>({
       input: childInput,
-      workflowInput: {
-        ...this.workflowInput,
+      requestInput: {
+        ...this.requestInput,
         secrets: this.machine.secrets,
       },
       datamodel: this.datamodel,
-      attributes: childAttributes,
+      props: childAttributes,
       state: {
         ...this.state,
         input: childInput as any,
@@ -315,12 +318,12 @@ export class ExecutionContext<
   ): ExecutionContext<any, any> {
     return new ExecutionContext<any, any>({
       input: new StepValue(serialized.input),
-      workflowInput: {
-        ...serialized.workflowInput,
+      requestInput: {
+        ...serialized.requestInput,
         secrets: serialized.machine.secrets,
       },
       datamodel: serialized.datamodel,
-      attributes: serialized.attributes,
+      props: serialized.props,
       state: serialized.state,
       machine: serialized.machine,
       run: serialized.run,
@@ -330,107 +333,6 @@ export class ExecutionContext<
       parentContext: serialized.parentContext,
     });
   }
-}
-
-/**
- * Execution context factory
- */
-export class ExecutionContextFactory {
-  /**
-   * Create an execution context
-   * @param params The execution context parameters
-   * @returns The execution context
-   */
-  createContext<
-    PropValues extends {} = {},
-    InputValue extends StepValueResult = StepValueResult,
-  >(params: {
-    input: StepValue<InputValue>;
-    workflowInput: {
-      userMessage: UserContent;
-      systemMessage?: string;
-      chatHistory: Array<
-        CoreUserMessage | CoreAssistantMessage | CoreToolMessage
-      >;
-      clientSideTools: ChatCompletionMessageToolCall.Function[];
-      secrets: Secrets;
-    };
-    datamodel: Record<string, any>;
-    attributes: PropValues;
-    state: {
-      id: string;
-      attributes: Record<string, any>;
-      input: StepValue<InputValue>;
-    };
-    machine: {
-      id: string;
-      secrets: Secrets;
-    };
-    run: {
-      id: string;
-    };
-    element?: BaseElement;
-    parentContext?: ExecutionContext<any, any>;
-  }): ExecutionContext<PropValues, InputValue> {
-    return new ExecutionContext<PropValues, InputValue>(params);
-  }
-
-  /**
-   * Create an execution context from a serialized context
-   * @param serialized The serialized execution context
-   * @returns The execution context
-   */
-  createFromSerialized<
-    PropValues extends {} = {},
-    InputValue extends StepValueResult = StepValueResult,
-  >(
-    serialized: ElementExecutionContextSerialized,
-    element?: BaseElement,
-    parentContext?: ExecutionContext<any, any>
-  ): ExecutionContext<PropValues, InputValue> {
-    // Create a StepValue from the serialized input
-    const input = new StepValue(serialized.input);
-    const stateInput = new StepValue(serialized.state.input);
-
-    return new ExecutionContext<PropValues, InputValue>({
-      input: input as StepValue<InputValue>,
-      workflowInput: {
-        ...serialized.workflowInput,
-        secrets: serialized.machine.secrets,
-      },
-      datamodel: serialized.datamodel,
-      attributes: serialized.attributes as PropValues,
-      state: {
-        id: serialized.state.id,
-        attributes: serialized.state.attributes,
-        input: stateInput as StepValue<InputValue>,
-      },
-      machine: serialized.machine,
-      run: serialized.run,
-      element,
-      parentContext,
-    });
-  }
-}
-
-/**
- * Register the execution context factory
- */
-export function registerExecutionContextFactory(): void {
-  container.register(
-    ServiceIdentifiers.EXECUTION_CONTEXT,
-    new ExecutionContextFactory()
-  );
-}
-
-/**
- * Get the execution context factory
- * @returns The execution context factory
- */
-export function getExecutionContextFactory(): ExecutionContextFactory {
-  return container.get<ExecutionContextFactory>(
-    ServiceIdentifiers.EXECUTION_CONTEXT
-  );
 }
 
 // For backward compatibility

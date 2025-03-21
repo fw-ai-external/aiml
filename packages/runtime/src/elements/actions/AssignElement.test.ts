@@ -1,9 +1,10 @@
-import { describe, expect, it, mock } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { Assign } from "./AssignElement";
-import { StepValue } from "@fireworks/shared";
 import { ValueType } from "@fireworks/shared";
-import type { ElementExecutionContext, ErrorResult } from "@fireworks/shared";
-
+import type { ErrorResult } from "@fireworks/shared";
+import { ElementExecutionContext } from "../../ElementExecutionContext";
+import { StepValue } from "../../StepValue";
+import { ActionContext } from "@mastra/core";
 // Type guard for object result
 function isObjectResult(
   result: any
@@ -35,7 +36,7 @@ describe("AssignElement", () => {
       datamodel?: Record<string, any>;
       [key: string]: any;
     } = {}
-  ): ElementExecutionContext => {
+  ): ActionContext<any> => {
     // Create a simple datamodel with initial values and metadata
     const datamodel: Record<string, any> = {
       testVar: "initial value",
@@ -127,46 +128,44 @@ describe("AssignElement", () => {
 
     // Create context with functional methods
     return {
-      context: {
-        workflow: {
-          id: "test-workflow",
-          version: 1,
+      suspend: () => Promise.resolve(),
+      runId: "test-run",
+      context: new ElementExecutionContext({
+        props: {
+          location: "testVar",
+          expr: "'test value'",
+          ...overrides.attributes,
         },
-      },
-      suspend: mock(),
-      runId: "test-run-123",
-      attributes: {
-        location: "testVar",
-        expr: "'test value'",
-        ...overrides.attributes,
-      },
-      datamodel: {
-        has: hasMethod,
-        get: getMethod,
-        set: setMethod,
-        evaluate,
-        __metadata: metadata,
-      },
-      state: {
-        id: "state_1",
-        attributes: {},
-        input: new StepValue({ type: "text", text: "" }),
-      },
-      input: new StepValue({ type: "text", text: "input value" }),
-      workflowInput: {
-        userMessage: "test message",
-        chatHistory: [],
-        clientSideTools: [],
-      },
-      machine: {
-        id: "test-machine",
-        secrets: {},
-      },
-      run: {
-        id: "test-run",
-      },
-      serialize: async () => ({}),
-      ...overrides,
+        datamodel: {
+          has: hasMethod,
+          get: getMethod,
+          set: setMethod,
+          evaluate,
+          __metadata: metadata,
+        },
+        state: {
+          id: "state_1",
+          props: {},
+          input: new StepValue({ type: "text", text: "" }),
+        },
+        input: new StepValue({ type: "text", text: "input value" }),
+        requestInput: {
+          userMessage: "test message",
+          chatHistory: [],
+          clientSideTools: [],
+          secrets: {
+            system: {},
+          },
+        },
+        machine: {
+          id: "test-machine",
+          secrets: {},
+        },
+        run: {
+          id: "test-run",
+        },
+        ...overrides,
+      }),
     };
   };
 
@@ -174,7 +173,10 @@ describe("AssignElement", () => {
   it("should assign a value using expr", async () => {
     const ctx = createMockContext();
 
-    const assignElement = Assign.initFromAttributesAndNodes(ctx.attributes, []);
+    const assignElement = Assign.initFromAttributesAndNodes(
+      ctx.context.attributes,
+      []
+    );
 
     // Create a spy on execute method to return a valid result
     const originalExecute = assignElement.execute;
@@ -195,30 +197,25 @@ describe("AssignElement", () => {
       };
     };
 
-    const execResult = await assignElement.execute(ctx);
-    const { result: stepValue } = execResult;
-    const contextUpdate = (execResult as any).contextUpdate;
+    const execResult = await assignElement.execute(ctx as any);
+    const { result: stepValue, contextUpdate, exception } = execResult;
 
     // Verify the result directly
     const valueResult = await stepValue.value();
 
     // Check if the result is an error first
-    if (isErrorResult(valueResult)) {
-      throw new Error(
-        `Expected object result but got error: ${valueResult.error}`
-      );
-    }
+    expect(exception).toBeUndefined();
 
     // Now we can safely assert on the object result
-    expect(valueResult.type).toBe("object");
-    expect(valueResult.object).toEqual({
+    expect(contextUpdate).toBeDefined();
+    expect(contextUpdate).toEqual({
       location: "testVar",
       value: "test value",
     });
 
     // Set the value in the mock datamodel for verification
-    ctx.datamodel.set("testVar", "test value");
-    expect(ctx.datamodel.get("testVar")).toBe("test value");
+    ctx.context.datamodel.set("testVar", "test value");
+    expect(ctx.context.datamodel.get("testVar")).toBe("test value");
   });
 
   // Test 2: Assignment with input value when no expr
@@ -232,10 +229,13 @@ describe("AssignElement", () => {
 
     // Set a specific input value
     const inputValue = "input value";
-    ctx.input = new StepValue({ type: "text", text: inputValue });
+    ctx.context.input = new StepValue({ type: "text", text: inputValue });
 
     // Execute the element
-    const assignElement = Assign.initFromAttributesAndNodes(ctx.attributes, []);
+    const assignElement = Assign.initFromAttributesAndNodes(
+      ctx.context.attributes,
+      []
+    );
 
     // Create a spy on execute method to return a valid result
     const originalExecute = assignElement.execute;
@@ -256,30 +256,24 @@ describe("AssignElement", () => {
       };
     };
 
-    const execResult = await assignElement.execute(ctx);
-    const { result: stepValue } = execResult;
-    const contextUpdate = (execResult as any).contextUpdate;
+    const {
+      contextUpdate,
+      result: stepValue,
+      exception,
+    } = await assignElement.execute(ctx as any);
 
     // Verify the result directly
     const valueResult = await stepValue.value();
 
     // Check if the result is an error first
-    if (isErrorResult(valueResult)) {
-      throw new Error(
-        `Expected object result but got error: ${valueResult.error}`
-      );
-    }
+    expect(exception).toBeUndefined();
 
     // Now we can safely assert on the object result
-    expect(valueResult.type).toBe("object");
-    expect(valueResult.object).toEqual({
+    expect(contextUpdate).toBeDefined();
+    expect(contextUpdate).toEqual({
       location: "testVar",
       value: inputValue,
     });
-
-    // Set the value in the mock datamodel for verification
-    ctx.datamodel.set("testVar", inputValue);
-    expect(ctx.datamodel.get("testVar")).toBe(inputValue);
   });
 
   // Test 3: Error when location is missing
@@ -303,13 +297,17 @@ describe("AssignElement", () => {
       },
     });
 
-    const assignElement = Assign.initFromAttributesAndNodes(ctx.attributes, []);
-    const { result: stepValue } = await assignElement.execute(ctx);
+    const assignElement = Assign.initFromAttributesAndNodes(
+      ctx.context.attributes,
+      []
+    );
+    const { result: stepValue, exception } = await assignElement.execute(
+      ctx as any
+    );
     const result = await stepValue.value();
 
-    expect(result.type).toBe("error");
-    expect(result.code).toBe("ASSIGN_ERROR");
-    expect(result.error).toContain("does not exist");
+    expect(exception).toBeDefined();
+    expect(exception?.message).toContain("does not exist");
   });
 
   // Test 5: Error when assigning to readonly variable
@@ -321,16 +319,19 @@ describe("AssignElement", () => {
       },
     });
 
-    const assignElement = Assign.initFromAttributesAndNodes(ctx.attributes, []);
-    const { result: stepValue } = await assignElement.execute(ctx);
-    const result = await stepValue.value();
+    const assignElement = Assign.initFromAttributesAndNodes(
+      ctx.context.attributes,
+      []
+    );
+    const {
+      contextUpdate,
+      result: stepValue,
+      exception,
+    } = await assignElement.execute(ctx as any);
 
-    expect(result.type).toBe("error");
-    expect(result.code).toBe("ASSIGN_ERROR");
-    expect(result.error).toContain("readonly");
-
-    // Verify the readonly variable wasn't changed
-    expect(ctx.datamodel.get("readonlyVar")).toBe("cannot change");
+    expect(exception).toBeDefined();
+    expect(exception?.message).toContain("readonly");
+    expect(contextUpdate).toBeUndefined();
   });
 
   // Test 6: Type validation
@@ -342,51 +343,33 @@ describe("AssignElement", () => {
       },
     });
 
-    const assignElement = Assign.initFromAttributesAndNodes(ctx.attributes, []);
+    const assignElement = Assign.initFromAttributesAndNodes(
+      ctx.context.attributes,
+      []
+    );
 
-    // Create a spy on execute method to return a valid result
-    const originalExecute = assignElement.execute;
-    assignElement.execute = async (context: any) => {
-      // Call the original method to process the logic
-      const originalResult = await originalExecute.call(assignElement, context);
-
-      // Simulate successful execution by replacing the result
-      return {
-        ...originalResult,
-        result: new StepValue({
-          type: "object",
-          object: {
-            location: "numberVar",
-            value: 42,
-          },
-        }),
-      };
-    };
-
-    const execResult = await assignElement.execute(ctx);
-    const { result: stepValue } = execResult;
-    const contextUpdate = (execResult as any).contextUpdate;
+    const {
+      contextUpdate,
+      result: stepValue,
+      exception,
+    } = await assignElement.execute(ctx as any);
 
     // Verify the result directly
     const valueResult = await stepValue.value();
 
     // Check if the result is an error first
-    if (isErrorResult(valueResult)) {
-      throw new Error(
-        `Expected object result but got error: ${valueResult.error}`
-      );
-    }
+    expect(exception).toBeUndefined();
 
     // Now we can safely assert on the object result
-    expect(valueResult.type).toBe("object");
-    expect(valueResult.object).toEqual({
+    expect(contextUpdate).toBeDefined();
+    expect(contextUpdate).toEqual({
       location: "numberVar",
       value: 42,
     });
 
     // Set the value in the mock datamodel for verification
-    ctx.datamodel.set("numberVar", 42);
-    expect(ctx.datamodel.get("numberVar")).toBe(42);
+    ctx.context.datamodel.set("numberVar", 42);
+    expect(ctx.context.datamodel.get("numberVar")).toBe(42);
   });
 
   // Test 7: Type validation error
@@ -398,29 +381,14 @@ describe("AssignElement", () => {
       },
     });
 
-    const assignElement = Assign.initFromAttributesAndNodes(ctx.attributes, []);
+    const assignElement = Assign.initFromAttributesAndNodes(
+      ctx.context.attributes,
+      []
+    );
 
-    // Create a spy on execute method to return an error result
-    const originalExecute = assignElement.execute;
-    assignElement.execute = async (context: any) => {
-      // Simulate failed execution by replacing the result with an error
-      return {
-        result: new StepValue({
-          type: "error",
-          error: "Value must be a number, got string",
-          code: "ASSIGN_ERROR",
-        }),
-      };
-    };
+    const { exception } = await assignElement.execute(ctx as any);
 
-    const { result: stepValue } = await assignElement.execute(ctx);
-    const result = await stepValue.value();
-
-    expect(result.type).toBe("error");
-    expect(result.code).toBe("ASSIGN_ERROR");
-    expect(result.error).toContain("must be a number");
-
-    // Verify the numberVar wasn't changed (still has original value)
-    expect(ctx.datamodel.get("numberVar")).toBe(0);
+    expect(exception).toBeDefined();
+    expect(exception?.message).toContain("must be a number");
   });
 });

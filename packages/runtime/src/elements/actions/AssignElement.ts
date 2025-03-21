@@ -90,7 +90,7 @@ export const Assign = createElementDefinition({
   },
 
   async execute(ctx): Promise<ExecutionReturnType> {
-    const { location, expr } = ctx.attributes;
+    const { location, expr } = ctx.props;
 
     // Validate location is provided
     if (!location) {

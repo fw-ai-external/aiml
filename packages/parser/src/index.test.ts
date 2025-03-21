@@ -95,8 +95,8 @@ Some text here with {userInput.message.content}
         state.children?.some(
           (child) =>
             child.tag === "llm" &&
-            typeof child.attributes?.prompt === "string" &&
-            child.attributes.prompt.includes(
+            typeof child.attributes?.instructions === "string" &&
+            child.attributes.instructions.includes(
               "Some text here with ${userInput.message.content}"
             )
         )
@@ -154,8 +154,8 @@ target="end" />
         state.children?.some(
           (child) =>
             child.tag === "llm" &&
-            typeof child.attributes?.prompt === "string" &&
-            child.attributes.prompt.includes(
+            typeof child.attributes?.instructions === "string" &&
+            child.attributes.instructions.includes(
               "${userInput.message.content.toLowerCase()}"
             )
         )
@@ -250,8 +250,8 @@ Some text here because why not
             child.children?.some(
               (grandchild) =>
                 grandchild.tag === "llm" &&
-                typeof grandchild.attributes?.prompt === "string" &&
-                grandchild.attributes.prompt.includes(
+                typeof grandchild.attributes?.instructions === "string" &&
+                grandchild.attributes.instructions.includes(
                   "Some text here because why not"
                 )
             )
@@ -299,14 +299,14 @@ Third paragraph (should be merged with above due to blank line).
           child.children?.some(
             (grandchild) =>
               grandchild.tag === "llm" &&
-              typeof grandchild.attributes?.prompt === "string" &&
-              grandchild.attributes.prompt.includes(
+              typeof grandchild.attributes?.instructions === "string" &&
+              grandchild.attributes.instructions.includes(
                 "First paragraph with ${expression1}"
               ) &&
-              grandchild.attributes.prompt.includes(
+              grandchild.attributes.instructions.includes(
                 "Second paragraph with ${expression2}"
               ) &&
-              grandchild.attributes.prompt.includes(
+              grandchild.attributes.instructions.includes(
                 "Third paragraph (should be merged with above due to blank line)"
               )
           )
@@ -320,11 +320,14 @@ Third paragraph (should be merged with above due to blank line).
       expect(llmElement).not.toBeUndefined();
 
       // Test that all parts of the merged paragraphs are present
-      if (llmElement && typeof llmElement.attributes?.prompt === "string") {
-        const prompt = llmElement.attributes.prompt;
-        expect(prompt).toContain("First paragraph with ${expression1}");
-        expect(prompt).toContain("Second paragraph with ${expression2}");
-        expect(prompt).toContain(
+      if (
+        llmElement &&
+        typeof llmElement.attributes?.instructions === "string"
+      ) {
+        const instructions = llmElement.attributes.instructions;
+        expect(instructions).toContain("First paragraph with ${expression1}");
+        expect(instructions).toContain("Second paragraph with ${expression2}");
+        expect(instructions).toContain(
           "Third paragraph (should be merged with above due to blank line)"
         );
       }

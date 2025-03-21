@@ -11,7 +11,7 @@ export const Script = createElementDefinition({
   elementType: "script" as const,
   allowedChildren: "text" as const,
   async execute(ctx, children): Promise<ExecutionReturnType> {
-    const { src } = ctx.attributes;
+    const { src } = ctx.props;
     const content = children[0]?.toString();
 
     if (!src && !content) {

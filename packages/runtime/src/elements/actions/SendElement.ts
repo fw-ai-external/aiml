@@ -19,7 +19,7 @@ export const Send = createElementDefinition({
       delay,
       delayexpr,
       namelist,
-    } = ctx.attributes;
+    } = ctx.props;
 
     if (!event && !eventexpr) {
       throw new Error(

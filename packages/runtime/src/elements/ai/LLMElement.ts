@@ -32,7 +32,7 @@ export const LLM = createElementDefinition({
     return llmNode;
   },
   async execute(ctx): Promise<ExecutionReturnType> {
-    const { prompt: promptTemplate, system: systemTemplate } = ctx.attributes;
+    const { prompt: promptTemplate, system: systemTemplate } = ctx.props;
 
     const serializedCtx = await ctx.serialize();
     const prompt = parseTemplateLiteral(promptTemplate || "", serializedCtx);
@@ -42,25 +42,25 @@ export const LLM = createElementDefinition({
     );
     try {
       const { provider } = getProviderWithClient(
-        ctx.attributes.model,
+        ctx.props.model,
         ctx.machine?.secrets || { system: {}, user: {} },
-        ctx.attributes.grammar
+        ctx.props.grammar
           ? {
               type: "grammar",
-              grammar: ctx.attributes.grammar,
+              grammar: ctx.props.grammar,
             }
-          : ctx.attributes.responseFormat?.type === "gbnf"
+          : ctx.props.responseFormat?.type === "gbnf"
             ? {
                 type: "gbnf",
                 grammar: "", // gbnf,
               }
-            : ctx.attributes.responseFormat,
-        ctx.attributes.repetitionPenalty
+            : ctx.props.responseFormat,
+        ctx.props.repetitionPenalty
       );
 
       // Validate and convert chat history
-      const validatedChatHistory = ctx.attributes.includeChatHistory
-        ? ctx.workflowInput.chatHistory.map((msg) => {
+      const validatedChatHistory = ctx.props.includeChatHistory
+        ? ctx.requestInput.chatHistory.map((msg) => {
             if (typeof msg.content !== "string") {
               throw new Error(
                 "Chat history messages must contain only string content"
@@ -75,7 +75,7 @@ export const LLM = createElementDefinition({
 
       // For testing purposes, we'll check if we're in a test environment
       // by checking if the model is "test-model"
-      if (ctx.attributes.model === "test-model") {
+      if (ctx.props.model === "test-model") {
         const result = new StepValue({
           type: "text",
           text: "Mock LLM response",
@@ -92,9 +92,9 @@ export const LLM = createElementDefinition({
           ...validatedChatHistory,
           { role: "user" as const, content: prompt! },
         ],
-        temperature: ctx.attributes.temperature,
-        stopSequences: ctx.attributes.stopSequences,
-        topP: ctx.attributes.topP,
+        temperature: ctx.props.temperature,
+        stopSequences: ctx.props.stopSequences,
+        topP: ctx.props.topP,
         // toolChoice: ctx.attributes.toolChoice,
         // tools: parsedTools,
         maxRetries: 1,

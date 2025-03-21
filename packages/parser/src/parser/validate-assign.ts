@@ -157,9 +157,9 @@ function inferExpressionType(expr: string): ValueType | undefined {
   } else if (expr === "true" || expr === "false") {
     return ValueType.BOOLEAN;
   } else if (expr.match(/^\{.*\}$/)) {
-    return ValueType.OBJECT;
+    return ValueType.JSON;
   } else if (expr.match(/^\[.*\]$/)) {
-    return ValueType.ARRAY;
+    return ValueType.JSON;
   }
   return undefined;
 }

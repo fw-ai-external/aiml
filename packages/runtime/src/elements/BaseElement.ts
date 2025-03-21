@@ -7,7 +7,7 @@ import {
   SerializedBaseElement,
 } from "@fireworks/shared";
 import { z } from "zod";
-import { ActionContext } from "@mastra/core";
+import { ActionContext as MastraActionContext } from "@mastra/core";
 import { BuildContext } from "../graphBuilder/Context";
 import {
   ExecutionGraphElement,
@@ -16,6 +16,7 @@ import {
 } from "../types";
 import { defaultStepExecutionGraphMapper } from "../utils";
 import { ElementExecutionContext } from "../ElementExecutionContext";
+
 export class BaseElement
   implements Omit<SerializedElement, "parent" | "children">
 {
@@ -155,17 +156,12 @@ export class BaseElement
 
   // must be declared as a property arrow function to avoid binding issues
   execute = async (
-    context: ActionContext<any>,
+    context: MastraActionContext<any>,
     childrenNodes: BaseElement[] = []
   ): Promise<ExecutionReturnType> => {
-    // Will be StepValue at runtime
-    if (!this._isActive) {
-      this._isActive = true;
-      if (this.enter) await this.enter();
-    }
-
     if (!this._execute) {
-      // this element is a pass-through element
+      // Default execution if no _execute is defined
+      // The element can still store its data in the datamodel
       this._dataModel = {
         ...this._dataModel,
         [this.id]: context.context.input,
@@ -179,23 +175,23 @@ export class BaseElement
         new ElementExecutionContext({
           ...context,
           input: context.context.input,
-          workflowInput: (context as any).workflowInput || {},
+          requestInput: context.context.workflowInput || {},
           datamodel: this._dataModel,
           state: {
             id: this.id,
-            attributes: this.attributes,
+            props: this.attributes,
             input: context.context.input,
           },
-          attributes: this.attributes,
+          props: this.attributes,
           machine: {
-            id: (context as any)?.machine?.id,
+            id: context.context.machine?.id,
             secrets: {
               system: {},
-              ...(context as any)?.machine?.secrets,
+              ...context?.context.machine?.secrets,
             },
           },
           run: {
-            id: (context as any)?.run?.id,
+            id: context.runId,
           },
         }),
         childrenNodes

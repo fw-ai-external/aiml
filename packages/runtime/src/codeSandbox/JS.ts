@@ -1,5 +1,8 @@
 import Sandbox from "@nyariv/sandboxjs";
-import { ElementExecutionContextSerialized } from "../ElementExecutionContext";
+import {
+  ElementExecutionContext,
+  ElementExecutionContextSerialized,
+} from "../ElementExecutionContext";
 
 type SandboxOptions = {
   timeLimit?: number;
@@ -19,19 +22,33 @@ type SandboxOptions = {
  * The set of system variables may be expanded in future versions of this specification. Variable names beginning with '_' are reserved for system use. A conformant SCXML document must not contain ids beginning with '_' in the <data> element. Platforms must place all platform-specific system variables under the '_x' root.
  */
 
-export const sandboxedEval = (
+export const sandboxedEval = async (
   code: string,
-  customSandbox: ElementExecutionContextSerialized,
+  context:
+    | InstanceType<typeof ElementExecutionContext>
+    | ElementExecutionContextSerialized,
   SandboxOptions: SandboxOptions = {}
-): any => {
+): Promise<any> => {
   const { codeInReturn = true } = SandboxOptions;
   const executionBlock = codeInReturn ? `return ${code.trim()}` : code.trim();
+
+  // Get serialized context that's safe to pass to the sandbox
+  let serializedContext: Record<string, any>;
+
+  if ("serialize" in context && typeof context.serialize === "function") {
+    serializedContext = await context.serialize();
+  } else {
+    serializedContext = context as ElementExecutionContextSerialized;
+  }
+
+  // Build the list of variables to include in the sandbox
+  // Include both built-in and custom properties
+  const allKeys = [...Object.keys(serializedContext)];
+
   const wrappedCode = `
-  // ${Object.keys(customSandbox).join(", ")}
-  ${Object.keys(customSandbox)
+  ${allKeys
     .map((key) => {
-      const isBuiltin = false; //RunStepContext.builtinKeys.includes(key as any);
-      const declarator = isBuiltin ? "const" : "let";
+      const declarator = "let";
       if (key.includes(".")) {
         const parts = key.split(".");
         return `${declarator} ${parts[0]} = __fw_api.${parts[0]} || {};`;
@@ -43,7 +60,7 @@ export const sandboxedEval = (
     ${executionBlock}
   `;
 
-  // console.log('========== wrappedCode', wrappedCode);
+  console.log(wrappedCode);
 
   const sandboxjs = new Sandbox();
 
@@ -51,15 +68,9 @@ export const sandboxedEval = (
   try {
     const exec = sandboxjs.compile(wrappedCode);
     returnedValue = exec({
-      __fw_api: JSON.parse(
-        JSON.stringify(customSandbox, function (k, v) {
-          return v === undefined ? null : v;
-        })
-      ),
+      __fw_api: serializedContext,
     }).run();
-    // console.log('returnedValue', returnedValue);
   } catch (error: any) {
-    // console.error(error);
     throw new Error(error.message + " " + wrappedCode, {
       cause: "sandboxed_eval_error",
     });

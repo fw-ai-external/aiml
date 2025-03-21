@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import { StepValue } from "@fireworks/shared";
+import { StepValue } from "../StepValue";
 import { RunValue } from "../RunValue";
 
 describe("RunValue Timeout Fix", () => {
