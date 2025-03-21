@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
+import * as React from 'react';
 
-import { Header } from "@/components/ui/header";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Header } from '@/components/ui/header';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { useTool } from "@/hooks/use-all-tools";
+import { useTool } from '@/hooks/use-all-tools';
 
 export default function ToolPage({
   params,
@@ -29,7 +29,7 @@ export default function ToolPage({
   }
 
   if (!tool) {
-    router.push("/tools");
+    router.push('/tools');
     return null;
   }
 

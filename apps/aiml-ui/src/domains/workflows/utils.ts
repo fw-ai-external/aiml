@@ -1,7 +1,7 @@
-import Dagre from "@dagrejs/dagre";
-import type { StepCondition } from "@mastra/core/workflows";
-import type { Node, Edge } from "@xyflow/react";
-import { MarkerType } from "@xyflow/react";
+import Dagre from '@dagrejs/dagre';
+import type { StepCondition } from '@mastra/core/workflows';
+import type { Edge, Node } from '@xyflow/react';
+import { MarkerType } from '@xyflow/react';
 
 export type Condition = {
   ref: {
@@ -9,55 +9,50 @@ export type Condition = {
       | {
           id: string;
         }
-      | "trigger";
+      | 'trigger';
     path: string;
   };
   query: Record<string, any>;
-  conj?: "and" | "or";
+  conj?: 'and' | 'or';
 };
 
-export const pathAlphabet = "abcdefghijklmnopqrstuvwxyz"
-  .toUpperCase()
-  .split("");
+export const pathAlphabet = 'abcdefghijklmnopqrstuvwxyz'.toUpperCase().split('');
 
 export function extractConditions(group?: StepCondition<any, any>) {
   let result: Condition[] = [];
   if (!group) return result;
 
-  function recurse(group: StepCondition<any, any>, conj?: "and" | "or") {
-    const simpleCondition = Object.entries(group).find(([key]) =>
-      key.includes(".")
-    );
+  function recurse(group: StepCondition<any, any>, conj?: 'and' | 'or') {
+    const simpleCondition = Object.entries(group).find(([key]) => key.includes('.'));
     if (simpleCondition) {
       const [key, queryValue] = simpleCondition;
-      const [stepId, ...pathParts] = key.split(".");
+      const [stepId, ...pathParts] = key.split('.');
       const ref = {
         step: {
           id: stepId,
         },
-        path: pathParts.join("."),
+        path: pathParts.join('.'),
       };
       result.push({
         ref,
         query: {
-          [queryValue === true || queryValue === false ? "is" : "eq"]:
-            String(queryValue),
+          [queryValue === true || queryValue === false ? 'is' : 'eq']: String(queryValue),
         },
         conj,
       });
     }
-    if ("ref" in group) {
+    if ('ref' in group) {
       const { ref, query } = group;
       result.push({ ref, query, conj });
     }
-    if ("and" in group) {
+    if ('and' in group) {
       for (const subGroup of group.and) {
-        recurse({ ...subGroup }, "and");
+        recurse({ ...subGroup }, 'and');
       }
     }
-    if ("or" in group) {
+    if ('or' in group) {
       for (const subGroup of group.or) {
-        recurse({ ...subGroup }, "or");
+        recurse({ ...subGroup }, 'or');
       }
     }
   }
@@ -68,7 +63,7 @@ export function extractConditions(group?: StepCondition<any, any>) {
 
 const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "TB" });
+  g.setGraph({ rankdir: 'TB' });
 
   edges.forEach((edge) => g.setEdge(edge.source, edge.target));
   nodes.forEach((node) =>
@@ -76,7 +71,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
       ...node,
       width: node.measured?.width ?? 274,
       height: node.measured?.height ?? 100,
-    })
+    }),
   );
 
   Dagre.layout(g);
@@ -101,7 +96,7 @@ const defaultEdgeOptions = {
     type: MarkerType.ArrowClosed,
     width: 20,
     height: 20,
-    color: "#8e8e8e",
+    color: '#8e8e8e',
   },
 };
 
@@ -126,32 +121,27 @@ export const contructNodesAndEdges = ({
   for (const [_index, _step] of initial.entries()) {
     const step = _step.step;
     const stepId = step.id;
-    const steps = [_step, ...(stepsList?.[stepId] || [])]?.reduce(
-      (acc, step, i) => {
-        console.log("step", step);
-        const newStep = {
-          ...step.step,
-          label: step.step.id,
-          type: step.step.role === "state" ? "state-node" : "default-node",
-          id: nodes.some((node) => node.id === step.step.id)
-            ? `${step.step.id}-${i}`
-            : step.step.id,
+    const steps = [_step, ...(stepsList?.[stepId] || [])]?.reduce((acc, step, i) => {
+      console.log('step', step);
+      const newStep = {
+        ...step.step,
+        label: step.step.id,
+        type: step.step.role === 'state' ? 'state-node' : 'default-node',
+        id: nodes.some((node) => node.id === step.step.id) ? `${step.step.id}-${i}` : step.step.id,
+      };
+      if (step.config?.when) {
+        const conditions = extractConditions(step.config.when);
+        const conditionStep = {
+          id: crypto.randomUUID(),
+          conditions,
+          type: 'condition-node',
         };
-        if (step.config?.when) {
-          const conditions = extractConditions(step.config.when);
-          const conditionStep = {
-            id: crypto.randomUUID(),
-            conditions,
-            type: "condition-node",
-          };
 
-          acc.push(conditionStep);
-        }
-        acc.push(newStep);
-        return acc;
-      },
-      []
-    );
+        acc.push(conditionStep);
+      }
+      acc.push(newStep);
+      return acc;
+    }, []);
 
     const newNodes = [...steps].map((step: any, index: number) => {
       const subscriberGraph = stepSubscriberGraph?.[step.id];
@@ -160,15 +150,15 @@ export const contructNodesAndEdges = ({
         position: { x: _index * 300, y: index * 100 },
         type: step.type,
         data: {
-          color: step.elementType === "workflow" ? "green" : null,
+          color: step.elementType === 'workflow' ? 'green' : null,
           conditions: step.conditions,
           label:
-            step.elementType === "workflow"
-              ? "Incoming Request"
+            step.elementType === 'workflow'
+              ? 'Incoming Request'
               : // TODO this should look inside the state to se what actions are there
                 // for now we just assume
-                step.elementType === "state"
-                ? "AI Call"
+                step.elementType === 'state'
+                ? 'AI Call'
                 : step.label,
           description: step.description,
           actions: step.children,
@@ -193,51 +183,39 @@ export const contructNodesAndEdges = ({
   }
 
   if (!stepSubscriberGraph || !Object.keys(stepSubscriberGraph).length) {
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      nodes,
-      edges
-    );
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges);
     return { nodes: layoutedNodes, edges: layoutedEdges };
   }
 
-  for (const [connectingStepId, stepInfoGraph] of Object.entries(
-    stepSubscriberGraph
-  )) {
+  for (const [connectingStepId, stepInfoGraph] of Object.entries(stepSubscriberGraph)) {
     const { initial, ...stepsList } = stepInfoGraph as any;
 
     if (initial.length) {
       for (const [_index, _step] of initial.entries()) {
         const step = _step.step;
         const stepId = step.id;
-        const originalSteps = [_step, ...(stepsList?.[stepId] || [])]?.map(
-          (step) => step.step
-        );
-        const steps = [_step, ...(stepsList?.[stepId] || [])]?.reduce(
-          (acc, step, i) => {
-            const newStep = {
-              ...step.step,
-              label: step.step.id,
-              type: "default-node",
-              id: nodes.some((node) => node.id === step.step.id)
-                ? `${step.step.id}-${i}`
-                : step.step.id,
+        const originalSteps = [_step, ...(stepsList?.[stepId] || [])]?.map((step) => step.step);
+        const steps = [_step, ...(stepsList?.[stepId] || [])]?.reduce((acc, step, i) => {
+          const newStep = {
+            ...step.step,
+            label: step.step.id,
+            type: 'default-node',
+            id: nodes.some((node) => node.id === step.step.id) ? `${step.step.id}-${i}` : step.step.id,
+          };
+          if (step.config?.when) {
+            const conditions = extractConditions(step.config.when);
+            const conditionStep = {
+              id: crypto.randomUUID(),
+              conditions,
+              type: 'condition-node',
             };
-            if (step.config?.when) {
-              const conditions = extractConditions(step.config.when);
-              const conditionStep = {
-                id: crypto.randomUUID(),
-                conditions,
-                type: "condition-node",
-              };
 
-              acc.push(conditionStep);
-            }
+            acc.push(conditionStep);
+          }
 
-            acc.push(newStep);
-            return acc;
-          },
-          []
-        );
+          acc.push(newStep);
+          return acc;
+        }, []);
 
         const newNodes = [...steps].map((step: any, index: number) => {
           const subscriberGraph = stepSubscriberGraph?.[step.id];
@@ -250,9 +228,7 @@ export const contructNodesAndEdges = ({
               label: step.label,
               description: step.description,
               withoutBottomHandle:
-                originalSteps.some(
-                  ({ id }) => id === step.label && id !== step.id
-                ) || subscriberGraph
+                originalSteps.some(({ id }) => id === step.label && id !== step.id) || subscriberGraph
                   ? false
                   : index === steps.length - 1,
             },
@@ -260,7 +236,7 @@ export const contructNodesAndEdges = ({
         });
 
         nodes = [...nodes, ...newNodes];
-        console.log("nodes", nodes);
+        console.log('nodes', nodes);
 
         const edgeSteps = [...steps].slice(0, -1);
 
@@ -303,10 +279,7 @@ export const contructNodesAndEdges = ({
       }
     }
   }
-  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-    nodes,
-    edges
-  );
+  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges);
 
   return { nodes: layoutedNodes, edges: layoutedEdges };
 };

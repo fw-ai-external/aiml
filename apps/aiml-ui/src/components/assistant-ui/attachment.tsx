@@ -1,30 +1,15 @@
-"use client";
+'use client';
 
-import { PropsWithChildren, useEffect, useState, type FC } from "react";
-import { CircleXIcon, FileIcon, PaperclipIcon } from "lucide-react";
-import {
-  AttachmentPrimitive,
-  ComposerPrimitive,
-  MessagePrimitive,
-  useAttachment,
-} from "@assistant-ui/react";
-import { useShallow } from "zustand/shallow";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogTitle,
-  DialogTrigger,
-  DialogOverlay,
-  DialogPortal,
-} from "@/components/ui/dialog";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { DialogContent as DialogPrimitiveContent } from "@radix-ui/react-dialog";
+import { TooltipIconButton } from '@/components/assistant-ui/tooltip-icon-button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { AttachmentPrimitive, ComposerPrimitive, MessagePrimitive, useAttachment } from '@assistant-ui/react';
+import { DialogContent as DialogPrimitiveContent } from '@radix-ui/react-dialog';
+import { TooltipProvider } from '@radix-ui/react-tooltip';
+import { CircleXIcon, FileIcon, PaperclipIcon } from 'lucide-react';
+import { type FC, type PropsWithChildren, useEffect, useState } from 'react';
+import { useShallow } from 'zustand/shallow';
 
 const useFileSrc = (file: File | undefined) => {
   const [src, setSrc] = useState<string | undefined>(undefined);
@@ -49,9 +34,9 @@ const useFileSrc = (file: File | undefined) => {
 const useAttachmentSrc = () => {
   const { file, src } = useAttachment(
     useShallow((a): { file?: File; src?: string } => {
-      if (a.type !== "image") return {};
+      if (a.type !== 'image') return {};
       if (a.file) return { file: a.file };
-      const src = a.content?.filter((c) => c.type === "image")[0]?.image;
+      const src = a.content?.filter((c) => c.type === 'image')[0]?.image;
       if (!src) return {};
       return { src };
     }),
@@ -72,12 +57,12 @@ const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src }) => {
     <img
       src={src}
       style={{
-        width: "auto",
-        height: "auto",
-        maxWidth: "75dvh",
-        maxHeight: "75dvh",
-        display: isLoaded ? "block" : "none",
-        overflow: "clip",
+        width: 'auto',
+        height: 'auto',
+        maxWidth: '75dvh',
+        maxHeight: '75dvh',
+        display: isLoaded ? 'block' : 'none',
+        overflow: 'clip',
       }}
       onLoad={() => setIsLoaded(true)}
       alt="Preview"
@@ -96,9 +81,7 @@ const AttachmentPreviewDialog: FC<PropsWithChildren> = ({ children }) => {
         {children}
       </DialogTrigger>
       <AttachmentDialogContent>
-        <DialogTitle className="aui-sr-only">
-          Image Attachment Preview
-        </DialogTitle>
+        <DialogTitle className="aui-sr-only">Image Attachment Preview</DialogTitle>
         <AttachmentPreview src={src} />
       </AttachmentDialogContent>
     </Dialog>
@@ -106,7 +89,7 @@ const AttachmentPreviewDialog: FC<PropsWithChildren> = ({ children }) => {
 };
 
 const AttachmentThumb: FC = () => {
-  const isImage = useAttachment((a) => a.type === "image");
+  const isImage = useAttachment((a) => a.type === 'image');
   const src = useAttachmentSrc();
   return (
     <Avatar className="bg-muted flex size-10 items-center justify-center rounded border text-sm">
@@ -119,16 +102,16 @@ const AttachmentThumb: FC = () => {
 };
 
 const AttachmentUI: FC = () => {
-  const canRemove = useAttachment((a) => a.source !== "message");
+  const canRemove = useAttachment((a) => a.source !== 'message');
   const typeLabel = useAttachment((a) => {
     const type = a.type;
     switch (type) {
-      case "image":
-        return "Image";
-      case "document":
-        return "Document";
-      case "file":
-        return "File";
+      case 'image':
+        return 'Image';
+      case 'document':
+        return 'Document';
+      case 'file':
+        return 'File';
       default:
         const _exhaustiveCheck: never = type;
         throw new Error(`Unknown attachment type: ${_exhaustiveCheck}`);
@@ -186,9 +169,7 @@ export const UserMessageAttachments: FC = () => {
 export const ComposerAttachments: FC = () => {
   return (
     <div className="flex w-full flex-row gap-3 px-10">
-      <ComposerPrimitive.Attachments
-        components={{ Attachment: AttachmentUI }}
-      />
+      <ComposerPrimitive.Attachments components={{ Attachment: AttachmentUI }} />
     </div>
   );
 };
@@ -210,8 +191,6 @@ export const ComposerAddAttachment: FC = () => {
 const AttachmentDialogContent: FC<PropsWithChildren> = ({ children }) => (
   <DialogPortal>
     <DialogOverlay />
-    <DialogPrimitiveContent className="aui-dialog-content">
-      {children}
-    </DialogPrimitiveContent>
+    <DialogPrimitiveContent className="aui-dialog-content">{children}</DialogPrimitiveContent>
   </DialogPortal>
 );

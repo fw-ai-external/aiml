@@ -1,4 +1,4 @@
-import dot from "dot-object";
+import dot from 'dot-object';
 export class DotObject {
   constructor(private obj: Record<string, any>) {}
 
@@ -43,15 +43,15 @@ export function deepValues(obj: Record<string, any>, includeArrays = false) {
 
   function traverse(obj: Record<string, any>) {
     for (const value of Object.values(obj)) {
-      if (typeof value === "string" || typeof value === "number") {
+      if (typeof value === 'string' || typeof value === 'number') {
         values.push(value);
       } else if (Array.isArray(value) && includeArrays) {
-        if (value.every((v) => typeof v === "string")) {
+        if (value.every((v) => typeof v === 'string')) {
           values.push(value as string[]);
-        } else if (value.every((v) => typeof v === "number")) {
+        } else if (value.every((v) => typeof v === 'number')) {
           values.push(value as number[]);
         }
-      } else if (typeof value === "object" && value !== null) {
+      } else if (typeof value === 'object' && value !== null) {
         traverse(value);
       }
     }

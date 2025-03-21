@@ -20,7 +20,7 @@ export function EnumField({ name, control, options, handleFieldChange }: EnumFie
       render={({ field }) => (
         <Select
           value={field.value}
-          onValueChange={value => {
+          onValueChange={(value) => {
             field.onChange(value);
             handleFieldChange?.({ key: name, value });
           }}
@@ -29,7 +29,7 @@ export function EnumField({ name, control, options, handleFieldChange }: EnumFie
             <SelectValue placeholder="Select an option" />
           </SelectTrigger>
           <SelectContent>
-            {options.map(option => (
+            {options.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>

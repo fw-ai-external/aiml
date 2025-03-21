@@ -62,7 +62,7 @@ const TextFilePreview = React.forwardRef<HTMLDivElement, FilePreviewProps>(({ fi
 
   useEffect(() => {
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = (e) => {
       const text = e.target?.result as string;
       setPreview(text.slice(0, 50) + (text.length > 50 ? '...' : ''));
     };

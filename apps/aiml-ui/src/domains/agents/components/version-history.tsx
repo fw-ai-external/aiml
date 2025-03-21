@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState } from 'react';
 
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-import type { PromptVersion } from "@/types";
+import type { PromptVersion } from '@/types';
 
-import { VersionItem } from "./version-item";
+import { VersionItem } from './version-item';
 
 interface VersionHistoryProps {
   versions: PromptVersion[];
@@ -30,12 +30,8 @@ export function VersionHistory({
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-1.5">
         <div>
-          <h3 className="text-sm font-medium text-aiml-el-5">
-            Version History
-          </h3>
-          <p className="text-xs text-aimll-3">
-            Previous versions of the instructions
-          </p>
+          <h3 className="text-sm font-medium text-aiml-el-5">Version History</h3>
+          <p className="text-xs text-aimll-3">Previous versions of the instructions</p>
         </div>
       </div>
       <ScrollArea className="flex-1">

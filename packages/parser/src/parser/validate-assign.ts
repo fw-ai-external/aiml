@@ -1,6 +1,6 @@
-import { visit } from "unist-util-visit";
-import { Diagnostic, DiagnosticSeverity } from "@fireworks/shared";
-import { ValueType } from "@fireworks/shared";
+import { type Diagnostic, DiagnosticSeverity } from '@fireworks/shared';
+import { ValueType } from '@fireworks/shared';
+import { visit } from 'unist-util-visit';
 
 /**
  * Interface for variable metadata
@@ -27,25 +27,18 @@ interface Datamodel {
  * @param datamodel The datamodel to validate against
  * @returns An array of diagnostics
  */
-export function validateAssignElements(
-  ast: any,
-  datamodel: Datamodel
-): Diagnostic[] {
+export function validateAssignElements(ast: any, datamodel: Datamodel): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
 
   // Visit all assign elements in the AST
   visit(ast, (node) => {
-    if (node.type === "element" && node.tag === "assign") {
+    if (node.type === 'element' && node.tag === 'assign') {
       const { location, expr } = node.attributes;
 
       // Check if location is provided
       if (!location) {
         diagnostics.push(
-          createDiagnostic(
-            node,
-            "Assign element requires a 'location' attribute",
-            DiagnosticSeverity.Error
-          )
+          createDiagnostic(node, "Assign element requires a 'location' attribute", DiagnosticSeverity.Error),
         );
         return;
       }
@@ -54,11 +47,7 @@ export function validateAssignElements(
       const metadata = datamodel.__metadata?.[location];
       if (!metadata) {
         diagnostics.push(
-          createDiagnostic(
-            node,
-            `Variable '${location}' does not exist in datamodel`,
-            DiagnosticSeverity.Error
-          )
+          createDiagnostic(node, `Variable '${location}' does not exist in datamodel`, DiagnosticSeverity.Error),
         );
         return;
       }
@@ -66,11 +55,7 @@ export function validateAssignElements(
       // Check if the variable is readonly
       if (metadata.readonly) {
         diagnostics.push(
-          createDiagnostic(
-            node,
-            `Cannot assign to readonly variable '${location}'`,
-            DiagnosticSeverity.Error
-          )
+          createDiagnostic(node, `Cannot assign to readonly variable '${location}'`, DiagnosticSeverity.Error),
         );
       }
 
@@ -84,8 +69,8 @@ export function validateAssignElements(
               createDiagnostic(
                 node,
                 `Type mismatch: cannot assign ${inferredType} to ${metadata.type}`,
-                DiagnosticSeverity.Error
-              )
+                DiagnosticSeverity.Error,
+              ),
             );
           }
         } catch (error) {
@@ -94,8 +79,8 @@ export function validateAssignElements(
             createDiagnostic(
               node,
               `Could not validate type compatibility for '${location}'`,
-              DiagnosticSeverity.Warning
-            )
+              DiagnosticSeverity.Warning,
+            ),
           );
         }
       }
@@ -107,8 +92,8 @@ export function validateAssignElements(
           createDiagnostic(
             node,
             `Variable '${location}' is not accessible from current scope`,
-            DiagnosticSeverity.Error
-          )
+            DiagnosticSeverity.Error,
+          ),
         );
       }
     }
@@ -120,16 +105,12 @@ export function validateAssignElements(
 /**
  * Creates a diagnostic for a node
  */
-function createDiagnostic(
-  node: any,
-  message: string,
-  severity: DiagnosticSeverity
-): Diagnostic {
+function createDiagnostic(node: any, message: string, severity: DiagnosticSeverity): Diagnostic {
   return {
     message,
     severity,
-    code: "AIML-ASSIGN",
-    source: "AIML",
+    code: 'AIML-ASSIGN',
+    source: 'AIML',
     range: {
       start: {
         line: node.lineStart,
@@ -154,7 +135,7 @@ function inferExpressionType(expr: string): ValueType | undefined {
     return ValueType.STRING;
   } else if (expr.match(/^-?\d+(\.\d+)?$/)) {
     return ValueType.NUMBER;
-  } else if (expr === "true" || expr === "false") {
+  } else if (expr === 'true' || expr === 'false') {
     return ValueType.BOOLEAN;
   } else if (expr.match(/^\{.*\}$/)) {
     return ValueType.JSON;
@@ -170,10 +151,7 @@ function inferExpressionType(expr: string): ValueType | undefined {
  * @param targetType The target type
  * @returns True if the types are compatible
  */
-function isTypeCompatible(
-  sourceType: ValueType,
-  targetType: ValueType | string
-): boolean {
+function isTypeCompatible(sourceType: ValueType, targetType: ValueType | string): boolean {
   // For now, just check if they're the same
   return sourceType === targetType;
 }
@@ -189,11 +167,8 @@ function findCurrentStateId(node: any): string | null {
   while (current && current.parent) {
     current = current.parent;
     if (
-      current.type === "element" &&
-      (current.tag === "state" ||
-        current.tag === "workflow" ||
-        current.tag === "final" ||
-        current.tag === "initial")
+      current.type === 'element' &&
+      (current.tag === 'state' || current.tag === 'workflow' || current.tag === 'final' || current.tag === 'initial')
     ) {
       return current.attributes.id || null;
     }
@@ -208,11 +183,7 @@ function findCurrentStateId(node: any): string | null {
  * @param datamodel The datamodel
  * @returns True if the variable is in scope
  */
-function isInScope(
-  variableId: string,
-  currentStateId: string | null,
-  datamodel: Datamodel
-): boolean {
+function isInScope(variableId: string, currentStateId: string | null, datamodel: Datamodel): boolean {
   const metadata = datamodel.__metadata?.[variableId];
   if (!metadata) {
     return false;
@@ -245,7 +216,7 @@ export function buildDatamodelFromAST(ast: any): Datamodel {
 
   // Visit all data elements in the AST
   visit(ast, (node) => {
-    if (node.type === "element" && node.tag === "data") {
+    if (node.type === 'element' && node.tag === 'data') {
       const { id, type, readonly, fromRequest } = node.attributes;
 
       if (id) {
@@ -275,11 +246,8 @@ function findParentStateId(node: any): string | null {
   while (current && current.parent) {
     current = current.parent;
     if (
-      current.type === "element" &&
-      (current.tag === "state" ||
-        current.tag === "workflow" ||
-        current.tag === "final" ||
-        current.tag === "initial")
+      current.type === 'element' &&
+      (current.tag === 'state' || current.tag === 'workflow' || current.tag === 'final' || current.tag === 'initial')
     ) {
       return current.attributes.id || null;
     }

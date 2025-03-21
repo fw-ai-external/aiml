@@ -1,4 +1,4 @@
-import { registerGraphBuilder } from "./graphBuilder";
+import { registerGraphBuilder } from './graphBuilder';
 /**
  * Dependency Injection Module
  *
@@ -87,10 +87,10 @@ export const container = new Container();
  * Service identifiers
  */
 export const ServiceIdentifiers = {
-  GRAPH_BUILDER: "graphBuilder",
-  ELEMENT_FACTORY: "elementFactory",
-  EXECUTION_CONTEXT: "executionContext",
-  WORKFLOW_RUNNER: "workflowRunner",
+  GRAPH_BUILDER: 'graphBuilder',
+  ELEMENT_FACTORY: 'elementFactory',
+  EXECUTION_CONTEXT: 'executionContext',
+  WORKFLOW_RUNNER: 'workflowRunner',
 };
 
 /**

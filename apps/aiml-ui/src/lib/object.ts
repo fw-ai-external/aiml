@@ -63,7 +63,7 @@ export const flattenObject = (object: Record<string, any>, endKeys: string[] = [
     for (const [key, value] of Object.entries(obj)) {
       let newPath = [...path, key];
       if (value && value.constructor === Object) {
-        const hasOnlyEndKeys = endKeys?.length ? endKeys.every(v => Object.keys(value).includes(v)) : false;
+        const hasOnlyEndKeys = endKeys?.length ? endKeys.every((v) => Object.keys(value).includes(v)) : false;
         if (hasOnlyEndKeys) {
           newObj = { ...newObj, [newPath.join('.')]: value };
         } else {

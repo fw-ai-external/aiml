@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { transformToNestObject } from '../utils';
 
 export const customZodUnionResolver = (schemaUnion: z.ZodTypeAny, discriminator: string): Resolver<any> => {
-  return async values => {
+  return async (values) => {
     //get schema based on discriminator
     const schema =
       schemaUnion?._def?.options?.find(

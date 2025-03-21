@@ -1,23 +1,17 @@
-import { useEffect, useState, useCallback } from "react";
-import { useSWRConfig } from "swr";
+import { useCallback, useEffect, useState } from 'react';
+import { useSWRConfig } from 'swr';
 
-import type { Message, ChatProps } from "@/types";
+import type { ChatProps, Message } from '@/types';
 
-import { ChatContainer, ChatForm, ChatMessages } from "./ui/chat";
-import { MessageInput } from "./ui/message-input";
-import { MessageList } from "./ui/message-list";
-import { PromptSuggestions } from "./ui/prompt-suggestions";
-import { ScrollArea } from "./ui/scroll-area";
+import { ChatContainer, ChatForm, ChatMessages } from './ui/chat';
+import { MessageInput } from './ui/message-input';
+import { MessageList } from './ui/message-list';
+import { PromptSuggestions } from './ui/prompt-suggestions';
+import { ScrollArea } from './ui/scroll-area';
 
-export function Chat({
-  agentId,
-  initialMessages = [],
-  agentName,
-  threadId,
-  memory,
-}: ChatProps) {
+export function Chat({ agentId, initialMessages = [], agentName, threadId, memory }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { mutate } = useSWRConfig();
 
@@ -27,38 +21,35 @@ export function Chat({
     }
   }, [initialMessages]);
 
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setInput(e.target.value);
-    },
-    []
-  );
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+  }, []);
 
   const handleSubmit = async (event?: { preventDefault?: () => void }) => {
     event?.preventDefault?.();
     if (!input.trim() || isLoading) return;
 
     const userMessage = input;
-    setInput("");
+    setInput('');
     setIsLoading(true);
     const newUserMessage = {
       id: Date.now().toString(),
-      role: "user" as const,
+      role: 'user' as const,
       content: userMessage,
     };
 
     const newAssistantMessage = {
       id: (Date.now() + 1).toString(),
-      role: "assistant" as const,
-      content: "",
+      role: 'assistant' as const,
+      content: '',
     };
 
     setMessages((prev) => [...prev, newUserMessage, newAssistantMessage]);
 
     try {
-      const response = await fetch("/api/agents/" + agentId + "/stream", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/agents/' + agentId + '/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [userMessage],
           ...(memory ? { threadId, resourceid: agentId } : {}),
@@ -66,7 +57,7 @@ export function Chat({
       });
 
       if (!response.body) {
-        throw new Error("No response body");
+        throw new Error('No response body');
       }
 
       if (response.status !== 200) {
@@ -78,9 +69,9 @@ export function Chat({
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let buffer = "";
-      let assistantMessage = "";
-      let errorMessage = "";
+      let buffer = '';
+      let assistantMessage = '';
+      let errorMessage = '';
 
       try {
         while (true) {
@@ -112,12 +103,9 @@ export function Chat({
           for (const match of matches) {
             const content = match[1];
             assistantMessage += content;
-            setMessages((prev) => [
-              ...prev.slice(0, -1),
-              { ...prev[prev.length - 1], content: assistantMessage },
-            ]);
+            setMessages((prev) => [...prev.slice(0, -1), { ...prev[prev.length - 1], content: assistantMessage }]);
           }
-          buffer = "";
+          buffer = '';
         }
       } catch (error: any) {
         throw new Error(error.message);
@@ -129,9 +117,7 @@ export function Chat({
         ...prev.slice(0, -1),
         {
           ...prev[prev.length - 1],
-          content:
-            error?.message ||
-            `An error occurred while processing your request.`,
+          content: error?.message || `An error occurred while processing your request.`,
           isError: true,
         },
       ]);
@@ -142,35 +128,24 @@ export function Chat({
 
   const lastMessage = messages.at(-1);
   const isEmpty = messages.length === 0;
-  const isTyping =
-    isLoading &&
-    lastMessage?.role === "assistant" &&
-    !lastMessage?.content.trim();
+  const isTyping = isLoading && lastMessage?.role === 'assistant' && !lastMessage?.content.trim();
 
   const append = useCallback(
-    (message: { role: "user"; content: string }) => {
+    (message: { role: 'user'; content: string }) => {
       setInput(message.content);
       handleSubmit();
     },
-    [handleSubmit]
+    [handleSubmit],
   );
 
-  const suggestions = [
-    "What capabilities do you have?",
-    "How can you help me?",
-    "Tell me about yourself",
-  ];
+  const suggestions = ['What capabilities do you have?', 'How can you help me?', 'Tell me about yourself'];
 
   return (
     <ChatContainer className="h-full px-4 pb-3 pt-4 max-w-[1000px] mx-auto">
       <div className="flex flex-col h-full">
         {isEmpty ? (
           <div className="mx-auto max-w-2xl">
-            <PromptSuggestions
-              label={`Chat with ${agentName}`}
-              append={append}
-              suggestions={suggestions}
-            />
+            <PromptSuggestions label={`Chat with ${agentName}`} append={append} suggestions={suggestions} />
           </div>
         ) : (
           <ScrollArea className=" h-[calc(100vh-15rem)] px-4">
@@ -213,8 +188,7 @@ export function Chat({
               <path d="M12 8h.01" />
             </svg>
             <span className="text-xs text-gray-300/60">
-              Agent will not remember previous messages. To enable memory for
-              agent see{" "}
+              Agent will not remember previous messages. To enable memory for agent see{' '}
               <a
                 href="https://aiml.ai/docs/agents/01-agent-memory"
                 target="_blank"

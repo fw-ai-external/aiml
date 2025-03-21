@@ -1,32 +1,28 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from 'react';
 
-import type { EvalResult, PromptVersion } from "@/types";
+import type { EvalResult, PromptVersion } from '@/types';
 
 export function usePromptVersions(agentId: string, instructions?: string) {
   const [versions, setVersions] = useState<PromptVersion[]>([]);
-  const [copiedVersions, setCopiedVersions] = useState<Record<number, boolean>>(
-    {}
-  );
+  const [copiedVersions, setCopiedVersions] = useState<Record<number, boolean>>({});
   const [isUpdating, setIsUpdating] = useState(false);
-  const [versionToDelete, setVersionToDelete] = useState<PromptVersion | null>(
-    null
-  );
+  const [versionToDelete, setVersionToDelete] = useState<PromptVersion | null>(null);
 
   // Fetch eval results for a version
   const fetchEvalResults = async (): Promise<EvalResult[]> => {
     try {
       const response = await fetch(`/api/agents/${agentId}/evals/live`, {
-        method: "GET",
+        method: 'GET',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch eval results");
+        throw new Error('Failed to fetch eval results');
       }
 
       const data = await response.json();
       return data?.evals;
     } catch (error) {
-      console.error("Failed to fetch eval results:", error);
+      console.error('Failed to fetch eval results:', error);
       return [];
     }
   };
@@ -40,26 +36,18 @@ export function usePromptVersions(agentId: string, instructions?: string) {
       if (storedVersions) {
         const parsedVersions = JSON.parse(storedVersions);
         // Check if the original version content matches current instructions
-        const originalVersion = parsedVersions.find(
-          (v: any) => v.status === "original"
-        );
-        if (
-          instructions &&
-          originalVersion &&
-          originalVersion.content !== instructions
-        ) {
+        const originalVersion = parsedVersions.find((v: any) => v.status === 'original');
+        if (instructions && originalVersion && originalVersion.content !== instructions) {
           // If instructions changed, reset version history with new original version
-          const originalEvals = evals?.filter(
-            (m) => m.meta.instructions === instructions
-          );
+          const originalEvals = evals?.filter((m) => m.meta.instructions === instructions);
 
           const newVersions: PromptVersion[] = [
             {
               id: crypto.randomUUID(),
               content: instructions,
               timestamp: new Date(),
-              analysis: "Original instructions",
-              status: "original" as const,
+              analysis: 'Original instructions',
+              status: 'original' as const,
               evals: originalEvals,
             },
           ];
@@ -67,30 +55,20 @@ export function usePromptVersions(agentId: string, instructions?: string) {
           newVersions[0].evals = evals;
 
           setVersions(newVersions);
-          localStorage.setItem(
-            `agent-${agentId}-versions`,
-            JSON.stringify(newVersions)
-          );
+          localStorage.setItem(`agent-${agentId}-versions`, JSON.stringify(newVersions));
         } else {
           // If instructions haven't changed, load existing versions and fetch their evals
           const updatedVersions = await Promise.all(
             parsedVersions.map(async (v: any) => {
-              const originalEvals = evals?.filter(
-                (m) => m.meta.instructions === v.content
-              );
+              const originalEvals = evals?.filter((m) => m.meta.instructions === v.content);
 
               const version = {
                 ...v,
                 timestamp: new Date(v.timestamp),
-                status:
-                  v.content === instructions
-                    ? "active"
-                    : v.status === "active"
-                      ? "published"
-                      : v.status,
+                status: v.content === instructions ? 'active' : v.status === 'active' ? 'published' : v.status,
               };
               return { ...version, evals: originalEvals };
-            })
+            }),
           );
           setVersions(updatedVersions);
         }
@@ -100,25 +78,20 @@ export function usePromptVersions(agentId: string, instructions?: string) {
             id: crypto.randomUUID(),
             content: instructions,
             timestamp: new Date(),
-            analysis: "Original instructions",
-            status: "original" as const,
+            analysis: 'Original instructions',
+            status: 'original' as const,
             evals: [],
           },
         ];
 
-        const originalEvals = evals?.filter(
-          (m) => m.meta.instructions === instructions
-        );
+        const originalEvals = evals?.filter((m) => m.meta.instructions === instructions);
 
         // Fetch evals for the initial version
         initialVersions[0].evals = originalEvals;
 
         setVersions(initialVersions);
 
-        localStorage.setItem(
-          `agent-${agentId}-versions`,
-          JSON.stringify(initialVersions)
-        );
+        localStorage.setItem(`agent-${agentId}-versions`, JSON.stringify(initialVersions));
       }
     };
 
@@ -128,10 +101,7 @@ export function usePromptVersions(agentId: string, instructions?: string) {
   // Save versions to local storage whenever they change
   useEffect(() => {
     if (versions.length > 0) {
-      localStorage.setItem(
-        `agent-${agentId}-versions`,
-        JSON.stringify(versions)
-      );
+      localStorage.setItem(`agent-${agentId}-versions`, JSON.stringify(versions));
     }
   }, [versions, agentId]);
 
@@ -151,37 +121,29 @@ export function usePromptVersions(agentId: string, instructions?: string) {
   const setVersionActive = async (version: PromptVersion, index: number) => {
     setIsUpdating(true);
     try {
-      const response = await fetch(
-        `http://localhost:4111/api/agents/${agentId}/instructions`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            instructions: version.content,
-          }),
-        }
-      );
+      const response = await fetch(`http://localhost:4111/api/agents/${agentId}/instructions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          instructions: version.content,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to update instructions");
+        throw new Error('Failed to update instructions');
       }
 
       // Update version statuses
       setVersions((prev) =>
         prev.map((v, i) => ({
           ...v,
-          status:
-            i === index
-              ? "active"
-              : v.status === "active"
-                ? "published"
-                : v.status,
-        }))
+          status: i === index ? 'active' : v.status === 'active' ? 'published' : v.status,
+        })),
       );
     } catch (error) {
-      console.error("Failed to set version as active:", error);
+      console.error('Failed to set version as active:', error);
     } finally {
       setIsUpdating(false);
     }
@@ -192,18 +154,13 @@ export function usePromptVersions(agentId: string, instructions?: string) {
     setVersionToDelete(null);
   };
 
-  const updateVersion = async (
-    index: number,
-    updates: Partial<PromptVersion>
-  ) => {
+  const updateVersion = async (index: number, updates: Partial<PromptVersion>) => {
     const updatedVersion = {
       ...versions[index],
       ...updates,
     };
 
-    setVersions((prev) =>
-      prev.map((version, i) => (i === index ? updatedVersion : version))
-    );
+    setVersions((prev) => prev.map((version, i) => (i === index ? updatedVersion : version)));
   };
 
   return {

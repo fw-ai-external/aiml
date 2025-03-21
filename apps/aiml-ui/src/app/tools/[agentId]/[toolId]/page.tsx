@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
+import * as React from 'react';
 
-import { Header } from "@/components/ui/header";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Header } from '@/components/ui/header';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { useAgent } from "@/hooks/use-agents";
+import { useAgent } from '@/hooks/use-agents';
 
 export default function AgentToolPage({
   params,
@@ -31,13 +31,13 @@ export default function AgentToolPage({
   const tool = agent?.tools?.[resolvedParams.toolId];
 
   if (!tool) {
-    router.push("/tools");
+    router.push('/tools');
     return null;
   }
 
   return (
     <div className="flex flex-col h-full w-full">
-      <Header title={"tool"} />
+      <Header title={'tool'} />
       <div className="p-4">
         <p className="text-aiml-el-2">{tool.description}</p>
       </div>

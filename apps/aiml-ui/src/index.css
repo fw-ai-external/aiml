@@ -207,11 +207,7 @@ html {
 .gradient-bg {
   position: absolute;
   z-index: 1;
-  background: linear-gradient(
-    201deg,
-    #d9d9d9 11.52%,
-    rgba(115, 115, 115, 0) 72.21%
-  );
+  background: linear-gradient(201deg, #d9d9d9 11.52%, rgba(115, 115, 115, 0) 72.21%);
   background: radial-gradient(
     50.87% 50.85% at 50% 50%,
     rgba(0, 0, 0, 0.15) 42.56%,

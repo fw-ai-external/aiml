@@ -1,4 +1,4 @@
-import { CompilerOptions, ts } from "ts-morph";
+import { type CompilerOptions, ts } from 'ts-morph';
 
 export class CompilerConfig {
   static getDefaultOptions(): CompilerOptions {
@@ -19,7 +19,7 @@ export class CompilerConfig {
       skipDefaultLibCheck: true,
       plugins: [
         {
-          name: "@mdx-js/typescript-plugin",
+          name: '@mdx-js/typescript-plugin',
         },
       ],
     };
@@ -27,21 +27,21 @@ export class CompilerConfig {
 
   static getDiagnosticFilters(): string[] {
     return [
-      "Cannot find name",
+      'Cannot find name',
       "JSX element implicitly has type 'any'",
-      "Cannot find module",
-      "File is a CommonJS module",
-      "Cannot redeclare block-scoped variable",
-      "Cannot find namespace",
-      "createElement",
-      "Fragment",
-      "Cannot find global type",
-      "Cannot find type definition file",
-      "Could not resolve the path",
-      "Cannot find lib.dom.d.ts",
-      "Cannot find lib.es2020.d.ts",
-      "Cannot find lib.es5.d.ts",
-      "Cannot find lib.es6.d.ts",
+      'Cannot find module',
+      'File is a CommonJS module',
+      'Cannot redeclare block-scoped variable',
+      'Cannot find namespace',
+      'createElement',
+      'Fragment',
+      'Cannot find global type',
+      'Cannot find type definition file',
+      'Could not resolve the path',
+      'Cannot find lib.dom.d.ts',
+      'Cannot find lib.es2020.d.ts',
+      'Cannot find lib.es5.d.ts',
+      'Cannot find lib.es6.d.ts',
     ];
   }
 }

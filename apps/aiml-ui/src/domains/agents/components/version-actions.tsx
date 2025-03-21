@@ -1,8 +1,8 @@
-import { Play, Trash2 } from "lucide-react";
+import { Play, Trash2 } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 
-import type { VersionActionsProps } from "@/types";
+import type { VersionActionsProps } from '@/types';
 
 export function VersionActions({
   version,
@@ -10,10 +10,10 @@ export function VersionActions({
   isUpdating,
   onSetActive,
   onDelete,
-}: Omit<VersionActionsProps, "onCopy" | "copiedVersions">) {
+}: Omit<VersionActionsProps, 'onCopy' | 'copiedVersions'>) {
   return (
     <div className="flex items-center space-x-1">
-      {version.status !== "active" && version.status !== "draft" && (
+      {version.status !== 'active' && version.status !== 'draft' && (
         <Button
           variant="ghost"
           size="sm"
@@ -27,7 +27,7 @@ export function VersionActions({
           <Play className="h-3 w-3" />
         </Button>
       )}
-      {index !== 0 && version.status !== "active" && (
+      {index !== 0 && version.status !== 'active' && (
         <Button
           variant="ghost"
           size="sm"

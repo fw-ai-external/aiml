@@ -1,37 +1,37 @@
-import { Span } from "@/domains/traces/types";
-import { NextResponse } from "next/server";
+import type { Span } from '@/domains/traces/types';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   // Mock data for now - replace with actual API call
 
   const mockSpans: Span[] = [
     {
-      id: "1",
-      name: "Test Span 1",
+      id: '1',
+      name: 'Test Span 1',
       duration: 1000,
       parentSpanId: null,
-      traceId: "1",
-      scope: "test",
+      traceId: '1',
+      scope: 'test',
       kind: 1,
       status: { code: 200 },
       events: [
         {
           attributes: [
             {
-              key: "test",
+              key: 'test',
               value: {
-                test: "test",
+                test: 'test',
               },
             },
           ],
-          name: "Test Event 1",
-          timeUnixNano: "1713859200000",
+          name: 'Test Event 1',
+          timeUnixNano: '1713859200000',
           droppedAttributesCount: 0,
         },
       ],
       links: [],
       attributes: {
-        test: "test",
+        test: 'test',
       },
       startTime: 1713859200000,
       endTime: 1713862800000,
@@ -40,7 +40,7 @@ export async function GET() {
         droppedEventsCount: 0,
         droppedLinksCount: 0,
       },
-      createdAt: "2024-04-20T12:00:00Z",
+      createdAt: '2024-04-20T12:00:00Z',
     },
   ];
 

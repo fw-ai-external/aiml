@@ -1,25 +1,25 @@
-import path from "path";
+import path from 'path';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: [
-    "@codemirror/lang-json",
-    "@uiw/codemirror-theme-github",
-    "@uiw/react-codemirror",
-    "@xyflow/react",
+    '@codemirror/lang-json',
+    '@uiw/codemirror-theme-github',
+    '@uiw/react-codemirror',
+    '@xyflow/react',
   ],
   webpack(config, { isServer }) {
     if (!isServer) {
-      config.output.globalObject = "self";
+      config.output.globalObject = 'self';
     }
     config.module.rules.push({
       test: /\.svg$/i,
-      include: [path.resolve("./public")],
+      include: [path.resolve('./public')],
       issuer: /\.[jt]sx?$/,
       use: [
         {
-          loader: "@svgr/webpack",
+          loader: '@svgr/webpack',
           options: {
             typescript: true,
             icon: true,
@@ -29,24 +29,24 @@ const nextConfig = {
     });
     config.module.rules.push({
       test: /\.svg$/i,
-      include: [path.resolve("./src")],
-      type: "asset",
+      include: [path.resolve('./src')],
+      type: 'asset',
     });
     config.module.rules.push({
       test: /\.wasm$/,
-      type: "asset",
+      type: 'asset',
     });
     config.module.rules.push({
       test: new RegExp(`syntaxes/.*\.json$`),
-      type: "asset",
+      type: 'asset',
     });
     config.module.rules.push({
       test: new RegExp(`shiki/.*\.json$`),
-      type: "asset",
+      type: 'asset',
     });
     config.module.rules.push({
       test: new RegExp(`.*\.tmLanguage$`),
-      type: "asset/resource",
+      type: 'asset/resource',
     });
 
     config.experiments = {

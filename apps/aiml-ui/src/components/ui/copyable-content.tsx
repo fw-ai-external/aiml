@@ -1,8 +1,8 @@
-import { Copy } from "lucide-react";
+import { Copy } from 'lucide-react';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
-import { Button } from "./button";
+import { Button } from './button';
 
 interface CopyableCell {
   content: string;
@@ -10,25 +10,14 @@ interface CopyableCell {
   multiline?: boolean;
 }
 
-export function CopyableContent({
-  content,
-  label,
-  multiline = false,
-}: CopyableCell) {
+export function CopyableContent({ content, label, multiline = false }: CopyableCell) {
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
   };
 
   return (
     <div className="group relative flex items-start gap-2">
-      <span
-        className={cn(
-          "text-sm text-aiml-el-4",
-          multiline ? "whitespace-pre-wrap" : "truncate"
-        )}
-      >
-        {content}
-      </span>
+      <span className={cn('text-sm text-aiml-el-4', multiline ? 'whitespace-pre-wrap' : 'truncate')}>{content}</span>
       <Button
         variant="ghost"
         size="sm"

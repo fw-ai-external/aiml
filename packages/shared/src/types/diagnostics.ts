@@ -1,9 +1,9 @@
 // Define diagnostics types
 export enum DiagnosticSeverity {
-  Error = "error",
-  Warning = "warning",
-  Information = "information",
-  Hint = "hint",
+  Error = 'error',
+  Warning = 'warning',
+  Information = 'information',
+  Hint = 'hint',
 }
 
 export interface DiagnosticPosition {

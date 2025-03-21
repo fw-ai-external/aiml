@@ -1,4 +1,4 @@
-import { MouseEvent as ReactMouseEvent, useContext, useEffect, useRef, useState } from 'react';
+import { type MouseEvent as ReactMouseEvent, useContext, useEffect, useRef, useState } from 'react';
 
 import { TraceContext } from '@/domains/traces/context/trace-context';
 

@@ -1,12 +1,12 @@
-import { useContext, useRef, useState } from "react";
+import { useContext, useRef, useState } from 'react';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
-import { TraceContext } from "./context/trace-context";
-import type { SpanNode } from "./types";
-import { formatDuration } from "./utils";
+import { TraceContext } from './context/trace-context';
+import type { SpanNode } from './types';
+import { formatDuration } from './utils';
 
 export function TreeNode({
   node,
@@ -21,21 +21,15 @@ export function TreeNode({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const widthPercentage = Math.min(
-    node.relativePercentage ? node?.relativePercentage * 100 : 0,
-    100
-  );
+  const widthPercentage = Math.min(node.relativePercentage ? node?.relativePercentage * 100 : 0, 100);
 
   return (
     <div ref={containerRef}>
       <Button
-        variant={"ghost"}
-        className={cn(
-          "relative flex w-full items-center justify-start gap-2 py-3 pr-1 text-sm",
-          {
-            "text-accent-foreground bg-accent": span?.id === node.id,
-          }
-        )}
+        variant={'ghost'}
+        className={cn('relative flex w-full items-center justify-start gap-2 py-3 pr-1 text-sm', {
+          'text-accent-foreground bg-accent': span?.id === node.id,
+        })}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -53,10 +47,7 @@ export function TreeNode({
             className="relative grid h-auto flex-shrink-0 place-items-center rounded-sm bg-[#1a1a1a] p-2"
           >
             <svg
-              className={cn(
-                "!h-2 !w-2 transition-transform",
-                isExpanded ? "" : "-rotate-90"
-              )}
+              className={cn('!h-2 !w-2 transition-transform', isExpanded ? '' : '-rotate-90')}
               xmlns="http://www.w3.org/2000/svg"
               width="7"
               height="6"
@@ -72,10 +63,10 @@ export function TreeNode({
         ) : null}
         <div className="flex w-full gap-4 pr-4">
           <p
-            className={cn("max-w-[250px] text-sm", {
-              "text-white": node?.status?.code === 0,
-              "text-[#FF4500]": node?.status?.code !== 0,
-              "px-1": depth === 0,
+            className={cn('max-w-[250px] text-sm', {
+              'text-white': node?.status?.code === 0,
+              'text-[#FF4500]': node?.status?.code !== 0,
+              'px-1': depth === 0,
               truncate:
                 containerRef.current?.offsetWidth &&
                 containerRef.current?.offsetWidth < 450 &&
@@ -95,10 +86,10 @@ export function TreeNode({
                   left: 0,
                 }}
                 className={cn(
-                  "absolute top-[9px] z-0 h-[5px] rounded-[5px] bg-white transition-all",
-                  node.name.includes("agent") && "left-1/2 bg-green-500",
-                  node.name.includes("llm") && "bg-[#5699A8]",
-                  node.name.includes("ai") && "left-2/4 w-5 bg-[#F09A56]"
+                  'absolute top-[9px] z-0 h-[5px] rounded-[5px] bg-white transition-all',
+                  node.name.includes('agent') && 'left-1/2 bg-green-500',
+                  node.name.includes('llm') && 'bg-[#5699A8]',
+                  node.name.includes('ai') && 'left-2/4 w-5 bg-[#F09A56]',
                 )}
               ></div>
               <span className="absolute left-0 top-3 text-[0.63rem] text-aiml-el-3">

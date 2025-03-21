@@ -7,7 +7,7 @@ import { Controller } from 'react-hook-form';
 
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
-import { Command, CommandInput, CommandList, CommandGroup, CommandItem } from '../../ui/command';
+import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '../../ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
 
 interface CreatableFieldProps {
@@ -70,8 +70,8 @@ export function CreatableField({ name, control, options = [], handleFieldChange,
                   <CommandList>
                     <CommandGroup>
                       {options
-                        .filter(opt => !selectedValues.includes(opt.value))
-                        .map(option => (
+                        .filter((opt) => !selectedValues.includes(opt.value))
+                        .map((option) => (
                           <CommandItem key={option.value} onSelect={() => addValue(option.value)}>
                             {option.label}
                           </CommandItem>

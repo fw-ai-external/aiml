@@ -1,5 +1,5 @@
-import { parse as parseYAML } from "yaml";
-import { JSONSchemaType } from "ajv";
+import type { JSONSchemaType } from 'ajv';
+import { parse as parseYAML } from 'yaml';
 
 /**
  * Core MDXLD interface for parsed MDX documents with YAML-LD frontmatter
@@ -17,24 +17,21 @@ export interface AIMLFile {
    */
   props?: Record<
     string,
-    | "string"
-    | "number"
-    | "boolean"
-    | "string?"
-    | "number?"
-    | "boolean?"
-    | "string[]"
-    | "number[]"
-    | "boolean[]"
+    | 'string'
+    | 'number'
+    | 'boolean'
+    | 'string?'
+    | 'number?'
+    | 'boolean?'
+    | 'string[]'
+    | 'number[]'
+    | 'boolean[]'
     | Record<string, JSONSchemaType<any>> // For JSON Schema objects
   >;
   content: string;
 }
 
-const AIMLFrontmatterProperties: (keyof Omit<AIMLFile, "content">)[] = [
-  "props",
-  "name",
-] as const;
+const AIMLFrontmatterProperties: (keyof Omit<AIMLFile, 'content'>)[] = ['props', 'name'] as const;
 
 /**
  * Special properties that should be extracted to root level
@@ -53,14 +50,14 @@ function extractFrontmatter(mdx: string): {
   content: string;
 } {
   // Check for proper frontmatter delimiters
-  if (!mdx.startsWith("---\n")) {
-    return { frontmatter: "", content: mdx };
+  if (!mdx.startsWith('---\n')) {
+    return { frontmatter: '', content: mdx };
   }
 
   // Find the closing delimiter
   const endMatch = mdx.slice(4).match(/\n---\n/);
-  if (!endMatch || typeof endMatch.index !== "number") {
-    throw new Error("Failed to parse YAML frontmatter");
+  if (!endMatch || typeof endMatch.index !== 'number') {
+    throw new Error('Failed to parse YAML frontmatter');
   }
 
   // Extract frontmatter and content
@@ -69,7 +66,7 @@ function extractFrontmatter(mdx: string): {
   const content = mdx.slice(4 + endIndex + 5);
 
   if (!frontmatter) {
-    return { frontmatter: "", content: mdx };
+    return { frontmatter: '', content: mdx };
   }
 
   return { frontmatter, content };
@@ -81,7 +78,7 @@ export function parseMDXFrontmatter(mdx: string): AIMLFile {
   if (!frontmatter) {
     return {
       props: {},
-      name: "",
+      name: '',
       content,
     };
   }
@@ -90,17 +87,12 @@ export function parseMDXFrontmatter(mdx: string): AIMLFile {
     // Use strict mode for YAML parsing to catch invalid structures
     const yaml = parseYAML(frontmatter, {
       strict: true,
-      schema: "core",
-      logLevel: "error",
+      schema: 'core',
+      logLevel: 'error',
     });
 
-    if (
-      typeof yaml !== "object" ||
-      yaml === null ||
-      Array.isArray(yaml) ||
-      Object.keys(yaml).length === 0
-    ) {
-      throw new Error("Failed to parse YAML frontmatter");
+    if (typeof yaml !== 'object' || yaml === null || Array.isArray(yaml) || Object.keys(yaml).length === 0) {
+      throw new Error('Failed to parse YAML frontmatter');
     }
 
     return {
@@ -108,8 +100,6 @@ export function parseMDXFrontmatter(mdx: string): AIMLFile {
       content,
     };
   } catch (error) {
-    throw new Error(
-      `Failed to parse YAML frontmatter: ${error instanceof Error ? error.message : String(error)}`
-    );
+    throw new Error(`Failed to parse YAML frontmatter: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

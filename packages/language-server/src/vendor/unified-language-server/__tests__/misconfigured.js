@@ -1,3 +1,3 @@
-import {createUnifiedLanguageServer} from 'unified-language-server'
+import { createUnifiedLanguageServer } from 'unified-language-server';
 
-createUnifiedLanguageServer({configurationSection: '', processorName: 'remark'})
+createUnifiedLanguageServer({ configurationSection: '', processorName: 'remark' });

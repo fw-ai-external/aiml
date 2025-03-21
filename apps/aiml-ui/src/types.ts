@@ -1,6 +1,6 @@
 export interface Message {
   id: string;
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: any;
   isError?: boolean;
 }
@@ -17,7 +17,7 @@ export interface PromptVersion {
   id: string;
   content: string;
   timestamp: Date;
-  status: "original" | "active" | "published" | "draft";
+  status: 'original' | 'active' | 'published' | 'draft';
   analysis: string;
   evals?: EvalResult[];
 }

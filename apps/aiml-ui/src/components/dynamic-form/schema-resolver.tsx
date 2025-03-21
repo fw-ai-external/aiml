@@ -112,7 +112,7 @@ function resolveSchemaComponent({
           formValues={formValues}
           errors={errors}
           isOptional={isOptional}
-          renderDynamicForm={props => resolveSchema({ ...props, handleFieldChange })}
+          renderDynamicForm={(props) => resolveSchema({ ...props, handleFieldChange })}
         />
       </div>
     );
@@ -142,10 +142,10 @@ function resolveSchemaComponent({
         errors={errors}
         isOptional={isOptional}
         isNullable={isNullable}
-        renderDynamicForm={props =>
+        renderDynamicForm={(props) =>
           resolveSchema({
             ...props,
-            handleFieldChange: props => handleFieldChange(props),
+            handleFieldChange: (props) => handleFieldChange(props),
           })
         }
       />
@@ -158,7 +158,7 @@ function resolveSchemaComponent({
         <ArrayField
           control={control}
           name={parentField}
-          renderField={props => {
+          renderField={(props) => {
             const fieldSchema = schema.element;
             const currentField = `${parentField}[${props.index}]`;
             return resolveSchemaComponent({

@@ -6,10 +6,7 @@
  * @returns The result of evaluating the expression
  * @throws Error if evaluation fails
  */
-export function evaluateExpression(
-  expression: string,
-  variables: Record<string, any>
-): any {
+export function evaluateExpression(expression: string, variables: Record<string, any>): any {
   try {
     // Create a function with the variables as parameters
     const fn = new Function(...Object.keys(variables), `return ${expression}`);
@@ -18,9 +15,7 @@ export function evaluateExpression(
     return fn(...Object.values(variables));
   } catch (error) {
     console.error(`Error evaluating expression ${expression}:`, error);
-    throw error instanceof Error
-      ? error
-      : new Error(`Failed to evaluate expression: ${expression}`);
+    throw error instanceof Error ? error : new Error(`Failed to evaluate expression: ${expression}`);
   }
 }
 
@@ -32,14 +27,9 @@ export function evaluateExpression(
  */
 export function extractValueFromInput(inputValue: any): any {
   // If the input is a StepValue-like object, extract the text
-  if (
-    typeof inputValue === "object" &&
-    inputValue !== null &&
-    "text" in inputValue
-  ) {
+  if (typeof inputValue === 'object' && inputValue !== null && 'text' in inputValue) {
     return inputValue.text;
   }
 
   return inputValue;
 }
-

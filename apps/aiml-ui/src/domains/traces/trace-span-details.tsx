@@ -1,11 +1,11 @@
-import { useContext } from "react";
+import { useContext } from 'react';
 
-import { SyntaxHighlighter } from "@/components/syntax-highlighter";
+import { SyntaxHighlighter } from '@/components/syntax-highlighter';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
-import { TraceContext } from "./context/trace-context";
-import type { Span } from "./types";
+import { TraceContext } from './context/trace-context';
+import type { Span } from './types';
 import {
   allowedAiSpanAttributes,
   cleanString,
@@ -13,16 +13,14 @@ import {
   formatOtelTimestamp,
   formatOtelTimestamp2,
   transformKey,
-} from "./utils";
+} from './utils';
 
 export function SpanDetail() {
   const { span } = useContext(TraceContext);
 
-  const duration = span?.endTime
-    ? Number(span?.endTime) - Number(span?.startTime)
-    : 0;
+  const duration = span?.endTime ? Number(span?.endTime) - Number(span?.startTime) : 0;
 
-  const isAiSpan = span?.name?.startsWith("ai.");
+  const isAiSpan = span?.name?.startsWith('ai.');
 
   const aiSpanAttributes = Object.entries(span?.attributes || {})
     .filter(([key]) => allowedAiSpanAttributes.includes(key))
@@ -37,13 +35,7 @@ export function SpanDetail() {
     <div className="flex flex-col gap-6 pb-20">
       <div className="flex items-center gap-2 px-6 pt-[1.56rem]">
         <span className="rounded bg-[#314431] p-0.5">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="21"
-            height="20"
-            viewBox="0 0 21 20"
-            fill="none"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
             <path
               fillRule="evenodd"
               clipRule="evenodd"
@@ -57,33 +49,21 @@ export function SpanDetail() {
       <div className="grid grid-cols-3 gap-1 px-6">
         <div className="flex flex-col gap-1">
           <span className="text-xs text-aiml-el-3">Duration</span>
-          <span className="font-mono text-xs">
-            {" "}
-            {duration ? formatDuration(duration) : ""}ms
-          </span>
+          <span className="font-mono text-xs"> {duration ? formatDuration(duration) : ''}ms</span>
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-xs text-aimll-3">Time</span>
-          <span className="font-mono text-xs">
-            {span?.startTime ? formatOtelTimestamp(span?.startTime) : ""}
-          </span>
+          <span className="font-mono text-xs">{span?.startTime ? formatOtelTimestamp(span?.startTime) : ''}</span>
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-xs text-aimll-3">Status</span>
-          <span
-            className={cn(
-              "font-mono text-xs",
-              span?.status?.code == 0 ? "text-[#6CD063]" : "text-[#FF4500]"
-            )}
-          >
-            {span?.status?.code == 0 ? "OK" : "ERROR"}
+          <span className={cn('font-mono text-xs', span?.status?.code == 0 ? 'text-[#6CD063]' : 'text-[#FF4500]')}>
+            {span?.status?.code == 0 ? 'OK' : 'ERROR'}
           </span>
         </div>
       </div>
       {span?.status?.code !== 0 ? (
-        <div className="border-t-[0.5px] px-6 pt-4">
-          {span && span?.events?.length > 0 && <Events span={span} />}
-        </div>
+        <div className="border-t-[0.5px] px-6 pt-4">{span && span?.events?.length > 0 && <Events span={span} />}</div>
       ) : null}
       <div className="border-t-[0.5px] px-6 pt-4">
         {span && (
@@ -96,9 +76,7 @@ export function SpanDetail() {
         )}
       </div>
       {span?.status?.code === 0 ? (
-        <div className="border-t-[0.5px] px-6 pt-4">
-          {span && span?.events?.length > 0 && <Events span={span} />}
-        </div>
+        <div className="border-t-[0.5px] px-6 pt-4">{span && span?.events?.length > 0 && <Events span={span} />}</div>
       ) : null}
     </div>
   );
@@ -117,21 +95,15 @@ function Events({ span }: { span: Span }) {
         return (
           <div
             key={event.name}
-            className={cn(
-              "flex flex-col gap-2 border-b-[0.5px] last:border-b-0 pt-4 pb-2 first:pb-4"
-            )}
+            className={cn('flex flex-col gap-2 border-b-[0.5px] last:border-b-0 pt-4 pb-2 first:pb-4')}
           >
             <p className="text-xs text-aimll-3">Name</p>
             <p className="font-mono text-xs">{event.name}</p>
             <p className="text-xs text-aimll-3">Time</p>
             <p className="font-mono text-xs">
-              {event.timeUnixNano
-                ? formatOtelTimestamp2(Number(event.timeUnixNano))
-                : ""}
+              {event.timeUnixNano ? formatOtelTimestamp2(Number(event.timeUnixNano)) : ''}
             </p>
-            {event.attributes?.length > 0 ? (
-              <AttributesValues attributes={eventAttributes} />
-            ) : null}
+            {event.attributes?.length > 0 ? <AttributesValues attributes={eventAttributes} /> : null}
           </div>
         );
       })}
@@ -155,18 +127,16 @@ function AttributesValues({
   if (attributes === null) return null;
   if (attributes === undefined) return null;
 
-  if (typeof attributes === "string") {
+  if (typeof attributes === 'string') {
     try {
       const attr = JSON.parse(attributes);
 
-      if (typeof attr === "object" || Array.isArray(attr)) {
+      if (typeof attr === 'object' || Array.isArray(attr)) {
         return <SyntaxHighlighter data={attr} />;
       }
     } catch {
       return (
-        <span className="text-sm overflow-x-scroll">
-          {attributes ? cleanString(attributes.toString()) : "N/A"}
-        </span>
+        <span className="text-sm overflow-x-scroll">{attributes ? cleanString(attributes.toString()) : 'N/A'}</span>
       );
     }
   }
@@ -180,11 +150,7 @@ function AttributesValues({
         <div className="mt-1 gap-3">
           {processedValue.map((item, index) => (
             <div key={index} className="flex flex-col gap-1">
-              <AttributesValues
-                key={index}
-                attributes={item}
-                depth={depth + 1}
-              />
+              <AttributesValues key={index} attributes={item} depth={depth + 1} />
             </div>
           ))}
         </div>
@@ -192,7 +158,7 @@ function AttributesValues({
     );
   }
 
-  if (typeof processedValue === "object") {
+  if (typeof processedValue === 'object') {
     const entries = Object.entries(processedValue);
     if (entries.length === 0) return null;
 
@@ -201,9 +167,7 @@ function AttributesValues({
         <div className="mt-1">
           {entries.map(([key, val]) => (
             <div key={key} className="flex flex-col gap-2 p-2 pl-0">
-              <span className="text-sm capitalize text-aimll-3">
-                {transformKey(key)}
-              </span>
+              <span className="text-sm capitalize text-aimll-3">{transformKey(key)}</span>
               <AttributesValues attributes={val} depth={depth + 1} />
             </div>
           ))}
@@ -212,22 +176,11 @@ function AttributesValues({
     );
   }
 
-  if (typeof processedValue === "boolean")
-    return (
-      <span className="font-mono text-sm">
-        {processedValue.toString() || "N/A"}
-      </span>
-    );
-  if (typeof processedValue === "number")
-    return (
-      <span className="font-mono text-sm">{processedValue.toString()}</span>
-    );
-  if (typeof processedValue === "string")
-    return (
-      <span className="font-mono text-sm">
-        {processedValue ? cleanString(processedValue.toString()) : "N/A"}
-      </span>
-    );
+  if (typeof processedValue === 'boolean')
+    return <span className="font-mono text-sm">{processedValue.toString() || 'N/A'}</span>;
+  if (typeof processedValue === 'number') return <span className="font-mono text-sm">{processedValue.toString()}</span>;
+  if (typeof processedValue === 'string')
+    return <span className="font-mono text-sm">{processedValue ? cleanString(processedValue.toString()) : 'N/A'}</span>;
 
   return <span className="text-gray-400">{String(processedValue)}</span>;
 }

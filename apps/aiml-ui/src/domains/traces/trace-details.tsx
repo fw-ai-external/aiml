@@ -1,25 +1,22 @@
-import { ChevronDown, XIcon } from "lucide-react";
-import { useContext } from "react";
+import { ChevronDown, XIcon } from 'lucide-react';
+import { useContext } from 'react';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 
-import { TraceContext } from "./context/trace-context";
-import SpanView from "./trace-span-view";
+import { TraceContext } from './context/trace-context';
+import SpanView from './trace-span-view';
 
 export function TraceDetails() {
-  const { trace, currentTraceIndex, prevTrace, nextTrace, traces, clearData } =
-    useContext(TraceContext);
+  const { trace, currentTraceIndex, prevTrace, nextTrace, traces, clearData } = useContext(TraceContext);
 
   return (
     <div>
       <div className="flex items-center justify-between px-6 pt-[1.56rem]">
         <div className="flex items-center gap-2">
-          <h3 className="text-[1.125rem]">
-            Trace Span{trace?.length && trace.length > 1 ? "s" : ""}
-          </h3>
+          <h3 className="text-[1.125rem]">Trace Span{trace?.length && trace.length > 1 ? 's' : ''}</h3>
           <span className="text-xs text-aiml-el-3">
             {trace?.length ? trace.length : 0} span
-            {trace?.length && trace.length > 1 ? "s" : ""}
+            {trace?.length && trace.length > 1 ? 's' : ''}
           </span>
         </div>
         <div className="flex items-center gap-4">
@@ -29,19 +26,19 @@ export function TraceDetails() {
                 prevTrace();
               }}
               disabled={currentTraceIndex === 0}
-              variant={"secondary"}
-              size={"icon"}
+              variant={'secondary'}
+              size={'icon'}
               className="!h-3 !w-3 rotate-180 !px-3 py-3 text-aimll-3 transition-colors hover:text-white"
             >
               <ChevronDown />
-            </Button>{" "}
+            </Button>{' '}
             <Button
               onClick={() => {
                 nextTrace();
               }}
               disabled={currentTraceIndex === traces.length - 1}
-              variant={"secondary"}
-              size={"icon"}
+              variant={'secondary'}
+              size={'icon'}
               className="!h-3 !w-3 !px-3 py-3 text-aimll-3 transition-colors hover:text-white"
             >
               <ChevronDown />
@@ -52,8 +49,8 @@ export function TraceDetails() {
             onClick={() => {
               clearData();
             }}
-            variant={"secondary"}
-            size={"icon"}
+            variant={'secondary'}
+            size={'icon'}
             className="!h-3 !w-3 !px-3 py-3 text-aimll-3 transition-colors hover:text-white"
           >
             <XIcon />

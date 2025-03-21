@@ -1,5 +1,5 @@
-import { ElementType } from "./elements";
-import { aimlElements } from "./elements";
+import type { ElementType } from './elements';
+import { aimlElements } from './elements';
 
 export function isAIMLElement(nodeName: string): boolean {
   return aimlElements.includes(nodeName as ElementType);

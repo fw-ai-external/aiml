@@ -1,12 +1,7 @@
-import {
-  Node,
-  JsxAttributeLike,
-  JsxSelfClosingElement,
-  JsxElement,
-} from "ts-morph";
-import type { ElementRole, SerializedBaseElement } from "@fireworks/shared";
-import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
+import type { ElementRole, SerializedBaseElement } from '@fireworks/shared';
+import { type JsxAttributeLike, type JsxElement, type JsxSelfClosingElement, Node } from 'ts-morph';
+import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
 
 export class ElementBuilder {
   /**
@@ -15,7 +10,7 @@ export class ElementBuilder {
   static createBaseElement(
     element: JsxSelfClosingElement | JsxElement,
     attributes: Record<string, string>,
-    children: SerializedBaseElement[] = []
+    children: SerializedBaseElement[] = [],
   ): SerializedBaseElement {
     const tagName = Node.isJsxSelfClosingElement(element)
       ? element.getTagNameNode().getText()
@@ -27,7 +22,7 @@ export class ElementBuilder {
     const id = attributes.id || uuidv4();
 
     return {
-      type: "element",
+      type: 'element',
       id,
       key: `element-${id}`,
       tag: tagName,
@@ -44,9 +39,7 @@ export class ElementBuilder {
   /**
    * Parses JSX attributes into a key-value record
    */
-  static parseAttributes(
-    attributes: JsxAttributeLike[]
-  ): Record<string, string> {
+  static parseAttributes(attributes: JsxAttributeLike[]): Record<string, string> {
     // Initialize with an empty object
     const result: Record<string, string> = {};
 
@@ -61,16 +54,16 @@ export class ElementBuilder {
         const initializer = attr.getInitializer();
         if (initializer) {
           if (Node.isStringLiteral(initializer)) {
-            result[name] = initializer.getText().replace(/['"]/g, "");
+            result[name] = initializer.getText().replace(/['"]/g, '');
           } else if (Node.isJsxExpression(initializer)) {
             const expression = initializer.getExpression();
             if (expression && Node.isStringLiteral(expression)) {
-              result[name] = expression.getText().replace(/['"]/g, "");
+              result[name] = expression.getText().replace(/['"]/g, '');
             }
           }
         } else {
           // Handle boolean attributes
-          result[name] = "true";
+          result[name] = 'true';
         }
       }
       // Skip JsxSpreadAttribute for now
@@ -84,25 +77,22 @@ export class ElementBuilder {
    */
   static determineRole(tagName: string): ElementRole {
     const lowerTagName = tagName.toLowerCase();
-    if (lowerTagName.includes("action")) {
-      return "action";
-    } else if (lowerTagName.includes("input")) {
-      return "user-input";
-    } else if (lowerTagName.includes("error")) {
-      return "error";
-    } else if (lowerTagName.includes("output")) {
-      return "output";
+    if (lowerTagName.includes('action')) {
+      return 'action';
+    } else if (lowerTagName.includes('input')) {
+      return 'user-input';
+    } else if (lowerTagName.includes('error')) {
+      return 'error';
+    } else if (lowerTagName.includes('output')) {
+      return 'output';
     }
-    return "state";
+    return 'state';
   }
 
   /**
    * Creates a stub schema for testing purposes
    */
-  private static createStubSchema(
-    tagName: string,
-    attributes: Record<string, string>
-  ): z.ZodType<any> {
+  private static createStubSchema(tagName: string, attributes: Record<string, string>): z.ZodType<any> {
     // Initialize with a base schema
     let baseSchema = z.object({
       id: z.string(),

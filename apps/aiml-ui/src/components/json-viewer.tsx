@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback, useRef, memo } from "react";
-import { ChevronRight, ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { JSONHeroSearch, SearchResult } from "@jsonhero/fuzzy-json-search";
+import { cn } from '@/lib/utils';
+import { JSONHeroSearch, type SearchResult } from '@jsonhero/fuzzy-json-search';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 
 type JsonViewerProps = {
   data: any;
   level?: number;
   path?: string;
   searchTerm?: string;
-  searchMode?: "fuzzy" | "path";
+  searchMode?: 'fuzzy' | 'path';
   parentExpanded?: boolean;
 };
 
@@ -27,7 +27,7 @@ const deepEqual = (obj1: any, obj2: any): boolean => {
 
   // If either is null or not an object, they're not equal
   if (obj1 === null || obj2 === null) return false;
-  if (typeof obj1 !== "object" || typeof obj2 !== "object") return false;
+  if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return false;
 
   // Handle arrays
   if (Array.isArray(obj1) && Array.isArray(obj2)) {
@@ -62,10 +62,7 @@ const deepEqual = (obj1: any, obj2: any): boolean => {
 };
 
 // Helper function to check if two props objects are equal
-const arePropsEqual = (
-  prevProps: JsonViewerProps,
-  nextProps: JsonViewerProps
-) => {
+const arePropsEqual = (prevProps: JsonViewerProps, nextProps: JsonViewerProps) => {
   // Only compare the data prop deeply
   return (
     deepEqual(prevProps.data, nextProps.data) &&
@@ -84,18 +81,17 @@ const expandedStateCache = new Map<string, Record<string, boolean>>();
 function JsonViewerComponent({
   data,
   level = 0,
-  path = "",
-  searchTerm = "",
-  searchMode = "fuzzy",
+  path = '',
+  searchTerm = '',
+  searchMode = 'fuzzy',
   parentExpanded = true,
 }: JsonViewerProps) {
   // Generate a unique key for this component instance
-  const cacheKey = path || "root";
+  const cacheKey = path || 'root';
 
   // Initialize expanded state from cache or empty object
   const initialExpanded = expandedStateCache.get(cacheKey) || {};
-  const [expanded, setExpanded] =
-    useState<Record<string, boolean>>(initialExpanded);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(initialExpanded);
   const [matchedPaths, setMatchedPaths] = useState<Set<string>>(new Set());
 
   // Memoize the heroSearch instance to prevent unnecessary recreation
@@ -118,13 +114,13 @@ function JsonViewerComponent({
 
       const searchLower = searchTerm.toLowerCase();
 
-      if (value === null) return "null".includes(searchLower);
+      if (value === null) return 'null'.includes(searchLower);
 
-      if (typeof value === "object") return false;
+      if (typeof value === 'object') return false;
 
       return String(value).toLowerCase().includes(searchLower);
     },
-    [searchTerm]
+    [searchTerm],
   );
 
   // Function to get all paths that match the search term
@@ -132,27 +128,24 @@ function JsonViewerComponent({
     (obj: any): Set<string> => {
       if (!searchTerm) return new Set<string>();
 
-      if (searchMode === "fuzzy") {
+      if (searchMode === 'fuzzy') {
         try {
           // Use the jsonhero fuzzy search library
-          const results = heroSearch.current?.search(
-            searchTerm
-          ) as SearchResult<string>[];
+          const results = heroSearch.current?.search(searchTerm) as SearchResult<string>[];
           const paths = new Set<string>();
 
           // Convert the results to our path format
           results?.forEach((result) => {
             // The library returns paths in a format like ["address", "city"]
             // We need to convert it to "address.city" or "array[0]" format
-            let formattedPath = "";
-            const pathParts = result.item.split(".");
+            let formattedPath = '';
+            const pathParts = result.item.split('.');
             pathParts.forEach((part: string, index: number) => {
               const isArrayIndex = /^\d+$/.test(part);
               if (isArrayIndex) {
                 formattedPath += `[${part}]`;
               } else {
-                if (index > 0 && !formattedPath.endsWith("]"))
-                  formattedPath += ".";
+                if (index > 0 && !formattedPath.endsWith(']')) formattedPath += '.';
                 formattedPath += part;
               }
             });
@@ -164,10 +157,10 @@ function JsonViewerComponent({
 
           return paths;
         } catch (e) {
-          console.error("Error in fuzzy search:", e);
+          console.error('Error in fuzzy search:', e);
           return new Set<string>();
         }
-      } else if (searchMode === "path" && searchTerm) {
+      } else if (searchMode === 'path' && searchTerm) {
         // Path search mode - keep the existing implementation
         try {
           // Parse the path and navigate to it
@@ -176,19 +169,15 @@ function JsonViewerComponent({
           let validPath = true;
 
           for (const part of pathParts) {
-            if (typeof part === "string") {
-              if (current && typeof current === "object" && part in current) {
+            if (typeof part === 'string') {
+              if (current && typeof current === 'object' && part in current) {
                 current = current[part];
               } else {
                 validPath = false;
                 break;
               }
-            } else if (typeof part === "number") {
-              if (
-                Array.isArray(current) &&
-                part >= 0 &&
-                part < current.length
-              ) {
+            } else if (typeof part === 'number') {
+              if (Array.isArray(current) && part >= 0 && part < current.length) {
                 current = current[part];
               } else {
                 validPath = false;
@@ -209,37 +198,37 @@ function JsonViewerComponent({
 
       return new Set<string>();
     },
-    [searchTerm, searchMode]
+    [searchTerm, searchMode],
   );
 
   // Memoize the parsePath function
   const parsePath = useCallback((pathString: string): (string | number)[] => {
     const parts: (string | number)[] = [];
-    let current = "";
+    let current = '';
     let i = 0;
 
     while (i < pathString.length) {
-      if (pathString[i] === ".") {
+      if (pathString[i] === '.') {
         if (current) {
           parts.push(current);
-          current = "";
+          current = '';
         }
         i++;
-      } else if (pathString[i] === "[") {
+      } else if (pathString[i] === '[') {
         if (current) {
           parts.push(current);
-          current = "";
+          current = '';
         }
 
-        let arrayIndex = "";
+        let arrayIndex = '';
         i++;
 
-        while (i < pathString.length && pathString[i] !== "]") {
+        while (i < pathString.length && pathString[i] !== ']') {
           arrayIndex += pathString[i];
           i++;
         }
 
-        if (i < pathString.length && pathString[i] === "]") {
+        if (i < pathString.length && pathString[i] === ']') {
           parts.push(Number.parseInt(arrayIndex, 10));
           i++;
         }
@@ -262,12 +251,8 @@ function JsonViewerComponent({
       if (!searchTerm) return false;
 
       // In path search mode, expand all parent paths
-      if (searchMode === "path") {
-        return (
-          searchTerm.startsWith(currentPath) ||
-          currentPath.startsWith(searchTerm) ||
-          matchedPaths.has(searchTerm)
-        );
+      if (searchMode === 'path') {
+        return searchTerm.startsWith(currentPath) || currentPath.startsWith(searchTerm) || matchedPaths.has(searchTerm);
       }
 
       // In fuzzy search mode, expand if any child matches
@@ -279,16 +264,16 @@ function JsonViewerComponent({
 
       return false;
     },
-    [searchTerm, searchMode, matchedPaths]
+    [searchTerm, searchMode, matchedPaths],
   );
 
   // Memoize the isExactPathMatch function
   const isExactPathMatch = useCallback(
     (currentPath: string): boolean => {
-      if (searchMode !== "path" || !searchTerm) return false;
+      if (searchMode !== 'path' || !searchTerm) return false;
       return currentPath === searchTerm;
     },
-    [searchMode, searchTerm]
+    [searchMode, searchTerm],
   );
 
   // Find all matching paths when search term or data changes
@@ -306,16 +291,16 @@ function JsonViewerComponent({
 
     // For both search modes, expand all parent paths of matches
     matches.forEach((matchPath) => {
-      let currentPath = "";
+      let currentPath = '';
       const parts = parsePath(matchPath);
 
       parts.forEach((part, index) => {
         if (index < parts.length - 1) {
           // Don't expand the last part
-          if (typeof part === "string") {
+          if (typeof part === 'string') {
             currentPath = currentPath ? `${currentPath}.${part}` : part;
             newExpanded[currentPath] = true;
-          } else if (typeof part === "number") {
+          } else if (typeof part === 'number') {
             currentPath = `${currentPath}[${part}]`;
             newExpanded[currentPath] = true;
           }
@@ -344,20 +329,20 @@ function JsonViewerComponent({
         return newExpanded;
       });
     },
-    [cacheKey]
+    [cacheKey],
   );
 
   const getValueColor = useCallback((value: any) => {
-    if (value === null) return "text-gray-500";
+    if (value === null) return 'text-gray-500';
     switch (typeof value) {
-      case "number":
-        return "text-amber-600";
-      case "boolean":
-        return "text-purple-600";
-      case "string":
-        return "text-green-600";
+      case 'number':
+        return 'text-amber-600';
+      case 'boolean':
+        return 'text-purple-600';
+      case 'string':
+        return 'text-green-600';
       default:
-        return "";
+        return '';
     }
   }, []);
 
@@ -366,46 +351,35 @@ function JsonViewerComponent({
     (value: any, currentPath: string): boolean => {
       if (!searchTerm) return false;
 
-      if (searchMode === "fuzzy") {
+      if (searchMode === 'fuzzy') {
         return matchedPaths.has(currentPath);
-      } else if (searchMode === "path") {
+      } else if (searchMode === 'path') {
         return isExactPathMatch(currentPath);
       }
 
       return false;
     },
-    [searchTerm, searchMode, matchedPaths, isExactPathMatch]
+    [searchTerm, searchMode, matchedPaths, isExactPathMatch],
   );
 
   // Memoize the renderValue function
   const renderValue = useCallback(
     (value: any, key: string) => {
-      const currentPath = path
-        ? isNaN(Number(key))
-          ? `${path}.${key}`
-          : `${path}[${key}]`
-        : key;
+      const currentPath = path ? (isNaN(Number(key)) ? `${path}.${key}` : `${path}[${key}]`) : key;
       const valueMatches = isMatch(value, currentPath);
 
       if (value === null) {
         return (
-          <span
-            className={cn(
-              "text-gray-500",
-              valueMatches && "bg-yellow-100 dark:bg-yellow-900/30 px-1 rounded"
-            )}
-          >
+          <span className={cn('text-gray-500', valueMatches && 'bg-yellow-100 dark:bg-yellow-900/30 px-1 rounded')}>
             null
           </span>
         );
       }
 
-      if (Array.isArray(value) || typeof value === "object") {
+      if (Array.isArray(value) || typeof value === 'object') {
         const isArray = Array.isArray(value);
         const itemCount = isArray ? value.length : Object.keys(value).length;
-        const itemLabel = isArray
-          ? `Array(${itemCount})`
-          : `Object{${itemCount}}`;
+        const itemLabel = isArray ? `Array(${itemCount})` : `Object{${itemCount}}`;
         const isExpanded = expanded[currentPath] ?? shouldExpand(currentPath);
         const pathMatches = isExactPathMatch(currentPath);
 
@@ -413,8 +387,8 @@ function JsonViewerComponent({
           <div>
             <div
               className={cn(
-                "flex items-center cursor-pointer hover:bg-muted/50 rounded px-1",
-                pathMatches && "bg-yellow-100 dark:bg-yellow-900/30 rounded"
+                'flex items-center cursor-pointer hover:bg-muted/50 rounded px-1',
+                pathMatches && 'bg-yellow-100 dark:bg-yellow-900/30 rounded',
               )}
               onClick={() => toggleExpand(currentPath)}
             >
@@ -443,31 +417,17 @@ function JsonViewerComponent({
       }
 
       return (
-        <span
-          className={cn(
-            getValueColor(value),
-            valueMatches && "bg-yellow-100 dark:bg-yellow-900/30 px-1 rounded"
-          )}
-        >
-          {typeof value === "string" ? `"${value}"` : String(value)}
+        <span className={cn(getValueColor(value), valueMatches && 'bg-yellow-100 dark:bg-yellow-900/30 px-1 rounded')}>
+          {typeof value === 'string' ? `"${value}"` : String(value)}
         </span>
       );
     },
-    [
-      expanded,
-      getValueColor,
-      isExactPathMatch,
-      isMatch,
-      path,
-      searchMode,
-      searchTerm,
-      shouldExpand,
-    ]
+    [expanded, getValueColor, isExactPathMatch, isMatch, path, searchMode, searchTerm, shouldExpand],
   );
 
   if (Array.isArray(data)) {
     return (
-      <div className={cn("space-y-1", level === 0 && "mt-1")}>
+      <div className={cn('space-y-1', level === 0 && 'mt-1')}>
         {data.map((item, index) => (
           <div key={`${path}-${index}`} className="flex">
             <span className="text-muted-foreground mr-2">{index}:</span>
@@ -478,16 +438,15 @@ function JsonViewerComponent({
     );
   }
 
-  if (typeof data === "object" && data !== null) {
+  if (typeof data === 'object' && data !== null) {
     return (
-      <div className={cn("space-y-1", level === 0 && "mt-1")}>
+      <div className={cn('space-y-1', level === 0 && 'mt-1')}>
         {Object.entries(data).map(([key, value]) => (
           <div key={`${path}-${key}`} className="flex">
             <span
               className={cn(
-                "text-blue-600 mr-2",
-                isExactPathMatch(path ? `${path}.${key}` : key) &&
-                  "bg-yellow-100 dark:bg-yellow-900/30 px-1 rounded"
+                'text-blue-600 mr-2',
+                isExactPathMatch(path ? `${path}.${key}` : key) && 'bg-yellow-100 dark:bg-yellow-900/30 px-1 rounded',
               )}
             >
               {key}:

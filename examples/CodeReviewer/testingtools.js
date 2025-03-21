@@ -26,19 +26,19 @@ export const analyzeTestCoverage = (codeFiles, testFiles) => {
 
   // For demonstration purposes, we'll create mock coverage data
   for (const [filename, content] of Object.entries(codeFiles)) {
-    if (filename.includes("test") || filename.includes("spec")) {
+    if (filename.includes('test') || filename.includes('spec')) {
       continue; // Skip test files in coverage analysis
     }
 
     // Generate synthetic coverage data
-    const lineCount = content.split("\n").length;
+    const lineCount = content.split('\n').length;
     const coverage = Math.random() * 100; // Simulate coverage percentage
 
     // Split coverage into different types
     results.fileSpecificCoverage[filename] = {
-      lineCoverage: coverage.toFixed(2) + "%",
-      branchCoverage: (coverage * 0.9).toFixed(2) + "%", // Typically lower than line coverage
-      functionCoverage: (coverage * 0.95).toFixed(2) + "%",
+      lineCoverage: coverage.toFixed(2) + '%',
+      branchCoverage: (coverage * 0.9).toFixed(2) + '%', // Typically lower than line coverage
+      functionCoverage: (coverage * 0.95).toFixed(2) + '%',
       lineCount,
       // In real implementation, we would have:
       // - List of uncovered lines
@@ -51,13 +51,10 @@ export const analyzeTestCoverage = (codeFiles, testFiles) => {
   if (Object.keys(results.fileSpecificCoverage).length > 0) {
     const coverageSum = Object.values(results.fileSpecificCoverage).reduce(
       (sum, file) => sum + parseFloat(file.lineCoverage),
-      0
+      0,
     );
 
-    results.overallCoverage =
-      (coverageSum / Object.keys(results.fileSpecificCoverage).length).toFixed(
-        2
-      ) + "%";
+    results.overallCoverage = (coverageSum / Object.keys(results.fileSpecificCoverage).length).toFixed(2) + '%';
   }
 
   // Mock test quality analysis
@@ -65,15 +62,13 @@ export const analyzeTestCoverage = (codeFiles, testFiles) => {
 
   // Generate mock recommendations
   if (parseFloat(results.overallCoverage) < 80) {
-    results.recommendations.push(
-      "Increase overall test coverage to at least 80%"
-    );
+    results.recommendations.push('Increase overall test coverage to at least 80%');
   }
 
   results.recommendations.push(
-    "Focus on testing critical business logic paths",
-    "Add more test cases for edge conditions",
-    "Consider implementing integration tests alongside unit tests"
+    'Focus on testing critical business logic paths',
+    'Add more test cases for edge conditions',
+    'Consider implementing integration tests alongside unit tests',
   );
 
   return results;
@@ -86,7 +81,7 @@ export const detectUntested = (codeFiles, testFiles) => {
 
   // Mock implementation
   for (const [filename, content] of Object.entries(codeFiles)) {
-    if (filename.includes("test") || filename.includes("spec")) {
+    if (filename.includes('test') || filename.includes('spec')) {
       continue;
     }
 
@@ -99,19 +94,15 @@ export const detectUntested = (codeFiles, testFiles) => {
     // For each function, check if it's referenced in test files
     for (const funcDef of allFunctions) {
       let funcName = funcDef.match(/function\s+(\w+)|(\w+)\s*\(/);
-      funcName = funcName ? funcName[1] || funcName[2] : "anonymous";
+      funcName = funcName ? funcName[1] || funcName[2] : 'anonymous';
 
       // Skip if function name is a common test function
-      if (
-        ["describe", "it", "test", "beforeEach", "afterEach"].includes(funcName)
-      ) {
+      if (['describe', 'it', 'test', 'beforeEach', 'afterEach'].includes(funcName)) {
         continue;
       }
 
       // Check if function is tested
-      const isTested = Object.values(testFiles).some((testContent) =>
-        testContent.includes(funcName)
-      );
+      const isTested = Object.values(testFiles).some((testContent) => testContent.includes(funcName));
 
       if (!isTested) {
         untested.push({
@@ -135,22 +126,20 @@ export const suggestTestImprovements = (coverage, codeFiles, testFiles) => {
   const suggestions = [];
 
   // Mock implementation based on coverage thresholds
-  for (const [filename, metrics] of Object.entries(
-    coverage.fileSpecificCoverage
-  )) {
+  for (const [filename, metrics] of Object.entries(coverage.fileSpecificCoverage)) {
     const lineCoverage = parseFloat(metrics.lineCoverage);
     const branchCoverage = parseFloat(metrics.branchCoverage);
 
     if (lineCoverage < 50) {
       suggestions.push({
         file: filename,
-        severity: "high",
+        severity: 'high',
         message: `Low line coverage (${metrics.lineCoverage}). Add more tests for this file.`,
       });
     } else if (lineCoverage < 80) {
       suggestions.push({
         file: filename,
-        severity: "medium",
+        severity: 'medium',
         message: `Moderate line coverage (${metrics.lineCoverage}). Consider adding tests for uncovered lines.`,
       });
     }
@@ -158,7 +147,7 @@ export const suggestTestImprovements = (coverage, codeFiles, testFiles) => {
     if (branchCoverage < 70) {
       suggestions.push({
         file: filename,
-        severity: "high",
+        severity: 'high',
         message: `Low branch coverage (${metrics.branchCoverage}). Add tests for different code paths.`,
       });
     }
@@ -167,14 +156,13 @@ export const suggestTestImprovements = (coverage, codeFiles, testFiles) => {
   // Add general suggestions
   suggestions.push(
     {
-      severity: "info",
-      message: "Consider implementing mutation testing to ensure test quality",
+      severity: 'info',
+      message: 'Consider implementing mutation testing to ensure test quality',
     },
     {
-      severity: "info",
-      message:
-        "Regularly run coverage reports and set minimum thresholds in CI pipeline",
-    }
+      severity: 'info',
+      message: 'Regularly run coverage reports and set minimum thresholds in CI pipeline',
+    },
   );
 
   return suggestions;
@@ -191,9 +179,7 @@ const generateCoverageReport = (codeFiles, testFiles) => {
     summary: {
       overallCoverage: coverage.overallCoverage,
       filesCovered: Object.keys(coverage.fileSpecificCoverage).length,
-      totalFiles: Object.keys(codeFiles).filter(
-        (f) => !f.includes("test") && !f.includes("spec")
-      ).length,
+      totalFiles: Object.keys(codeFiles).filter((f) => !f.includes('test') && !f.includes('spec')).length,
       untestedFunctions: untested.length,
       testQualityScore: coverage.testQualityScore,
     },
@@ -207,16 +193,12 @@ const generateCoverageReport = (codeFiles, testFiles) => {
 // Calculate test to code ratio
 export const calculateTestRatio = (codeFiles, testFiles) => {
   const codeLines = Object.entries(codeFiles)
-    .filter(
-      ([filename]) => !filename.includes("test") && !filename.includes("spec")
-    )
-    .reduce((total, [_, content]) => total + content.split("\n").length, 0);
+    .filter(([filename]) => !filename.includes('test') && !filename.includes('spec'))
+    .reduce((total, [_, content]) => total + content.split('\n').length, 0);
 
   const testLines = Object.entries(codeFiles)
-    .filter(
-      ([filename]) => filename.includes("test") || filename.includes("spec")
-    )
-    .reduce((total, [_, content]) => total + content.split("\n").length, 0);
+    .filter(([filename]) => filename.includes('test') || filename.includes('spec'))
+    .reduce((total, [_, content]) => total + content.split('\n').length, 0);
 
   return {
     codeLines,

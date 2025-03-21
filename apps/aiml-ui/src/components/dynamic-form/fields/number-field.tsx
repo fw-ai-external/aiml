@@ -20,7 +20,7 @@ export function NumberField({ name, control, handleFieldChange }: NumberFieldPro
         <Input
           {...field}
           type="number"
-          onChange={e => {
+          onChange={(e) => {
             const value = e.target.value === '' ? undefined : Number(e.target.value);
             field.onChange(value);
             handleFieldChange?.({ key: name, value: value as number });

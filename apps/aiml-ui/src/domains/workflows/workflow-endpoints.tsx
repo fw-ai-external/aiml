@@ -1,4 +1,4 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function WorkflowEndpoints({ workflowId }: { workflowId: string }) {
   return (

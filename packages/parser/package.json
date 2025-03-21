@@ -21,8 +21,6 @@
     "test:e2e": "bun test e2e/"
   },
   "dependencies": {
-    "@fireworks/element-config": "workspace:*",
-    "@fireworks/runtime": "workspace:*",
     "@fireworks/shared": "workspace:*",
     "@mdx-js/typescript-plugin": "^0.0.8",
     "ajv": "^8.17.1",

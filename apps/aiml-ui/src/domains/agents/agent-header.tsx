@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from 'next/navigation';
 
 export function AgentHeader({
   agentName,
@@ -24,9 +24,7 @@ export function AgentHeader({
           <button
             onClick={() => router.push(`/agents/${agentId}/chat`)}
             className={`px-3 py-1 rounded-md text-sm ${
-              isChatPage
-                ? "bg-aiml-bg-4/70 text-aiml-el-1"
-                : "hover:bg-aiml-bg-4/30 text-aiml-el-2"
+              isChatPage ? 'bg-aiml-bg-4/70 text-aiml-el-1' : 'hover:bg-aiml-bg-4/30 text-aiml-el-2'
             }`}
           >
             Chat
@@ -34,9 +32,7 @@ export function AgentHeader({
           <button
             onClick={() => router.push(`/agents/${agentId}/evals`)}
             className={`px-3 py-1 rounded-md text-sm ${
-              isEvalsPage
-                ? "bg-aiml-bg-4/70 text-aiml-el-1"
-                : "hover:bg-aiml-bg-4/30 text-aiml-el-2"
+              isEvalsPage ? 'bg-aiml-bg-4/70 text-aiml-el-1' : 'hover:bg-aiml-bg-4/30 text-aiml-el-2'
             }`}
           >
             Evals
@@ -44,9 +40,7 @@ export function AgentHeader({
           <button
             onClick={() => router.push(`/agents/${agentId}/traces`)}
             className={`px-3 py-1 rounded-md text-sm ${
-              isTracesPage
-                ? "bg-aiml-bg-4/70 text-aiml-el-1"
-                : "hover:bg-aiml-bg-4/30 text-aiml-el-2"
+              isTracesPage ? 'bg-aiml-bg-4/70 text-aiml-el-1' : 'hover:bg-aiml-bg-4/30 text-aiml-el-2'
             }`}
           >
             Traces

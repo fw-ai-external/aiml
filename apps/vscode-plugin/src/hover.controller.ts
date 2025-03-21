@@ -1,6 +1,6 @@
-import { Hover, MarkdownString, Position, Range, TextDocument } from "vscode";
-import { BaseLanguageClient } from "vscode-languageclient";
-import { TextDocumentIdentifier } from "vscode-languageserver-protocol";
+import { Hover, type MarkdownString, type Position, Range, type TextDocument } from 'vscode';
+import type { BaseLanguageClient } from 'vscode-languageclient';
+import type { TextDocumentIdentifier } from 'vscode-languageserver-protocol';
 
 /**
  * Client-side hover controller that bridges VSCode and the language server.
@@ -16,10 +16,7 @@ export class HoverController {
    * @param position The position in the document
    * @returns Hover information or null if none available
    */
-  public async getHover(
-    document: TextDocument,
-    position: Position
-  ): Promise<Hover | null> {
+  public async getHover(document: TextDocument, position: Position): Promise<Hover | null> {
     // Convert VSCode document to LSP document identifier
     const documentIdentifier: TextDocumentIdentifier = {
       uri: document.uri.toString(),
@@ -37,16 +34,13 @@ export class HoverController {
         };
       }
 
-      const hoverResponse = await this.client.sendRequest<HoverResponse>(
-        "scxml.hoverRequest",
-        {
-          textDocument: documentIdentifier,
-          position: offset,
-        }
-      );
+      const hoverResponse = await this.client.sendRequest<HoverResponse>('scxml.hoverRequest', {
+        textDocument: documentIdentifier,
+        position: offset,
+      });
 
       if (!hoverResponse) {
-        this.client.info("No hover information available");
+        this.client.info('No hover information available');
         return null;
       }
 
@@ -62,14 +56,13 @@ export class HoverController {
             hoverResponse.range.start.line,
             hoverResponse.range.start.character,
             hoverResponse.range.end.line,
-            hoverResponse.range.end.character
+            hoverResponse.range.end.character,
           )
         : undefined;
 
       return new Hover(content, range);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.client.error(`Error getting hover information: ${errorMessage}`);
       if (error instanceof Error && error.stack) {
         this.client.error(error.stack);

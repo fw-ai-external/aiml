@@ -1,8 +1,8 @@
-import React from "react";
+import type React from 'react';
 
-import { Sidebar } from "./ui/sidebar";
-import { Toaster } from "./ui/sonner";
-import { ThemeProvider } from "./ui/theme-provider";
+import { Sidebar } from './ui/sidebar';
+import { Toaster } from './ui/sonner';
+import { ThemeProvider } from './ui/theme-provider';
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   return (

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 
-import { AgentEvals } from "@/domains/agents/agent-evals";
+import { AgentEvals } from '@/domains/agents/agent-evals';
 
 export default function AgentEvalsPage({
   params,

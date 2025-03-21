@@ -1,9 +1,9 @@
-import { Header } from "@/components/ui/header";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Header } from '@/components/ui/header';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { useAgent } from "@/hooks/use-agents";
+import { useAgent } from '@/hooks/use-agents';
 
-import { AgentHeader } from "./agent-header";
+import { AgentHeader } from './agent-header';
 
 export const AgentLayout = ({
   children,

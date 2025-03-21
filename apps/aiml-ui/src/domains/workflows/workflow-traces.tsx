@@ -1,27 +1,20 @@
-import { Braces } from "lucide-react";
-import { MouseEvent as ReactMouseEvent, useContext } from "react";
+import { Braces } from 'lucide-react';
+import { type MouseEvent as ReactMouseEvent, useContext } from 'react';
 
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
-import { useResizeColumn } from "@/hooks/use-resize-column";
-import { useTraces } from "@/hooks/use-traces";
+import { useResizeColumn } from '@/hooks/use-resize-column';
+import { useTraces } from '@/hooks/use-traces';
 
-import { Traces } from "../traces";
-import { TraceContext } from "../traces/context/trace-context";
-import { TraceDetails } from "../traces/trace-details";
-import { SpanDetail } from "../traces/trace-span-details";
+import { Traces } from '../traces';
+import { TraceContext } from '../traces/context/trace-context';
+import { TraceDetails } from '../traces/trace-details';
+import { SpanDetail } from '../traces/trace-span-details';
 
-import { WorkflowInformation } from "./workflow-information";
+import { WorkflowInformation } from './workflow-information';
 
 export function WorkflowTraces({
   workflowId,
@@ -33,12 +26,11 @@ export function WorkflowTraces({
   const { traces, error, firstCallLoading } = useTraces(workflowName, true);
   const { isOpen: open } = useContext(TraceContext);
 
-  const { sidebarWidth, isDragging, handleMouseDown, containerRef } =
-    useResizeColumn({
-      defaultWidth: 60,
-      minimumWidth: 50,
-      maximumWidth: 90,
-    });
+  const { sidebarWidth, isDragging, handleMouseDown, containerRef } = useResizeColumn({
+    defaultWidth: 60,
+    minimumWidth: 50,
+    maximumWidth: 90,
+  });
 
   if (firstCallLoading) {
     return (
@@ -96,7 +88,7 @@ export function WorkflowTraces({
             <TableBody className="border-b border-gray-6">
               <TableRow className="border-b-gray-6 border-b-[0.1px] text-[0.8125rem]">
                 <TableCell colSpan={4} className="h-24 text-center">
-                  {error?.message || "No traces found"}
+                  {error?.message || 'No traces found'}
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -113,7 +105,7 @@ export function WorkflowTraces({
       <SidebarItems
         workflowId={workflowId}
         sidebarWidth={sidebarWidth}
-        className={cn(open ? "grid grid-cols-2 w-[60%]" : "")}
+        className={cn(open ? 'grid grid-cols-2 w-[60%]' : '')}
         isDragging={isDragging}
         handleMouseDown={handleMouseDown}
       />
@@ -149,8 +141,8 @@ export function SidebarItems({
   return (
     <aside
       className={cn(
-        "absolute right-0 top-0 h-full w-[400px] z-20 overflow-x-scroll border-l-[0.5px] bg-aimlg-1",
-        className
+        'absolute right-0 top-0 h-full w-[400px] z-20 overflow-x-scroll border-l-[0.5px] bg-aimlg-1',
+        className,
       )}
       style={{ width: open ? `${sidebarWidth}%` : undefined }}
       ref={innerContainerRef}
@@ -158,7 +150,7 @@ export function SidebarItems({
       {open ? (
         <div
           className={`w-1 bg-aimlorder-1 cursor-col-resize h-full hover:w-2 hover:bg-aiaimlder-2 active:bg-aimlaimlr-3 transition-colors absolute inset-y-0 -left-1 -right-1 z-10
-          ${isDragging ? "bg-aimlorder-2 w-2 cursor-col-resize" : ""}`}
+          ${isDragging ? 'bg-aimlorder-2 w-2 cursor-col-resize' : ''}`}
           onMouseDown={handleMouseDown}
         />
       ) : null}
@@ -177,16 +169,12 @@ export function SidebarItems({
         {openDetail ? (
           <div
             className={`w-1 h-full bg-aimlorder-1 cursor-col-resize hover:w-2 hover:bg-aiaimlder-2 active:bg-aimlaimlr-3 transition-colors absolute inset-y-0 -left-1 -right-1 z-10
-            ${innerIsDragging ? "bg-aimlorder-2 w-2 cursor-col-resize" : ""}`}
+            ${innerIsDragging ? 'bg-aimlorder-2 w-2 cursor-col-resize' : ''}`}
             onMouseDown={handleInnerMouseDown}
           />
         ) : null}
         <div className="h-full overflow-y-scroll">
-          {!openDetail ? (
-            <WorkflowInformation workflowId={workflowId} />
-          ) : (
-            <SpanDetail />
-          )}
+          {!openDetail ? <WorkflowInformation workflowId={workflowId} /> : <SpanDetail />}
         </div>
       </div>
     </aside>

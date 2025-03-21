@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 export const transformToNestObject = (error: z.ZodError): FieldErrors => {
   const fieldErrors: FieldErrors = {};
-  error.errors.forEach(err => {
+  error.errors.forEach((err) => {
     if (err.path.length > 0) {
       const path = err.path.join('.');
       fieldErrors[path] = {

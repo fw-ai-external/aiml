@@ -1,13 +1,7 @@
-import { getAgents } from "./list-agents";
-import { getAgent } from "./get-agent";
-import { createAgent } from "./create-agent";
-import { updateAgent } from "./update-agent";
-import { deleteAgent } from "./delete-agent";
+import { createAgent } from './create-agent';
+import { deleteAgent } from './delete-agent';
+import { getAgent } from './get-agent';
+import { getAgents } from './list-agents';
+import { updateAgent } from './update-agent';
 
-export const agentRoutes = [
-  getAgents,
-  getAgent,
-  createAgent,
-  updateAgent,
-  deleteAgent,
-];
+export const agentRoutes = [getAgents, getAgent, createAgent, updateAgent, deleteAgent];

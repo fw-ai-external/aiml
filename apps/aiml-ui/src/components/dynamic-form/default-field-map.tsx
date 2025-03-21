@@ -7,9 +7,9 @@ import {
   DateField,
   EnumField,
   NumberField,
+  ObjectField,
   RecordField,
   StringField,
-  ObjectField,
   UnionField,
 } from './fields';
 import { FormConfigType, getFormConfigTypesFromSchemaDef } from './schema';
@@ -61,7 +61,7 @@ export function getDefaultFieldMap() {
           handleFieldChange={(field, value) => handleFieldChange({ key: field, value })}
           formValues={{}}
           errors={{}}
-          renderDynamicForm={props => resolveSchema({ ...props, handleFieldChange })}
+          renderDynamicForm={(props) => resolveSchema({ ...props, handleFieldChange })}
         />
       );
     },
@@ -74,7 +74,7 @@ export function getDefaultFieldMap() {
           control={control}
           parentField={name}
           handleFieldChange={(field, value) => handleFieldChange({ key: field, value })}
-          renderDynamicForm={fieldProps => {
+          renderDynamicForm={(fieldProps) => {
             const fieldType = getFormConfigTypesFromSchemaDef({ schema: fieldProps.schema });
             return getDefaultFieldMap()[fieldType.type]({
               ...props,

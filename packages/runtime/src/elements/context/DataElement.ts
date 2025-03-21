@@ -1,12 +1,12 @@
-import { createElementDefinition } from "../createElementFactory";
+import { createElementDefinition } from '../createElementFactory';
 
 import {
+  type DataElementMetadata as ImportedDataElementMetadata,
+  type JSONSchema as ImportedJSONSchema,
   ValueType,
-  DataElementMetadata as ImportedDataElementMetadata,
-  JSONSchema as ImportedJSONSchema,
-  validateValueType,
   dataConfig,
-} from "@fireworks/shared";
+  validateValueType,
+} from '@fireworks/shared';
 
 // Re-export for backward compatibility
 export { ValueType };
@@ -15,10 +15,10 @@ export type JSONSchema = ImportedJSONSchema;
 
 export const Data = createElementDefinition({
   ...dataConfig,
-  tag: "data" as const,
-  role: "state" as const,
-  elementType: "data" as const,
-  allowedChildren: "none" as const,
+  tag: 'data' as const,
+  role: 'state' as const,
+  elementType: 'data' as const,
+  allowedChildren: 'none' as const,
   async execute(ctx) {
     const {
       id,
@@ -50,8 +50,7 @@ export const Data = createElementDefinition({
           console.error(`Error fetching data from ${src}:`, error);
           return {
             result: ctx.input,
-            exception:
-              error instanceof Error ? error : new Error(String(error)),
+            exception: error instanceof Error ? error : new Error(String(error)),
           };
         }
       } else if (expr) {
@@ -62,17 +61,14 @@ export const Data = createElementDefinition({
             // Get the scoped data model
             const scopedModel = (ctx as any).scopedDataModel;
             if (!scopedModel) {
-              throw new Error("No scoped data model available in context");
+              throw new Error('No scoped data model available in context');
             }
 
             // Get all variables from the scoped data model
             const variables = scopedModel.getAllVariables();
 
             // Create a function with the variables as parameters
-            const fn = new Function(
-              ...Object.keys(variables),
-              `return ${expr}`
-            );
+            const fn = new Function(...Object.keys(variables), `return ${expr}`);
 
             // Call the function with the variable values
             value = fn(...Object.values(variables));
@@ -81,18 +77,14 @@ export const Data = createElementDefinition({
             console.error(`Error evaluating expression: ${evalError}`);
             return {
               result: ctx.input,
-              exception:
-                evalError instanceof Error
-                  ? evalError
-                  : new Error(String(evalError)),
+              exception: evalError instanceof Error ? evalError : new Error(String(evalError)),
             };
           }
         } catch (error) {
           console.error(`Error evaluating expression ${expr}:`, error);
           return {
             result: ctx.input,
-            exception:
-              error instanceof Error ? error : new Error(String(error)),
+            exception: error instanceof Error ? error : new Error(String(error)),
           };
         }
       } else if (content) {
@@ -104,8 +96,7 @@ export const Data = createElementDefinition({
           console.error(`Error parsing content as JSON:`, error);
           return {
             result: ctx.input,
-            exception:
-              error instanceof Error ? error : new Error(String(error)),
+            exception: error instanceof Error ? error : new Error(String(error)),
           };
         }
       } else if (fromRequest) {
@@ -118,7 +109,7 @@ export const Data = createElementDefinition({
         // This should not happen due to the schema refinement, but just in case
         return {
           result: ctx.input,
-          exception: new Error("No value provided for data element"),
+          exception: new Error('No value provided for data element'),
         };
       }
 
@@ -145,7 +136,7 @@ export const Data = createElementDefinition({
       // Get scoped data model and set value with metadata
       const scopedModel = (ctx as any).scopedDataModel;
       if (!scopedModel) {
-        throw new Error("No scoped data model available in context");
+        throw new Error('No scoped data model available in context');
       }
       scopedModel.setValue(id, value, metadata);
 

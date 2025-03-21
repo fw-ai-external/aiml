@@ -1,29 +1,20 @@
-import { Braces, Clock1 } from "lucide-react";
-import { useContext, useEffect } from "react";
+import { Braces, Clock1 } from 'lucide-react';
+import { useContext, useEffect } from 'react';
 
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
-import { TraceContext } from "./context/trace-context";
-import type { RefinedTrace, Span, SpanStatus } from "./types";
-import { formatDuration, formatOtelTimestamp } from "./utils";
+import { TraceContext } from './context/trace-context';
+import type { RefinedTrace, Span, SpanStatus } from './types';
+import { formatDuration, formatOtelTimestamp } from './utils';
 
 export function Traces({ traces }: { traces: RefinedTrace[] }) {
   const { setTraces, trace: currentTrace } = useContext(TraceContext);
 
-  const currentTraceParentSpan =
-    currentTrace?.find((span) => span.parentSpanId === undefined) ||
-    currentTrace?.[0];
+  const currentTraceParentSpan = currentTrace?.find((span) => span.parentSpanId === undefined) || currentTrace?.[0];
 
   useEffect(() => {
     setTraces(traces);
@@ -55,13 +46,9 @@ export function Traces({ traces }: { traces: RefinedTrace[] }) {
               traces.map((trace, index) => (
                 <TableRow
                   key={trace.traceId}
-                  className={cn(
-                    "border-b-gray-6 border-b-[0.1px] text-[0.8125rem]",
-                    {
-                      "bg-muted/50":
-                        currentTraceParentSpan?.traceId === trace.traceId,
-                    }
-                  )}
+                  className={cn('border-b-gray-6 border-b-[0.1px] text-[0.8125rem]', {
+                    'bg-muted/50': currentTraceParentSpan?.traceId === trace.traceId,
+                  })}
                 >
                   <TableCell>
                     <TraceButton
@@ -71,12 +58,8 @@ export function Traces({ traces }: { traces: RefinedTrace[] }) {
                       status={trace.status}
                     />
                   </TableCell>
-                  <TableCell className="text-aimll-5">
-                    {trace.traceId}
-                  </TableCell>
-                  <TableCell className="text-aimll-5 text-sm">
-                    {formatOtelTimestamp(trace.started)}
-                  </TableCell>
+                  <TableCell className="text-aimll-5">{trace.traceId}</TableCell>
+                  <TableCell className="text-aimll-5 text-sm">{formatOtelTimestamp(trace.started)}</TableCell>
                   <TableCell>
                     <span className="inline-flex items-center gap-2 text-[#F1CA5E]">
                       <Clock1 className="h-3 w-3" />
@@ -119,8 +102,7 @@ function TraceButton({
       className="flex h-0 items-center gap-2 p-0"
       onClick={() => {
         setTrace(trace);
-        const parentSpan =
-          trace.find((span) => span.parentSpanId === null) || trace[0];
+        const parentSpan = trace.find((span) => span.parentSpanId === null) || trace[0];
         setSpan(parentSpan);
         setCurrentTraceIndex(traceIndex);
         if (open && currentTrace?.[0]?.id !== trace[0].id) return;
@@ -145,13 +127,7 @@ function TraceButton({
           />
         </svg>
       ) : (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="#FF4500"
-          width="13"
-          height="12"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FF4500" width="13" height="12">
           <path
             fillRule="evenodd"
             d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z"

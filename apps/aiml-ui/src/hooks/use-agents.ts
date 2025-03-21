@@ -1,6 +1,6 @@
-import type { Agent } from "@mastra/core/agent";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import type { Agent } from '@mastra/core/agent';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface PlaygroundAgent extends Agent {
   name: string;
@@ -16,20 +16,20 @@ export const useAgents = () => {
     const fetchAgents = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch("/api/agents");
+        const res = await fetch('/api/agents');
         if (!res.ok) {
           const error = await res.json();
           setAgents({});
-          console.error("Error fetching agents", error);
-          toast.error(error?.error || "Error fetching agents");
+          console.error('Error fetching agents', error);
+          toast.error(error?.error || 'Error fetching agents');
           return;
         }
         const data = await res.json();
         setAgents(data);
       } catch (error) {
         setAgents({});
-        console.error("Error fetching agents", error);
-        toast.error("Error fetching agents");
+        console.error('Error fetching agents', error);
+        toast.error('Error fetching agents');
       } finally {
         setIsLoading(false);
       }
@@ -58,16 +58,16 @@ export const useAgent = (agentId: string) => {
         if (!res.ok) {
           const error = await res.json();
           setAgent(null);
-          console.error("Error fetching agent", error);
-          toast.error(error?.error || "Error fetching agent");
+          console.error('Error fetching agent', error);
+          toast.error(error?.error || 'Error fetching agent');
           return;
         }
         const agent = await res.json();
         setAgent(agent);
       } catch (error) {
         setAgent(null);
-        console.error("Error fetching agent", error);
-        toast.error("Error fetching agent");
+        console.error('Error fetching agent', error);
+        toast.error('Error fetching agent');
       } finally {
         setIsLoading(false);
       }

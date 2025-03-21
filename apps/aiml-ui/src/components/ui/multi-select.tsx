@@ -1,21 +1,15 @@
-"use client";
+'use client';
 
-import React, { useMemo, useState } from "react";
+import type React from 'react';
+import { useMemo, useState } from 'react';
 
-import { capitalizeFirstLetter } from "../../lib/string";
-import { cn } from "../../lib/utils";
+import { capitalizeFirstLetter } from '../../lib/string';
+import { cn } from '../../lib/utils';
 
-import { Button } from "./button";
-import { Checkbox } from "./checkbox";
-import {
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "./command";
-import { Text } from "./text";
+import { Button } from './button';
+import { Checkbox } from './checkbox';
+import { Command, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from './command';
+import { Text } from './text';
 
 export type MultiSelectShape = Record<string, unknown>;
 
@@ -179,7 +173,7 @@ export function MultiSelect<T extends MultiSelectShape>({
 function EmptyBody({ emptyMessage }: { emptyMessage?: string }) {
   return (
     <div className="px-2 py-6 text-center text-sm">
-      <Text>{emptyMessage || "No data found."}</Text>
+      <Text>{emptyMessage || 'No data found.'}</Text>
     </div>
   );
 }
@@ -196,8 +190,8 @@ function SelectBody<T extends MultiSelectShape>({
   withSearch,
   withCheckbox,
   asRadio,
-  nameKey = "name" as keyof T,
-  idKey = "id" as keyof T,
+  nameKey = 'name' as keyof T,
+  idKey = 'id' as keyof T,
   addNewButtonTitle,
   withAddNewButton,
   withAddNewFromSearchValueButton,
@@ -208,7 +202,7 @@ function SelectBody<T extends MultiSelectShape>({
   onSearch,
   isSearching,
 }: MultiSelectProps<T>) {
-  const [searchValue, setSearchValue] = useState("");
+  const [searchValue, setSearchValue] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   function deselectItem(item: T) {
     if (asRadio && selectedValues.length === 1) return; // A radio must have a selected value
@@ -216,9 +210,7 @@ function SelectBody<T extends MultiSelectShape>({
     if (isSingleSelect) {
       setSelectedValues([]);
     } else {
-      setSelectedValues(
-        selectedValues.filter((value) => value[idKey] !== item[idKey])
-      );
+      setSelectedValues(selectedValues.filter((value) => value[idKey] !== item[idKey]));
     }
     onDeselectItem?.(item);
   }
@@ -242,7 +234,7 @@ function SelectBody<T extends MultiSelectShape>({
       setIsAdding(true);
       const item = await addNewFromSearchValueButtonAction(searchValue);
       setIsAdding(false);
-      setSearchValue("");
+      setSearchValue('');
       selectItem(item);
     }
   }
@@ -251,17 +243,13 @@ function SelectBody<T extends MultiSelectShape>({
     () =>
       searchValue
         ? data.filter((item) =>
-            (item[nameKey] as string)
-              ?.toLocaleLowerCase()
-              ?.includes(searchValue?.toLocaleLowerCase())
+            (item[nameKey] as string)?.toLocaleLowerCase()?.includes(searchValue?.toLocaleLowerCase()),
           )
         : data,
-    [data, searchValue, nameKey]
+    [data, searchValue, nameKey],
   );
 
-  const showButton =
-    withAddNewButton ||
-    (withAddNewFromSearchValueButton && !!searchValue && !options.length);
+  const showButton = withAddNewButton || (withAddNewFromSearchValueButton && !!searchValue && !options.length);
 
   const groupOptionsByKey = (options: T[], groupKey: keyof T) => {
     //plain array, that i want group based on object of a key in that array
@@ -271,8 +259,7 @@ function SelectBody<T extends MultiSelectShape>({
       return { ...acc, [groupedKey]: [...(acc[groupedKey] || []), curr] };
     }, {});
   };
-  const groupedData =
-    groupOptions && groupKey ? groupOptionsByKey(options, groupKey) : {};
+  const groupedData = groupOptions && groupKey ? groupOptionsByKey(options, groupKey) : {};
 
   return (
     <>
@@ -286,13 +273,9 @@ function SelectBody<T extends MultiSelectShape>({
           }}
           className="text-xs"
           onKeyDown={(e) => {
-            if (e.key == "Enter" && !(e.ctrlKey || e.metaKey)) {
+            if (e.key == 'Enter' && !(e.ctrlKey || e.metaKey)) {
               e.stopPropagation();
-              if (
-                withAddNewFromSearchValueButton &&
-                !!searchValue &&
-                !options.length
-              ) {
+              if (withAddNewFromSearchValueButton && !!searchValue && !options.length) {
                 handleAddNewItem();
               }
             }
@@ -313,18 +296,16 @@ function SelectBody<T extends MultiSelectShape>({
                       const isSelected = !!selectedValues.length
                         ? isSingleSelect
                           ? selectedValues[0][idKey] === item[idKey]
-                          : !!selectedValues.find(
-                              (value) => value[idKey] === item[idKey]
-                            )
+                          : !!selectedValues.find((value) => value[idKey] === item[idKey])
                         : false;
                       return (
                         <CommandItem
-                          className={cn({ "bg-white/5": isSelected })}
+                          className={cn({ 'bg-white/5': isSelected })}
                           value={item[idKey] as string}
                           key={`${item[idKey] as string}-${idx}`}
                           aria-selected={isSelected}
-                          aria-disabled={item?.isDisabled ? "true" : "false"}
-                          data-disabled={item?.isDisabled ? "true" : "false"}
+                          aria-disabled={item?.isDisabled ? 'true' : 'false'}
+                          data-disabled={item?.isDisabled ? 'true' : 'false'}
                           onSelect={() => {
                             if (item?.isDisabled) {
                               return;
@@ -337,16 +318,9 @@ function SelectBody<T extends MultiSelectShape>({
                           }}
                           disabled={item?.isDisabled as boolean}
                         >
-                          <Checkbox
-                            checked={isSelected}
-                            className={cn("mr-2", { "sr-only": !withCheckbox })}
-                          />
-                          {iconRenderProp ? (
-                            <span className="mr-2">{iconRenderProp(item)}</span>
-                          ) : null}
-                          <span className="break-words hyphens-auto">
-                            {item[nameKey] as string}
-                          </span>
+                          <Checkbox checked={isSelected} className={cn('mr-2', { 'sr-only': !withCheckbox })} />
+                          {iconRenderProp ? <span className="mr-2">{iconRenderProp(item)}</span> : null}
+                          <span className="break-words hyphens-auto">{item[nameKey] as string}</span>
                         </CommandItem>
                       );
                     })}
@@ -360,19 +334,17 @@ function SelectBody<T extends MultiSelectShape>({
                 const isSelected = !!selectedValues.length
                   ? isSingleSelect
                     ? selectedValues[0][idKey] === item[idKey]
-                    : !!selectedValues.find(
-                        (value) => value[idKey] === item[idKey]
-                      )
+                    : !!selectedValues.find((value) => value[idKey] === item[idKey])
                   : false;
 
                 return (
                   <CommandItem
-                    className={cn({ "bg-white/5": isSelected })}
+                    className={cn({ 'bg-white/5': isSelected })}
                     value={item[idKey] as string}
                     key={`${item[idKey] as string}-${idx}`}
                     aria-selected={isSelected}
-                    aria-disabled={item?.isDisabled ? "true" : "false"}
-                    data-disabled={item?.isDisabled ? "true" : "false"}
+                    aria-disabled={item?.isDisabled ? 'true' : 'false'}
+                    data-disabled={item?.isDisabled ? 'true' : 'false'}
                     onSelect={() => {
                       if (item?.isDisabled) {
                         return;
@@ -385,25 +357,16 @@ function SelectBody<T extends MultiSelectShape>({
                     }}
                     disabled={item?.isDisabled as boolean}
                   >
-                    <Checkbox
-                      checked={isSelected}
-                      className={cn("mr-2", { "sr-only": !withCheckbox })}
-                    />
-                    {iconRenderProp ? (
-                      <span className="mr-2">{iconRenderProp(item)}</span>
-                    ) : null}
-                    <span className="break-words hyphens-auto">
-                      {item[nameKey] as string}
-                    </span>
+                    <Checkbox checked={isSelected} className={cn('mr-2', { 'sr-only': !withCheckbox })} />
+                    {iconRenderProp ? <span className="mr-2">{iconRenderProp(item)}</span> : null}
+                    <span className="break-words hyphens-auto">{item[nameKey] as string}</span>
                   </CommandItem>
                 );
               })}
             </CommandGroup>
           )
         ) : (
-          <p className="text-aimll-4 py-6 text-center text-sm">
-            {isSearching ? "Searching..." : "No results found"}
-          </p>
+          <p className="text-aimll-4 py-6 text-center text-sm">{isSearching ? 'Searching...' : 'No results found'}</p>
         )}
 
         {selectedValues.length > 0 && !isSingleSelect && !searchValue && (
@@ -433,9 +396,7 @@ function SelectBody<T extends MultiSelectShape>({
                 onClick={handleAddNewItem}
                 disabled={isAdding}
               >
-                {isAdding
-                  ? "Adding..."
-                  : addNewButtonTitle || `Add ${searchValue}`}
+                {isAdding ? 'Adding...' : addNewButtonTitle || `Add ${searchValue}`}
               </Button>
             </CommandGroup>
           </>

@@ -1,22 +1,15 @@
-"use client";
+'use client';
 
-import { Bot, BotMessageSquare } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Bot, BotMessageSquare } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-import { Button } from "@/components/ui/button";
-import { Header } from "@/components/ui/header";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
+import { Button } from '@/components/ui/button';
+import { Header } from '@/components/ui/header';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-import { useAgents } from "@/hooks/use-agents";
+import { useAgents } from '@/hooks/use-agents';
 
 export default function Agents() {
   const { agents, isLoading } = useAgents();
@@ -32,9 +25,7 @@ export default function Agents() {
               <TableRow className="border-gray-6 border-b-[0.1px] text-[0.8125rem]">
                 <TableHead className="w-[50px]"></TableHead>
                 <TableHead className="text-aiml-el-3">Name</TableHead>
-                <TableHead className="text-aimll-3 w-1/2">
-                  Instruction
-                </TableHead>
+                <TableHead className="text-aimll-3 w-1/2">Instruction</TableHead>
                 <TableHead className="text-aimll-3">Provider</TableHead>
                 <TableHead className="text-aimll-3">Model</TableHead>
                 <TableHead className="text-aimll-3">Action</TableHead>
@@ -58,27 +49,16 @@ export default function Agents() {
                 </TableRow>
               ) : (
                 Object.entries(agents).map(([key, agent]) => (
-                  <TableRow
-                    key={key}
-                    className="border-b-gray-6 border-b-[0.1px] text-[0.8125rem]"
-                  >
+                  <TableRow key={key} className="border-b-gray-6 border-b-[0.1px] text-[0.8125rem]">
                     <TableCell>
                       <div className="h-8 w-full flex items-center justify-center">
                         <Bot className="h-4 w-4 text-aimll-5" />
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium text-aimll-5">
-                      {agent.name}
-                    </TableCell>
-                    <TableCell className="truncate w-1/2 max-w-[500px] text-aimll-5">
-                      {agent.instructions}
-                    </TableCell>
-                    <TableCell className="text-aimll-5 text-sm">
-                      {agent.provider?.toUpperCase()}
-                    </TableCell>
-                    <TableCell className="text-aimll-5 text-sm">
-                      {agent.modelId}
-                    </TableCell>
+                    <TableCell className="font-medium text-aimll-5">{agent.name}</TableCell>
+                    <TableCell className="truncate w-1/2 max-w-[500px] text-aimll-5">{agent.instructions}</TableCell>
+                    <TableCell className="text-aimll-5 text-sm">{agent.provider?.toUpperCase()}</TableCell>
+                    <TableCell className="text-aimll-5 text-sm">{agent.modelId}</TableCell>
                     <TableCell className="text-aimll-5 text-sm">
                       <span
                         onClick={() => {

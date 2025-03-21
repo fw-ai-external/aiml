@@ -4,7 +4,7 @@ import type { Span, SpanNode } from './types';
 export function TreeView({ tree }: { tree: SpanNode[] }) {
   return (
     <ul>
-      {tree.map(node => (
+      {tree.map((node) => (
         <TreeNode key={node.id} node={node} />
       ))}
     </ul>
@@ -13,8 +13,8 @@ export function TreeView({ tree }: { tree: SpanNode[] }) {
 
 function buildTree(items: Span[], parentSpanId: string | null = null): SpanNode[] {
   return items
-    .filter(item => item.parentSpanId === parentSpanId)
-    .map(item => ({
+    .filter((item) => item.parentSpanId === parentSpanId)
+    .map((item) => ({
       ...item,
       children: buildTree(items, item.id),
     }));

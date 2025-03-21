@@ -1,16 +1,16 @@
-import { Ellipsis, Link, Plus, Trash } from "lucide-react";
-import { useState } from "react";
+import { Ellipsis, Link, Plus, Trash } from 'lucide-react';
+import { useState } from 'react';
 
-import { AlertDialog } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Dropdown } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AlertDialog } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Dropdown } from '@/components/ui/dropdown-menu';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
-import { useDeleteThread, useThreads } from "@/hooks/use-memory";
-import { useRouter } from "next/navigation";
+import { useDeleteThread, useThreads } from '@/hooks/use-memory';
+import { useRouter } from 'next/navigation';
 
 export function AgentSidebar({
   agentId,
@@ -57,16 +57,12 @@ export function AgentSidebar({
           <Button
             variant="primary"
             size="icon"
-            onClick={() =>
-              router.push(`/agents/${agentId}/chat/${crypto.randomUUID()}`)
-            }
+            onClick={() => router.push(`/agents/${agentId}/chat/${crypto.randomUUID()}`)}
           >
             <Plus />
           </Button>
         </div>
-        <div className="text-small text-aimll-3">
-          Your conversations will appear here once you start chatting!
-        </div>
+        <div className="text-small text-aimll-3">Your conversations will appear here once you start chatting!</div>
       </div>
     );
   }
@@ -79,9 +75,7 @@ export function AgentSidebar({
           <Button
             variant="primary"
             size="icon"
-            onClick={() =>
-              router.push(`/agents/${agentId}/chat/${crypto.randomUUID()}`)
-            }
+            onClick={() => router.push(`/agents/${agentId}/chat/${crypto.randomUUID()}`)}
           >
             <Plus />
           </Button>
@@ -91,19 +85,16 @@ export function AgentSidebar({
           return (
             <div
               className={cn(
-                "flex cursor-pointer w-full px-2 items-center focus-visible:outline-none transition-colors focus-visible:ring-1 focus-visible:ring-aimlorder-4 gap-3 rounded-xs group text-small hover:bg-aiaiml6/5",
-                isActive ? "bg-aimll-6/5" : ""
+                'flex cursor-pointer w-full px-2 items-center focus-visible:outline-none transition-colors focus-visible:ring-1 focus-visible:ring-aimlorder-4 gap-3 rounded-xs group text-small hover:bg-aiaiml6/5',
+                isActive ? 'bg-aimll-6/5' : '',
               )}
               key={thread.id}
             >
-              <Link
-                to={`/agents/${agentId}/chat/${thread.id}`}
-                className="flex-1"
-              >
+              <Link to={`/agents/${agentId}/chat/${thread.id}`} className="flex-1">
                 <p
                   className={cn(
-                    "py-[0.38rem] text-aimll-6/60 group-hover:text-aiaiml6 transition-all  capitalize ",
-                    isActive ? "text-aimll-6" : ""
+                    'py-[0.38rem] text-aimll-6/60 group-hover:text-aiaiml6 transition-all  capitalize ',
+                    isActive ? 'text-aimll-6' : '',
                   )}
                 >
                   {thread.title}
@@ -140,15 +131,12 @@ export function AgentSidebar({
           <AlertDialog.Header>
             <AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
             <AlertDialog.Description>
-              This action cannot be undone. This will permanently delete your
-              chat and remove it from our servers.
+              This action cannot be undone. This will permanently delete your chat and remove it from our servers.
             </AlertDialog.Description>
           </AlertDialog.Header>
           <AlertDialog.Footer>
             <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-            <AlertDialog.Action onClick={handleDelete}>
-              Continue
-            </AlertDialog.Action>
+            <AlertDialog.Action onClick={handleDelete}>Continue</AlertDialog.Action>
           </AlertDialog.Footer>
         </AlertDialog.Content>
       </AlertDialog>

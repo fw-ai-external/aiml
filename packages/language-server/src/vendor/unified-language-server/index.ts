@@ -1,12 +1,9 @@
-import { VFileMessage } from "vfile-message";
-import { Options as EngineOptions } from "unified-engine";
-import { HoverProvider } from "./hover";
-import { CompletionProvider } from "./completion";
+import type { Options as EngineOptions } from 'unified-engine';
+import type { VFileMessage } from 'vfile-message';
+import { CompletionProvider } from './completion';
+import { HoverProvider } from './hover';
 
-type EngineFields = Pick<
-  EngineOptions,
-  "ignoreName" | "packageField" | "pluginPrefix" | "plugins" | "rcName"
->;
+type EngineFields = Pick<EngineOptions, 'ignoreName' | 'packageField' | 'pluginPrefix' | 'plugins' | 'rcName'>;
 type LanguageServerFields = {
   processorName: string;
   /**
@@ -19,7 +16,7 @@ type LanguageServerFields = {
    *   For example, remark uses the specifier `remark` to expose its processor and
    *   a default export can be requested by passing `'default'` (the default).
    */
-  defaultProcessor?: EngineOptions["processor"];
+  defaultProcessor?: EngineOptions['processor'];
   /**
    *   Optional fallback processor to use if `processorName` can’t be found
    *   locally in `node_modules`.
@@ -45,16 +42,17 @@ type UnifiedLanguageServerSettings = {
   requireConfig?: boolean;
 };
 
-import path from "node:path";
-import { PassThrough } from "node:stream";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { findUp, pathExists } from "find-up";
-import { loadPlugin } from "load-plugin";
-import { engine } from "unified-engine";
-import { fromPoint, fromPosition } from "unist-util-lsp";
-import { VFile } from "vfile";
+import path from 'node:path';
+import { PassThrough } from 'node:stream';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { findUp, pathExists } from 'find-up';
+import { loadPlugin } from 'load-plugin';
+import { engine } from 'unified-engine';
+import { fromPoint, fromPosition } from 'unist-util-lsp';
+import { VFile } from 'vfile';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import type { TextDocumentPositionParams } from 'vscode-languageserver/node';
 import {
-  createConnection,
   CodeAction,
   CodeActionKind,
   Diagnostic,
@@ -63,12 +61,11 @@ import {
   Position,
   ProposedFeatures,
   Range,
-  TextDocuments,
   TextDocumentSyncKind,
+  TextDocuments,
   TextEdit,
-} from "vscode-languageserver/node.js";
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { TextDocumentPositionParams } from "vscode-languageserver/node";
+  createConnection,
+} from 'vscode-languageserver/node.js';
 
 /**
  * Convert a vfile message to a language server protocol diagnostic.
@@ -76,7 +73,7 @@ import { TextDocumentPositionParams } from "vscode-languageserver/node";
 function vfileMessageToDiagnostic(message: VFileMessage) {
   const diagnostic = Diagnostic.create(
     message.place
-      ? "start" in message.place
+      ? 'start' in message.place
         ? fromPosition(message.place)
         : { start: fromPoint(message.place), end: fromPoint(message.place) }
       : Range.create(0, 0, 0, 0),
@@ -87,7 +84,7 @@ function vfileMessageToDiagnostic(message: VFileMessage) {
         ? DiagnosticSeverity.Warning
         : DiagnosticSeverity.Information,
     message.ruleId || undefined,
-    message.source || undefined
+    message.source || undefined,
   );
   if (message.url) {
     diagnostic.codeDescription = { href: message.url };
@@ -100,16 +97,12 @@ function vfileMessageToDiagnostic(message: VFileMessage) {
     };
   }
 
-  if (
-    typeof message.cause === "object" &&
-    message.cause &&
-    "stack" in message.cause
-  ) {
-    diagnostic.message += "\n" + message.cause.stack;
+  if (typeof message.cause === 'object' && message.cause && 'stack' in message.cause) {
+    diagnostic.message += '\n' + message.cause.stack;
   }
 
   if (message.note) {
-    diagnostic.message += "\n" + message.note;
+    diagnostic.message += '\n' + message.note;
   }
 
   return diagnostic;
@@ -134,7 +127,7 @@ export function createUnifiedLanguageServer({
   pluginPrefix,
   plugins,
   processorName,
-  processorSpecifier = "default",
+  processorSpecifier = 'default',
   defaultProcessor,
   rcName,
 }: Options) {
@@ -144,28 +137,21 @@ export function createUnifiedLanguageServer({
   const globalSettings: UnifiedLanguageServerSettings = {
     requireConfig: false,
   };
-  const documentSettings = new Map<
-    string,
-    Promise<UnifiedLanguageServerSettings>
-  >();
+  const documentSettings = new Map<string, Promise<UnifiedLanguageServerSettings>>();
   let hasWorkspaceFolderCapability = false;
   let hasConfigurationCapability = false;
 
-  async function getDocumentSettings(
-    scopeUri: string
-  ): Promise<UnifiedLanguageServerSettings> {
+  async function getDocumentSettings(scopeUri: string): Promise<UnifiedLanguageServerSettings> {
     if (!hasConfigurationCapability) {
       return globalSettings;
     }
 
     let result = documentSettings.get(scopeUri);
     if (!result) {
-      result = connection.workspace
-        .getConfiguration({ scopeUri, section: configurationSection })
-        .then(
-          /** @param {Record<string, unknown>} raw */
-          (raw) => ({ requireConfig: Boolean(raw.requireConfig) })
-        );
+      result = connection.workspace.getConfiguration({ scopeUri, section: configurationSection }).then(
+        /** @param {Record<string, unknown>} raw */
+        (raw) => ({ requireConfig: Boolean(raw.requireConfig) }),
+      );
       documentSettings.set(scopeUri, result);
     }
 
@@ -183,40 +169,37 @@ export function createUnifiedLanguageServer({
     cwd: string,
     files: VFile[],
     alwaysStringify: boolean,
-    ignoreUnconfigured: boolean
+    ignoreUnconfigured: boolean,
   ): Promise<VFile[]> {
-    let processor: EngineOptions["processor"];
+    let processor: EngineOptions['processor'];
 
     try {
       processor = (await loadPlugin(processorName, {
-        from: pathToFileURL(cwd + "/").toString(),
+        from: pathToFileURL(cwd + '/').toString(),
         key: processorSpecifier,
-      })) as EngineOptions["processor"];
+      })) as EngineOptions['processor'];
     } catch (error) {
       const exception: NodeJS.ErrnoException = error as NodeJS.ErrnoException;
 
       // Pass other funky errors through.
       /* c8 ignore next 3 */
-      if (exception.code !== "ERR_MODULE_NOT_FOUND") {
+      if (exception.code !== 'ERR_MODULE_NOT_FOUND') {
         throw error;
       }
 
       if (!defaultProcessor) {
         connection.window.showInformationMessage(
-          "Cannot turn on language server without `" +
+          'Cannot turn on language server without `' +
             processorName +
-            "` locally. Run `npm install " +
+            '` locally. Run `npm install ' +
             processorName +
-            "` to enable it"
+            '` to enable it',
         );
         return [];
       }
 
       connection.console.log(
-        "Cannot find `" +
-          processorName +
-          "` locally but using `defaultProcessor`, original error:\n" +
-          exception.stack
+        'Cannot find `' + processorName + '` locally but using `defaultProcessor`, original error:\n' + exception.stack,
       );
 
       processor = defaultProcessor;
@@ -251,7 +234,7 @@ export function createUnifiedLanguageServer({
           }
 
           resolve(files);
-        }
+        },
       );
     });
   }
@@ -260,14 +243,11 @@ export function createUnifiedLanguageServer({
    * Process various LSP text documents using unified and send back the
    * resulting messages as diagnostics.
    **/
-  async function processDocuments(
-    textDocuments: TextDocument[],
-    alwaysStringify = false
-  ): Promise<VFile[]> {
+  async function processDocuments(textDocuments: TextDocument[], alwaysStringify = false): Promise<VFile[]> {
     // LSP uses `file:` URLs (hrefs), `unified-engine` expects a paths.
     // `process.cwd()` does not add a final slash, but `file:` URLs often do.
     const workspacesAsPaths = [...workspaces]
-      .map((d) => d.replace(/[/\\]?$/, ""))
+      .map((d) => d.replace(/[/\\]?$/, ''))
       // Sort the longest (closest to the file) first.
       .sort((a, b) => b.length - a.length);
     const workspacePathToFiles = new Map<string, VFile[]>();
@@ -279,29 +259,25 @@ export function createUnifiedLanguageServer({
         if (workspaces.size === 0) {
           cwd = await findUp(
             async (directory) => {
-              const packageExists = await pathExists(
-                path.join(directory, "package.json")
-              );
+              const packageExists = await pathExists(path.join(directory, 'package.json'));
               if (packageExists) {
                 return directory;
               }
 
-              const gitExists = await pathExists(path.join(directory, ".git"));
+              const gitExists = await pathExists(path.join(directory, '.git'));
               if (gitExists) {
                 return directory;
               }
             },
             {
               cwd: path.dirname(fileURLToPath(textDocument.uri)),
-              type: "directory",
-            }
+              type: 'directory',
+            },
           );
         } else {
           // Because the workspaces are sorted longest to shortest, the first
           // match is closest to the file.
-          const ancestor = workspacesAsPaths.find((d) =>
-            textDocument.uri.startsWith(d + "/")
-          );
+          const ancestor = workspacesAsPaths.find((d) => textDocument.uri.startsWith(d + '/'));
           if (ancestor) {
             cwd = fileURLToPath(ancestor);
           }
@@ -313,13 +289,11 @@ export function createUnifiedLanguageServer({
 
         const file = lspDocumentToVfile(textDocument, cwd);
 
-        const filesMap = configuration.requireConfig
-          ? workspacePathToFilesRequireConfig
-          : workspacePathToFiles;
+        const filesMap = configuration.requireConfig ? workspacePathToFilesRequireConfig : workspacePathToFiles;
         const files = filesMap.get(cwd) || [];
         files.push(file);
         filesMap.set(cwd, files);
-      })
+      }),
     );
 
     const promises: Promise<VFile[]>[] = [];
@@ -341,9 +315,7 @@ export function createUnifiedLanguageServer({
    * resulting messages as diagnostics.
    */
   async function checkDocuments(...textDocuments: TextDocument[]) {
-    const documentVersions = new Map(
-      textDocuments.map((document) => [document.uri, document.version])
-    );
+    const documentVersions = new Map(textDocuments.map((document) => [document.uri, document.version]));
     const files = await processDocuments(textDocuments);
 
     for (const file of files) {
@@ -353,9 +325,7 @@ export function createUnifiedLanguageServer({
       connection.sendDiagnostics({
         uri,
         version: documentVersions.get(uri),
-        diagnostics: file.messages.map((message) =>
-          vfileMessageToDiagnostic(message)
-        ),
+        diagnostics: file.messages.map((message) => vfileMessageToDiagnostic(message)),
       });
     }
   }
@@ -371,12 +341,9 @@ export function createUnifiedLanguageServer({
       workspaces.add(event.rootUri);
     }
 
-    hasConfigurationCapability = Boolean(
-      event.capabilities.workspace && event.capabilities.workspace.configuration
-    );
+    hasConfigurationCapability = Boolean(event.capabilities.workspace && event.capabilities.workspace.configuration);
     hasWorkspaceFolderCapability = Boolean(
-      event.capabilities.workspace &&
-        event.capabilities.workspace.workspaceFolders
+      event.capabilities.workspace && event.capabilities.workspace.workspaceFolders,
     );
 
     return {
@@ -473,10 +440,10 @@ export function createUnifiedLanguageServer({
     } else {
       globalSettings.requireConfig = Boolean(
         (
-          change as Omit<typeof change, "settings"> & {
+          change as Omit<typeof change, 'settings'> & {
             settings: Record<string, unknown>;
           }
-        ).settings.requireConfig
+        ).settings.requireConfig,
       );
     }
 
@@ -495,9 +462,7 @@ export function createUnifiedLanguageServer({
       error: (msg: string) => connection.console.error(msg),
       completion: (msg: string, data?: any) => {
         if (process.env.DEBUG_HOVER) {
-          connection.console.log(
-            `[HOVER] ${msg}` + (data ? ` ${JSON.stringify(data)}` : "")
-          );
+          connection.console.log(`[HOVER] ${msg}` + (data ? ` ${JSON.stringify(data)}` : ''));
         }
       },
     };
@@ -521,9 +486,7 @@ export function createUnifiedLanguageServer({
       },
       completion: (msg: string, data?: any) => {
         if (process.env.DEBUG_COMPLETION) {
-          connection.console.log(
-            `[COMPLETION] ${msg}` + (data ? ` ${JSON.stringify(data)}` : "")
-          );
+          connection.console.log(`[COMPLETION] ${msg}` + (data ? ` ${JSON.stringify(data)}` : ''));
         }
       },
     };
@@ -532,16 +495,12 @@ export function createUnifiedLanguageServer({
     const stateTracker = {
       getStatesForDocument: (uri: string) => {
         // This is a simplified implementation
-        return new Set(["state1", "state2", "state3"]);
+        return new Set(['state1', 'state2', 'state3']);
       },
     };
 
     // Create and use the completion provider
-    const completionProvider = new CompletionProvider(
-      connection,
-      logger,
-      stateTracker
-    );
+    const completionProvider = new CompletionProvider(connection, logger, stateTracker);
     const result = completionProvider.getCompletions(doc, params.position);
     return result.completions;
   });
@@ -560,7 +519,7 @@ export function createUnifiedLanguageServer({
     for (const diagnostic of event.context.diagnostics) {
       // type-coverage:ignore-next-line
       const data = diagnostic.data as { expected?: unknown[] };
-      if (typeof data !== "object" || !data) {
+      if (typeof data !== 'object' || !data) {
         continue;
       }
 
@@ -574,22 +533,22 @@ export function createUnifiedLanguageServer({
       const actual = document.getText(diagnostic.range);
 
       for (const replacement of expected) {
-        if (typeof replacement !== "string") {
+        if (typeof replacement !== 'string') {
           continue;
         }
 
         const codeAction = CodeAction.create(
           replacement
             ? start.line === end.line && start.character === end.character
-              ? "Insert `" + replacement + "`"
-              : "Replace `" + actual + "` with `" + replacement + "`"
-            : "Remove `" + actual + "`",
+              ? 'Insert `' + replacement + '`'
+              : 'Replace `' + actual + '` with `' + replacement + '`'
+            : 'Remove `' + actual + '`',
           {
             changes: {
               [document.uri]: [TextEdit.replace(diagnostic.range, replacement)],
             },
           },
-          CodeActionKind.QuickFix
+          CodeActionKind.QuickFix,
         );
 
         if (expected.length === 1) {

@@ -1,40 +1,26 @@
-import { AnimatePresence } from "framer-motion";
-import {
-  ChevronRight,
-  RefreshCcwIcon,
-  Search,
-  SortAsc,
-  SortDesc,
-} from "lucide-react";
-import React, { createContext, useContext, useState, useEffect } from "react";
+import { AnimatePresence } from 'framer-motion';
+import { ChevronRight, RefreshCcwIcon, Search, SortAsc, SortDesc } from 'lucide-react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CopyableContent } from "@/components/ui/copyable-content";
-import { FormattedDate } from "@/components/ui/formatted-date";
-import { Input } from "@/components/ui/input";
-import { ScoreIndicator } from "@/components/ui/score-indicator";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableHeader,
-  TableHead,
-  TableBody,
-  TableCell,
-  TableRow,
-  MotionTableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { CopyableContent } from '@/components/ui/copyable-content';
+import { FormattedDate } from '@/components/ui/formatted-date';
+import { Input } from '@/components/ui/input';
+import { ScoreIndicator } from '@/components/ui/score-indicator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { MotionTableRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
-import type { Evals } from "@/hooks/use-evals";
-import { useEvalsByAgentId } from "@/hooks/use-evals";
+import type { Evals } from '@/hooks/use-evals';
+import { useEvalsByAgentId } from '@/hooks/use-evals';
 
-type SortDirection = "asc" | "desc";
+type SortDirection = 'asc' | 'desc';
 
 type SortConfig = {
-  field: keyof GroupedEvals | "timestamp" | "score";
+  field: keyof GroupedEvals | 'timestamp' | 'score';
   direction: SortDirection;
 };
 
@@ -55,48 +41,42 @@ type GroupedEvals = {
 };
 
 const scrollableContentClass = cn(
-  "relative overflow-y-auto overflow-x-hidden invisible hover:visible focus:visible",
-  "[&::-webkit-scrollbar]:w-1",
-  "[&::-webkit-scrollbar-track]:bg-transparent",
-  "[&::-webkit-scrollbar-thumb]:rounded-full",
-  "[&::-webkit-scrollbar-thumb]:bg-aiml-border/20",
-  "[&>*]:visible"
+  'relative overflow-y-auto overflow-x-hidden invisible hover:visible focus:visible',
+  '[&::-webkit-scrollbar]:w-1',
+  '[&::-webkit-scrollbar-track]:bg-transparent',
+  '[&::-webkit-scrollbar-thumb]:rounded-full',
+  '[&::-webkit-scrollbar-thumb]:bg-aiml-border/20',
+  '[&>*]:visible',
 );
 
 const tabIndicatorClass = cn(
-  "px-4 py-2 text-sm transition-all border-b-2 border-transparent",
-  "data-[state=active]:border-white data-[state=active]:text-white font-medium",
-  "data-[state=inactive]:text-aimll-4 hover:data-[state=inactive]:text-aiaiml2",
-  "focus-visible:outline-none"
+  'px-4 py-2 text-sm transition-all border-b-2 border-transparent',
+  'data-[state=active]:border-white data-[state=active]:text-white font-medium',
+  'data-[state=inactive]:text-aimll-4 hover:data-[state=inactive]:text-aiaiml2',
+  'focus-visible:outline-none',
 );
 
-const tabContentClass = cn(
-  "data-[state=inactive]:mt-0 min-h-0 h-full grid grid-rows-[1fr]"
-);
+const tabContentClass = cn('data-[state=inactive]:mt-0 min-h-0 h-full grid grid-rows-[1fr]');
 
 export function AgentEvals({ agentId }: { agentId: string }) {
-  const [activeTab, setActiveTab] = useState<"live" | "ci">("live");
+  const [activeTab, setActiveTab] = useState<'live' | 'ci'>('live');
   const {
     evals: liveEvals,
     isLoading: isLiveLoading,
     refetchEvals: refetchLiveEvals,
-  } = useEvalsByAgentId(agentId, "live");
-  const {
-    evals: ciEvals,
-    isLoading: isCiLoading,
-    refetchEvals: refetchCiEvals,
-  } = useEvalsByAgentId(agentId, "ci");
+  } = useEvalsByAgentId(agentId, 'live');
+  const { evals: ciEvals, isLoading: isCiLoading, refetchEvals: refetchCiEvals } = useEvalsByAgentId(agentId, 'ci');
 
   const contextValue = {
     handleRefresh,
-    isLoading: activeTab === "live" ? isLiveLoading : isCiLoading,
+    isLoading: activeTab === 'live' ? isLiveLoading : isCiLoading,
   };
 
   return (
     <AgentEvalsContext.Provider value={contextValue}>
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as "live" | "ci")}
+        onValueChange={(value) => setActiveTab(value as 'live' | 'ci')}
         className="grid grid-rows-[auto_1fr] h-full min-h-0 pb-2"
       >
         <div className="bg-aimlg-2 border-b border-aiaimlder/10">
@@ -120,7 +100,7 @@ export function AgentEvals({ agentId }: { agentId: string }) {
   );
 
   function handleRefresh() {
-    if (activeTab === "live") {
+    if (activeTab === 'live') {
       refetchLiveEvals();
     } else {
       refetchCiEvals();
@@ -135,15 +115,12 @@ function EvalTable({
   evals: Evals[];
   isCIMode?: boolean;
 }) {
-  const { handleRefresh, isLoading: isTableLoading } =
-    useContext(AgentEvalsContext);
-  const [expandedMetrics, setExpandedMetrics] = useState<Set<string>>(
-    new Set()
-  );
-  const [searchTerm, setSearchTerm] = useState("");
+  const { handleRefresh, isLoading: isTableLoading } = useContext(AgentEvalsContext);
+  const [expandedMetrics, setExpandedMetrics] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>({
-    field: "metricName",
-    direction: "asc",
+    field: 'metricName',
+    direction: 'asc',
   });
   const [showLoading, setShowLoading] = useState(false);
 
@@ -174,18 +151,8 @@ function EvalTable({
         <Badge variant="secondary" className="text-xs">
           {evals.length} Total Evaluations
         </Badge>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleRefresh}
-          disabled={showLoading}
-          className="h-9 w-9"
-        >
-          {showLoading ? (
-            <RefreshCcwIcon className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCcwIcon className="h-4 w-4" />
-          )}
+        <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={showLoading} className="h-9 w-9">
+          {showLoading ? <RefreshCcwIcon className="h-4 w-4 animate-spin" /> : <RefreshCcwIcon className="h-4 w-4" />}
         </Button>
       </div>
 
@@ -196,20 +163,13 @@ function EvalTable({
               <TableHead className="w-12"></TableHead>
               <TableHead
                 className="min-w-[200px] max-w-[30%] text-aimll-3 cursor-pointer"
-                onClick={() => toggleSort("metricName")}
+                onClick={() => toggleSort('metricName')}
               >
-                <div className="flex items-center">
-                  Metric {getSortIcon("metricName")}
-                </div>
+                <div className="flex items-center">Metric {getSortIcon('metricName')}</div>
               </TableHead>
               <TableHead className="flex-1 text-aimll-3" />
-              <TableHead
-                className="w-48 text-aimll-3 cursor-pointer"
-                onClick={() => toggleSort("averageScore")}
-              >
-                <div className="flex items-center">
-                  Average Score {getSortIcon("averageScore")}
-                </div>
+              <TableHead className="w-48 text-aimll-3 cursor-pointer" onClick={() => toggleSort('averageScore')}>
+                <div className="flex items-center">Average Score {getSortIcon('averageScore')}</div>
               </TableHead>
               <TableHead className="w-48 text-aimll-3">Evaluations</TableHead>
             </TableRow>
@@ -245,18 +205,11 @@ function EvalTable({
                 ))
               ) : groupEvals(evals).length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="h-32 text-center text-aimll-3"
-                  >
+                  <TableCell colSpan={5} className="h-32 text-center text-aimll-3">
                     <div className="flex flex-col items-center gap-2">
                       <Search className="h-8 w-8" />
                       <p>No evaluations found</p>
-                      {searchTerm && (
-                        <p className="text-sm">
-                          Try adjusting your search terms
-                        </p>
-                      )}
+                      {searchTerm && <p className="text-sm">Try adjusting your search terms</p>}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -271,10 +224,8 @@ function EvalTable({
                         <div className="h-8 w-full flex items-center justify-center">
                           <div
                             className={cn(
-                              "transform transition-transform duration-200",
-                              expandedMetrics.has(group.metricName)
-                                ? "rotate-90"
-                                : ""
+                              'transform transition-transform duration-200',
+                              expandedMetrics.has(group.metricName) ? 'rotate-90' : '',
                             )}
                           >
                             <ChevronRight className="h-4 w-4 text-aimll-5" />
@@ -296,11 +247,7 @@ function EvalTable({
                     {expandedMetrics.has(group.metricName) && (
                       <TableRow>
                         <TableCell
-                          colSpan={
-                            5 +
-                            (getHasReasons(group.evals) ? 1 : 0) +
-                            (isCIMode ? 1 : 0)
-                          }
+                          colSpan={5 + (getHasReasons(group.evals) ? 1 : 0) + (isCIMode ? 1 : 0)}
                           className="p-0"
                         >
                           <div className="bg-aimlg-3 rounded-lg m-2">
@@ -308,31 +255,13 @@ function EvalTable({
                               <Table className="w-full">
                                 <TableHeader>
                                   <TableRow className="text-[0.7rem] text-aimll-3 hover:bg-transparent">
-                                    <TableHead className="pl-12 w-[120px]">
-                                      Timestamp
-                                    </TableHead>
-                                    <TableHead className="w-[300px]">
-                                      Instructions
-                                    </TableHead>
-                                    <TableHead className="w-[300px]">
-                                      Input
-                                    </TableHead>
-                                    <TableHead className="w-[300px]">
-                                      Output
-                                    </TableHead>
-                                    <TableHead className="w-[80px]">
-                                      Score
-                                    </TableHead>
-                                    {getHasReasons(group.evals) && (
-                                      <TableHead className="w-[250px]">
-                                        Reason
-                                      </TableHead>
-                                    )}
-                                    {isCIMode && (
-                                      <TableHead className="w-[120px]">
-                                        Test Name
-                                      </TableHead>
-                                    )}
+                                    <TableHead className="pl-12 w-[120px]">Timestamp</TableHead>
+                                    <TableHead className="w-[300px]">Instructions</TableHead>
+                                    <TableHead className="w-[300px]">Input</TableHead>
+                                    <TableHead className="w-[300px]">Output</TableHead>
+                                    <TableHead className="w-[80px]">Score</TableHead>
+                                    {getHasReasons(group.evals) && <TableHead className="w-[250px]">Reason</TableHead>}
+                                    {isCIMode && <TableHead className="w-[120px]">Test Name</TableHead>}
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -342,17 +271,10 @@ function EvalTable({
                                       className="text-[0.8125rem] hover:bg-aimlg-2/50"
                                     >
                                       <TableCell className="pl-12 text-aimll-4 align-top py-4">
-                                        <FormattedDate
-                                          date={evaluation.createdAt}
-                                        />
+                                        <FormattedDate date={evaluation.createdAt} />
                                       </TableCell>
                                       <TableCell className="text-aimll-4 align-top py-4">
-                                        <div
-                                          className={cn(
-                                            "max-w-[300px] max-h-[200px]",
-                                            scrollableContentClass
-                                          )}
-                                        >
+                                        <div className={cn('max-w-[300px] max-h-[200px]', scrollableContentClass)}>
                                           <CopyableContent
                                             content={evaluation.instructions}
                                             label="instructions"
@@ -361,51 +283,23 @@ function EvalTable({
                                         </div>
                                       </TableCell>
                                       <TableCell className="text-aimll-4 align-top py-4">
-                                        <div
-                                          className={cn(
-                                            "max-w-[300px] max-h-[200px]",
-                                            scrollableContentClass
-                                          )}
-                                        >
-                                          <CopyableContent
-                                            content={evaluation.input}
-                                            label="input"
-                                            multiline
-                                          />
+                                        <div className={cn('max-w-[300px] max-h-[200px]', scrollableContentClass)}>
+                                          <CopyableContent content={evaluation.input} label="input" multiline />
                                         </div>
                                       </TableCell>
                                       <TableCell className="text-aimll-4 align-top py-4">
-                                        <div
-                                          className={cn(
-                                            "max-w-[300px] max-h-[200px]",
-                                            scrollableContentClass
-                                          )}
-                                        >
-                                          <CopyableContent
-                                            content={evaluation.output}
-                                            label="output"
-                                            multiline
-                                          />
+                                        <div className={cn('max-w-[300px] max-h-[200px]', scrollableContentClass)}>
+                                          <CopyableContent content={evaluation.output} label="output" multiline />
                                         </div>
                                       </TableCell>
                                       <TableCell className="text-aimll-4 align-top py-4">
-                                        <ScoreIndicator
-                                          score={evaluation.result.score}
-                                        />
+                                        <ScoreIndicator score={evaluation.result.score} />
                                       </TableCell>
                                       {getHasReasons(group.evals) && (
                                         <TableCell className="text-aimll-4 align-top py-4">
-                                          <div
-                                            className={cn(
-                                              "max-w-[300px] max-h-[200px]",
-                                              scrollableContentClass
-                                            )}
-                                          >
+                                          <div className={cn('max-w-[300px] max-h-[200px]', scrollableContentClass)}>
                                             <CopyableContent
-                                              content={
-                                                evaluation.result.info
-                                                  ?.reason || ""
-                                              }
+                                              content={evaluation.result.info?.reason || ''}
                                               label="reason"
                                               multiline
                                             />
@@ -415,10 +309,7 @@ function EvalTable({
                                       {isCIMode && (
                                         <TableCell className="text-aimll-4 align-top py-4">
                                           {evaluation.testInfo?.testName && (
-                                            <Badge
-                                              variant="secondary"
-                                              className="text-xs"
-                                            >
+                                            <Badge variant="secondary" className="text-xs">
                                               {evaluation.testInfo.testName}
                                             </Badge>
                                           )}
@@ -457,17 +348,16 @@ function EvalTable({
     setExpandedMetrics(newExpanded);
   }
 
-  function toggleSort(field: SortConfig["field"]) {
+  function toggleSort(field: SortConfig['field']) {
     setSortConfig((prev) => ({
       field,
-      direction:
-        prev.field === field && prev.direction === "asc" ? "desc" : "asc",
+      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc',
     }));
   }
 
-  function getSortIcon(field: SortConfig["field"]) {
+  function getSortIcon(field: SortConfig['field']) {
     if (sortConfig.field !== field) return null;
-    return sortConfig.direction === "asc" ? (
+    return sortConfig.direction === 'asc' ? (
       <SortAsc className="h-4 w-4 ml-1" />
     ) : (
       <SortDesc className="h-4 w-4 ml-1" />
@@ -476,14 +366,11 @@ function EvalTable({
 
   function groupEvals(evaluations: Evals[]): GroupedEvals[] {
     let groups = evaluations.reduce((groups: GroupedEvals[], evaluation) => {
-      const existingGroup = groups.find(
-        (g) => g.metricName === evaluation.metricName
-      );
+      const existingGroup = groups.find((g) => g.metricName === evaluation.metricName);
       if (existingGroup) {
         existingGroup.evals.push(evaluation);
         existingGroup.averageScore =
-          existingGroup.evals.reduce((sum, e) => sum + e.result.score, 0) /
-          existingGroup.evals.length;
+          existingGroup.evals.reduce((sum, e) => sum + e.result.score, 0) / existingGroup.evals.length;
       } else {
         groups.push({
           metricName: evaluation.metricName,
@@ -503,20 +390,18 @@ function EvalTable({
             (metric) =>
               metric.input?.toLowerCase().includes(searchTerm.toLowerCase()) ||
               metric.output?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              metric.instructions
-                ?.toLowerCase()
-                .includes(searchTerm.toLowerCase())
-          )
+              metric.instructions?.toLowerCase().includes(searchTerm.toLowerCase()),
+          ),
       );
     }
 
     // Apply sorting
     groups.sort((a, b) => {
-      const direction = sortConfig.direction === "asc" ? 1 : -1;
+      const direction = sortConfig.direction === 'asc' ? 1 : -1;
       switch (sortConfig.field) {
-        case "metricName":
+        case 'metricName':
           return direction * a.metricName.localeCompare(b.metricName);
-        case "averageScore":
+        case 'averageScore':
           return direction * (a.averageScore - b.averageScore);
         default:
           return 0;

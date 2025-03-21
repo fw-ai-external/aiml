@@ -1,9 +1,9 @@
-import { describe, test, expect } from "bun:test";
-import { TokenType } from "./acorn";
-import { parseToTokens } from "./acorn";
+import { describe, expect, test } from 'bun:test';
+import { TokenType } from './acorn';
+import { parseToTokens } from './acorn';
 
-describe("parseMDXToTokens", () => {
-  test("parses basic MDX content", async () => {
+describe('parseMDXToTokens', () => {
+  test('parses basic MDX content', async () => {
     const mdxContent = `
 # Hello World
 
@@ -27,24 +27,21 @@ import { something } from 'somewhere';
     // If we have a valid JSX token, verify it
     const jsxToken = tokens.find((t) => t.type === TokenType.TagName);
     if (jsxToken) {
-      const jsxText = mdxContent.substring(
-        jsxToken.startIndex,
-        jsxToken.endIndex
-      );
-      expect(jsxText.includes("CustomComponent")).toBe(true);
+      const jsxText = mdxContent.substring(jsxToken.startIndex, jsxToken.endIndex);
+      expect(jsxText.includes('CustomComponent')).toBe(true);
     }
   });
 
-  test("handles empty content", async () => {
-    const tokens = await parseToTokens("");
+  test('handles empty content', async () => {
+    const tokens = await parseToTokens('');
     // Empty content results in an Invalid token with an error message
     expect(tokens.length).toBe(1);
     expect(tokens[0].type).toBe(TokenType.Invalid);
-    expect(tokens[0].error).toBe("Invalid JSX: No elements found");
+    expect(tokens[0].error).toBe('Invalid JSX: No elements found');
   });
 
-  test("handles content with only whitespace", async () => {
-    const tokens = await parseToTokens("   \n   ");
+  test('handles content with only whitespace', async () => {
+    const tokens = await parseToTokens('   \n   ');
     // Whitespace-only content also results in an Invalid token
     expect(tokens.length).toBe(1);
     expect(tokens[0].type).toBe(TokenType.Invalid);

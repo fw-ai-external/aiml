@@ -1,10 +1,10 @@
-import { describe, expect, it } from "bun:test";
-import { parseToTokens, TokenType } from "./acorn";
+import { describe, expect, it } from 'bun:test';
+import { TokenType, parseToTokens } from './acorn';
 
-describe("acorn", () => {
-  describe("tokenizer", () => {
-    it("should tokenize basic XML", () => {
-      const code = "<div>Hello</div>";
+describe('acorn', () => {
+  describe('tokenizer', () => {
+    it('should tokenize basic XML', () => {
+      const code = '<div>Hello</div>';
       const tokens = parseToTokens(code);
 
       expect(tokens).toHaveLength(6);
@@ -13,29 +13,29 @@ describe("acorn", () => {
         type: TokenType.StartTag,
         startIndex: 0,
         endIndex: 1,
-        raw: "<",
-        text: "<",
+        raw: '<',
+        text: '<',
       });
       expect(tokens[1]).toEqual({
         index: 1,
         type: TokenType.TagName,
         startIndex: 1,
         endIndex: 4,
-        raw: "div",
-        text: "div",
+        raw: 'div',
+        text: 'div',
       });
       expect(tokens[2]).toEqual({
         index: 2,
         type: TokenType.EndTag,
         startIndex: 4,
         endIndex: 5,
-        raw: ">",
-        text: ">",
+        raw: '>',
+        text: '>',
       });
     });
 
-    it("should handle self-closing tags", () => {
-      const code = "<input />";
+    it('should handle self-closing tags', () => {
+      const code = '<input />';
       const tokens = parseToTokens(code);
 
       expect(tokens).toHaveLength(4);
@@ -44,37 +44,37 @@ describe("acorn", () => {
         type: TokenType.StartTag,
         startIndex: 0,
         endIndex: 1,
-        raw: "<",
-        text: "<",
+        raw: '<',
+        text: '<',
       });
       expect(tokens[1]).toEqual({
         index: 1,
         type: TokenType.TagName,
         startIndex: 1,
         endIndex: 6,
-        raw: "input",
-        text: "input",
+        raw: 'input',
+        text: 'input',
       });
       expect(tokens[2]).toEqual({
         index: 2,
         type: TokenType.Whitespace,
         startIndex: 6,
         endIndex: 7,
-        raw: " ",
-        text: " ",
+        raw: ' ',
+        text: ' ',
       });
       expect(tokens[3]).toEqual({
         index: 3,
         type: TokenType.SimpleEndTag,
         startIndex: 7,
         endIndex: 9,
-        raw: "/>",
-        text: "/>",
+        raw: '/>',
+        text: '/>',
       });
     });
 
-    it("should handle JSX expressions in attributes", () => {
-      const code = "<div value={true} />";
+    it('should handle JSX expressions in attributes', () => {
+      const code = '<div value={true} />';
       const tokens = parseToTokens(code);
 
       expect(tokens[4]).toEqual({
@@ -82,13 +82,13 @@ describe("acorn", () => {
         type: TokenType.AttributeBoolean,
         startIndex: 11,
         endIndex: 17,
-        raw: "{true}",
-        text: "true",
+        raw: '{true}',
+        text: 'true',
       });
     });
 
-    it("should handle JSX expressions in attributes and no closing tag", () => {
-      const code = "<div value={true}>";
+    it('should handle JSX expressions in attributes and no closing tag', () => {
+      const code = '<div value={true}>';
       const tokens = parseToTokens(code);
 
       expect(tokens[0]).toEqual({
@@ -102,8 +102,8 @@ describe("acorn", () => {
       });
     });
 
-    it("should handle invalid syntax", () => {
-      const code = "<div><span></div>";
+    it('should handle invalid syntax', () => {
+      const code = '<div><span></div>';
       const tokens = parseToTokens(code);
 
       expect(tokens[0]).toEqual({
@@ -117,8 +117,8 @@ describe("acorn", () => {
       });
     });
 
-    it("should handle multiple JSX elements as an error", () => {
-      const code = "<div /> <div />";
+    it('should handle multiple JSX elements as an error', () => {
+      const code = '<div /> <div />';
       const tokens = parseToTokens(code);
 
       expect(tokens[0]).toEqual({
@@ -132,7 +132,7 @@ describe("acorn", () => {
       });
     });
 
-    it("should handle attribute names", () => {
+    it('should handle attribute names', () => {
       const tokens = parseToTokens(`
         <>
           <state id="normal"/>
@@ -145,10 +145,10 @@ describe("acorn", () => {
       const attributeTokens = tokens
         .filter((token) => token.type === TokenType.AttributeName)
         .map((token) => token.raw);
-      expect(attributeTokens).toEqual(["id", "id", "id", "id"]);
+      expect(attributeTokens).toEqual(['id', 'id', 'id', 'id']);
     });
 
-    it("should handle attribute values (strings)", () => {
+    it('should handle attribute values (strings)', () => {
       const tokens = parseToTokens(`
         <>
           <state id="normal"/>
@@ -159,21 +159,12 @@ describe("acorn", () => {
         `);
 
       const attributeTokens = tokens
-        .filter(
-          (token) =>
-            token.type === TokenType.AttributeString ||
-            token.type === TokenType.AttributeExpression
-        )
+        .filter((token) => token.type === TokenType.AttributeString || token.type === TokenType.AttributeExpression)
         .map((token) => token.raw);
-      expect(attributeTokens).toEqual([
-        '"normal"',
-        "'concurrent'",
-        '"concurrent"',
-        '"prev"',
-      ]);
+      expect(attributeTokens).toEqual(['"normal"', "'concurrent'", '"concurrent"', '"prev"']);
     });
 
-    it("should handle attribute values (strings) with spaces", () => {
+    it('should handle attribute values (strings) with spaces', () => {
       const tokens = parseToTokens(`<>
       <state id="test"/>
     </>`);
@@ -181,10 +172,10 @@ describe("acorn", () => {
       const attributeTokens = tokens
         .filter((token) => token.type === TokenType.AttributeString)
         .map((token) => token.text);
-      expect(attributeTokens).toEqual(["test"]);
+      expect(attributeTokens).toEqual(['test']);
     });
 
-    it("should handle attribute values (booleans)", () => {
+    it('should handle attribute values (booleans)', () => {
       const tokens = parseToTokens(`
         <>
           <state value={true}/>
@@ -195,16 +186,12 @@ describe("acorn", () => {
         `);
 
       const attributeTokens = tokens
-        .filter(
-          (token) =>
-            token.type === TokenType.AttributeBoolean ||
-            token.type === TokenType.AttributeExpression
-        )
+        .filter((token) => token.type === TokenType.AttributeBoolean || token.type === TokenType.AttributeExpression)
         .map((token) => token.text);
-      expect(attributeTokens).toEqual(["true", "false", "true", "false"]);
+      expect(attributeTokens).toEqual(['true', 'false', 'true', 'false']);
     });
 
-    it("should handle attribute values (objects)", () => {
+    it('should handle attribute values (objects)', () => {
       const tokens = parseToTokens(`
         <state value={{a: 1, b: 2}} />
 
@@ -213,24 +200,24 @@ describe("acorn", () => {
       const attributeTokens = tokens
         .filter((token) => token.type === TokenType.AttributeObject)
         .map((token) => token.text);
-      expect(attributeTokens).toEqual(["{a: 1, b: 2}"]);
+      expect(attributeTokens).toEqual(['{a: 1, b: 2}']);
     });
 
-    it("should handle attribute values (arrays)", () => {
+    it('should handle attribute values (arrays)', () => {
       const tokens = parseToTokens(`
         <state value={[1, 2, 3]} />
 
       `);
 
-      console.log("ddddd tokens", tokens);
+      console.log('ddddd tokens', tokens);
 
       const attributeTokens = tokens
         .filter((token) => token.type === TokenType.AttributeArray)
         .map((token) => token.text);
-      expect(attributeTokens).toEqual(["[1, 2, 3]"]);
+      expect(attributeTokens).toEqual(['[1, 2, 3]']);
     });
 
-    it("should handle attribute values (functions)", () => {
+    it('should handle attribute values (functions)', () => {
       const tokens = parseToTokens(`
         <>
           <state value={() => {
@@ -259,18 +246,18 @@ describe("acorn", () => {
         '() => {\n            return "delta";\n          }',
         '((input) => {\n            return "hello" + input;\n          })',
         '() => {\n            return (input) => {\n              return "hello" + input;\n            };\n          }',
-        "() => input",
+        '() => input',
       ]);
     });
 
-    it("should handle attribute values (Expressions)", () => {
+    it('should handle attribute values (Expressions)', () => {
       const tokens = parseToTokens(`
         <state value={1 + 2} />        
       `);
       const attributeTokens = tokens
         .filter((token) => token.type === TokenType.AttributeExpression)
         .map((token) => token.text);
-      expect(attributeTokens).toEqual(["1 + 2"]);
+      expect(attributeTokens).toEqual(['1 + 2']);
     });
   });
 });

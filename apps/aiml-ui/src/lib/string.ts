@@ -76,7 +76,7 @@ export const capitalizeFirstLetter = (str: string): string => {
   if (!str) return '';
   return str
     .split(/[-_]/)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join('_');
 };
 
@@ -151,7 +151,7 @@ export const capitalizeWordsInSentence = (sentence: string): string => {
   if (!sentence) return '';
   return sentence
     .split(' ')
-    .map(word => capitalizeWord(word))
+    .map((word) => capitalizeWord(word))
     .join(' ');
 };
 
@@ -162,7 +162,7 @@ export const lowerCaseWord = (str: string): string => {
 export const toTitleCase = (str: string, splitChar = ' ') => {
   return str
     .split(splitChar)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 };
 

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState } from 'react';
 
-import type { PromptVersion } from "@/types";
+import type { PromptVersion } from '@/types';
 
 interface UsePromptEnhancerProps {
   agentId: string;
@@ -30,33 +30,30 @@ export function usePromptEnhancer({
   onVersionCreate,
   onVersionUpdate,
 }: UsePromptEnhancerProps): UsePromptEnhancerResult {
-  const [enhancedPrompt, setEnhancedPrompt] = useState("");
-  const [explanation, setExplanation] = useState("");
+  const [enhancedPrompt, setEnhancedPrompt] = useState('');
+  const [explanation, setExplanation] = useState('');
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
-  const [userComment, setUserComment] = useState("");
+  const [userComment, setUserComment] = useState('');
 
   const enhancePrompt = async () => {
     if (!instructions) return;
 
     setIsEnhancing(true);
     try {
-      const response = await fetch(
-        `http://localhost:4111/api/agents/${agentId}/instructions/enhance`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            instructions,
-            comment: userComment,
-          }),
-        }
-      );
+      const response = await fetch(`http://localhost:4111/api/agents/${agentId}/instructions/enhance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          instructions,
+          comment: userComment,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to enhance prompt");
+        throw new Error('Failed to enhance prompt');
       }
 
       const data = await response.json();
@@ -64,32 +61,32 @@ export function usePromptEnhancer({
       setExplanation(data.explanation);
 
       // Clear the comment
-      setUserComment("");
+      setUserComment('');
       setShowCommentInput(false);
     } catch (error) {
-      console.error("Failed to enhance prompt:", error);
+      console.error('Failed to enhance prompt:', error);
     } finally {
       setIsEnhancing(false);
     }
   };
 
   const clearEnhancement = () => {
-    setEnhancedPrompt("");
-    setExplanation("");
+    setEnhancedPrompt('');
+    setExplanation('');
   };
 
   const applyChanges = () => {
     if (!enhancedPrompt) return;
 
     // Find the draft version index
-    const draftIndex = versions.findIndex((v) => v.status === "draft");
+    const draftIndex = versions.findIndex((v) => v.status === 'draft');
     if (draftIndex !== -1) {
       // Update the draft version
       onVersionUpdate(draftIndex, {
         id: versions[draftIndex].id,
         content: enhancedPrompt,
         analysis: explanation,
-        status: "published" as const,
+        status: 'published' as const,
         timestamp: new Date(),
       });
     } else {
@@ -99,7 +96,7 @@ export function usePromptEnhancer({
         content: enhancedPrompt,
         timestamp: new Date(),
         analysis: explanation,
-        status: "published" as const,
+        status: 'published' as const,
       };
       onVersionCreate(newVersion);
     }

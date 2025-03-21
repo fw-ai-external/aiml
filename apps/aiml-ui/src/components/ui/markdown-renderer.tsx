@@ -30,7 +30,7 @@ const HighlightedPre = React.memo(({ children, language, ...props }: Highlighted
   const [tokens, setTokens] = useState<any[]>([]);
 
   useEffect(() => {
-    highlight(children, language).then(tokens => {
+    highlight(children, language).then((tokens) => {
       if (tokens) setTokens(tokens);
     });
   }, [children, language]);
@@ -112,7 +112,7 @@ function childrenTakeAllStringContents(element: any): string {
     let children = element.props.children;
 
     if (Array.isArray(children)) {
-      return children.map(child => childrenTakeAllStringContents(child)).join('');
+      return children.map((child) => childrenTakeAllStringContents(child)).join('');
     } else {
       return childrenTakeAllStringContents(children);
     }

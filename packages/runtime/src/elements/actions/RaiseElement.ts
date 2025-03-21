@@ -1,13 +1,13 @@
-import { createElementDefinition } from "../createElementFactory";
-import { StepValue } from "../../StepValue";
-import { raiseConfig } from "@fireworks/shared";
+import { raiseConfig } from '@fireworks/shared';
+import { StepValue } from '../../StepValue';
+import { createElementDefinition } from '../createElementFactory';
 
 export const Raise = createElementDefinition({
   ...raiseConfig,
-  tag: "raise" as const,
-  role: "action" as const,
-  elementType: "raise" as const,
-  allowedChildren: "none" as const,
+  tag: 'raise' as const,
+  role: 'action' as const,
+  elementType: 'raise' as const,
+  allowedChildren: 'none' as const,
   async execute(ctx) {
     const { event } = ctx.props;
 
@@ -24,7 +24,7 @@ export const Raise = createElementDefinition({
 
       return {
         result: new StepValue({
-          type: "object",
+          type: 'object',
           object: resultObject,
           raw: JSON.stringify(resultObject),
         }),

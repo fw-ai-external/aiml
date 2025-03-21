@@ -10,7 +10,7 @@ export interface DebugLogger {
 /**
  * Create a debug logger that logs to the console
  */
-export function createDebugLogger(prefix: string = "AIML"): DebugLogger {
+export function createDebugLogger(prefix: string = 'AIML'): DebugLogger {
   return {
     info: (message: string) => console.log(`[${prefix}:INFO] ${message}`),
     error: (message: string, error?: Error) => {
@@ -21,7 +21,7 @@ export function createDebugLogger(prefix: string = "AIML"): DebugLogger {
     },
     completion: (message: string, data?: any) => {
       if (process.env.DEBUG_COMPLETION) {
-        console.log(`[${prefix}:COMPLETION] ${message}`, data ? data : "");
+        console.log(`[${prefix}:COMPLETION] ${message}`, data ? data : '');
       }
     },
   };

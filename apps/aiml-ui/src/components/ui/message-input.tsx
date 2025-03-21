@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowUp, Paperclip, Square } from 'lucide-react';
-import React, { useRef, useState } from 'react';
+import type React from 'react';
+import { useRef, useState } from 'react';
 import { omit } from 'remeda';
 
 import { Button } from '../../components/ui/button';
@@ -40,7 +41,7 @@ export function MessageInput({
 
   const addFiles = (files: File[] | null) => {
     if (props.allowAttachments) {
-      props.setFiles(currentFiles => {
+      props.setFiles((currentFiles) => {
         if (currentFiles === null) {
           return files;
         }
@@ -81,8 +82,8 @@ export function MessageInput({
     if (!items) return;
 
     const files = Array.from(items)
-      .map(item => item.getAsFile())
-      .filter(file => file !== null);
+      .map((item) => item.getAsFile())
+      .filter((file) => file !== null);
 
     if (props.allowAttachments && files.length > 0) {
       addFiles(files);
@@ -131,16 +132,16 @@ export function MessageInput({
         <div className="absolute inset-x-3 bottom-0 overflow-x-scroll py-3">
           <div className="flex space-x-3">
             <AnimatePresence mode="popLayout">
-              {props.files?.map(file => {
+              {props.files?.map((file) => {
                 return (
                   <FilePreview
                     key={file.name + String(file.lastModified)}
                     file={file}
                     onRemove={() => {
-                      props.setFiles(files => {
+                      props.setFiles((files) => {
                         if (!files) return null;
 
-                        const filtered = Array.from(files).filter(f => f !== file);
+                        const filtered = Array.from(files).filter((f) => f !== file);
                         if (filtered.length === 0) return null;
                         return filtered;
                       });
@@ -224,8 +225,8 @@ function showFileUploadDialog() {
   input.accept = '*/*';
   input.click();
 
-  return new Promise<File[] | null>(resolve => {
-    input.onchange = e => {
+  return new Promise<File[] | null>((resolve) => {
+    input.onchange = (e) => {
       const files = (e.currentTarget as HTMLInputElement).files;
 
       if (files) {

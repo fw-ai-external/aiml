@@ -1,101 +1,82 @@
 export const AIML_FORMAT = {
   brackets: [
-    ["{", "}", "delimiter.curly"],
-    ["[", "]", "delimiter.square"],
-    ["(", ")", "delimiter.parenthesis"],
+    ['{', '}', 'delimiter.curly'],
+    ['[', ']', 'delimiter.square'],
+    ['(', ')', 'delimiter.parenthesis'],
   ],
 
-  keywords: ["not"],
+  keywords: ['not'],
 
-  operators: [
-    ":",
-    "..",
-    ":~",
-    ":-",
-    "|",
-    ";",
-    ",",
-    "=",
-    "!=",
-    "<",
-    "<=",
-    ">",
-    ">=",
-    "+",
-    "-",
-    "/",
-    "*",
-    "@",
-  ],
+  operators: [':', '..', ':~', ':-', '|', ';', ',', '=', '!=', '<', '<=', '>', '>=', '+', '-', '/', '*', '@'],
 
   // operators
   symbols: /([\.]{2})|([=><!:\|\+\-\~\*\/%,;]+)/,
 
   tokenizer: {
     root: [
-      { include: "@whitespace" },
+      { include: '@whitespace' },
 
       // variables
-      [/[A-Z][\w_]*('*)/, "tag"], // variable.name
+      [/[A-Z][\w_]*('*)/, 'tag'], // variable.name
 
       [
         /[a-zA-Z_][\w_]*('*)/,
         {
           cases: {
-            "@keywords": "keyword",
-            "@default": "identifier",
+            '@keywords': 'keyword',
+            '@default': 'identifier',
           },
         },
       ],
 
       // delimiters
-      [/[\{\}\(\)\[\]]/, "@brackets"],
-      [/\./, "delimiter"],
+      [/[\{\}\(\)\[\]]/, '@brackets'],
+      [/\./, 'delimiter'],
 
       // numbers
-      [/[\-\+]?\d+\/[\-\+]?\d*[1-9]/, "number"],
-      [/[\-\+]?\d+(\.\d+)?/, "number"],
+      [/[\-\+]?\d+\/[\-\+]?\d*[1-9]/, 'number'],
+      [/[\-\+]?\d+(\.\d+)?/, 'number'],
       [
         /@symbols/,
         {
           cases: {
-            "@operators": "keyword",
-            "@default": "symbols",
+            '@operators': 'keyword',
+            '@default': 'symbols',
           },
         },
       ],
 
       // strings
-      [/"([^"\\]|\\.)*$/, "string.invalid"], // non-teminated string
-      [/"/, "string", "@string"],
+      [/"([^"\\]|\\.)*$/, 'string.invalid'], // non-teminated string
+      [/"/, 'string', '@string'],
     ],
 
     whitespace: [
-      [/[ \t\r\n]+/, "white"],
-      [/\%.*$/, "comment"],
-      [/\#.*$/, "comment"],
+      [/[ \t\r\n]+/, 'white'],
+      [/\%.*$/, 'comment'],
+      [/\#.*$/, 'comment'],
     ],
 
     string: [
-      [/[^"]+/, "string"],
-      [/"/, "string", "@pop"],
+      [/[^"]+/, 'string'],
+      [/"/, 'string', '@pop'],
     ],
   },
 };
 
 export const ASP_THEME = {
-  base: "vs", // can also be vs-dark or hc-black
+  base: 'vs', // can also be vs-dark or hc-black
   inherit: true, // can also be false to completely replace the builtin rules
   rules: [
-    { token: "comment", foreground: "87a1c4" },
-    { token: "number", foreground: "256fd1" },
-    { token: "identifier", foreground: "586677" },
-    { token: "keyword", foreground: "0090ff" },
-    { token: "string", foreground: "7c71f2" },
+    { token: 'comment', foreground: '87a1c4' },
+    { token: 'number', foreground: '256fd1' },
+    { token: 'identifier', foreground: '586677' },
+    { token: 'keyword', foreground: '0090ff' },
+    { token: 'string', foreground: '7c71f2' },
   ],
   colors: {
-    "editorCursor.foreground": "#586677",
-    "editor.lineHighlightBackground": "#f9fcff",
+    'editorCursor.foreground': '#586677',
+    'editor.lineHighlightBackground': '#f9fcff',
   },
 };
 

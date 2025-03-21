@@ -1,11 +1,11 @@
-import { EventEmitter } from "events";
-import { simulateStreamingMiddleware } from "ai";
-import { StepValueChunk, StepValueResult } from "../types";
+import { EventEmitter } from 'events';
+import { simulateStreamingMiddleware } from 'ai';
+import type { StepValueChunk, StepValueResult } from '../types';
 
 export enum StreamState {
-  ACTIVE = "active",
-  FINISHED = "finished",
-  ERROR = "error",
+  ACTIVE = 'active',
+  FINISHED = 'finished',
+  ERROR = 'error',
 }
 
 /**
@@ -19,19 +19,15 @@ export class ReplayableAsyncIterableStream<T> implements AsyncIterable<T> {
 
   private error?: Error;
 
-  constructor(
-    private readonly input:
-      | AsyncIterable<T>
-      | PromiseLike<{ stream: AsyncIterable<T> }>
-  ) {
-    if (!("then" in this.input)) {
+  constructor(private readonly input: AsyncIterable<T> | PromiseLike<{ stream: AsyncIterable<T> }>) {
+    if (!('then' in this.input)) {
       this._iterator = this.input[Symbol.asyncIterator]();
     }
     this._buffer = [];
     this._pumpStream().catch((error) => {
       this.error = error;
       this.state = StreamState.ERROR;
-      this.emitter.emit("error", error);
+      this.emitter.emit('error', error);
     });
   }
 
@@ -46,8 +42,8 @@ export class ReplayableAsyncIterableStream<T> implements AsyncIterable<T> {
       }
 
       return new Promise<T[]>((resolve, reject) => {
-        this.emitter.once("finished", () => resolve(this._buffer));
-        this.emitter.once("error", (error) => reject(error));
+        this.emitter.once('finished', () => resolve(this._buffer));
+        this.emitter.once('error', (error) => reject(error));
       });
     }
 
@@ -86,14 +82,14 @@ export class ReplayableAsyncIterableStream<T> implements AsyncIterable<T> {
       };
 
       const cleanup = () => {
-        this.emitter.off("chunk", checkBuffer);
-        this.emitter.off("finished", onFinished);
-        this.emitter.off("error", onError);
+        this.emitter.off('chunk', checkBuffer);
+        this.emitter.off('finished', onFinished);
+        this.emitter.off('error', onError);
       };
 
-      this.emitter.on("chunk", checkBuffer);
-      this.emitter.once("finished", onFinished);
-      this.emitter.once("error", onError);
+      this.emitter.on('chunk', checkBuffer);
+      this.emitter.once('finished', onFinished);
+      this.emitter.once('error', onError);
 
       // Check immediately in case chunks were added while setting up listeners
       checkBuffer();
@@ -102,25 +98,23 @@ export class ReplayableAsyncIterableStream<T> implements AsyncIterable<T> {
 
   private async _pumpStream(): Promise<void> {
     if (!this._iterator) {
-      this._iterator = (
-        (await this.input) as { stream: AsyncIterable<T> }
-      ).stream[Symbol.asyncIterator]();
+      this._iterator = ((await this.input) as { stream: AsyncIterable<T> }).stream[Symbol.asyncIterator]();
     }
     try {
       while (true) {
         const result = await this._iterator.next();
         if (result.done) {
           this.state = StreamState.FINISHED;
-          this.emitter.emit("finished");
+          this.emitter.emit('finished');
           return;
         }
         this._buffer.push(result.value);
-        this.emitter.emit("chunk", result.value);
+        this.emitter.emit('chunk', result.value);
       }
     } catch (error) {
       this.error = error as Error;
       this.state = StreamState.ERROR;
-      this.emitter.emit("error", this.error);
+      this.emitter.emit('error', this.error);
       throw error;
     }
   }
@@ -130,10 +124,7 @@ export class ReplayableAsyncIterableStream<T> implements AsyncIterable<T> {
     let nextToYield = 0;
 
     // Yield all currently buffered values
-    while (
-      nextToYield < this._buffer.length ||
-      this.state === StreamState.ACTIVE
-    ) {
+    while (nextToYield < this._buffer.length || this.state === StreamState.ACTIVE) {
       if (nextToYield < this._buffer.length) {
         // Yield the current item at nextToYield index
         yield this._buffer[nextToYield];
@@ -148,7 +139,7 @@ export class ReplayableAsyncIterableStream<T> implements AsyncIterable<T> {
 }
 
 export function stepValueResultToReplayableStream(
-  stepValueResult: StepValueResult
+  stepValueResult: StepValueResult,
 ): ReplayableAsyncIterableStream<StepValueChunk> {
   const aiMiddleware = simulateStreamingMiddleware();
 
@@ -163,8 +154,6 @@ export function stepValueResultToReplayableStream(
 
   // stepValueResult will need to be synthetically created from the stepValueResult
 
-  const streamwrapped = new ReplayableAsyncIterableStream<StepValueChunk>(
-    stream
-  );
+  const streamwrapped = new ReplayableAsyncIterableStream<StepValueChunk>(stream);
   return streamwrapped;
 }

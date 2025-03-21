@@ -1,21 +1,21 @@
-import { NextResponse } from "next/server";
-import fs from "node:fs";
-import { z } from "zod";
-import { parseMDXToAIML } from "@fireworks/parser";
-import { Workflow, hydreateElementTree } from "@fireworks/runtime";
+import fs from 'node:fs';
+import { parseMDXToAIML } from '@fireworks/parser';
+import { Workflow, hydreateElementTree } from '@fireworks/runtime';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
 /**
  * Helper function to strip circular references from any object
  */
 function sanitizeForJSON(obj: any, seen = new WeakSet()): any {
   // Check for null or non-objects
-  if (obj === null || typeof obj !== "object") {
+  if (obj === null || typeof obj !== 'object') {
     return obj;
   }
 
   // Handle circular references
   if (seen.has(obj)) {
-    return "[Circular Reference]";
+    return '[Circular Reference]';
   }
   seen.add(obj);
 
@@ -28,7 +28,7 @@ function sanitizeForJSON(obj: any, seen = new WeakSet()): any {
   const result: any = {};
   for (const [key, value] of Object.entries(obj)) {
     // Skip parent references entirely
-    if (key === "parent" || key === "_parent") {
+    if (key === 'parent' || key === '_parent') {
       continue;
     }
     result[key] = sanitizeForJSON(value, seen);
@@ -36,19 +36,13 @@ function sanitizeForJSON(obj: any, seen = new WeakSet()): any {
   return result;
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ workflowId: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ workflowId: string }> }) {
   const resolvedParams = await params;
 
   // Mock data for now - replace with actual API call
   let persistedWorkflow: any = {};
   try {
-    const fileContent = fs.readFileSync(
-      `./.workflows/${resolvedParams.workflowId}.json`,
-      "utf8"
-    );
+    const fileContent = fs.readFileSync(`./.workflows/${resolvedParams.workflowId}.json`, 'utf8');
     persistedWorkflow = JSON.parse(fileContent);
 
     const elementTree = hydreateElementTree(persistedWorkflow.ast.nodes);
@@ -69,9 +63,7 @@ export async function GET(
 
     return NextResponse.json(responseData);
   } catch (error) {
-    console.error(
-      `Error reading workflow file: ${error instanceof Error ? error.message : "Unknown error"}`
-    );
+    console.error(`Error reading workflow file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     // Continue with empty workflow object
   }
   if (persistedWorkflow && Object.keys(persistedWorkflow).length > 0) {
@@ -79,19 +71,19 @@ export async function GET(
   }
   return NextResponse.json({
     id: resolvedParams.workflowId,
-    name: "Test Workflow",
-    description: "A test workflow",
+    name: 'Test Workflow',
+    description: 'A test workflow',
     stepGraph: {
       initial: [
         {
           step: {
-            id: "step1",
-            description: "First step",
+            id: 'step1',
+            description: 'First step',
           },
         },
       ],
     },
-    prompt: "",
+    prompt: '',
     stepSubscriberGraph: {},
     ast: {
       nodes: [],
@@ -101,10 +93,7 @@ export async function GET(
   });
 }
 
-export async function POST(
-  request: Request,
-  props: { params: Promise<{ workflowId: string }> }
-) {
+export async function POST(request: Request, props: { params: Promise<{ workflowId: string }> }) {
   const params = await props.params;
   try {
     const workflowId = params.workflowId;
@@ -124,7 +113,7 @@ export async function POST(
                 id: z.string(),
                 description: z.string().optional(),
               }),
-            })
+            }),
           ),
         })
         .optional(),
@@ -142,18 +131,18 @@ export async function POST(
     const validationResult = WorkflowSchema.safeParse(body);
 
     if (!validationResult.success) {
-      console.error("Validation error:", validationResult.error);
+      console.error('Validation error:', validationResult.error);
       return NextResponse.json(
         {
-          error: "Invalid workflow data",
+          error: 'Invalid workflow data',
           details: validationResult.error.format(),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Ensure directory exists
-    const dir = "./.workflows";
+    const dir = './.workflows';
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
@@ -180,7 +169,7 @@ export async function POST(
         // Re-fetch the context values after rehydration to include in response
         workflowData.contextValues = workflow.getContextValues();
       } catch (error) {
-        console.error("Error rehydrating context values:", error);
+        console.error('Error rehydrating context values:', error);
       }
     }
 
@@ -188,25 +177,19 @@ export async function POST(
     const serializedWorkflow = sanitizeForJSON(workflowData);
 
     // Save workflow data to file
-    fs.writeFileSync(
-      `${dir}/${workflowId}.json`,
-      JSON.stringify(workflowData, null, 2),
-      "utf8"
-    );
-    console.log("saved workflow");
+    fs.writeFileSync(`${dir}/${workflowId}.json`, JSON.stringify(workflowData, null, 2), 'utf8');
+    console.log('saved workflow');
 
     // Return the sanitized response
     return NextResponse.json(workflowData);
   } catch (error) {
-    console.error(
-      `Error updating workflow: ${error instanceof Error ? error.message : "Unknown error"}`
-    );
+    console.error(`Error updating workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return NextResponse.json(
       {
-        error: "Failed to update workflow",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to update workflow',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

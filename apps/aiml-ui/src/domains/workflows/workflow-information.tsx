@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { useState } from 'react';
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { WorkflowEndpoints } from "./workflow-endpoints";
-import { WorkflowLogs } from "./workflow-logs";
-import { WorkflowTrigger } from "./workflow-trigger";
-import { WorkflowPrompt } from "@/domains/workflows/workflow-prompt";
-import { WorkflowDebug } from "@/domains/workflows/workflow-debug";
-import { WorkflowChat } from "@/domains/workflows/workflow-chat";
+import { WorkflowChat } from '@/domains/workflows/workflow-chat';
+import { WorkflowDebug } from '@/domains/workflows/workflow-debug';
+import { WorkflowPrompt } from '@/domains/workflows/workflow-prompt';
+import { WorkflowEndpoints } from './workflow-endpoints';
+import { WorkflowLogs } from './workflow-logs';
+import { WorkflowTrigger } from './workflow-trigger';
 
 export function WorkflowInformation({ workflowId }: { workflowId: string }) {
-  const [runId, setRunId] = useState<string>("");
+  const [runId, setRunId] = useState<string>('');
   return (
     <Tabs defaultValue="prompt">
       <TabsList className="flex shrink-0 border-b">
@@ -47,14 +47,10 @@ export function WorkflowInformation({ workflowId }: { workflowId: string }) {
         </TabsTrigger>
       </TabsList>
       <TabsContent value="agent">
-        {workflowId ? (
-          <WorkflowTrigger workflowId={workflowId} setRunId={setRunId} />
-        ) : null}
+        {workflowId ? <WorkflowTrigger workflowId={workflowId} setRunId={setRunId} /> : null}
       </TabsContent>
       <TabsContent value="chat">
-        {workflowId ? (
-          <WorkflowChat workflowId={workflowId} setRunId={setRunId} />
-        ) : null}
+        {workflowId ? <WorkflowChat workflowId={workflowId} setRunId={setRunId} /> : null}
       </TabsContent>
       <TabsContent value="endpoints">
         <WorkflowEndpoints workflowId={workflowId} />
@@ -72,11 +68,7 @@ export function WorkflowInformation({ workflowId }: { workflowId: string }) {
         <WorkflowDebug workflowId={workflowId} debugType="elementTree" />
       </TabsContent>
       <TabsContent value="stepGraph">
-        <WorkflowDebug
-          key={`stepGraph-${workflowId}`}
-          workflowId={workflowId}
-          debugType="stepGraph"
-        />
+        <WorkflowDebug key={`stepGraph-${workflowId}`} workflowId={workflowId} debugType="stepGraph" />
       </TabsContent>
     </Tabs>
   );

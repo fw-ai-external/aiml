@@ -1,15 +1,15 @@
-import { createElementDefinition } from "../createElementFactory";
-import { ExecutionReturnType } from "../../types";
-import { scriptConfig } from "@fireworks/shared";
-import { StepValue } from "../../StepValue";
-import { ElementExecutionContext } from "../../ElementExecutionContext";
+import { scriptConfig } from '@fireworks/shared';
+import type { ElementExecutionContext } from '../../ElementExecutionContext';
+import { StepValue } from '../../StepValue';
+import type { ExecutionReturnType } from '../../types';
+import { createElementDefinition } from '../createElementFactory';
 
 export const Script = createElementDefinition({
   ...scriptConfig,
-  tag: "script" as const,
-  role: "action" as const,
-  elementType: "script" as const,
-  allowedChildren: "text" as const,
+  tag: 'script' as const,
+  role: 'action' as const,
+  elementType: 'script' as const,
+  allowedChildren: 'text' as const,
   async execute(ctx, children): Promise<ExecutionReturnType> {
     const { src } = ctx.props;
     const content = children[0]?.toString();
@@ -31,34 +31,31 @@ export const Script = createElementDefinition({
 
       return {
         result: new StepValue({
-          type: "object",
+          type: 'object',
           object: { src, content },
           raw: JSON.stringify({ src, content }),
         }),
       };
     } catch (error) {
-      console.error("Error executing script:", error);
+      console.error('Error executing script:', error);
       throw error;
     }
   },
 });
 
-async function executeScript(
-  script: string,
-  ctx: InstanceType<typeof ElementExecutionContext>
-) {
+async function executeScript(script: string, ctx: InstanceType<typeof ElementExecutionContext>) {
   try {
     // Create a new Function with the script content and execute it with the context
     const fn = new Function(
       ...Object.keys(ctx.datamodel),
       `
         ${script}
-      `
+      `,
     );
 
     await fn(...Object.values(ctx.datamodel));
   } catch (error) {
-    console.error("Error executing script:", error);
+    console.error('Error executing script:', error);
     throw error;
   }
 }

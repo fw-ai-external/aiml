@@ -28,6 +28,10 @@
         }
       },
       "style": {
+        "useImportType": {
+          "level": "error",
+          "fix": "safe"
+        },
         "noDefaultExport": "off",
         "noParameterAssign": "off",
         "noNonNullAssertion": "off"

@@ -26,7 +26,7 @@ export function StringField({ name, control, handleFieldChange, isMultiline, pla
           {...field}
           className="w-full"
           placeholder={placeholder}
-          onChange={e => {
+          onChange={(e) => {
             field.onChange(e);
             handleFieldChange?.({ key: name, value: e.target.value });
           }}

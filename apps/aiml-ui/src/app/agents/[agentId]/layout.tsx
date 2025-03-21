@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 
-import { AgentLayout } from "@/domains/agents/agent-layout";
+import { AgentLayout } from '@/domains/agents/agent-layout';
 
 export default function Layout({
   children,

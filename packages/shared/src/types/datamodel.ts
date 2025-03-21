@@ -1,4 +1,4 @@
-import type { DataElementMetadata } from "./values/data-types";
+import type { DataElementMetadata } from './values/data-types';
 export type { DataElementMetadata };
 
 /**

@@ -1,4 +1,4 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CodeDisplayProps {
   content: string;
@@ -11,25 +11,17 @@ interface CodeDisplayProps {
 
 export function CodeDisplay({
   content,
-  height = "150px",
+  height = '150px',
   isCopied = false,
   isDraft = false,
   onCopy,
-  className = "",
+  className = '',
 }: CodeDisplayProps) {
   return (
-    <div
-      className={`rounded-md border bg-aiml-bg-2 ${className}`}
-      style={{ height }}
-    >
+    <div className={`rounded-md border bg-aiml-bg-2 ${className}`} style={{ height }}>
       <ScrollArea className="h-full">
-        <div
-          className="p-2 cursor-pointer hover:bg-aimlg-3/50 transition-colors group relative"
-          onClick={onCopy}
-        >
-          <pre className="text-[10px] whitespace-pre-wrap font-mono">
-            {content}
-          </pre>
+        <div className="p-2 cursor-pointer hover:bg-aimlg-3/50 transition-colors group relative" onClick={onCopy}>
+          <pre className="text-[10px] whitespace-pre-wrap font-mono">{content}</pre>
           {isDraft && (
             <div className="mt-1.5">
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-500">

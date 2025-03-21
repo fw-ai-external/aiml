@@ -1,9 +1,5 @@
-import {
-  createConnection,
-  createServer,
-  createSimpleProject,
-} from "@volar/language-server/node";
-import { service } from "./service";
+import { createConnection, createServer, createSimpleProject } from '@volar/language-server/node';
+import { service } from './service';
 
 const connection = createConnection();
 const server = createServer(connection);

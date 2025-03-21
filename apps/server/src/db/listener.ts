@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { camelCaseKeys, NewAgentSpecificationVersion } from "./schema.ts";
-import { postgresClient } from "./conn.ts";
+import { z } from 'zod';
+import { postgresClient } from './conn.ts';
+import { NewAgentSpecificationVersion, camelCaseKeys } from './schema.ts';
 
 export const ChannelMap = {
   new_agent_version: z.preprocess(camelCaseKeys, NewAgentSpecificationVersion),
@@ -12,12 +12,12 @@ export const setupListeners = () =>
   Promise.all([
     new Promise<void>((resolve) => {
       getDBListener({
-        channel: "new_agent_version",
+        channel: 'new_agent_version',
         onNotify: (payload) => {
-          console.log("listener received new agent version", payload.agentId);
+          console.log('listener received new agent version', payload.agentId);
         },
         onListen: async () => {
-          console.log("Listening for new agent versions");
+          console.log('Listening for new agent versions');
           resolve();
         },
       });
@@ -30,42 +30,32 @@ type ListenerConfig<Channel extends keyof ChannelMap> = {
   onListen: () => void;
 };
 
-export const getDBListener = <Channel extends keyof ChannelMap>(
-  props: ListenerConfig<Channel>
-) => {
+export const getDBListener = <Channel extends keyof ChannelMap>(props: ListenerConfig<Channel>) => {
   return postgresClient.listen(
     props.channel,
     (payloadString: string) => {
-      const payload = ChannelMap[props.channel].parse(
-        JSON.parse(payloadString)
-      );
+      const payload = ChannelMap[props.channel].parse(JSON.parse(payloadString));
       props.onNotify(payload);
     },
-    props.onListen
+    props.onListen,
   );
 };
 
-import { fireworks } from "@ai-sdk/fireworks";
-import {
-  extractReasoningMiddleware,
-  wrapLanguageModel,
-  generateObject,
-} from "ai";
+import { fireworks } from '@ai-sdk/fireworks';
+import { extractReasoningMiddleware, generateObject, wrapLanguageModel } from 'ai';
 
 const model = wrapLanguageModel({
-  model: fireworks("accounts/fireworks/models/firefunction-v1"),
-  middleware: extractReasoningMiddleware({ tagName: "think" }),
+  model: fireworks('accounts/fireworks/models/firefunction-v1'),
+  middleware: extractReasoningMiddleware({ tagName: 'think' }),
 });
 
 const { object } = await generateObject({
   model,
-  output: "array",
+  output: 'array',
   schema: z.object({
     name: z.string(),
-    class: z
-      .string()
-      .describe("Character class, e.g. warrior, mage, or thief."),
+    class: z.string().describe('Character class, e.g. warrior, mage, or thief.'),
     description: z.string(),
   }),
-  prompt: "Write a vegetarian lasagna recipe for 4 people.",
+  prompt: 'Write a vegetarian lasagna recipe for 4 people.',
 });

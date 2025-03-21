@@ -1,14 +1,14 @@
-import { XIcon } from "lucide-react";
-import * as React from "react";
-import { useFieldArray } from "react-hook-form";
-import type { ZodSchema } from "zod";
-import { ZodArray } from "zod";
+import { XIcon } from 'lucide-react';
+import type * as React from 'react';
+import { useFieldArray } from 'react-hook-form';
+import type { ZodSchema } from 'zod';
+import { ZodArray } from 'zod';
 
-import { toTitleCase } from "../../../lib/string";
-import { Button } from "../../ui/button";
-import { Label } from "../../ui/label";
-import { Text } from "../../ui/text";
-import { getFormConfigTypesFromSchemaDef } from "../schema";
+import { toTitleCase } from '../../../lib/string';
+import { Button } from '../../ui/button';
+import { Label } from '../../ui/label';
+import { Text } from '../../ui/text';
+import { getFormConfigTypesFromSchemaDef } from '../schema';
 
 interface ObjectFieldProps {
   renderDynamicForm: (props: {
@@ -60,11 +60,7 @@ export function ObjectField({
 
   return (
     <div>
-      <Label
-        className="flex gap-0.5 capitalize mb-2"
-        htmlFor={parentField}
-        aria-required={!fieldConfig.isOptional}
-      >
+      <Label className="flex gap-0.5 capitalize mb-2" htmlFor={parentField} aria-required={!fieldConfig.isOptional}>
         {!fieldConfig?.isOptional && <span className="text-red-500">*</span>}
         <Text variant="secondary" className="text-aiml-el-3" size="xs">
           {toTitleCase(parentField)}
@@ -74,14 +70,11 @@ export function ObjectField({
         <>
           <div className="flex flex-col gap-4">
             {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="ring-1 ring-white/10 p-2 rounded-md relative"
-              >
+              <div key={field.id} className="ring-1 ring-white/10 p-2 rounded-md relative">
                 <Button
                   type="button"
-                  variant={"ghost"}
-                  size={"icon"}
+                  variant={'ghost'}
+                  size={'icon'}
                   onClick={() => remove(index)}
                   className="absolute top-0 right-0"
                 >
@@ -103,13 +96,8 @@ export function ObjectField({
             ))}
           </div>
           <div className="flex flex-col gap-4">
-            <Button
-              type="button"
-              variant={"outline"}
-              className="w-full text-xs h-9"
-              onClick={handleAddForm}
-            >
-              Add {toTitleCase(parentField.split(".").pop() || "")}
+            <Button type="button" variant={'outline'} className="w-full text-xs h-9" onClick={handleAddForm}>
+              Add {toTitleCase(parentField.split('.').pop() || '')}
             </Button>
           </div>
         </>

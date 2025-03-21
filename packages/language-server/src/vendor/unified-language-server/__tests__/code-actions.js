@@ -1,41 +1,41 @@
-import {createUnifiedLanguageServer} from 'unified-language-server'
+import { createUnifiedLanguageServer } from 'unified-language-server';
 
 createUnifiedLanguageServer({
   configurationSection: 'remark',
   processorName: 'remark',
   processorSpecifier: 'remark',
-  plugins: [warn]
-})
+  plugins: [warn],
+});
 
 /** @type {import('unified').Plugin<[]>} */
 function warn() {
   return (_, file) => {
     // Insert
-    file.message('', {line: 1, column: 1}).expected = ['insert me']
+    file.message('', { line: 1, column: 1 }).expected = ['insert me'];
 
     // Replace
     file.message('', {
-      start: {line: 1, column: 1},
-      end: {line: 1, column: 7}
-    }).expected = ['replacement']
+      start: { line: 1, column: 1 },
+      end: { line: 1, column: 7 },
+    }).expected = ['replacement'];
 
     // Delete
     file.message('', {
-      start: {line: 1, column: 1},
-      end: {line: 1, column: 7}
-    }).expected = ['']
+      start: { line: 1, column: 1 },
+      end: { line: 1, column: 7 },
+    }).expected = [''];
 
     // Insert
     file.message('', {
-      start: {line: 1, column: 1},
-      end: {line: 1, column: 7}
-    }).expected = ['alternative a', 'alternative b']
+      start: { line: 1, column: 1 },
+      end: { line: 1, column: 7 },
+    }).expected = ['alternative a', 'alternative b'];
 
     // @ts-expect-error We are deliberately testing invalid types here, because
     // the expected field used to be untyped for a long time.
-    file.message('', {line: 1, column: 1}).expected = 'insert me'
+    file.message('', { line: 1, column: 1 }).expected = 'insert me';
     // @ts-expect-error
-    file.message('', {line: 1, column: 1}).expected = [12]
-    file.message('', {line: 1, column: 1})
-  }
+    file.message('', { line: 1, column: 1 }).expected = [12];
+    file.message('', { line: 1, column: 1 });
+  };
 }

@@ -1,18 +1,18 @@
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
-  createConnection,
-  TextDocuments,
-  ProposedFeatures,
-  InitializeParams,
-  TextDocumentSyncKind,
   DidChangeConfigurationNotification,
-  TextDocumentPositionParams,
-} from "vscode-languageserver/node";
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { createDebugger } from "./utils/debug";
-import { DocumentValidator } from "./services/validator";
-import { CompletionProvider } from "./services/completion";
-import { HoverProvider } from "./services/hover";
-import { parseToTokens } from "./acorn";
+  type InitializeParams,
+  ProposedFeatures,
+  type TextDocumentPositionParams,
+  TextDocumentSyncKind,
+  TextDocuments,
+  createConnection,
+} from 'vscode-languageserver/node';
+import { parseToTokens } from './acorn';
+import { CompletionProvider } from './services/completion';
+import { HoverProvider } from './services/hover';
+import { DocumentValidator } from './services/validator';
+import { createDebugger } from './utils/debug';
 
 // Create a connection for the server
 const connection = createConnection(ProposedFeatures.all);
@@ -34,12 +34,8 @@ let hasDiagnosticRelatedInformationCapability = false;
 connection.onInitialize((params: InitializeParams) => {
   const capabilities = params.capabilities;
 
-  hasConfigurationCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.configuration
-  );
-  hasWorkspaceFolderCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.workspaceFolders
-  );
+  hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
+  hasWorkspaceFolderCapability = !!(capabilities.workspace && !!capabilities.workspace.workspaceFolders);
   hasDiagnosticRelatedInformationCapability = !!(
     capabilities.textDocument &&
     capabilities.textDocument.publishDiagnostics &&
@@ -59,10 +55,7 @@ connection.onInitialize((params: InitializeParams) => {
 
 connection.onInitialized(() => {
   if (hasConfigurationCapability) {
-    connection.client.register(
-      DidChangeConfigurationNotification.type,
-      undefined
-    );
+    connection.client.register(DidChangeConfigurationNotification.type, undefined);
   }
 });
 

@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { Skeleton } from "@/components/ui/skeleton";
-import { useRef } from "react";
-import { useEffect, useState } from "react";
+import { Skeleton } from '@/components/ui/skeleton';
+import Editor from '@codingame/monaco-editor-react';
 // @ts-expect-error no types on @codingame/monaco-editor-wrapper
-import { initialize } from "@codingame/monaco-editor-wrapper";
-import Editor from "@codingame/monaco-editor-react";
-import { Diagnostic, DiagnosticSeverity } from "@fireworks/shared";
-import { MarkerSeverity } from "monaco-editor";
+import { initialize } from '@codingame/monaco-editor-wrapper';
+import { type Diagnostic, DiagnosticSeverity } from '@fireworks/shared';
+import { MarkerSeverity } from 'monaco-editor';
+import { useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 // This should only be initialized once
 // And react strict mode will initialize it twice
@@ -15,7 +15,7 @@ import { MarkerSeverity } from "monaco-editor";
 // So we initialize it in the global scope
 // and then we use a promise to wait for it in the hook
 let wait: Promise<void> | undefined;
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   wait = initialize();
 }
 
@@ -36,7 +36,7 @@ export function CodeEditor({
   diagnostics: Diagnostic[];
 }) {
   const [isReady, setIsReady] = useState(false);
-  const [editorHeight, setEditorHeight] = useState<string>("100%");
+  const [editorHeight, setEditorHeight] = useState<string>('100%');
   const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,10 +51,10 @@ export function CodeEditor({
     updateHeight();
 
     // Update height on window resize
-    window.addEventListener("resize", updateHeight);
+    window.addEventListener('resize', updateHeight);
 
     return () => {
-      window.removeEventListener("resize", updateHeight);
+      window.removeEventListener('resize', updateHeight);
     };
   }, []);
 
@@ -80,8 +80,8 @@ export function CodeEditor({
             enabled: false,
           },
           glyphMargin: false,
-          lineNumbers: "off",
-          showFoldingControls: "never",
+          lineNumbers: 'off',
+          showFoldingControls: 'never',
           scrollBeyondLastLine: false,
         }}
         markers={diagnostics.map((diagnostic) => ({

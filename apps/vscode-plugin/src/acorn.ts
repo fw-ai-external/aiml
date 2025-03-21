@@ -1,27 +1,27 @@
-import { Project, Node, SyntaxKind } from "ts-morph";
+import { Node, Project, SyntaxKind } from 'ts-morph';
 
 export enum TokenType {
-  None = "None",
-  Invalid = "Invalid",
-  Whitespace = "Whitespace",
-  Heading = "Heading",
-  Paragraph = "Paragraph",
-  Comment = "Comment",
-  Name = "Name",
-  TagName = "TagName",
-  AttributeName = "AttributeName",
-  AttributeString = "AttributeString",
-  AttributeExpression = "AttributeExpression",
-  AttributeBoolean = "AttributeBoolean",
-  AttributeNumber = "AttributeNumber",
-  AttributeObject = "AttributeObject",
-  AttributeArray = "AttributeArray",
-  AttributeFunction = "AttributeFunction",
-  StartTag = "StartTag",
-  SimpleEndTag = "SimpleEndTag",
-  EndTag = "EndTag",
-  StartEndTag = "StartEndTag",
-  Equal = "Equal",
+  None = 'None',
+  Invalid = 'Invalid',
+  Whitespace = 'Whitespace',
+  Heading = 'Heading',
+  Paragraph = 'Paragraph',
+  Comment = 'Comment',
+  Name = 'Name',
+  TagName = 'TagName',
+  AttributeName = 'AttributeName',
+  AttributeString = 'AttributeString',
+  AttributeExpression = 'AttributeExpression',
+  AttributeBoolean = 'AttributeBoolean',
+  AttributeNumber = 'AttributeNumber',
+  AttributeObject = 'AttributeObject',
+  AttributeArray = 'AttributeArray',
+  AttributeFunction = 'AttributeFunction',
+  StartTag = 'StartTag',
+  SimpleEndTag = 'SimpleEndTag',
+  EndTag = 'EndTag',
+  StartEndTag = 'StartEndTag',
+  Equal = 'Equal',
 }
 
 export interface Token {
@@ -47,20 +47,14 @@ export function parseToTokens(code: string): Token[] {
     }
   }
   const element = ${code.trim()};`;
-  const sourceFile = project.createSourceFile("temp.tsx", wrappedCode);
+  const sourceFile = project.createSourceFile('temp.tsx', wrappedCode);
   const tokens: Token[] = [];
   let index = 0;
 
   // Calculate offset from the wrapper
   const fragmentOffset = wrappedCode.indexOf(code.trim());
 
-  function addToken(
-    type: TokenType,
-    start: number,
-    end: number,
-    raw: string,
-    text: string
-  ) {
+  function addToken(type: TokenType, start: number, end: number, raw: string, text: string) {
     tokens.push({
       index: index++,
       type,
@@ -89,22 +83,10 @@ export function parseToTokens(code: string): Token[] {
     const tagName = openingElement.getTagNameNode();
 
     // Opening tag
-    addToken(
-      TokenType.StartTag,
-      openingElement.getStart(),
-      openingElement.getStart() + 1,
-      "<",
-      "<"
-    );
+    addToken(TokenType.StartTag, openingElement.getStart(), openingElement.getStart() + 1, '<', '<');
 
     // Tag name
-    addToken(
-      TokenType.TagName,
-      tagName.getStart(),
-      tagName.getEnd(),
-      tagName.getText(),
-      tagName.getText()
-    );
+    addToken(TokenType.TagName, tagName.getStart(), tagName.getEnd(), tagName.getText(), tagName.getText());
 
     // Handle whitespace between attributes
     let lastEnd = tagName.getEnd();
@@ -114,13 +96,7 @@ export function parseToTokens(code: string): Token[] {
       if (Node.isJsxAttribute(attribute)) {
         // Add whitespace token if there's space before the attribute
         if (attribute.getStart() > lastEnd) {
-          addToken(
-            TokenType.Whitespace,
-            lastEnd,
-            attribute.getStart(),
-            " ",
-            " "
-          );
+          addToken(TokenType.Whitespace, lastEnd, attribute.getStart(), ' ', ' ');
         }
 
         const nameNode = attribute.getNameNode();
@@ -135,23 +111,20 @@ export function parseToTokens(code: string): Token[] {
                 expressionToUse = expression.getExpression();
               }
 
-              if (
-                expressionToUse.getKindName() === "TrueKeyword" ||
-                expressionToUse.getKindName() === "FalseKeyword"
-              ) {
+              if (expressionToUse.getKindName() === 'TrueKeyword' || expressionToUse.getKindName() === 'FalseKeyword') {
                 addToken(
                   TokenType.AttributeName,
                   nameNode.getStart(),
                   nameNode.getEnd(),
                   nameNode.getText(),
-                  nameNode.getText()
+                  nameNode.getText(),
                 );
                 addToken(
                   TokenType.AttributeBoolean,
                   initializer.getStart(),
                   initializer.getEnd(),
                   `{${expressionToUse.getText()}}`,
-                  expressionToUse.getText()
+                  expressionToUse.getText(),
                 );
                 lastEnd = initializer.getEnd();
                 continue;
@@ -165,18 +138,12 @@ export function parseToTokens(code: string): Token[] {
           nameNode.getStart(),
           nameNode.getEnd(),
           nameNode.getText(),
-          nameNode.getText()
+          nameNode.getText(),
         );
 
         if (initializer) {
           // Add equals sign
-          addToken(
-            TokenType.Equal,
-            nameNode.getEnd(),
-            nameNode.getEnd() + 1,
-            "=",
-            "="
-          );
+          addToken(TokenType.Equal, nameNode.getEnd(), nameNode.getEnd() + 1, '=', '=');
 
           if (Node.isStringLiteral(initializer)) {
             const value = initializer.getText();
@@ -185,7 +152,7 @@ export function parseToTokens(code: string): Token[] {
               initializer.getStart(),
               initializer.getEnd(),
               value,
-              value.slice(1, -1)
+              value.slice(1, -1),
             );
           } else if (Node.isJsxExpression(initializer)) {
             const expression = initializer.getExpression();
@@ -204,7 +171,7 @@ export function parseToTokens(code: string): Token[] {
                   initializer.getStart(),
                   initializer.getEnd(),
                   value,
-                  value.slice(1, -1)
+                  value.slice(1, -1),
                 );
               } else if (
                 Node.isTemplateExpression(expressionToUse) ||
@@ -216,21 +183,16 @@ export function parseToTokens(code: string): Token[] {
                   initializer.getStart(),
                   initializer.getEnd(),
                   `"${value.slice(1, -1)}"`,
-                  value.slice(1, -1)
+                  value.slice(1, -1),
                 );
-              } else if (
-                Node.isArrowFunction(expressionToUse) ||
-                Node.isFunctionExpression(expressionToUse)
-              ) {
+              } else if (Node.isArrowFunction(expressionToUse) || Node.isFunctionExpression(expressionToUse)) {
                 const functionText = expressionToUse.getText();
                 addToken(
                   TokenType.AttributeFunction,
                   initializer.getStart(),
                   initializer.getEnd(),
                   `{${functionText}}`,
-                  Node.isParenthesizedExpression(expression)
-                    ? `(${functionText})`
-                    : functionText
+                  Node.isParenthesizedExpression(expression) ? `(${functionText})` : functionText,
                 );
               } else if (Node.isObjectLiteralExpression(expressionToUse)) {
                 addToken(
@@ -238,7 +200,7 @@ export function parseToTokens(code: string): Token[] {
                   initializer.getStart(),
                   initializer.getEnd(),
                   `{${expressionText}}`,
-                  expressionText
+                  expressionText,
                 );
               } else if (Node.isArrayLiteralExpression(expressionToUse)) {
                 addToken(
@@ -246,7 +208,7 @@ export function parseToTokens(code: string): Token[] {
                   initializer.getStart(),
                   initializer.getEnd(),
                   `{${expressionText}}`,
-                  expressionText
+                  expressionText,
                 );
               } else {
                 addToken(
@@ -254,7 +216,7 @@ export function parseToTokens(code: string): Token[] {
                   initializer.getStart(),
                   initializer.getEnd(),
                   `{${expressionText}}`,
-                  expressionText
+                  expressionText,
                 );
               }
             }
@@ -269,30 +231,17 @@ export function parseToTokens(code: string): Token[] {
       addToken(
         TokenType.Whitespace,
         lastEnd,
-        openingElement.getEnd() -
-          (Node.isJsxSelfClosingElement(element) ? 2 : 1),
-        " ",
-        " "
+        openingElement.getEnd() - (Node.isJsxSelfClosingElement(element) ? 2 : 1),
+        ' ',
+        ' ',
       );
     }
 
     // Closing of opening tag
     if (Node.isJsxSelfClosingElement(element)) {
-      addToken(
-        TokenType.SimpleEndTag,
-        openingElement.getEnd() - 2,
-        openingElement.getEnd(),
-        "/>",
-        "/>"
-      );
+      addToken(TokenType.SimpleEndTag, openingElement.getEnd() - 2, openingElement.getEnd(), '/>', '/>');
     } else {
-      addToken(
-        TokenType.EndTag,
-        openingElement.getEnd() - 1,
-        openingElement.getEnd(),
-        ">",
-        ">"
-      );
+      addToken(TokenType.EndTag, openingElement.getEnd() - 1, openingElement.getEnd(), '>', '>');
 
       // Process children
       if (Node.isJsxElement(element)) {
@@ -303,10 +252,10 @@ export function parseToTokens(code: string): Token[] {
           } else if (Node.isJsxText(child)) {
             const text = child.getText();
             const trimmed = text.trim();
-            if (trimmed && !text.includes("\n")) {
+            if (trimmed && !text.includes('\n')) {
               const start = child.getStart() + text.indexOf(trimmed);
               const end = start + trimmed.length;
-              if (code.trim() === "<div>Hello</div>") {
+              if (code.trim() === '<div>Hello</div>') {
                 // Skip text content for basic XML test
                 continue;
               }
@@ -320,7 +269,7 @@ export function parseToTokens(code: string): Token[] {
                 child.getStart(),
                 child.getEnd(),
                 child.getText(),
-                expression.getText()
+                expression.getText(),
               );
             }
           }
@@ -329,20 +278,14 @@ export function parseToTokens(code: string): Token[] {
         // Closing tag
         const closingElement = element.getClosingElement();
         if (!closingElement) {
-          throw new Error("Invalid JSX: Missing closing tag");
+          throw new Error('Invalid JSX: Missing closing tag');
         }
 
-        addToken(
-          TokenType.StartEndTag,
-          closingElement.getStart(),
-          closingElement.getStart() + 2,
-          "</",
-          "</"
-        );
+        addToken(TokenType.StartEndTag, closingElement.getStart(), closingElement.getStart() + 2, '</', '</');
 
         const closingTagName = closingElement.getTagNameNode();
         if (closingTagName.getText() !== tagName.getText()) {
-          throw new Error("Invalid JSX: Mismatched closing tag");
+          throw new Error('Invalid JSX: Mismatched closing tag');
         }
 
         addToken(
@@ -350,37 +293,25 @@ export function parseToTokens(code: string): Token[] {
           closingTagName.getStart(),
           closingTagName.getEnd(),
           closingTagName.getText(),
-          closingTagName.getText()
+          closingTagName.getText(),
         );
 
-        addToken(
-          TokenType.EndTag,
-          closingElement.getEnd() - 1,
-          closingElement.getEnd(),
-          ">",
-          ">"
-        );
+        addToken(TokenType.EndTag, closingElement.getEnd() - 1, closingElement.getEnd(), '>', '>');
       }
     }
   }
 
   try {
-    const varDecl = sourceFile.getFirstDescendantByKind(
-      SyntaxKind.VariableDeclaration
-    );
+    const varDecl = sourceFile.getFirstDescendantByKind(SyntaxKind.VariableDeclaration);
     if (!varDecl) {
-      throw new Error("Invalid JSX: No content found");
+      throw new Error('Invalid JSX: No content found');
     }
 
-    const jsxFragment = varDecl.getFirstDescendantByKind(
-      SyntaxKind.JsxFragment
-    );
+    const jsxFragment = varDecl.getFirstDescendantByKind(SyntaxKind.JsxFragment);
     if (jsxFragment) {
       // Handle JSX fragment case
       const elements = jsxFragment.getDescendantsOfKind(SyntaxKind.JsxElement);
-      const selfClosing = jsxFragment.getDescendantsOfKind(
-        SyntaxKind.JsxSelfClosingElement
-      );
+      const selfClosing = jsxFragment.getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement);
 
       for (const element of elements) {
         processJsxElement(element);
@@ -392,24 +323,20 @@ export function parseToTokens(code: string): Token[] {
       // Handle regular JSX element case
       const jsxElements = varDecl
         .getDescendantsOfKind(SyntaxKind.JsxElement)
-        .filter(
-          (el) => el.getParentIfKind(SyntaxKind.JsxElement) === undefined
-        );
+        .filter((el) => el.getParentIfKind(SyntaxKind.JsxElement) === undefined);
 
       const jsxSelfClosing = varDecl
         .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
-        .filter(
-          (el) => el.getParentIfKind(SyntaxKind.JsxElement) === undefined
-        );
+        .filter((el) => el.getParentIfKind(SyntaxKind.JsxElement) === undefined);
 
       const rootElements = [...jsxElements, ...jsxSelfClosing];
 
       if (rootElements.length === 0) {
-        throw new Error("Invalid JSX: No elements found");
+        throw new Error('Invalid JSX: No elements found');
       }
 
       if (rootElements.length > 1) {
-        throw new Error("Invalid JSX: Multiple root elements are not allowed");
+        throw new Error('Invalid JSX: Multiple root elements are not allowed');
       }
 
       processJsxElement(rootElements[0]);
@@ -425,7 +352,7 @@ export function parseToTokens(code: string): Token[] {
         endIndex: code.length,
         raw: code,
         text: code,
-        error: error instanceof Error ? error.message : "Invalid JSX syntax",
+        error: error instanceof Error ? error.message : 'Invalid JSX syntax',
       },
     ];
   }

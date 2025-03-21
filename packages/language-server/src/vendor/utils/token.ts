@@ -1,4 +1,4 @@
-import { Token, TokenType } from "../acorn";
+import { type Token, TokenType } from '../acorn';
 
 /**
  * Interface representing an active token with context
@@ -14,14 +14,9 @@ export interface IActiveToken {
 /**
  * Build the active token context from a list of tokens and an offset
  */
-export function buildActiveToken(
-  tokens: Token[],
-  offset: number
-): IActiveToken {
+export function buildActiveToken(tokens: Token[], offset: number): IActiveToken {
   // Find the token at the given offset
-  const index = tokens.findIndex(
-    (token) => token.startIndex <= offset && token.endIndex >= offset
-  );
+  const index = tokens.findIndex((token) => token.startIndex <= offset && token.endIndex >= offset);
 
   return {
     token: index >= 0 ? tokens[index] : null,
@@ -48,10 +43,7 @@ export function getOwnerTagName(tokens: Token[], index: number): Token | null {
 /**
  * Get the owner attribute name token from a list of tokens and an index
  */
-export function getOwnerAttributeName(
-  tokens: Token[],
-  index: number
-): Token | null {
+export function getOwnerAttributeName(tokens: Token[], index: number): Token | null {
   // Find the closest attribute name token before the given index
   for (let i = index; i >= 0; i--) {
     if (tokens[i].type === TokenType.AttributeName) {

@@ -1,42 +1,32 @@
-import { z } from "zod";
-import { createElementDefinition } from "../createElementFactory";
-import { ExecutionGraphElement } from "../../types";
-import { BaseElement } from "../BaseElement";
+import { z } from 'zod';
+import type { ExecutionGraphElement } from '../../types';
+import type { BaseElement } from '../BaseElement';
+import { createElementDefinition } from '../createElementFactory';
 
 const parallelSchema = z.object({
   id: z.string(),
 });
 
 export const Parallel = createElementDefinition({
-  tag: "parallel",
+  tag: 'parallel',
   propsSchema: parallelSchema,
-  role: "state",
-  elementType: "parallel",
-  allowedChildren: [
-    "onentry",
-    "onexit",
-    "transition",
-    "state",
-    "parallel",
-    "history",
-    "datamodel",
-  ],
+  role: 'state',
+  elementType: 'parallel',
+  allowedChildren: ['onentry', 'onexit', 'transition', 'state', 'parallel', 'history', 'datamodel'],
 
   onExecutionGraphConstruction(buildContext) {
     // 1. Check cache to avoid building multiple times
-    const cached = buildContext.getCachedGraphElement(
-      buildContext.attributes.id
-    );
+    const cached = buildContext.getCachedGraphElement(buildContext.attributes.id);
     if (cached) {
       return cached;
     }
 
     // 2. Create main parallel node
     const parallelNode: ExecutionGraphElement = {
-      id: buildContext.attributes.id + "_main",
-      type: "state",
+      id: buildContext.attributes.id + '_main',
+      type: 'state',
       key: buildContext.elementKey,
-      subType: "parallel",
+      subType: 'parallel',
       attributes: {
         ...buildContext.attributes,
       },
@@ -44,10 +34,7 @@ export const Parallel = createElementDefinition({
     };
 
     // store in cache
-    buildContext.setCachedGraphElement(
-      [buildContext.attributes.id, parallelNode.key].filter(Boolean),
-      parallelNode
-    );
+    buildContext.setCachedGraphElement([buildContext.attributes.id, parallelNode.key].filter(Boolean), parallelNode);
 
     // We'll keep track of all finalIDs from each child
     const finalNodeKeys: string[] = [];
@@ -57,10 +44,7 @@ export const Parallel = createElementDefinition({
     //    We'll gather their final node IDs along the way
     for (const child of buildContext.children) {
       // build child
-      const childEG =
-        "tag" in child
-          ? (child as BaseElement).onExecutionGraphConstruction?.(buildContext)
-          : null;
+      const childEG = 'tag' in child ? (child as BaseElement).onExecutionGraphConstruction?.(buildContext) : null;
       if (!childEG) continue;
 
       // we attach childEG to parallelNode.children
@@ -76,10 +60,10 @@ export const Parallel = createElementDefinition({
     // 4. Create "parallelDone" node that depends on all child final node IDs
     if (finalNodeKeys.length > 0) {
       const parallelDone: ExecutionGraphElement = {
-        id: buildContext.attributes.id + "_done",
-        type: "state",
+        id: buildContext.attributes.id + '_done',
+        type: 'state',
         key: buildContext.elementKey,
-        subType: "parallelDone",
+        subType: 'parallelDone',
         attributes: {
           // store SCXML data if needed
           parentParallel: buildContext.attributes.id,
@@ -103,7 +87,7 @@ export const Parallel = createElementDefinition({
  */
 function collectFinalNodes(node: ExecutionGraphElement): string[] {
   const result: string[] = [];
-  if (node.subType === "final") {
+  if (node.subType === 'final') {
     result.push(node.key);
   }
   if (node.next) {

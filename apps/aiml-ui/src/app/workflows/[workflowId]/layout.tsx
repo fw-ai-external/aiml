@@ -1,7 +1,7 @@
-import * as React from "react";
+import type * as React from 'react';
 
-import { WorkflowProvider } from "@/hooks/use-workflows";
-import { WorkflowHeader } from "@/domains/workflows/workflow-header";
+import { WorkflowHeader } from '@/domains/workflows/workflow-header';
+import { WorkflowProvider } from '@/hooks/use-workflows';
 
 export default async function WorkflowLayout({
   children,

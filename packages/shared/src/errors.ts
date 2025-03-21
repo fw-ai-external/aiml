@@ -4,7 +4,7 @@
 export class RuntimeError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "RuntimeError";
+    this.name = 'RuntimeError';
   }
 }
 
@@ -14,7 +14,7 @@ export class RuntimeError extends Error {
 export class RunStepError extends RuntimeError {
   constructor(message: string) {
     super(message);
-    this.name = "RunStepError";
+    this.name = 'RunStepError';
   }
 }
 
@@ -24,6 +24,6 @@ export class RunStepError extends RuntimeError {
 export class InternalError extends RuntimeError {
   constructor(message: string) {
     super(message);
-    this.name = "InternalError";
+    this.name = 'InternalError';
   }
 }

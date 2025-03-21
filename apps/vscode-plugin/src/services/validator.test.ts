@@ -1,9 +1,9 @@
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { Connection } from "vscode-languageserver/node";
-import { DocumentValidator } from "./validator";
-import { DebugLogger } from "../utils/debug";
-import { parseToTokens, Token } from "../acorn";
-import { beforeEach, describe, expect, it, jest } from "bun:test";
+import { beforeEach, describe, expect, it, jest } from 'bun:test';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import type { Connection } from 'vscode-languageserver/node';
+import { type Token, parseToTokens } from '../acorn';
+import type { DebugLogger } from '../utils/debug';
+import { DocumentValidator } from './validator';
 
 // Mock Connection and DebugLogger
 const mockConnection = {
@@ -14,7 +14,7 @@ const mockLogger = {
   validation: jest.fn(),
 } as unknown as DebugLogger;
 
-describe("DocumentValidator", () => {
+describe('DocumentValidator', () => {
   let validator: DocumentValidator;
   let document: TextDocument;
 
@@ -23,11 +23,11 @@ describe("DocumentValidator", () => {
     jest.clearAllMocks();
   });
 
-  describe("findStateIds", () => {
-    it("should find all state IDs in the document", () => {
+  describe('findStateIds', () => {
+    it('should find all state IDs in the document', () => {
       document = TextDocument.create(
-        "test.xml",
-        "xml",
+        'test.xml',
+        'xml',
         1,
         `<scxml>
           <state id="state1">
@@ -36,33 +36,29 @@ describe("DocumentValidator", () => {
           <parallel id="p1">
             <state id="state3"/>
           </parallel>
-        </scxml>`
+        </scxml>`,
       );
 
       const tokens = parseToTokens(document.getText());
 
-      const stateIds = validator["findStateIds"](
-        document,
-        tokens,
-        document.getText()
-      );
+      const stateIds = validator['findStateIds'](document, tokens, document.getText());
 
       // The current implementation only finds "state1", so update the expectation
-      expect(Array.from(stateIds)).toEqual(["state1"]);
+      expect(Array.from(stateIds)).toEqual(['state1']);
     });
   });
 
-  describe("validateElementChildren", () => {
-    it("should validate parent-child relationships", () => {
+  describe('validateElementChildren', () => {
+    it('should validate parent-child relationships', () => {
       document = TextDocument.create(
-        "test.xml",
-        "xml",
+        'test.xml',
+        'xml',
         1,
         `<scxml>
           <state id="parent">
             <invalid />
           </state>
-        </scxml>`
+        </scxml>`,
       );
 
       const tokens: Token[] = [
@@ -75,15 +71,15 @@ describe("DocumentValidator", () => {
     });
   });
 
-  describe("validateElementAttributes", () => {
-    it("should validate required attributes", () => {
+  describe('validateElementAttributes', () => {
+    it('should validate required attributes', () => {
       document = TextDocument.create(
-        "test.xml",
-        "xml",
+        'test.xml',
+        'xml',
         1,
         `<scxml>
           <transition />
-        </scxml>`
+        </scxml>`,
       );
 
       const tokens: Token[] = [
@@ -95,14 +91,14 @@ describe("DocumentValidator", () => {
       expect(diagnostics).toHaveLength(0);
     });
 
-    it("should validate attribute values against schema", () => {
+    it('should validate attribute values against schema', () => {
       document = TextDocument.create(
-        "test.xml",
-        "xml",
+        'test.xml',
+        'xml',
         1,
         `<scxml>
           <state id="test" initial="invalid" />
-        </scxml>`
+        </scxml>`,
       );
 
       const tokens: Token[] = [
@@ -115,16 +111,16 @@ describe("DocumentValidator", () => {
     });
   });
 
-  describe("validateStateIds", () => {
-    it("should detect duplicate state IDs", () => {
+  describe('validateStateIds', () => {
+    it('should detect duplicate state IDs', () => {
       document = TextDocument.create(
-        "test.xml",
-        "xml",
+        'test.xml',
+        'xml',
         1,
         `<scxml>
           <state id="test" />
           <state id="test" />
-        </scxml>`
+        </scxml>`,
       );
 
       const tokens: Token[] = [
@@ -137,17 +133,17 @@ describe("DocumentValidator", () => {
     });
   });
 
-  describe("validateTransitionIds", () => {
-    it("should validate transition targets exist", () => {
+  describe('validateTransitionIds', () => {
+    it('should validate transition targets exist', () => {
       document = TextDocument.create(
-        "test.xml",
-        "xml",
+        'test.xml',
+        'xml',
         1,
         `<scxml>
           <state id="test">
             <transition target="nonexistent" />
           </state>
-        </scxml>`
+        </scxml>`,
       );
 
       const tokens: Token[] = [
@@ -159,10 +155,10 @@ describe("DocumentValidator", () => {
       expect(diagnostics).toHaveLength(0);
     });
 
-    it("should validate transition target hierarchy", () => {
+    it('should validate transition target hierarchy', () => {
       document = TextDocument.create(
-        "test.xml",
-        "xml",
+        'test.xml',
+        'xml',
         1,
         `<scxml>
           <state id="parent">
@@ -171,7 +167,7 @@ describe("DocumentValidator", () => {
             </state>
             <state id="sibling" />
           </state>
-        </scxml>`
+        </scxml>`,
       );
 
       const tokens: Token[] = [
@@ -184,11 +180,11 @@ describe("DocumentValidator", () => {
     });
   });
 
-  describe("validateForInfiniteLoops", () => {
-    it("should detect potential infinite loops", () => {
+  describe('validateForInfiniteLoops', () => {
+    it('should detect potential infinite loops', () => {
       document = TextDocument.create(
-        "test.xml",
-        "xml",
+        'test.xml',
+        'xml',
         1,
         `<scxml>
           <state id="a">
@@ -197,7 +193,7 @@ describe("DocumentValidator", () => {
           <state id="b">
             <transition target="a" />
           </state>
-        </scxml>`
+        </scxml>`,
       );
 
       const tokens: Token[] = [
@@ -209,10 +205,10 @@ describe("DocumentValidator", () => {
       expect(diagnostics).toHaveLength(0);
     });
 
-    it("should allow loops with conditional exits", () => {
+    it('should allow loops with conditional exits', () => {
       document = TextDocument.create(
-        "test.xml",
-        "xml",
+        'test.xml',
+        'xml',
         1,
         `<scxml>
           <state id="s1">
@@ -223,7 +219,7 @@ describe("DocumentValidator", () => {
             <transition target="s3" cond="someCondition"/>
           </state>
           <state id="s3"/>
-        </scxml>`
+        </scxml>`,
       );
 
       const tokens: Token[] = [
@@ -235,17 +231,17 @@ describe("DocumentValidator", () => {
     });
   });
 
-  describe("document healing", () => {
-    it("should handle missing closing tags", () => {
+  describe('document healing', () => {
+    it('should handle missing closing tags', () => {
       document = TextDocument.create(
-        "test.xml",
-        "xml",
+        'test.xml',
+        'xml',
         1,
         `<scxml>
           <state id="s1">
             <transition target="s2"
           </state>
-        </scxml>`
+        </scxml>`,
       );
 
       const tokens: Token[] = [
@@ -256,15 +252,15 @@ describe("DocumentValidator", () => {
       expect(diagnostics).toHaveLength(0);
     });
 
-    it("should handle malformed attributes", () => {
+    it('should handle malformed attributes', () => {
       document = TextDocument.create(
-        "test.xml",
-        "xml",
+        'test.xml',
+        'xml',
         1,
         `<scxml>
           <state id=s1>
           </state>
-        </scxml>`
+        </scxml>`,
       );
 
       const tokens: Token[] = [

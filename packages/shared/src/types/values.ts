@@ -1,5 +1,5 @@
-import { TextStreamPart, ObjectStreamPart, StepResult } from "ai";
-import type { z } from "zod";
+import type { ObjectStreamPart, StepResult, TextStreamPart } from 'ai';
+import type { z } from 'zod';
 
 // Basic type for tool definitions
 export type TOOLS = {
@@ -13,15 +13,12 @@ export type TOOLS = {
 export type StepValueChunk =
   | Omit<
       TextStreamPart<TOOLS>,
-      | "experimental_providerMetadata"
-      | "providerMetadata"
-      | "experimental_providerMetadata"
-      | "response"
+      'experimental_providerMetadata' | 'providerMetadata' | 'experimental_providerMetadata' | 'response'
     >
-  | Omit<ObjectStreamPart<any>, "response" | "providerMetadata">;
+  | Omit<ObjectStreamPart<any>, 'response' | 'providerMetadata'>;
 
 export interface ErrorResult {
-  type: "error";
+  type: 'error';
   error: string | number | any;
   code: string;
 }
@@ -32,7 +29,7 @@ export interface JSONObject {
 
 export interface OpenAIToolCall {
   id: string;
-  type: "function";
+  type: 'function';
   function: {
     name: string;
     arguments: string;
@@ -64,7 +61,7 @@ export interface ToolCall<Name extends string = string, Args = any> {
   toolCallId: string;
   toolName: Name;
   args: Args;
-  type: "tool-call";
+  type: 'tool-call';
 }
 
 export const ToolCallSchema = {} as z.ZodType<ToolCall>;
@@ -73,25 +70,19 @@ export const ToolCallSchema = {} as z.ZodType<ToolCall>;
  * StepValueResult - Input/Output from a step / state / element.
  * based on the normalized data in the AI SDK from vercel
  */
-export type StepValueResultType =
-  | "object"
-  | "text"
-  | "toolCalls"
-  | "toolResults"
-  | "items"
-  | "error";
+export type StepValueResultType = 'object' | 'text' | 'toolCalls' | 'toolResults' | 'items' | 'error';
 export type StepValueResult =
   | (Omit<
       StepResult<TOOLS>,
-      | "request"
-      | "response"
-      | "providerMetadata"
-      | "experimental_providerMetadata"
-      | "stepType"
-      | "isContinued"
-      | "text"
-      | "toolCalls"
-      | "toolResults"
+      | 'request'
+      | 'response'
+      | 'providerMetadata'
+      | 'experimental_providerMetadata'
+      | 'stepType'
+      | 'isContinued'
+      | 'text'
+      | 'toolCalls'
+      | 'toolResults'
     > &
       (
         | {
@@ -112,15 +103,15 @@ export type StepValueResult =
             object?: undefined;
             items?: undefined;
             text: string;
-            toolCalls?: StepResult<TOOLS>["toolCalls"];
-            toolResults: StepResult<TOOLS>["toolResults"];
+            toolCalls?: StepResult<TOOLS>['toolCalls'];
+            toolResults: StepResult<TOOLS>['toolResults'];
           }
         | {
             object?: undefined;
             items?: undefined;
             text?: undefined;
             toolCalls?: undefined;
-            toolResults: StepResult<TOOLS>["toolResults"];
+            toolResults: StepResult<TOOLS>['toolResults'];
           }
       ))
   | (ErrorResult & {

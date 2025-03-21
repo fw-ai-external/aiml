@@ -1,4 +1,4 @@
-import { TokenType, Token } from "../acorn";
+import { type Token, TokenType } from '../acorn';
 
 export interface IActiveToken {
   all: Array<Token>;
@@ -13,26 +13,17 @@ export function getTokenLen(token: Token) {
   return token.endIndex - token.startIndex;
 }
 
-export function getAllAttributeNames(
-  content: string,
-  tokens: Array<Token>,
-  tokenStart: number
-) {
+export function getAllAttributeNames(content: string, tokens: Array<Token>, tokenStart: number) {
   let names: Array<string> = [];
   let index = tokenStart;
   while (index < tokens.length) {
     let token = tokens[index];
     let prevToken = tokens[index - 1];
     if (
-      (prevToken.type == TokenType.Name ||
-        prevToken.type == TokenType.AttributeName) &&
+      (prevToken.type == TokenType.Name || prevToken.type == TokenType.AttributeName) &&
       token.type == TokenType.Equal
     ) {
-      names.push(
-        content
-          .substring(prevToken.startIndex, prevToken.endIndex)
-          .toUpperCase()
-      );
+      names.push(content.substring(prevToken.startIndex, prevToken.endIndex).toUpperCase());
     } else if (
       prevToken.type == TokenType.StartTag ||
       prevToken.type == TokenType.EndTag ||
@@ -46,15 +37,11 @@ export function getAllAttributeNames(
   return names;
 }
 
-export function getOwnerAttributeName(
-  tokens: Array<Token>,
-  index: number
-): Token | null {
+export function getOwnerAttributeName(tokens: Array<Token>, index: number): Token | null {
   // First check if we're already on an attribute name
   if (
     index < tokens.length &&
-    (tokens[index].type === TokenType.AttributeName ||
-      tokens[index].type === TokenType.Name)
+    (tokens[index].type === TokenType.AttributeName || tokens[index].type === TokenType.Name)
   ) {
     return tokens[index];
   }
@@ -63,10 +50,7 @@ export function getOwnerAttributeName(
   while (index >= 1) {
     let token = tokens[index];
     let prevToken = tokens[index - 1];
-    if (
-      prevToken.type === TokenType.AttributeName ||
-      prevToken.type === TokenType.Name
-    ) {
+    if (prevToken.type === TokenType.AttributeName || prevToken.type === TokenType.Name) {
       return prevToken;
     } else if (
       prevToken.type === TokenType.StartTag ||
@@ -81,24 +65,15 @@ export function getOwnerAttributeName(
   return null;
 }
 
-export function getOwnerTagName(
-  tokens: Array<Token>,
-  index: number
-): Token | null {
+export function getOwnerTagName(tokens: Array<Token>, index: number): Token | null {
   while (index >= 1) {
     let token = tokens[index];
     let prevToken = tokens[index - 1];
     if (token.type == TokenType.SimpleEndTag) {
       return null;
-    } else if (
-      token.type == TokenType.TagName &&
-      prevToken.type == TokenType.StartTag
-    ) {
+    } else if (token.type == TokenType.TagName && prevToken.type == TokenType.StartTag) {
       return token;
-    } else if (
-      token.type == TokenType.TagName &&
-      prevToken.type == TokenType.StartEndTag
-    ) {
+    } else if (token.type == TokenType.TagName && prevToken.type == TokenType.StartEndTag) {
       return null;
     }
     index--;
@@ -106,10 +81,7 @@ export function getOwnerTagName(
   return null;
 }
 
-export function getParentTagName(
-  tokens: Array<Token>,
-  index: number
-): Token | null {
+export function getParentTagName(tokens: Array<Token>, index: number): Token | null {
   let depth = 0;
   while (index >= 1) {
     let token = tokens[index];
@@ -117,19 +89,13 @@ export function getParentTagName(
     if (token.type == TokenType.SimpleEndTag) {
       // />
       depth++;
-    } else if (
-      token.type == TokenType.TagName &&
-      prevToken.type == TokenType.StartTag
-    ) {
+    } else if (token.type == TokenType.TagName && prevToken.type == TokenType.StartTag) {
       // <Tag
       depth--;
       if (depth < 0) {
         return token;
       }
-    } else if (
-      token.type == TokenType.TagName &&
-      prevToken.type == TokenType.StartEndTag
-    ) {
+    } else if (token.type == TokenType.TagName && prevToken.type == TokenType.StartEndTag) {
       // </
       depth++;
     }
@@ -138,10 +104,7 @@ export function getParentTagName(
   return null;
 }
 
-export function buildActiveToken(
-  tokens: Token[],
-  offset: number
-): IActiveToken {
+export function buildActiveToken(tokens: Token[], offset: number): IActiveToken {
   let activeToken: Token | undefined;
   let prevToken: Token | undefined;
 
@@ -175,8 +138,8 @@ export function buildActiveToken(
       startIndex: offset,
       endIndex: offset,
       index: tokens.length,
-      raw: prevToken?.raw ?? "",
-      text: prevToken?.text ?? "",
+      raw: prevToken?.raw ?? '',
+      text: prevToken?.text ?? '',
     };
   }
 
@@ -188,10 +151,7 @@ export function buildActiveToken(
   };
 }
 
-export function getJSXExpressionValue(
-  tokens: Token[],
-  index: number
-): Token | null {
+export function getJSXExpressionValue(tokens: Token[], index: number): Token | null {
   let depth = 0;
   while (index >= 1) {
     let token = tokens[index];

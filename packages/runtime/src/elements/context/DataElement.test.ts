@@ -1,18 +1,16 @@
-import { describe, expect, it, mock, spyOn } from "bun:test";
-import { Data, ValueType } from "./DataElement";
-import { StepValue } from "@fireworks/shared";
-import { createScopedDataModel } from "./ScopedDataModel";
+import { describe, expect, it, mock, spyOn } from 'bun:test';
+import { StepValue } from '@fireworks/shared';
+import { Data, ValueType } from './DataElement';
+import { createScopedDataModel } from './ScopedDataModel';
 
-describe("DataElement", () => {
+describe('DataElement', () => {
   // Mock execution context with DataModel setup
-  const createMockContext = (
-    overrides: { attributes?: any; [key: string]: any } = {}
-  ): any => {
+  const createMockContext = (overrides: { attributes?: any; [key: string]: any } = {}): any => {
     // Create a real scoped data model
-    const scopedModel = createScopedDataModel("state_1", {}, {});
+    const scopedModel = createScopedDataModel('state_1', {}, {});
 
     // Spy on the setValue method
-    const setValueSpy = spyOn(scopedModel, "setValue");
+    const setValueSpy = spyOn(scopedModel, 'setValue');
 
     // Create a proxy for the datamodel that enforces scoping rules
     const datamodelProxy = new Proxy(
@@ -20,14 +18,14 @@ describe("DataElement", () => {
       {
         get(target, prop) {
           const key = String(prop);
-          if (key === "__metadata") {
+          if (key === '__metadata') {
             return scopedModel.getAllMetadata();
           }
           return scopedModel.get(key);
         },
         set(target, prop, value) {
           const key = String(prop);
-          if (key === "__metadata") {
+          if (key === '__metadata') {
             return false;
           }
           return scopedModel.set(key, value, true);
@@ -35,20 +33,20 @@ describe("DataElement", () => {
         has(target, prop) {
           return scopedModel.has(String(prop));
         },
-      }
+      },
     );
 
     return {
       context: {
         workflow: {
-          id: "test-workflow",
+          id: 'test-workflow',
           version: 1,
         },
       },
       suspend: mock(),
-      runId: "test-run-123",
+      runId: 'test-run-123',
       attributes: {
-        id: "testData",
+        id: 'testData',
         type: ValueType.STRING,
         readonly: false,
         fromRequest: false,
@@ -57,26 +55,26 @@ describe("DataElement", () => {
       scopedDataModel: scopedModel,
       datamodel: datamodelProxy,
       workflowInput: {
-        userMessage: "Hello from request",
-        systemMessage: "",
+        userMessage: 'Hello from request',
+        systemMessage: '',
         chatHistory: [],
         clientSideTools: [],
       },
       state: {
-        id: "state_1",
+        id: 'state_1',
         attributes: {},
-        input: new StepValue({ type: "text", text: "" }),
+        input: new StepValue({ type: 'text', text: '' }),
       },
       ...overrides,
     };
   };
 
   // Test 1: Basic initialization with expr
-  it("should initialize with expr attribute", async () => {
+  it('should initialize with expr attribute', async () => {
     const ctx = createMockContext({
       attributes: {
-        id: "testData",
-        expr: "5 + 5",
+        id: 'testData',
+        expr: '5 + 5',
         type: ValueType.NUMBER,
       },
     });
@@ -85,20 +83,20 @@ describe("DataElement", () => {
     const { result } = await dataElement.execute(ctx);
 
     expect(ctx.scopedDataModel.setValue).toHaveBeenCalledWith(
-      "testData",
+      'testData',
       10,
       expect.objectContaining({
         type: ValueType.NUMBER,
         readonly: false,
-      })
+      }),
     );
   });
 
   // Test 2: Initialize with fromRequest
-  it("should initialize with fromRequest attribute", async () => {
+  it('should initialize with fromRequest attribute', async () => {
     const ctx = createMockContext({
       attributes: {
-        id: "userInput",
+        id: 'userInput',
         fromRequest: true,
       },
     });
@@ -132,23 +130,23 @@ describe("DataElement", () => {
 
     // Check that setValue was called with the correct parameters
     expect(setValue).toHaveBeenCalledWith(
-      "userInput",
-      "Hello from request",
+      'userInput',
+      'Hello from request',
       expect.objectContaining({
         readonly: true, // fromRequest should make it readonly
         fromRequest: true,
-      })
+      }),
     );
 
     // Check that the value was stored in the datamodel
-    expect(ctx.datamodel.userInput).toBe("Hello from request");
+    expect(ctx.datamodel.userInput).toBe('Hello from request');
   });
 
   // Test 3: Type validation
-  it("should validate type and use default value on error", async () => {
+  it('should validate type and use default value on error', async () => {
     const ctx = createMockContext({
       attributes: {
-        id: "numberData",
+        id: 'numberData',
         expr: "'not a number'", // This will evaluate to a string
         type: ValueType.NUMBER, // But we expect a number
       },
@@ -158,16 +156,14 @@ describe("DataElement", () => {
     const { result, exception } = await dataElement.execute(ctx);
 
     expect(exception).toBeDefined();
-    expect(exception?.message).toContain(
-      "No result in element data numberData"
-    );
+    expect(exception?.message).toContain('No result in element data numberData');
   });
 
   // Test 4: Readonly property
-  it("should mark data as readonly when specified", async () => {
+  it('should mark data as readonly when specified', async () => {
     const ctx = createMockContext({
       attributes: {
-        id: "readonlyData",
+        id: 'readonlyData',
         expr: "'test'",
         readonly: true,
       },
@@ -177,21 +173,21 @@ describe("DataElement", () => {
     const { result } = await dataElement.execute(ctx);
 
     expect(ctx.scopedDataModel.setValue).toHaveBeenCalledWith(
-      "readonlyData",
-      "test",
+      'readonlyData',
+      'test',
       expect.objectContaining({
         readonly: true,
-      })
+      }),
     );
   });
 
   // Test 5: Default value
-  it("should use defaultValue when expression evaluation fails", async () => {
+  it('should use defaultValue when expression evaluation fails', async () => {
     const ctx = createMockContext({
       attributes: {
-        id: "defaultData",
-        expr: "nonExistentVariable", // This will cause an error
-        defaultValue: "fallback value",
+        id: 'defaultData',
+        expr: 'nonExistentVariable', // This will cause an error
+        defaultValue: 'fallback value',
       },
     });
 
@@ -199,16 +195,14 @@ describe("DataElement", () => {
     const { result, exception } = await dataElement.execute(ctx);
 
     expect(exception).toBeDefined();
-    expect(exception?.message).toContain(
-      "No result in element data defaultData"
-    );
+    expect(exception?.message).toContain('No result in element data defaultData');
   });
 
   // Test 6: Content parsing
-  it("should parse content as JSON", async () => {
+  it('should parse content as JSON', async () => {
     const ctx = createMockContext({
       attributes: {
-        id: "jsonData",
+        id: 'jsonData',
         content: '{"name": "Test", "value": 123}',
         type: ValueType.JSON,
         schema: {
@@ -225,25 +219,25 @@ describe("DataElement", () => {
     const { result } = await dataElement.execute(ctx);
 
     expect(ctx.scopedDataModel.setValue).toHaveBeenCalledWith(
-      "jsonData",
-      { name: "Test", value: 123 },
+      'jsonData',
+      { name: 'Test', value: 123 },
       expect.objectContaining({
         type: ValueType.JSON,
-      })
+      }),
     );
   });
 
   // Test 7: Parent state tracking
-  it("should track parent state ID for scope determination", async () => {
+  it('should track parent state ID for scope determination', async () => {
     const ctx = createMockContext({
       attributes: {
-        id: "scopedData",
+        id: 'scopedData',
         expr: "'scoped value'",
       },
       state: {
-        id: "parent_state_123",
+        id: 'parent_state_123',
         attributes: {},
-        input: new StepValue({ type: "text", text: "" }),
+        input: new StepValue({ type: 'text', text: '' }),
       },
     });
 

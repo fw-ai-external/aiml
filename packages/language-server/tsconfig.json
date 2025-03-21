@@ -4,7 +4,7 @@
     "allowSyntheticDefaultImports": true,
     "checkJs": true,
     "lib": ["es2022"],
-    "module": "ES2020", 
+    "module": "ES2020",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
     "noEmit": true,

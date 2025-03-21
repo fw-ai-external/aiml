@@ -1,26 +1,26 @@
-import {
+import { PassThrough } from 'node:stream';
+import { pathToFileURL } from 'node:url';
+import type {
   DocumentSelector,
   LanguageServiceContext,
   LanguageServicePlugin,
   LanguageServicePluginInstance,
-} from "@volar/language-server";
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { PassThrough } from "node:stream";
-import { engine, Options as EngineOptions } from "unified-engine";
-import { pathToFileURL } from "node:url";
-import { VFile } from "vfile";
-import { loadPlugin } from "load-plugin";
-import { URI } from "vscode-uri";
+} from '@volar/language-server';
+import { loadPlugin } from 'load-plugin';
+import { type Options as EngineOptions, engine } from 'unified-engine';
+import { VFile } from 'vfile';
+import type { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
 
 export const service = {
-  name: "aiml",
+  name: 'aiml',
   capabilities: {
     codeActionProvider: {
       resolveProvider: true,
-      codeActionKinds: ["quickfix", "refactor"],
+      codeActionKinds: ['quickfix', 'refactor'],
     },
     completionProvider: {
-      triggerCharacters: [".", "/", "#"],
+      triggerCharacters: ['.', '/', '#'],
     },
     definitionProvider: true,
     diagnosticProvider: {
@@ -51,14 +51,14 @@ export const service = {
           alwaysStringify: false,
           cwd: process.cwd(),
           files: [],
-          ignoreName: ".aimlignore",
+          ignoreName: '.aimlignore',
           ignoreUnconfigured: false,
-          packageField: "aiml",
-          pluginPrefix: "aiml",
+          packageField: 'aiml',
+          pluginPrefix: 'aiml',
           plugins: [],
           processor: processWorkspace(process.cwd(), [], false, false) as any,
           quiet: false,
-          rcName: ".aimlrc",
+          rcName: '.aimlrc',
           silentlyIgnore: true,
           streamError: new PassThrough(),
           streamOut: new PassThrough(),
@@ -74,7 +74,7 @@ export const service = {
           }
 
           resolve(files);
-        }
+        },
       );
     });
 
@@ -84,7 +84,7 @@ export const service = {
       },
 
       provide: {
-        "aiml/languageService": () => aimlLS,
+        'aiml/languageService': () => aimlLS,
       },
 
       provideCodeActions(document, range, context, token) {
@@ -99,12 +99,7 @@ export const service = {
 
       async provideCompletionItems(document, position, _context, token) {
         if (prepare(document)) {
-          const items = await aimlLS.getCompletionItems(
-            document,
-            position,
-            {},
-            token
-          );
+          const items = await aimlLS.getCompletionItems(document, position, {}, token);
           return {
             isIncomplete: false,
             items,
@@ -134,7 +129,7 @@ export const service = {
 
       async provideDiagnostics(document, token) {
         if (prepare(document)) {
-          const configuration = context.env.getConfiguration?.("aiml.validate");
+          const configuration = context.env.getConfiguration?.('aiml.validate');
           if (configuration) {
             return aimlLS.computeDiagnostics(document, configuration, token);
           }
@@ -155,11 +150,7 @@ export const service = {
 
       provideDocumentSymbols(document, token) {
         if (prepare(document)) {
-          return aimlLS.getDocumentSymbols(
-            document,
-            { includeLinkDefinitions: true },
-            token
-          );
+          return aimlLS.getDocumentSymbols(document, { includeLinkDefinitions: true }, token);
         }
       },
 
@@ -183,12 +174,7 @@ export const service = {
 
       provideReferences(document, position, referenceContext, token) {
         if (prepare(document)) {
-          return aimlLS.getReferences(
-            document,
-            position,
-            referenceContext,
-            token
-          );
+          return aimlLS.getReferences(document, position, referenceContext, token);
         }
       },
 
@@ -205,10 +191,7 @@ export const service = {
       },
 
       async provideFileRenameEdits(oldUri, newUri, token) {
-        const result = await aimlLS.getRenameFilesInWorkspaceEdit(
-          [{ oldUri, newUri }],
-          token
-        );
+        const result = await aimlLS.getRenameFilesInWorkspaceEdit([{ oldUri, newUri }], token);
         return result?.edit;
       },
 
@@ -230,7 +213,7 @@ export const service = {
 } satisfies LanguageServicePlugin;
 
 function prepare(document: TextDocument) {
-  if (matchDocument(["aiml"], { languageId: document.languageId })) {
+  if (matchDocument(['aiml'], { languageId: document.languageId })) {
     // if (firedDocumentChanges.get(document.uri) !== document.version) {
     //   firedDocumentChanges.set(document.uri, document.version);
     //   workspace.onDidChangeMarkdownDocument.fire(document);
@@ -240,15 +223,9 @@ function prepare(document: TextDocument) {
   return false;
 }
 
-function matchDocument(
-  selector: DocumentSelector,
-  document: { languageId: string }
-) {
+function matchDocument(selector: DocumentSelector, document: { languageId: string }) {
   for (const sel of selector) {
-    if (
-      sel === document.languageId ||
-      (typeof sel === "object" && sel.language === document.languageId)
-    ) {
+    if (sel === document.languageId || (typeof sel === 'object' && sel.language === document.languageId)) {
       return true;
     }
   }
@@ -271,21 +248,21 @@ async function processWorkspace(
   cwd: string,
   files: VFile[],
   alwaysStringify: boolean,
-  ignoreUnconfigured: boolean
+  ignoreUnconfigured: boolean,
 ): Promise<VFile[]> {
-  let processor: EngineOptions["processor"];
+  let processor: EngineOptions['processor'];
 
   try {
-    processor = (await loadPlugin("aiml", {
-      from: pathToFileURL(cwd + "/").toString(),
-      key: "aiml-processor",
-    })) as EngineOptions["processor"];
+    processor = (await loadPlugin('aiml', {
+      from: pathToFileURL(cwd + '/').toString(),
+      key: 'aiml-processor',
+    })) as EngineOptions['processor'];
   } catch (error) {
     const exception: NodeJS.ErrnoException = error as NodeJS.ErrnoException;
 
     // Pass other funky errors through.
     /* c8 ignore next 3 */
-    if (exception.code !== "ERR_MODULE_NOT_FOUND") {
+    if (exception.code !== 'ERR_MODULE_NOT_FOUND') {
       throw error;
     }
   }
@@ -296,14 +273,14 @@ async function processWorkspace(
         alwaysStringify,
         cwd,
         files,
-        ignoreName: ".aimlignore",
+        ignoreName: '.aimlignore',
         ignoreUnconfigured,
-        packageField: "aiml",
-        pluginPrefix: "aiml",
+        packageField: 'aiml',
+        pluginPrefix: 'aiml',
         plugins: [],
         processor,
         quiet: false,
-        rcName: ".aimlrc",
+        rcName: '.aimlrc',
         silentlyIgnore: true,
         streamError: new PassThrough(),
         streamOut: new PassThrough(),
@@ -319,7 +296,7 @@ async function processWorkspace(
         }
 
         resolve(files);
-      }
+      },
     );
   });
 }

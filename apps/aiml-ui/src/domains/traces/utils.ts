@@ -84,15 +84,15 @@ export const refineTraces = (traces: Span[], isWorkflow: boolean = false): Refin
   }, {});
 
   const tracesData = Object.entries(groupedTraces).map(([key, value]) => {
-    const parentSpan = value.find(span => !span.parentSpanId || !listOfSpanIds.has(span.parentSpanId));
+    const parentSpan = value.find((span) => !span.parentSpanId || !listOfSpanIds.has(span.parentSpanId));
 
-    const enrichedSpans = value.map(span => ({
+    const enrichedSpans = value.map((span) => ({
       ...span,
       parentSpanId: parentSpan?.id === span.id ? null : span?.parentSpanId,
       relativePercentage: parentSpan ? span.duration / parentSpan.duration : 0,
     }));
 
-    const failedStatus = value.find(span => span.status.code !== 0)?.status;
+    const failedStatus = value.find((span) => span.status.code !== 0)?.status;
     return {
       traceId: key,
       serviceName: parentSpan?.name || key,

@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { AgentInformation } from "@/domains/agents/agent-information";
-import { AgentTraces } from "@/domains/agents/agent-traces";
-import { TraceProvider } from "@/domains/traces/context/trace-context";
-import { useAgent } from "@/hooks/use-agents";
+import { AgentInformation } from '@/domains/agents/agent-information';
+import { AgentTraces } from '@/domains/agents/agent-traces';
+import { TraceProvider } from '@/domains/traces/context/trace-context';
+import { useAgent } from '@/hooks/use-agents';
 
 export default function AgentTracesPage({
   params,

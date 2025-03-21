@@ -3,7 +3,7 @@
 import { Plus, X } from 'lucide-react';
 import * as React from 'react';
 import { type Control, useWatch } from 'react-hook-form';
-import { ZodSchema } from 'zod';
+import type { ZodSchema } from 'zod';
 
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -55,7 +55,7 @@ export function RecordField({ name, control, handleFieldChange }: RecordFieldPro
   );
 
   const handleChange = (id: string, field: 'key' | 'value', newValue: string) => {
-    setPairs(prev => prev.map(pair => (pair.id === id ? { ...pair, [field]: newValue } : pair)));
+    setPairs((prev) => prev.map((pair) => (pair.id === id ? { ...pair, [field]: newValue } : pair)));
   };
 
   const handleBlur = () => {
@@ -69,7 +69,7 @@ export function RecordField({ name, control, handleFieldChange }: RecordFieldPro
   };
 
   const removePair = (id: string) => {
-    const newPairs = pairs.filter(p => p.id !== id);
+    const newPairs = pairs.filter((p) => p.id !== id);
     if (newPairs.length === 0) {
       newPairs.push({ id: crypto.randomUUID(), key: '', value: '' });
     }
@@ -79,7 +79,7 @@ export function RecordField({ name, control, handleFieldChange }: RecordFieldPro
 
   return (
     <div className="space-y-3">
-      {pairs.map(pair => (
+      {pairs.map((pair) => (
         <div key={pair.id} className="relative space-y-2 rounded-lg border p-4">
           <Button
             type="button"
@@ -94,13 +94,13 @@ export function RecordField({ name, control, handleFieldChange }: RecordFieldPro
             <Input
               placeholder="Key"
               value={pair.key}
-              onChange={e => handleChange(pair.id, 'key', e.target.value)}
+              onChange={(e) => handleChange(pair.id, 'key', e.target.value)}
               onBlur={handleBlur}
             />
             <Input
               placeholder="Value"
               value={pair.value}
-              onChange={e => handleChange(pair.id, 'value', e.target.value)}
+              onChange={(e) => handleChange(pair.id, 'value', e.target.value)}
               onBlur={handleBlur}
             />
           </div>

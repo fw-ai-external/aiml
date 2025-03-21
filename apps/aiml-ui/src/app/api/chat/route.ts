@@ -1,24 +1,19 @@
-import { Workflow, hydreateElementTree } from "@fireworks/runtime";
-import fs from "node:fs";
+import fs from 'node:fs';
+import { Workflow, hydreateElementTree } from '@fireworks/runtime';
 
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
   const { messages, workflowId } = await req.json();
-  console.log("workflowId", workflowId);
-  console.log("messages", messages);
+  console.log('workflowId', workflowId);
+  console.log('messages', messages);
 
   let persistedWorkflow;
   try {
-    const fileContent = fs.readFileSync(
-      `./.workflows/${workflowId}.json`,
-      "utf8"
-    );
+    const fileContent = fs.readFileSync(`./.workflows/${workflowId}.json`, 'utf8');
     persistedWorkflow = JSON.parse(fileContent);
   } catch (error) {
-    throw new Error(
-      `Error reading workflow file: ${error instanceof Error ? error.message : "Unknown error"}`
-    );
+    throw new Error(`Error reading workflow file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     // Continue with empty workflow object
   }
 
@@ -33,10 +28,8 @@ export async function POST(req: Request) {
         FIREWORKS_BASE_URL: process.env.FIREWORKS_BASE_URL,
       },
     },
-    systemMessage: messages.find((m: any) => m.role === "system")?.content,
-    chatHistory: messages.filter(
-      (m: any, i: number) => i !== messages.length - 1 && m.role !== "system"
-    ),
+    systemMessage: messages.find((m: any) => m.role === 'system')?.content,
+    chatHistory: messages.filter((m: any, i: number) => i !== messages.length - 1 && m.role !== 'system'),
   });
 
   // const fireworks = createFireworks({

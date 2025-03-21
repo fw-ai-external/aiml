@@ -1,16 +1,16 @@
+import { afterEach, beforeEach, test } from 'bun:test';
 /**
  * @import {LanguageServerHandle} from '@volar/test-utils'
  */
-import assert from "node:assert/strict";
-import { afterEach, beforeEach, test } from "bun:test";
-import { createServer, fixturePath, fixtureUri, tsdk } from "./utils.js";
+import assert from 'node:assert/strict';
+import { createServer, fixturePath, fixtureUri, tsdk } from './utils.js';
 
 /** @type {LanguageServerHandle} */
 let serverHandle;
 
 beforeEach(async () => {
   serverHandle = createServer();
-  await serverHandle.initialize(fixtureUri("node16"), {
+  await serverHandle.initialize(fixtureUri('node16'), {
     typescript: { enabled: true, tsdk },
   });
 });
@@ -19,18 +19,15 @@ afterEach(() => {
   serverHandle.connection.dispose();
 });
 
-test("resolve folding ranges", async () => {
-  const { uri } = await serverHandle.openTextDocument(
-    fixturePath("node16/mixed.mdx"),
-    "mdx"
-  );
+test('resolve folding ranges', async () => {
+  const { uri } = await serverHandle.openTextDocument(fixturePath('node16/mixed.mdx'), 'mdx');
   const result = await serverHandle.sendFoldingRangesRequest(uri);
 
   assert.deepEqual(result, [
     {
       endCharacter: 4,
       endLine: 4,
-      kind: "comment",
+      kind: 'comment',
       startCharacter: 1,
       startLine: 2,
     },
@@ -85,8 +82,8 @@ test("resolve folding ranges", async () => {
   ]);
 });
 
-test("ignore non-existent mdx files", async () => {
-  const uri = fixtureUri("node16/non-existent.mdx");
+test('ignore non-existent mdx files', async () => {
+  const uri = fixtureUri('node16/non-existent.mdx');
   const result = await serverHandle.sendFoldingRangesRequest(uri);
 
   assert.deepEqual(result, null);

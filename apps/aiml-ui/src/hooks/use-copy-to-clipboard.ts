@@ -1,15 +1,12 @@
-import { useCallback, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 type UseCopyToClipboardProps = {
   text: string;
   copyMessage?: string;
 };
 
-export function useCopyToClipboard({
-  text,
-  copyMessage = "Copied to clipboard!",
-}: UseCopyToClipboardProps) {
+export function useCopyToClipboard({ text, copyMessage = 'Copied to clipboard!' }: UseCopyToClipboardProps) {
   const [isCopied, setIsCopied] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -28,7 +25,7 @@ export function useCopyToClipboard({
         }, 2000);
       })
       .catch(() => {
-        toast.error("Failed to copy to clipboard.");
+        toast.error('Failed to copy to clipboard.');
       });
   }, [text, copyMessage]);
 

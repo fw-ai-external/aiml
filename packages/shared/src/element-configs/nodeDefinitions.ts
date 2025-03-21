@@ -1,11 +1,8 @@
-import { ElementDefinition, ElementType } from "../types";
+import type { ElementDefinition, ElementType } from '../types';
 
 const nodeDefinitionClasses = new Map<string, ElementDefinition>();
 
-export function registerNodeDefinitionClass(
-  tag: string,
-  nodeClass: ElementDefinition
-): void {
+export function registerNodeDefinitionClass(tag: string, nodeClass: ElementDefinition): void {
   nodeDefinitionClasses.set(tag, nodeClass);
 }
 
@@ -29,9 +26,7 @@ export function isSupportedNodeName(nodeName: string): boolean {
 }
 
 // Function to register all element configs to be called from index.ts after allElementConfigs is defined
-export function registerAllElementConfigs(
-  configs: Record<ElementType, ElementDefinition>
-): void {
+export function registerAllElementConfigs(configs: Record<ElementType, ElementDefinition>): void {
   Object.entries(configs).forEach(([tag, config]) => {
     registerNodeDefinitionClass(tag, config);
     registerSupportedNodeName(tag);

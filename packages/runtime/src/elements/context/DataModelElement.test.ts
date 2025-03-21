@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from "bun:test";
-import { BaseElement } from "../BaseElement";
-import { ValueType } from "./DataElement";
+import { beforeEach, describe, expect, it } from 'bun:test';
+import type { BaseElement } from '../BaseElement';
+import type { ValueType } from './DataElement';
 
 // Define a local version of the ScopedDataModel interface and implementation
 // to avoid import issues
@@ -28,7 +28,7 @@ function createScopedDataModel(
   elementId: string,
   variables: Record<string, any> = {},
   metadata: Record<string, DataElementMetadata> = {},
-  parentScope?: ScopedDataModel
+  parentScope?: ScopedDataModel,
 ): ScopedDataModel {
   // Create a local copy of the variables and metadata
   const localVariables = { ...variables };
@@ -37,7 +37,7 @@ function createScopedDataModel(
   return {
     get(key: string): any | undefined {
       // Special case for metadata
-      if (key === "__metadata") {
+      if (key === '__metadata') {
         return this.getAllMetadata();
       }
 
@@ -102,10 +102,7 @@ function createScopedDataModel(
 
     getAllMetadata(): Record<string, DataElementMetadata> {
       const allMetadata = parentScope
-        ? (parentScope.get("__metadata") as Record<
-            string,
-            DataElementMetadata
-          >) || {}
+        ? (parentScope.get('__metadata') as Record<string, DataElementMetadata>) || {}
         : {};
 
       // Local metadata overrides parent metadata
@@ -125,7 +122,7 @@ function createScopedDataModel(
   };
 }
 
-describe("DataModelElement with scoping", () => {
+describe('DataModelElement with scoping', () => {
   let parentElement: BaseElement;
   let childElement: BaseElement;
   let grandchildElement: BaseElement;
@@ -134,7 +131,7 @@ describe("DataModelElement with scoping", () => {
   beforeEach(() => {
     // Create mock elements for testing
     parentElement = {
-      id: "parent",
+      id: 'parent',
       children: [],
       _parentElementId: undefined,
       _childrenIds: [],
@@ -146,11 +143,11 @@ describe("DataModelElement with scoping", () => {
     } as unknown as BaseElement;
 
     childElement = {
-      id: "child",
+      id: 'child',
       children: [],
-      _parentElementId: "parent",
+      _parentElementId: 'parent',
       _childrenIds: [],
-      getAncestorIds: () => ["parent"],
+      getAncestorIds: () => ['parent'],
       addChild: (child: any) => {
         (childElement as any)._childrenIds.push(child.id);
         (child as any)._parentElementId = childElement.id;
@@ -158,20 +155,20 @@ describe("DataModelElement with scoping", () => {
     } as unknown as BaseElement;
 
     grandchildElement = {
-      id: "grandchild",
+      id: 'grandchild',
       children: [],
-      _parentElementId: "child",
+      _parentElementId: 'child',
       _childrenIds: [],
-      getAncestorIds: () => ["child", "parent"],
+      getAncestorIds: () => ['child', 'parent'],
       addChild: () => {},
     } as unknown as BaseElement;
 
     siblingElement = {
-      id: "sibling",
+      id: 'sibling',
       children: [],
-      _parentElementId: "parent",
+      _parentElementId: 'parent',
       _childrenIds: [],
-      getAncestorIds: () => ["parent"],
+      getAncestorIds: () => ['parent'],
       addChild: () => {},
     } as unknown as BaseElement;
 
@@ -182,14 +179,14 @@ describe("DataModelElement with scoping", () => {
     grandchildElement.children = [];
   });
 
-  it("should create a scoped data model with proper hierarchy", () => {
+  it('should create a scoped data model with proper hierarchy', () => {
     // Create data models for each element
     const parentDataModel = {
-      parentVar: "parent value",
+      parentVar: 'parent value',
       __metadata: {
         parentVar: {
-          id: "parent",
-          type: "string",
+          id: 'parent',
+          type: 'string',
           readonly: false,
           fromRequest: false,
           parentStateId: null,
@@ -198,76 +195,67 @@ describe("DataModelElement with scoping", () => {
     };
 
     const childDataModel = {
-      childVar: "child value",
+      childVar: 'child value',
       __metadata: {
         childVar: {
-          id: "child",
-          type: "string",
+          id: 'child',
+          type: 'string',
           readonly: false,
           fromRequest: false,
-          parentStateId: "parent",
+          parentStateId: 'parent',
         },
       },
     };
 
     const grandchildDataModel = {
-      grandchildVar: "grandchild value",
+      grandchildVar: 'grandchild value',
       __metadata: {
         grandchildVar: {
-          id: "grandchild",
-          type: "string",
+          id: 'grandchild',
+          type: 'string',
           readonly: false,
           fromRequest: false,
-          parentStateId: "child",
+          parentStateId: 'child',
         },
       },
     };
 
     // Create scoped data models
-    const parentScoped = createScopedDataModel(
-      "parent",
-      parentDataModel,
-      parentDataModel.__metadata
-    );
+    const parentScoped = createScopedDataModel('parent', parentDataModel, parentDataModel.__metadata);
 
-    const childScoped = createScopedDataModel(
-      "child",
-      childDataModel,
-      childDataModel.__metadata,
-      parentScoped
-    );
+    const childScoped = createScopedDataModel('child', childDataModel, childDataModel.__metadata, parentScoped);
 
     const grandchildScoped = createScopedDataModel(
-      "grandchild",
+      'grandchild',
       grandchildDataModel,
       grandchildDataModel.__metadata,
-      childScoped
+      childScoped,
     );
 
     // Test variable access from grandchild
-    expect(grandchildScoped.get("grandchildVar")).toBe("grandchild value");
-    expect(grandchildScoped.get("childVar")).toBe("child value");
-    expect(grandchildScoped.get("parentVar")).toBe("parent value");
+    expect(grandchildScoped.get('grandchildVar')).toBe('grandchild value');
+    expect(grandchildScoped.get('childVar')).toBe('child value');
+    expect(grandchildScoped.get('parentVar')).toBe('parent value');
 
     // Test variable access from child
-    expect(childScoped.get("childVar")).toBe("child value");
-    expect(childScoped.get("parentVar")).toBe("parent value");
-    expect(childScoped.get("grandchildVar")).toBeUndefined();
+    expect(childScoped.get('childVar')).toBe('child value');
+    expect(childScoped.get('parentVar')).toBe('parent value');
+    expect(childScoped.get('grandchildVar')).toBeUndefined();
 
     // Test variable access from parent
-    expect(parentScoped.get("parentVar")).toBe("parent value");
-    expect(parentScoped.get("childVar")).toBeUndefined();
-    expect(parentScoped.get("grandchildVar")).toBeUndefined();
+    expect(parentScoped.get('parentVar')).toBe('parent value');
+    expect(parentScoped.get('childVar')).toBeUndefined();
+    expect(parentScoped.get('grandchildVar')).toBeUndefined();
   });
 
-  it("should respect readonly properties", () => {
+  it('should respect readonly properties', () => {
     // Create data models with readonly properties
     const parentDataModel = {
-      readonlyVar: "cannot change",
+      readonlyVar: 'cannot change',
       __metadata: {
         readonlyVar: {
-          id: "parent",
-          type: "string",
+          id: 'parent',
+          type: 'string',
           readonly: true,
           fromRequest: false,
           parentStateId: null,
@@ -276,29 +264,25 @@ describe("DataModelElement with scoping", () => {
     };
 
     // Create scoped data model
-    const parentScoped = createScopedDataModel(
-      "parent",
-      parentDataModel,
-      parentDataModel.__metadata
-    );
+    const parentScoped = createScopedDataModel('parent', parentDataModel, parentDataModel.__metadata);
 
     // Test setting readonly variable
     expect(() => {
-      parentScoped.set("readonlyVar", "new value");
-    }).toThrow("Cannot assign to readonly variable");
+      parentScoped.set('readonlyVar', 'new value');
+    }).toThrow('Cannot assign to readonly variable');
 
     // Verify value didn't change
-    expect(parentScoped.get("readonlyVar")).toBe("cannot change");
+    expect(parentScoped.get('readonlyVar')).toBe('cannot change');
   });
 
-  it("should handle fromRequest variables correctly", () => {
+  it('should handle fromRequest variables correctly', () => {
     // Create data models with fromRequest properties
     const parentDataModel = {
-      userInput: "user message",
+      userInput: 'user message',
       __metadata: {
         userInput: {
-          id: "parent",
-          type: "string",
+          id: 'parent',
+          type: 'string',
           readonly: true,
           fromRequest: true,
           parentStateId: null,
@@ -307,49 +291,40 @@ describe("DataModelElement with scoping", () => {
     };
 
     const childDataModel = {
-      childVar: "child value",
+      childVar: 'child value',
       __metadata: {
         childVar: {
-          id: "child",
-          type: "string",
+          id: 'child',
+          type: 'string',
           readonly: false,
           fromRequest: false,
-          parentStateId: "parent",
+          parentStateId: 'parent',
         },
       },
     };
 
     // Create scoped data models
-    const parentScoped = createScopedDataModel(
-      "parent",
-      parentDataModel,
-      parentDataModel.__metadata
-    );
+    const parentScoped = createScopedDataModel('parent', parentDataModel, parentDataModel.__metadata);
 
-    const childScoped = createScopedDataModel(
-      "child",
-      childDataModel,
-      childDataModel.__metadata,
-      parentScoped
-    );
+    const childScoped = createScopedDataModel('child', childDataModel, childDataModel.__metadata, parentScoped);
 
     // Child should be able to access parent's fromRequest variable
-    expect(childScoped.get("userInput")).toBe("user message");
+    expect(childScoped.get('userInput')).toBe('user message');
 
     // But should not be able to modify it
     expect(() => {
-      childScoped.set("userInput", "new value");
-    }).toThrow("Cannot assign to readonly variable");
+      childScoped.set('userInput', 'new value');
+    }).toThrow('Cannot assign to readonly variable');
   });
 
-  it("should allow setting variables in the correct scope", () => {
+  it('should allow setting variables in the correct scope', () => {
     // Create data models
     const parentDataModel = {
-      parentVar: "parent value",
+      parentVar: 'parent value',
       __metadata: {
         parentVar: {
-          id: "parent",
-          type: "string",
+          id: 'parent',
+          type: 'string',
           readonly: false,
           fromRequest: false,
           parentStateId: null,
@@ -358,53 +333,44 @@ describe("DataModelElement with scoping", () => {
     };
 
     const childDataModel = {
-      childVar: "child value",
+      childVar: 'child value',
       __metadata: {
         childVar: {
-          id: "child",
-          type: "string",
+          id: 'child',
+          type: 'string',
           readonly: false,
           fromRequest: false,
-          parentStateId: "parent",
+          parentStateId: 'parent',
         },
       },
     };
 
     // Create scoped data models
-    const parentScoped = createScopedDataModel(
-      "parent",
-      parentDataModel,
-      parentDataModel.__metadata
-    );
+    const parentScoped = createScopedDataModel('parent', parentDataModel, parentDataModel.__metadata);
 
-    const childScoped = createScopedDataModel(
-      "child",
-      childDataModel,
-      childDataModel.__metadata,
-      parentScoped
-    );
+    const childScoped = createScopedDataModel('child', childDataModel, childDataModel.__metadata, parentScoped);
 
     // Child should be able to modify its own variables
-    childScoped.set("childVar", "new child value");
-    expect(childScoped.get("childVar")).toBe("new child value");
+    childScoped.set('childVar', 'new child value');
+    expect(childScoped.get('childVar')).toBe('new child value');
 
     // Child should be able to modify parent's variables
-    childScoped.set("parentVar", "new parent value");
-    expect(childScoped.get("parentVar")).toBe("new parent value");
-    expect(parentScoped.get("parentVar")).toBe("new parent value");
+    childScoped.set('parentVar', 'new parent value');
+    expect(childScoped.get('parentVar')).toBe('new parent value');
+    expect(parentScoped.get('parentVar')).toBe('new parent value');
 
     // Parent should not see child's variables
-    expect(parentScoped.get("childVar")).toBeUndefined();
+    expect(parentScoped.get('childVar')).toBeUndefined();
   });
 
-  it("should create new variables in the local scope", () => {
+  it('should create new variables in the local scope', () => {
     // Create data models
     const parentDataModel = {
-      parentVar: "parent value",
+      parentVar: 'parent value',
       __metadata: {
         parentVar: {
-          id: "parent",
-          type: "string",
+          id: 'parent',
+          type: 'string',
           readonly: false,
           fromRequest: false,
           parentStateId: null,
@@ -413,44 +379,35 @@ describe("DataModelElement with scoping", () => {
     };
 
     const childDataModel = {
-      childVar: "child value",
+      childVar: 'child value',
       __metadata: {
         childVar: {
-          id: "child",
-          type: "string",
+          id: 'child',
+          type: 'string',
           readonly: false,
           fromRequest: false,
-          parentStateId: "parent",
+          parentStateId: 'parent',
         },
       },
     };
 
     // Create scoped data models
-    const parentScoped = createScopedDataModel(
-      "parent",
-      parentDataModel,
-      parentDataModel.__metadata
-    );
+    const parentScoped = createScopedDataModel('parent', parentDataModel, parentDataModel.__metadata);
 
-    const childScoped = createScopedDataModel(
-      "child",
-      childDataModel,
-      childDataModel.__metadata,
-      parentScoped
-    );
+    const childScoped = createScopedDataModel('child', childDataModel, childDataModel.__metadata, parentScoped);
 
     // Create a new variable in the child scope
-    childScoped.set("newVar", "new value");
-    expect(childScoped.get("newVar")).toBe("new value");
+    childScoped.set('newVar', 'new value');
+    expect(childScoped.get('newVar')).toBe('new value');
 
     // Parent should not see the new variable
-    expect(parentScoped.get("newVar")).toBeUndefined();
+    expect(parentScoped.get('newVar')).toBeUndefined();
 
     // Create a new variable in the parent scope
-    parentScoped.set("newParentVar", "new parent value");
-    expect(parentScoped.get("newParentVar")).toBe("new parent value");
+    parentScoped.set('newParentVar', 'new parent value');
+    expect(parentScoped.get('newParentVar')).toBe('new parent value');
 
     // Child should see the new parent variable
-    expect(childScoped.get("newParentVar")).toBe("new parent value");
+    expect(childScoped.get('newParentVar')).toBe('new parent value');
   });
 });

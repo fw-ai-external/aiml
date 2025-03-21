@@ -1,12 +1,8 @@
-import { Connection, Hover } from "vscode-languageserver";
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { DebugLogger } from "../utils/debug";
-import {
-  buildActiveToken,
-  getOwnerAttributeName,
-  getOwnerTagName,
-} from "../utils/token";
-import { parseToTokens } from "../acorn";
+import type { Connection, Hover } from 'vscode-languageserver';
+import type { TextDocument } from 'vscode-languageserver-textdocument';
+import { parseToTokens } from '../acorn';
+import type { DebugLogger } from '../utils/debug';
+import { buildActiveToken, getOwnerAttributeName, getOwnerTagName } from '../utils/token';
 
 /**
  * Mock implementation of the hover provider for testing.
@@ -15,13 +11,13 @@ import { parseToTokens } from "../acorn";
 export class MockHoverProvider {
   private mockElementConfigs = {
     state: {
-      documentation: "State element documentation",
+      documentation: 'State element documentation',
       propsSchema: {
         shape: {
           id: {
-            type: "string",
-            description: "State identifier (unique within a workflow)",
-            constructor: { name: "Object" },
+            type: 'string',
+            description: 'State identifier (unique within a workflow)',
+            constructor: { name: 'Object' },
           },
         },
       },
@@ -30,7 +26,7 @@ export class MockHoverProvider {
 
   constructor(
     private connection: Connection,
-    private logger: DebugLogger
+    private logger: DebugLogger,
   ) {}
 
   /**
@@ -39,10 +35,7 @@ export class MockHoverProvider {
    * @param position The position in the document
    * @returns Hover information or null if none available
    */
-  public getHover(
-    document: TextDocument,
-    position: { line: number; character: number }
-  ): Hover | null {
+  public getHover(document: TextDocument, position: { line: number; character: number }): Hover | null {
     try {
       const offset = document.offsetAt(position);
       const content = document.getText();
@@ -50,11 +43,11 @@ export class MockHoverProvider {
       const token = buildActiveToken(tokens, offset);
 
       this.logger.info(
-        `Processing hover request - uri: ${document.uri}, offset: ${offset}, position: ${JSON.stringify(position)}`
+        `Processing hover request - uri: ${document.uri}, offset: ${offset}, position: ${JSON.stringify(position)}`,
       );
 
       if (!token.token) {
-        this.logger.info("No token found at position");
+        this.logger.info('No token found at position');
         return null;
       }
 
@@ -63,18 +56,12 @@ export class MockHoverProvider {
       const attrNameToken = getOwnerAttributeName(token.all, token.index);
 
       if (!tagNameToken) {
-        this.logger.info("No tag name found at position");
+        this.logger.info('No tag name found at position');
         return null;
       }
 
-      const tagName = content.substring(
-        tagNameToken.startIndex,
-        tagNameToken.endIndex
-      );
-      const elementConfig =
-        this.mockElementConfigs[
-          tagName as keyof typeof this.mockElementConfigs
-        ];
+      const tagName = content.substring(tagNameToken.startIndex, tagNameToken.endIndex);
+      const elementConfig = this.mockElementConfigs[tagName as keyof typeof this.mockElementConfigs];
 
       if (!elementConfig) {
         this.logger.info(`No element config found for tag: ${tagName}`);
@@ -85,23 +72,15 @@ export class MockHoverProvider {
 
       // If hovering over an attribute
       if (attrNameToken) {
-        const attrName = content.substring(
-          attrNameToken.startIndex,
-          attrNameToken.endIndex
-        );
-        const schema =
-          elementConfig.propsSchema.shape[
-            attrName as keyof typeof elementConfig.propsSchema.shape
-          ];
+        const attrName = content.substring(attrNameToken.startIndex, attrNameToken.endIndex);
+        const schema = elementConfig.propsSchema.shape[attrName as keyof typeof elementConfig.propsSchema.shape];
 
         if (schema) {
-          this.logger.info(
-            `Found attribute schema for hover - attrName: ${attrName}`
-          );
+          this.logger.info(`Found attribute schema for hover - attrName: ${attrName}`);
           return {
             contents: {
-              kind: "markdown",
-              value: `**${tagName}.${attrName}**\n\n${elementConfig.documentation || ""}\n\nAttribute type: ${schema.constructor.name}`,
+              kind: 'markdown',
+              value: `**${tagName}.${attrName}**\n\n${elementConfig.documentation || ''}\n\nAttribute type: ${schema.constructor.name}`,
             },
             range: {
               start: document.positionAt(attrNameToken.startIndex),
@@ -117,7 +96,7 @@ export class MockHoverProvider {
       // If hovering over the element name
       return {
         contents: {
-          kind: "markdown",
+          kind: 'markdown',
           value: `**${tagName}**\n\n${elementConfig.documentation || `${tagName} element`}`,
         },
         range: {
@@ -126,8 +105,7 @@ export class MockHoverProvider {
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Error providing hover information: ${errorMessage}`);
       if (error instanceof Error && error.stack) {
         this.logger.error(error.stack);

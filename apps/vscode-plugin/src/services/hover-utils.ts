@@ -1,6 +1,6 @@
-import { Hover } from "vscode-languageserver";
-import { Token } from "../acorn";
-import { DebugLogger } from "../utils/debug";
+import type { Hover } from 'vscode-languageserver';
+import type { Token } from '../acorn';
+import type { DebugLogger } from '../utils/debug';
 
 type ElementConfig = {
   documentation: string;
@@ -16,13 +16,13 @@ export function generateElementHover(
   tagName: string,
   elementConfig: ElementConfig,
   range: { start: any; end: any },
-  logger: DebugLogger
+  logger: DebugLogger,
 ): Hover | null {
   logger.info(`Generating hover for element: ${tagName}`);
 
   return {
     contents: {
-      kind: "markdown",
+      kind: 'markdown',
       value: `**${tagName}**\n\n${elementConfig.documentation || `${tagName} element`}`,
     },
     range,
@@ -38,7 +38,7 @@ export function generateAttributeHover(
   elementConfig: ElementConfig,
   schema: any,
   range: { start: any; end: any },
-  logger: DebugLogger
+  logger: DebugLogger,
 ): Hover | null {
   logger.info(`Generating hover for attribute: ${tagName}.${attrName}`);
 
@@ -48,12 +48,12 @@ export function generateAttributeHover(
   }
 
   // Safely get the constructor name
-  const typeName = schema.constructor ? schema.constructor.name : "Object";
+  const typeName = schema.constructor ? schema.constructor.name : 'Object';
 
   return {
     contents: {
-      kind: "markdown",
-      value: `**${tagName}.${attrName}**\n\n${elementConfig.documentation || ""}\n\nAttribute type: ${typeName}`,
+      kind: 'markdown',
+      value: `**${tagName}.${attrName}**\n\n${elementConfig.documentation || ''}\n\nAttribute type: ${typeName}`,
     },
     range,
   };
@@ -64,17 +64,13 @@ export function generateAttributeHover(
  */
 export function getTextFromToken(content: string, token: Token): string {
   try {
-    if (
-      token.startIndex < 0 ||
-      token.endIndex > content.length ||
-      token.startIndex >= token.endIndex
-    ) {
-      console.error("Invalid token bounds:", token);
-      return "";
+    if (token.startIndex < 0 || token.endIndex > content.length || token.startIndex >= token.endIndex) {
+      console.error('Invalid token bounds:', token);
+      return '';
     }
     return content.substring(token.startIndex, token.endIndex);
   } catch (error) {
-    console.error("Error extracting text from token:", error);
-    return "";
+    console.error('Error extracting text from token:', error);
+    return '';
   }
 }

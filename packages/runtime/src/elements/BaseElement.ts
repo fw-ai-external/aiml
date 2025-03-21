@@ -1,25 +1,19 @@
-import {
-  type ElementType,
-  type SerializedElement,
-  type SerializedElementConfig,
-  type ElementRole,
-  type AllowedChildrenType,
+import type {
+  AllowedChildrenType,
+  ElementRole,
+  ElementType,
   SerializedBaseElement,
-} from "@fireworks/shared";
-import { z } from "zod";
-import { ActionContext as MastraActionContext } from "@mastra/core";
-import { BuildContext } from "../graphBuilder/Context";
-import {
-  ExecutionGraphElement,
-  ExecutionReturnType,
-  RuntimeElementDefinition,
-} from "../types";
-import { defaultStepExecutionGraphMapper } from "../utils";
-import { ElementExecutionContext } from "../ElementExecutionContext";
+  SerializedElement,
+  SerializedElementConfig,
+} from '@fireworks/shared';
+import type { ActionContext as MastraActionContext } from '@mastra/core';
+import { z } from 'zod';
+import { ElementExecutionContext } from '../ElementExecutionContext';
+import type { BuildContext } from '../graphBuilder/Context';
+import type { ExecutionGraphElement, ExecutionReturnType, RuntimeElementDefinition } from '../types';
+import { defaultStepExecutionGraphMapper } from '../utils';
 
-export class BaseElement
-  implements Omit<SerializedElement, "parent" | "children">
-{
+export class BaseElement implements Omit<SerializedElement, 'parent' | 'children'> {
   public readonly inputSchema = z.object({
     input: z.any(),
     other: z.any(),
@@ -39,12 +33,10 @@ export class BaseElement
   public readonly schema: z.ZodType<any>;
   public readonly propsSchema: any;
   public readonly description?: string;
-  public readonly onExecutionGraphConstruction: (
-    buildContext: BuildContext
-  ) => ExecutionGraphElement;
+  public readonly onExecutionGraphConstruction: (buildContext: BuildContext) => ExecutionGraphElement;
   public readonly enter?: () => Promise<void>;
   public readonly exit?: () => Promise<void>;
-  public readonly type: "element" = "element";
+  public readonly type: 'element' = 'element';
   public readonly lineStart: number;
   public readonly lineEnd: number;
   public readonly columnStart: number;
@@ -57,22 +49,20 @@ export class BaseElement
   protected _parentElementId?: string;
   protected _childrenIds: string[] = [];
   private stepConditions?: {
-    when: (
-      context: InstanceType<typeof ElementExecutionContext>
-    ) => Promise<boolean>;
+    when: (context: InstanceType<typeof ElementExecutionContext>) => Promise<boolean>;
   };
   private _isActive: boolean = false;
   private _execute?: (
     context: InstanceType<typeof ElementExecutionContext<any, any>>,
-    childrenNodes: BaseElement[]
+    childrenNodes: BaseElement[],
   ) => Promise<ExecutionReturnType>;
 
   constructor(
-    config: Omit<RuntimeElementDefinition, "propsSchema"> &
-      Omit<SerializedElementConfig, "parent" | "children"> & {
+    config: Omit<RuntimeElementDefinition, 'propsSchema'> &
+      Omit<SerializedElementConfig, 'parent' | 'children'> & {
         children?: BaseElement[];
         parent?: WeakRef<BaseElement>;
-      }
+      },
   ) {
     this.id = config.id;
     this.key = config.key;
@@ -81,9 +71,7 @@ export class BaseElement
     this.elementType = config.elementType;
     this.attributes = config.attributes ?? {};
     this.children = config.children ?? [];
-    this._parent = config.parent
-      ? (config.parent as WeakRef<BaseElement>)
-      : undefined;
+    this._parent = config.parent ? (config.parent as WeakRef<BaseElement>) : undefined;
 
     // Set parent ID if parent is provided
     if (this._parent) {
@@ -95,8 +83,7 @@ export class BaseElement
     }
     this.allowedChildren = config.allowedChildren;
     this.schema = config.schema;
-    this.onExecutionGraphConstruction =
-      config.onExecutionGraphConstruction ?? defaultStepExecutionGraphMapper;
+    this.onExecutionGraphConstruction = config.onExecutionGraphConstruction ?? defaultStepExecutionGraphMapper;
     this.enter = config.enter;
     this.exit = config.exit;
     this.propsSchema = config.propsSchema ?? z.object({});
@@ -134,30 +121,24 @@ export class BaseElement
 
   get conditions():
     | {
-        when: (
-          context: InstanceType<typeof ElementExecutionContext>
-        ) => Promise<boolean>;
+        when: (context: InstanceType<typeof ElementExecutionContext>) => Promise<boolean>;
       }
     | undefined {
     return this.stepConditions;
   }
 
-  set conditions(
-    value:
-      | {
-          when: (
-            context: InstanceType<typeof ElementExecutionContext>
-          ) => Promise<boolean>;
-        }
-      | undefined
-  ) {
+  set conditions(value:
+    | {
+        when: (context: InstanceType<typeof ElementExecutionContext>) => Promise<boolean>;
+      }
+    | undefined) {
     this.stepConditions = value;
   }
 
   // must be declared as a property arrow function to avoid binding issues
   execute = async (
     context: MastraActionContext<any>,
-    childrenNodes: BaseElement[] = []
+    childrenNodes: BaseElement[] = [],
   ): Promise<ExecutionReturnType> => {
     if (!this._execute) {
       // Default execution if no _execute is defined
@@ -194,10 +175,10 @@ export class BaseElement
             id: context.runId,
           },
         }),
-        childrenNodes
+        childrenNodes,
       ).catch((error) => {
-        console.error("Error executing element:", error);
-        console.error("Error executing element:", error);
+        console.error('Error executing element:', error);
+        console.error('Error executing element:', error);
         // Return an error object that will be handled by the runtime
         return {
           result: context.context.input,
@@ -208,9 +189,7 @@ export class BaseElement
       if (!executeResult?.result) {
         return {
           result: context.context.input,
-          exception: new Error(
-            "No result in element " + this.tag + " " + this.id
-          ),
+          exception: new Error('No result in element ' + this.tag + ' ' + this.id),
         } as ExecutionReturnType;
       }
 
@@ -222,21 +201,17 @@ export class BaseElement
 
       // Apply any context updates if provided
       if (executeResult.contextUpdate) {
-        for (const [key, value] of Object.entries(
-          executeResult.contextUpdate
-        )) {
+        for (const [key, value] of Object.entries(executeResult.contextUpdate)) {
           this._dataModel[key] = value;
         }
       }
 
       return executeResult;
     } catch (error) {
-      console.error("Error executing element:", error);
+      console.error('Error executing element:', error);
       return {
         result: context.context.input,
-        exception: new Error(
-          "Error executing element " + this.tag + " " + this.id
-        ),
+        exception: new Error('Error executing element ' + this.tag + ' ' + this.id),
       } as ExecutionReturnType;
     }
   };
@@ -250,9 +225,7 @@ export class BaseElement
 
   protected getDefaultStepConditions():
     | {
-        when: (
-          context: InstanceType<typeof ElementExecutionContext>
-        ) => Promise<boolean>;
+        when: (context: InstanceType<typeof ElementExecutionContext>) => Promise<boolean>;
       }
     | undefined {
     return undefined;
@@ -260,9 +233,7 @@ export class BaseElement
 
   public getStepConditions():
     | {
-        when: (
-          context: InstanceType<typeof ElementExecutionContext>
-        ) => Promise<boolean>;
+        when: (context: InstanceType<typeof ElementExecutionContext>) => Promise<boolean>;
       }
     | undefined {
     return this.stepConditions ?? this.getDefaultStepConditions();
@@ -270,7 +241,7 @@ export class BaseElement
 
   protected evaluateExpr(expr: string, context: unknown): unknown {
     const fnBody = `with(_data) { with(context) { return ${expr}; } }`;
-    return new Function("context", "_data", fnBody)(context, this._dataModel);
+    return new Function('context', '_data', fnBody)(context, this._dataModel);
   }
 
   /**
@@ -312,9 +283,7 @@ export class BaseElement
     return ancestors;
   }
 
-  protected getParentOfType<T extends BaseElement>(
-    type: ElementType
-  ): T | undefined {
+  protected getParentOfType<T extends BaseElement>(type: ElementType): T | undefined {
     let current: BaseElement | undefined = this._parent?.deref();
     while (current) {
       if (current.elementType === type) {
@@ -339,7 +308,7 @@ export class BaseElement
 
   toJSON(): SerializedBaseElement {
     return {
-      type: "element",
+      type: 'element',
       id: this.id,
       key: this.key,
       tag: this.tag,
@@ -367,7 +336,7 @@ export type ElementPredicate = (node: Node) => boolean;
 //   T extends Component<infer P> ? P : never;
 
 export function isElement(value: unknown): value is BaseElement {
-  return value !== null && typeof value === "object" && "tag" in value;
+  return value !== null && typeof value === 'object' && 'tag' in value;
 }
 
 export function Fragment({ children }: { children: Node }): Node {

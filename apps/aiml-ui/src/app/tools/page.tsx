@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-import { Header } from "@/components/ui/header";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Header } from '@/components/ui/header';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
-import { useAgent, useAgents } from "@/hooks/use-agents";
-import { useTools } from "@/hooks/use-all-tools";
+import { useAgent, useAgents } from '@/hooks/use-agents';
+import { useTools } from '@/hooks/use-all-tools';
 
 export default function Tools() {
   const { agents, isLoading: isLoadingAgents } = useAgents();
@@ -35,10 +35,7 @@ export default function Tools() {
               </div>
               <div className="flex flex-col gap-2">
                 {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="flex gap-2 items-center px-2 py-2 rounded-md bg-aiml-bg-13"
-                  >
+                  <div key={i} className="flex gap-2 items-center px-2 py-2 rounded-md bg-aiml-bg-13">
                     <Skeleton className="h-3 w-3" />
                     <Skeleton className="h-4 w-24" />
                   </div>
@@ -86,8 +83,8 @@ export default function Tools() {
             {Object.keys(tools).length > 0 && (
               <li
                 className={cn(
-                  "px-2 py-2 rounded-md hover:bg-aiml-bg-4/80 transition-colors cursor-pointer",
-                  isAllTools && "bg-aiml-bg-4/80"
+                  'px-2 py-2 rounded-md hover:bg-aiml-bg-4/80 transition-colors cursor-pointer',
+                  isAllTools && 'bg-aiml-bg-4/80',
                 )}
                 onClick={handleSelectAllTools}
               >
@@ -114,8 +111,8 @@ export default function Tools() {
               <li
                 key={key}
                 className={cn(
-                  "px-2 py-2 rounded-md hover:bg-aiml-bg-4/80 transition-colors cursor-pointer",
-                  selectedAgentId === key && "bg-aiml-bg-4/80"
+                  'px-2 py-2 rounded-md hover:bg-aiml-bg-4/80 transition-colors cursor-pointer',
+                  selectedAgentId === key && 'bg-aiml-bg-4/80',
                 )}
                 onClick={() => handleSelectAgent(key)}
               >
@@ -171,26 +168,20 @@ export default function Tools() {
                   className="hover:bg-aiml-bg-4/80 transition-colors flex flex-col gap-[0.62rem] bg-aiml-bg-13 px-[0.62rem] py-2 rounded-[0.375rem] cursor-pointer border-[0.5px] border-aiml-border-1"
                 >
                   <h3 className="text-small text-aiml-el-6">{name}</h3>
-                  <p className="text-small text-aiml-el-2">
-                    {tool.description}
-                  </p>
+                  <p className="text-small text-aiml-el-2">{tool.description}</p>
                 </div>
               ))
             ) : (
               Object.entries(agent?.tools ?? {}).map(([name, tool], index) => (
                 <div
                   onClick={() => {
-                    router.push(
-                      `/tools/${selectedAgentId}/${"id" in tool ? tool.id : ""}`
-                    );
+                    router.push(`/tools/${selectedAgentId}/${'id' in tool ? tool.id : ''}`);
                   }}
                   key={index}
                   className="hover:bg-aiml-bg-4/80 transition-colors flex flex-col gap-[0.62rem] bg-aiml-bg-13 px-[0.62rem] py-2 rounded-[0.375rem] cursor-pointer border-[0.5px] border-aiml-border-1"
                 >
                   <h3 className="text-small text-aiml-el-6">{name}</h3>
-                  <p className="text-small text-aiml-el-2">
-                    {tool.description}
-                  </p>
+                  <p className="text-small text-aiml-el-2">{tool.description}</p>
                 </div>
               ))
             )}

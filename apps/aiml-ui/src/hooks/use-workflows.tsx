@@ -1,14 +1,8 @@
-"use client";
-import type { Workflow } from "@mastra/core/workflows";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { toast } from "sonner";
-import { SerializedBaseElement } from "@fireworks/shared";
+'use client';
+import type { SerializedBaseElement } from '@fireworks/shared';
+import type { Workflow } from '@mastra/core/workflows';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export const useWorkflows = () => {
   const [workflows, setWorkflows] = useState<Record<string, Workflow>>({});
@@ -18,20 +12,20 @@ export const useWorkflows = () => {
     const fetchWorkflows = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch("/api/workflows");
+        const res = await fetch('/api/workflows');
         if (!res.ok) {
           const error = await res.json();
           setWorkflows({});
-          console.error("Error fetching workflows", error);
-          toast.error(error?.error || "Error fetching workflows");
+          console.error('Error fetching workflows', error);
+          toast.error(error?.error || 'Error fetching workflows');
           return;
         }
         const data = await res.json();
         setWorkflows(data);
       } catch (error) {
         setWorkflows({});
-        console.error("Error fetching workflows", error);
-        toast.error("Error fetching workflows");
+        console.error('Error fetching workflows', error);
+        toast.error('Error fetching workflows');
       } finally {
         setIsLoading(false);
       }
@@ -58,28 +52,23 @@ type WorkflowContextType = {
       })
     | null;
   isLoading: boolean;
-  setWorkflow: (workflow: WorkflowContextType["workflow"]) => void;
+  setWorkflow: (workflow: WorkflowContextType['workflow']) => void;
   setIsLoading: (isLoading: boolean) => void;
 };
 
-const WorkflowContext = createContext<WorkflowContextType | undefined>(
-  undefined
-);
+const WorkflowContext = createContext<WorkflowContextType | undefined>(undefined);
 
 export function WorkflowProvider({
   children,
   workflow: initialWorkflow,
 }: {
   children: React.ReactNode;
-  workflow: WorkflowContextType["workflow"];
+  workflow: WorkflowContextType['workflow'];
 }) {
-  const [workflow, setWorkflow] =
-    useState<WorkflowContextType["workflow"]>(initialWorkflow);
+  const [workflow, setWorkflow] = useState<WorkflowContextType['workflow']>(initialWorkflow);
   const [isLoading, setIsLoading] = useState(true);
   return (
-    <WorkflowContext.Provider
-      value={{ workflow, isLoading, setWorkflow, setIsLoading }}
-    >
+    <WorkflowContext.Provider value={{ workflow, isLoading, setWorkflow, setIsLoading }}>
       {children}
     </WorkflowContext.Provider>
   );
@@ -88,9 +77,7 @@ export function WorkflowProvider({
 export const useWorkflow = (workflowId: string) => {
   const context = useContext(WorkflowContext);
   if (!context) {
-    throw new Error(
-      "useWorkflowContext must be used within a WorkflowProvider"
-    );
+    throw new Error('useWorkflowContext must be used within a WorkflowProvider');
   }
   const { workflow, setWorkflow, isLoading, setIsLoading } = context;
 
@@ -109,16 +96,16 @@ export const useWorkflow = (workflowId: string) => {
       if (!res.ok) {
         const error = await res.json();
         setWorkflow(null);
-        console.error("Error fetching workflow", error);
-        toast.error(error?.error || "Error fetching workflow");
+        console.error('Error fetching workflow', error);
+        toast.error(error?.error || 'Error fetching workflow');
         return;
       }
       const workflow = await res.json();
       setWorkflow(workflow);
     } catch (error) {
       setWorkflow(null);
-      console.error("Error fetching workflow", error);
-      toast.error("Error fetching workflow");
+      console.error('Error fetching workflow', error);
+      toast.error('Error fetching workflow');
     } finally {
       setIsLoading(false);
     }
@@ -135,12 +122,12 @@ export const useWorkflow = (workflowId: string) => {
     async (prompt: string) => {
       setIsUpdating(true);
       const res = await fetch(`/api/workflows/${workflowId}`, {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({ ...workflow, prompt }),
       });
       if (!res.ok) {
         const error = await res.json();
-        toast.error(error?.error || "Error updating workflow");
+        toast.error(error?.error || 'Error updating workflow');
       } else {
         const data = await res.json();
 
@@ -149,7 +136,7 @@ export const useWorkflow = (workflowId: string) => {
 
       setIsUpdating(false);
     },
-    [workflowId, workflow]
+    [workflowId, workflow],
   );
 
   return {
@@ -181,22 +168,22 @@ export const useExecuteWorkflow = () => {
     try {
       setIsExecutingWorkflow(true);
       const response = await fetch(`/api/workflows/${workflowId}/execute`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(input || {}),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        toast.error(error?.error || "Error executing workflow");
+        toast.error(error?.error || 'Error executing workflow');
         return;
       }
 
       return await response.json();
     } catch (error) {
-      console.error("Error executing workflow:", error);
+      console.error('Error executing workflow:', error);
       throw error;
     } finally {
       setIsExecutingWorkflow(false);
@@ -217,25 +204,25 @@ export const useWatchWorkflow = () => {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error?.error || "Error watching workflow");
+        throw new Error(error?.error || 'Error watching workflow');
       }
 
       const reader = response.body?.getReader();
 
       if (!reader) {
-        throw new Error("No reader available");
+        throw new Error('No reader available');
       }
 
-      let buffer = "";
+      let buffer = '';
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
         buffer += new TextDecoder().decode(value);
 
-        const records = buffer.split("\x1E");
+        const records = buffer.split('\x1E');
 
-        buffer = records.pop() || "";
+        buffer = records.pop() || '';
 
         for (const record of records) {
           if (record.trim()) {
@@ -249,7 +236,7 @@ export const useWatchWorkflow = () => {
         }
       }
     } catch (error) {
-      console.error("Error watching workflow:", error);
+      console.error('Error watching workflow:', error);
       throw error;
     } finally {
       setIsWatchingWorkflow(false);
@@ -276,22 +263,22 @@ export const useResumeWorkflow = () => {
     try {
       setIsResumingWorkflow(true);
       const response = await fetch(`/api/workflows/${workflowId}/resume`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ stepId, runId, context }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        toast.error(error?.error || "Error resuming workflow");
+        toast.error(error?.error || 'Error resuming workflow');
         return;
       }
 
       return await response.json();
     } catch (error) {
-      console.error("Error resuming workflow:", error);
+      console.error('Error resuming workflow:', error);
       throw error;
     } finally {
       setIsResumingWorkflow(false);

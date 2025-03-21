@@ -50,7 +50,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       <PopoverContent className="backdrop-blur-4xl w-auto p-0" align="start" data-testid="datepicker-calendar">
         <DatePickerOnly
           value={value}
-          setValue={v => setValue(v ? new Date(`${v}z`) : null)} // TODO: Leave in the Z to prevent casting via timezone
+          setValue={(v) => setValue(v ? new Date(`${v}z`) : null)} // TODO: Leave in the Z to prevent casting via timezone
           clearable={props.clearable}
           setOpenPopover={setOpenPopover}
           {...props}
@@ -84,7 +84,7 @@ export const DatePickerOnly = ({
     }
   }, 2000);
 
-  const handleInputChange: React.ChangeEventHandler<HTMLInputElement> = e => {
+  const handleInputChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     setInputValue(e.currentTarget.value);
     const date = new Date(e.target.value);
     debouncedDateUpdate(date);
@@ -114,7 +114,7 @@ export const DatePickerOnly = ({
     <div
       aria-label="Choose date"
       className="relative mt-2 flex flex-col gap-2"
-      onKeyDown={e => {
+      onKeyDown={(e) => {
         e.stopPropagation();
         if (e.key === 'Escape') {
           setOpenPopover?.(false);

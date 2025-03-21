@@ -1,6 +1,7 @@
 import { cva } from 'class-variance-authority';
 import type { VariantProps } from 'class-variance-authority';
-import React, { useMemo } from 'react';
+import type React from 'react';
+import { useMemo } from 'react';
 
 import { FilePreview } from '../../components/ui/file-preview';
 import { MarkdownRenderer } from '../../components/ui/markdown-renderer';
@@ -85,7 +86,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   const isUser = role === 'user';
 
   const files = useMemo(() => {
-    return experimental_attachments?.map(attachment => {
+    return experimental_attachments?.map((attachment) => {
       const dataArray = dataUrlToUint8Array(attachment.url);
       const file = new File([dataArray], attachment.name ?? 'Unknown');
       return file;

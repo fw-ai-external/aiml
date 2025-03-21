@@ -19,7 +19,7 @@ export function DateField({ name, control, handleFieldChange }: DateFieldProps) 
       render={({ field }) => (
         <DatePicker
           value={field.value}
-          setValue={date => {
+          setValue={(date) => {
             field.onChange(date);
             handleFieldChange?.({ key: name, value: date });
           }}

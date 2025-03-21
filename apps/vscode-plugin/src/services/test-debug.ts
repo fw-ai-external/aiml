@@ -1,4 +1,4 @@
-import { mock } from "bun:test";
+import { mock } from 'bun:test';
 
 /**
  * Debug utility for tests to help troubleshoot module loading issues
@@ -14,9 +14,7 @@ export function debugModuleLoading(moduleName: string): void {
     module.constructor.prototype.require = function (path: string) {
       if (path.includes(moduleName)) {
         console.log(`[TEST-DEBUG] Module require called for: ${path}`);
-        console.log(
-          `[TEST-DEBUG] Call stack: ${new Error().stack?.split("\n").slice(1, 4).join("\n")}`
-        );
+        console.log(`[TEST-DEBUG] Call stack: ${new Error().stack?.split('\n').slice(1, 4).join('\n')}`);
       }
       return originalRequire.apply(this, [path]);
     };
@@ -41,17 +39,17 @@ export function debugModuleLoading(moduleName: string): void {
  * Creates mock package with better debugging for circular dependencies
  */
 export function createElementConfigMock() {
-  console.log("[TEST-DEBUG] Creating element-config mock");
+  console.log('[TEST-DEBUG] Creating element-config mock');
 
   const mockAllElementConfigs = {
     state: {
-      documentation: "State element documentation",
+      documentation: 'State element documentation',
       propsSchema: {
         shape: {
           id: {
-            type: "string",
-            description: "State identifier (unique within a workflow)",
-            constructor: { name: "Object" },
+            type: 'string',
+            description: 'State identifier (unique within a workflow)',
+            constructor: { name: 'Object' },
           },
         },
       },
@@ -62,23 +60,23 @@ export function createElementConfigMock() {
     allElementConfigs: mockAllElementConfigs,
     isSupportedNodeName: (nodeName: string) => {
       console.log(`[TEST-DEBUG] isSupportedNodeName called with: ${nodeName}`);
-      return nodeName === "state";
+      return nodeName === 'state';
     },
     getNodeDefinitionClass: (tag: string) => {
       console.log(`[TEST-DEBUG] getNodeDefinitionClass called with: ${tag}`);
-      if (tag === "state") {
+      if (tag === 'state') {
         return mockAllElementConfigs.state;
       }
       return null;
     },
     registerNodeDefinitionClass: mock(() => {
-      console.log("[TEST-DEBUG] registerNodeDefinitionClass called");
+      console.log('[TEST-DEBUG] registerNodeDefinitionClass called');
     }),
     allStateElementConfigs: [],
   };
 
-  console.log("[TEST-DEBUG] Mocking @fireworks/element-config module");
-  mock.module("@fireworks/element-config", () => mockExports);
+  console.log('[TEST-DEBUG] Mocking @fireworks/shared module');
+  mock.module('@fireworks/shared', () => mockExports);
 
   return mockExports;
 }

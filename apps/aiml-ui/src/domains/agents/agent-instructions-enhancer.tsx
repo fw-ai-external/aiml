@@ -1,11 +1,11 @@
-import { AlertDialog } from "@/components/ui/alert-dialog";
+import { AlertDialog } from '@/components/ui/alert-dialog';
 
-import { useAgent } from "@/hooks/use-agents";
+import { useAgent } from '@/hooks/use-agents';
 
-import { CurrentInstructions } from "./components/current-instructions";
-import { VersionHistory } from "./components/version-history";
-import { usePromptEnhancer } from "./hooks/use-prompt-enhancer";
-import { usePromptVersions } from "./hooks/use-prompt-versions";
+import { CurrentInstructions } from './components/current-instructions';
+import { VersionHistory } from './components/version-history';
+import { usePromptEnhancer } from './hooks/use-prompt-enhancer';
+import { usePromptVersions } from './hooks/use-prompt-versions';
 
 interface AgentPromptEnhancerProps {
   agentId: string;
@@ -71,19 +71,12 @@ export function AgentPromptEnhancer({ agentId }: AgentPromptEnhancerProps) {
         />
       </div>
 
-      <AlertDialog
-        open={versionToDelete !== null}
-        onOpenChange={() => setVersionToDelete(null)}
-      >
+      <AlertDialog open={versionToDelete !== null} onOpenChange={() => setVersionToDelete(null)}>
         <AlertDialog.Content>
           <AlertDialog.Header>
-            <AlertDialog.Title>
-              Delete Version{" "}
-              {versionToDelete !== null ? versionToDelete.id : ""}
-            </AlertDialog.Title>
+            <AlertDialog.Title>Delete Version {versionToDelete !== null ? versionToDelete.id : ''}</AlertDialog.Title>
             <AlertDialog.Description>
-              Are you sure you want to delete this version? This action cannot
-              be undone.
+              Are you sure you want to delete this version? This action cannot be undone.
             </AlertDialog.Description>
           </AlertDialog.Header>
           <AlertDialog.Footer>

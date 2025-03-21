@@ -1,4 +1,4 @@
-import { DataElementMetadata } from "@fireworks/shared";
+import type { DataElementMetadata } from '@fireworks/shared';
 
 /**
  * Interface for a scoped data model that provides access to variables
@@ -88,7 +88,7 @@ export function createScopedDataModel(
   elementId: string,
   variables: Record<string, any> = {},
   metadata: Record<string, DataElementMetadata> = {},
-  parentScope?: ScopedDataModel
+  parentScope?: ScopedDataModel,
 ): ScopedDataModel {
   // Create a local copy of the variables and metadata
   const localVariables = { ...variables };
@@ -97,7 +97,7 @@ export function createScopedDataModel(
   return {
     get(key: string): any | undefined {
       // Special case for metadata
-      if (key === "__metadata") {
+      if (key === '__metadata') {
         return this.getAllMetadata();
       }
 
@@ -162,10 +162,7 @@ export function createScopedDataModel(
 
     getAllMetadata(): Record<string, DataElementMetadata> {
       const allMetadata = parentScope
-        ? (parentScope.get("__metadata") as Record<
-            string,
-            DataElementMetadata
-          >) || {}
+        ? (parentScope.get('__metadata') as Record<string, DataElementMetadata>) || {}
         : {};
 
       // Local metadata overrides parent metadata
@@ -202,11 +199,7 @@ export function createScopedDataModel(
  * @param elementId The current element ID
  * @returns True if the variable is accessible, false otherwise
  */
-export function isVariableAccessible(
-  model: ScopedDataModel,
-  key: string,
-  elementId: string
-): boolean {
+export function isVariableAccessible(model: ScopedDataModel, key: string, elementId: string): boolean {
   // If the variable doesn't exist, it's not accessible
   if (!model.has(key)) {
     return false;

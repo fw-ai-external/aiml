@@ -1,10 +1,6 @@
-import { describe, expect, it, mock } from "bun:test";
-import {
-  generateElementHover,
-  generateAttributeHover,
-  getTextFromToken,
-} from "./hover-utils";
-import { Token, TokenType } from "../acorn";
+import { describe, expect, it, mock } from 'bun:test';
+import { type Token, TokenType } from '../acorn';
+import { generateAttributeHover, generateElementHover, getTextFromToken } from './hover-utils';
 
 // Create a mock logger
 const mockLogger = {
@@ -16,13 +12,13 @@ const mockLogger = {
   state: mock(() => {}),
 };
 
-describe.skip("hover-utils", () => {
-  describe("generateElementHover", () => {
-    it("should generate markdown hover content for an element", () => {
+describe.skip('hover-utils', () => {
+  describe('generateElementHover', () => {
+    it('should generate markdown hover content for an element', () => {
       // Arrange
-      const tagName = "state";
+      const tagName = 'state';
       const elementConfig = {
-        documentation: "State element documentation",
+        documentation: 'State element documentation',
         propsSchema: { shape: {} },
       };
       const range = {
@@ -31,30 +27,23 @@ describe.skip("hover-utils", () => {
       };
 
       // Act
-      const hover = generateElementHover(
-        tagName,
-        elementConfig,
-        range,
-        mockLogger
-      );
+      const hover = generateElementHover(tagName, elementConfig, range, mockLogger);
 
       // Assert
       expect(hover).not.toBeNull();
       expect(hover?.contents).toEqual({
-        kind: "markdown",
-        value: "**state**\n\nState element documentation",
+        kind: 'markdown',
+        value: '**state**\n\nState element documentation',
       });
       expect(hover?.range).toBe(range);
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        "Generating hover for element: state"
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith('Generating hover for element: state');
     });
 
-    it("should use tag name as fallback when documentation is missing", () => {
+    it('should use tag name as fallback when documentation is missing', () => {
       // Arrange
-      const tagName = "state";
+      const tagName = 'state';
       const elementConfig = {
-        documentation: "",
+        documentation: '',
         propsSchema: { shape: {} },
       };
       const range = {
@@ -63,35 +52,30 @@ describe.skip("hover-utils", () => {
       };
 
       // Act
-      const hover = generateElementHover(
-        tagName,
-        elementConfig,
-        range,
-        mockLogger
-      );
+      const hover = generateElementHover(tagName, elementConfig, range, mockLogger);
 
       // Assert
       expect(hover).not.toBeNull();
       expect(hover?.contents).toEqual({
-        kind: "markdown",
-        value: "**state**\n\nstate element",
+        kind: 'markdown',
+        value: '**state**\n\nstate element',
       });
     });
   });
 
-  describe.skip("generateAttributeHover", () => {
-    it.skip("should generate markdown hover content for an attribute", () => {
+  describe.skip('generateAttributeHover', () => {
+    it.skip('should generate markdown hover content for an attribute', () => {
       // Arrange
-      const tagName = "state";
-      const attrName = "id";
+      const tagName = 'state';
+      const attrName = 'id';
       const elementConfig = {
-        documentation: "State element documentation",
+        documentation: 'State element documentation',
         propsSchema: { shape: {} },
       };
       const schema = {
-        type: "string",
-        description: "State identifier",
-        constructor: { name: "Object" },
+        type: 'string',
+        description: 'State identifier',
+        constructor: { name: 'Object' },
       };
       const range = {
         start: { line: 0, character: 7 },
@@ -99,39 +83,26 @@ describe.skip("hover-utils", () => {
       };
 
       // Act
-      const hover = generateAttributeHover(
-        tagName,
-        attrName,
-        elementConfig,
-        schema,
-        range,
-        mockLogger
-      );
+      const hover = generateAttributeHover(tagName, attrName, elementConfig, schema, range, mockLogger);
 
       // Assert
       expect(hover).not.toBeNull();
-      if (
-        hover &&
-        typeof hover.contents === "object" &&
-        "kind" in hover.contents
-      ) {
-        expect(hover.contents.kind).toBe("markdown");
-        expect(hover.contents.value).toContain("**state.id**");
-        expect(hover.contents.value).toContain("State element documentation");
-        expect(hover.contents.value).toContain("Attribute type: Object");
+      if (hover && typeof hover.contents === 'object' && 'kind' in hover.contents) {
+        expect(hover.contents.kind).toBe('markdown');
+        expect(hover.contents.value).toContain('**state.id**');
+        expect(hover.contents.value).toContain('State element documentation');
+        expect(hover.contents.value).toContain('Attribute type: Object');
       }
       expect(hover?.range).toBe(range);
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        "Generating hover for attribute: state.id"
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith('Generating hover for attribute: state.id');
     });
 
-    it("should return null for missing schema", () => {
+    it('should return null for missing schema', () => {
       // Arrange
-      const tagName = "state";
-      const attrName = "unknown";
+      const tagName = 'state';
+      const attrName = 'unknown';
       const elementConfig = {
-        documentation: "State element documentation",
+        documentation: 'State element documentation',
         propsSchema: { shape: {} },
       };
       const schema = null;
@@ -141,33 +112,24 @@ describe.skip("hover-utils", () => {
       };
 
       // Act
-      const hover = generateAttributeHover(
-        tagName,
-        attrName,
-        elementConfig,
-        schema,
-        range,
-        mockLogger
-      );
+      const hover = generateAttributeHover(tagName, attrName, elementConfig, schema, range, mockLogger);
 
       // Assert
       expect(hover).toBeNull();
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        "No schema found for attribute: unknown"
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith('No schema found for attribute: unknown');
     });
 
-    it("should handle missing constructor safely", () => {
+    it('should handle missing constructor safely', () => {
       // Arrange
-      const tagName = "state";
-      const attrName = "id";
+      const tagName = 'state';
+      const attrName = 'id';
       const elementConfig = {
-        documentation: "State element documentation",
+        documentation: 'State element documentation',
         propsSchema: { shape: {} },
       };
       const schema = {
-        type: "string",
-        description: "State identifier",
+        type: 'string',
+        description: 'State identifier',
         // No constructor property
       };
       const range = {
@@ -176,57 +138,46 @@ describe.skip("hover-utils", () => {
       };
 
       // Act
-      const hover = generateAttributeHover(
-        tagName,
-        attrName,
-        elementConfig,
-        schema,
-        range,
-        mockLogger
-      );
+      const hover = generateAttributeHover(tagName, attrName, elementConfig, schema, range, mockLogger);
 
       // Assert
       expect(hover).not.toBeNull();
-      if (
-        hover &&
-        typeof hover.contents === "object" &&
-        "kind" in hover.contents
-      ) {
-        expect(hover.contents.value).toContain("Attribute type: Object");
+      if (hover && typeof hover.contents === 'object' && 'kind' in hover.contents) {
+        expect(hover.contents.value).toContain('Attribute type: Object');
       }
     });
   });
 
-  describe("getTextFromToken", () => {
-    it("should extract text from document content using token bounds", () => {
+  describe('getTextFromToken', () => {
+    it('should extract text from document content using token bounds', () => {
       // Arrange
       const content = "<state id='test'/>";
       const mockToken = {
         type: TokenType.TagName,
         startIndex: 1,
         endIndex: 6,
-        text: "state",
+        text: 'state',
         index: 0,
-        raw: "state",
+        raw: 'state',
       } as unknown as Token;
 
       // Act
       const text = getTextFromToken(content, mockToken);
 
       // Assert
-      expect(text).toBe("state");
+      expect(text).toBe('state');
     });
 
-    it("should handle errors gracefully", () => {
+    it('should handle errors gracefully', () => {
       // Arrange - create an invalid token
       const content = "<state id='test'/>";
       const mockToken = {
         type: TokenType.TagName,
         startIndex: -1, // Invalid index
         endIndex: 50, // Out of bounds
-        text: "state",
+        text: 'state',
         index: 0,
-        raw: "state",
+        raw: 'state',
       } as unknown as Token;
 
       // Spy on console.error
@@ -238,7 +189,7 @@ describe.skip("hover-utils", () => {
         const text = getTextFromToken(content, mockToken);
 
         // Assert
-        expect(text).toBe("");
+        expect(text).toBe('');
         expect(console.error).toHaveBeenCalled();
       } finally {
         // Restore console.error

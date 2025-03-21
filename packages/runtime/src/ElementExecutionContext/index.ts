@@ -5,23 +5,13 @@
  * It separates the execution context from the element definition.
  */
 
-import type {
-  CoreAssistantMessage,
-  CoreToolMessage,
-  CoreUserMessage,
-  UserContent,
-} from "ai";
-import { StepValue } from "../StepValue";
-import { BaseElement } from "../elements/BaseElement";
-import {
-  ScopedDataModel,
-  type StepValueResult,
-  type Secrets,
-  SerializedBaseElement,
-} from "@fireworks/shared";
-import { ChatCompletionMessageToolCall } from "openai/resources/chat/completions";
-import { hydreateElementTree } from "../hydrateElementTree";
-import { createScopedDataModel } from "../elements";
+import type { ScopedDataModel, Secrets, SerializedBaseElement, StepValueResult } from '@fireworks/shared';
+import type { CoreAssistantMessage, CoreToolMessage, CoreUserMessage, UserContent } from 'ai';
+import type { ChatCompletionMessageToolCall } from 'openai/resources/chat/completions';
+import { StepValue } from '../StepValue';
+import { createScopedDataModel } from '../elements';
+import { BaseElement } from '../elements/BaseElement';
+import { hydreateElementTree } from '../hydrateElementTree';
 
 type TagNodeDTO = any;
 
@@ -30,15 +20,15 @@ type TagNodeDTO = any;
  */
 export type ElementExecutionContextSerialized = Omit<
   InstanceType<typeof ExecutionContext>,
-  | "serialize"
-  | "builtinKeys"
-  | "_scopedDataModel"
-  | "_createDataModelProxy"
-  | "createChildContext"
-  | "hydrate"
-  | "element"
-  | "toJSON"
-  | "toString"
+  | 'serialize'
+  | 'builtinKeys'
+  | '_scopedDataModel'
+  | '_createDataModelProxy'
+  | 'createChildContext'
+  | 'hydrate'
+  | 'element'
+  | 'toJSON'
+  | 'toString'
 > & {
   element?: SerializedBaseElement;
   parentContext?: ElementExecutionContextSerialized;
@@ -47,20 +37,9 @@ export type ElementExecutionContextSerialized = Omit<
 /**
  * Execution context for elements
  */
-export class ExecutionContext<
-  PropValues extends {} = {},
-  InputValue extends StepValueResult = StepValueResult,
-> {
+export class ExecutionContext<PropValues extends {} = {}, InputValue extends StepValueResult = StepValueResult> {
   // Static property for built-in keys that should match the serialized output
-  static builtinKeys = [
-    "input",
-    "requestInput",
-    "datamodel",
-    "props",
-    "state",
-    "run",
-    "machine",
-  ];
+  static builtinKeys = ['input', 'requestInput', 'datamodel', 'props', 'state', 'run', 'machine'];
 
   // Input into the active element via the output of the last
   input: StepValue<InputValue>;
@@ -68,9 +47,7 @@ export class ExecutionContext<
   requestInput: {
     userMessage: UserContent;
     systemMessage?: string;
-    chatHistory: Array<
-      CoreUserMessage | CoreAssistantMessage | CoreToolMessage
-    >;
+    chatHistory: Array<CoreUserMessage | CoreAssistantMessage | CoreToolMessage>;
     clientSideTools: ChatCompletionMessageToolCall.Function[];
     secrets: Secrets;
   };
@@ -107,9 +84,7 @@ export class ExecutionContext<
     requestInput: {
       userMessage: UserContent;
       systemMessage?: string;
-      chatHistory: Array<
-        CoreUserMessage | CoreAssistantMessage | CoreToolMessage
-      >;
+      chatHistory: Array<CoreUserMessage | CoreAssistantMessage | CoreToolMessage>;
       clientSideTools: ChatCompletionMessageToolCall.Function[];
       secrets: Secrets;
     };
@@ -143,14 +118,11 @@ export class ExecutionContext<
         params.element.id,
         params.datamodel,
         params.datamodel.__metadata as Record<string, any>,
-        parentDataModel
+        parentDataModel,
       );
 
       // Create a proxy for the datamodel that enforces scoping rules
-      this.datamodel = this._createDataModelProxy(
-        this._scopedDataModel,
-        params.element.id
-      );
+      this.datamodel = this._createDataModelProxy(this._scopedDataModel, params.element.id);
     } else {
       // If no element is provided, use the datamodel as is
       this.datamodel = params.datamodel;
@@ -172,10 +144,7 @@ export class ExecutionContext<
   /**
    * Creates a proxy for the datamodel that enforces scoping rules
    */
-  private _createDataModelProxy(
-    scopedModel: ScopedDataModel,
-    elementId: string
-  ): Record<string, any> {
+  private _createDataModelProxy(scopedModel: ScopedDataModel, elementId: string): Record<string, any> {
     return new Proxy(
       {},
       {
@@ -183,7 +152,7 @@ export class ExecutionContext<
           const key = String(prop);
 
           // Special case for __metadata
-          if (key === "__metadata") {
+          if (key === '__metadata') {
             return scopedModel.getAllMetadata();
           }
 
@@ -194,8 +163,8 @@ export class ExecutionContext<
           const key = String(prop);
 
           // Don't allow setting __metadata directly
-          if (key === "__metadata") {
-            console.warn("Cannot set __metadata directly");
+          if (key === '__metadata') {
+            console.warn('Cannot set __metadata directly');
             return false;
           }
 
@@ -230,7 +199,7 @@ export class ExecutionContext<
           }
           return undefined;
         },
-      }
+      },
     );
   }
 
@@ -242,8 +211,8 @@ export class ExecutionContext<
     // return all properties that are not methods. if the value is a StepValue, use the value() method
     const serialized = Object.fromEntries(
       Object.entries(this).filter(([key, value]) => {
-        return typeof value !== "function";
-      })
+        return typeof value !== 'function';
+      }),
     );
     // if the value is a StepValue, use the serialize() method
     const entries = Object.entries(serialized).map(async ([key, value]) => {
@@ -260,21 +229,15 @@ export class ExecutionContext<
       return [key, value];
     });
 
-    return Object.fromEntries(
-      (await Promise.all(entries)).filter(([key]) => key !== null)
-    );
+    return Object.fromEntries((await Promise.all(entries)).filter(([key]) => key !== null));
   }
 
   toJSON() {
-    throw new Error(
-      "ExecutionContext cannot be by JSON.stringify, you must use the async serialize() method"
-    );
+    throw new Error('ExecutionContext cannot be by JSON.stringify, you must use the async serialize() method');
   }
 
   toString() {
-    throw new Error(
-      "ExecutionContext cannot be by JSON.stringify, you must use the async serialize() method"
-    );
+    throw new Error('ExecutionContext cannot be by JSON.stringify, you must use the async serialize() method');
   }
 
   /**
@@ -287,7 +250,7 @@ export class ExecutionContext<
   createChildContext<ChildProps extends {}, ChildInput extends StepValueResult>(
     childAttributes: ChildProps,
     childInput: StepValue<ChildInput>,
-    element?: BaseElement
+    element?: BaseElement,
   ): ExecutionContext<ChildProps, ChildInput> {
     return new ExecutionContext<ChildProps, ChildInput>({
       input: childInput,
@@ -313,9 +276,7 @@ export class ExecutionContext<
    * @param serialized The serialized execution context
    * @returns The deserialized execution context
    */
-  static hydrate(
-    serialized: ElementExecutionContextSerialized
-  ): ExecutionContext<any, any> {
+  static hydrate(serialized: ElementExecutionContextSerialized): ExecutionContext<any, any> {
     return new ExecutionContext<any, any>({
       input: new StepValue(serialized.input),
       requestInput: {
@@ -327,9 +288,7 @@ export class ExecutionContext<
       state: serialized.state,
       machine: serialized.machine,
       run: serialized.run,
-      element: serialized.element
-        ? hydreateElementTree([serialized.element])
-        : undefined,
+      element: serialized.element ? hydreateElementTree([serialized.element]) : undefined,
       parentContext: serialized.parentContext,
     });
   }

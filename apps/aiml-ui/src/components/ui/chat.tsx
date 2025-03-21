@@ -1,31 +1,25 @@
-import { ArrowDown, ThumbsDown, ThumbsUp } from "lucide-react";
-import { forwardRef, useCallback, useState } from "react";
-import type { ReactElement } from "react";
+import { ArrowDown, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { forwardRef, useCallback, useState } from 'react';
+import type { ReactElement } from 'react';
 
-import { Button } from "../../components/ui/button";
-import type { Message } from "../../components/ui/chat-message";
-import { CopyButton } from "../../components/ui/copy-button";
-import { MessageInput } from "../../components/ui/message-input";
-import { MessageList } from "../../components/ui/message-list";
-import { PromptSuggestions } from "../../components/ui/prompt-suggestions";
-import { useAutoScroll } from "../../hooks/use-auto-scroll";
-import { cn } from "../../lib/utils";
+import { Button } from '../../components/ui/button';
+import type { Message } from '../../components/ui/chat-message';
+import { CopyButton } from '../../components/ui/copy-button';
+import { MessageInput } from '../../components/ui/message-input';
+import { MessageList } from '../../components/ui/message-list';
+import { PromptSuggestions } from '../../components/ui/prompt-suggestions';
+import { useAutoScroll } from '../../hooks/use-auto-scroll';
+import { cn } from '../../lib/utils';
 
 interface ChatPropsBase {
-  handleSubmit: (
-    event?: { preventDefault?: () => void },
-    options?: { experimental_attachments?: FileList }
-  ) => void;
+  handleSubmit: (event?: { preventDefault?: () => void }, options?: { experimental_attachments?: FileList }) => void;
   messages: Array<Message>;
   input: string;
   className?: string;
   handleInputChange: React.ChangeEventHandler<HTMLTextAreaElement>;
   isGenerating: boolean;
   stop?: () => void;
-  onRateResponse?: (
-    messageId: string,
-    rating: "thumbs-up" | "thumbs-down"
-  ) => void;
+  onRateResponse?: (messageId: string, rating: 'thumbs-up' | 'thumbs-down') => void;
 }
 
 interface ChatPropsWithoutSuggestions extends ChatPropsBase {
@@ -34,7 +28,7 @@ interface ChatPropsWithoutSuggestions extends ChatPropsBase {
 }
 
 interface ChatPropsWithSuggestions extends ChatPropsBase {
-  append: (message: { role: "user"; content: string }) => void;
+  append: (message: { role: 'user'; content: string }) => void;
   suggestions: string[];
 }
 
@@ -54,23 +48,20 @@ export function Chat({
 }: ChatProps) {
   const lastMessage = messages.at(-1);
   const isEmpty = messages.length === 0;
-  const isTyping = lastMessage?.role === "user";
+  const isTyping = lastMessage?.role === 'user';
 
   const messageOptions = useCallback(
     (message: Message) => ({
       actions: onRateResponse ? (
         <>
           <div className="border-r pr-1">
-            <CopyButton
-              content={message.content}
-              copyMessage="Copied response to clipboard!"
-            />
+            <CopyButton content={message.content} copyMessage="Copied response to clipboard!" />
           </div>
           <Button
             size="icon"
             variant="ghost"
             className="h-6 w-6"
-            onClick={() => onRateResponse?.(message.id!, "thumbs-up")}
+            onClick={() => onRateResponse?.(message.id!, 'thumbs-up')}
           >
             <ThumbsUp className="h-4 w-4" />
           </Button>
@@ -78,46 +69,31 @@ export function Chat({
             size="icon"
             variant="ghost"
             className="h-6 w-6"
-            onClick={() => onRateResponse(message.id!, "thumbs-down")}
+            onClick={() => onRateResponse(message.id!, 'thumbs-down')}
           >
             <ThumbsDown className="h-4 w-4" />
           </Button>
         </>
       ) : (
-        <CopyButton
-          content={message.content}
-          copyMessage="Copied response to clipboard!"
-        />
+        <CopyButton content={message.content} copyMessage="Copied response to clipboard!" />
       ),
     }),
-    [onRateResponse]
+    [onRateResponse],
   );
 
   return (
     <ChatContainer className={className}>
       {isEmpty && append && suggestions ? (
-        <PromptSuggestions
-          label="Try these prompts ✨"
-          append={append}
-          suggestions={suggestions}
-        />
+        <PromptSuggestions label="Try these prompts ✨" append={append} suggestions={suggestions} />
       ) : null}
 
       {messages.length > 0 ? (
         <ChatMessages messages={messages}>
-          <MessageList
-            messages={messages}
-            isTyping={isTyping}
-            messageOptions={messageOptions}
-          />
+          <MessageList messages={messages} isTyping={isTyping} messageOptions={messageOptions} />
         </ChatMessages>
       ) : null}
 
-      <ChatForm
-        className="mt-auto"
-        isPending={isGenerating || isTyping}
-        handleSubmit={handleSubmit}
-      >
+      <ChatForm className="mt-auto" isPending={isGenerating || isTyping} handleSubmit={handleSubmit}>
         {({ files, setFiles }) => (
           <MessageInput
             value={input}
@@ -133,7 +109,7 @@ export function Chat({
     </ChatContainer>
   );
 }
-Chat.displayName = "Chat";
+Chat.displayName = 'Chat';
 
 export function ChatMessages({
   messages,
@@ -141,13 +117,7 @@ export function ChatMessages({
 }: React.PropsWithChildren<{
   messages: Message[];
 }>) {
-  const {
-    containerRef,
-    scrollToBottom,
-    handleScroll,
-    shouldAutoScroll,
-    handleTouchStart,
-  } = useAutoScroll([messages]);
+  const { containerRef, scrollToBottom, handleScroll, shouldAutoScroll, handleTouchStart } = useAutoScroll([messages]);
 
   return (
     <div
@@ -156,9 +126,7 @@ export function ChatMessages({
       onScroll={handleScroll}
       onTouchStart={handleTouchStart}
     >
-      <div className="[grid-column:1/1] [grid-row:1/1] max-w-full">
-        {children}
-      </div>
+      <div className="[grid-column:1/1] [grid-row:1/1] max-w-full">{children}</div>
 
       <div className="flex justify-end items-end [grid-column:1/1] [grid-row:1/1] flex-1">
         {!shouldAutoScroll && (
@@ -178,27 +146,17 @@ export function ChatMessages({
   );
 }
 
-export const ChatContainer = forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-  return (
-    <div
-      ref={ref}
-      className={cn("grid max-h-full w-full grid-rows-[1fr_auto]", className)}
-      {...props}
-    />
-  );
-});
-ChatContainer.displayName = "ChatContainer";
+export const ChatContainer = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => {
+    return <div ref={ref} className={cn('grid max-h-full w-full grid-rows-[1fr_auto]', className)} {...props} />;
+  },
+);
+ChatContainer.displayName = 'ChatContainer';
 
 interface ChatFormProps {
   className?: string;
   isPending: boolean;
-  handleSubmit: (
-    event?: { preventDefault?: () => void },
-    options?: { experimental_attachments?: FileList }
-  ) => void;
+  handleSubmit: (event?: { preventDefault?: () => void }, options?: { experimental_attachments?: FileList }) => void;
   children: (props: {
     files: File[] | null;
     setFiles: React.Dispatch<React.SetStateAction<File[] | null>>;
@@ -230,9 +188,9 @@ export const ChatForm = forwardRef<HTMLFormElement, ChatFormProps>(
         {children({ files, setFiles })}
       </form>
     );
-  }
+  },
 );
-ChatForm.displayName = "ChatForm";
+ChatForm.displayName = 'ChatForm';
 
 function createFileList(files: File[] | FileList): FileList {
   const dataTransfer = new DataTransfer();

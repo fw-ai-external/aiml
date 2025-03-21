@@ -1,9 +1,9 @@
+import { afterEach, beforeEach, test } from 'bun:test';
 /**
  * @import {LanguageServerHandle} from '@volar/test-utils'
  */
-import assert from "node:assert/strict";
-import { afterEach, beforeEach, test } from "bun:test";
-import { createServer, fixtureUri, tsdk } from "./utils.js";
+import assert from 'node:assert/strict';
+import { createServer, fixtureUri, tsdk } from './utils.js';
 
 /** @type {LanguageServerHandle} */
 let serverHandle;
@@ -16,32 +16,31 @@ afterEach(() => {
   serverHandle.connection.dispose();
 });
 
-test("initialize", async () => {
-  const { serverInfo, ...initializeResponse } = await serverHandle.initialize(
-    fixtureUri("node16"),
-    { typescript: { enabled: true, tsdk } }
-  );
+test('initialize', async () => {
+  const { serverInfo, ...initializeResponse } = await serverHandle.initialize(fixtureUri('node16'), {
+    typescript: { enabled: true, tsdk },
+  });
   assert.deepEqual(initializeResponse, {
     capabilities: {
       callHierarchyProvider: true,
       codeActionProvider: {
         codeActionKinds: [
-          "source.organizeLinkDefinitions",
-          "quickfix",
-          "refactor",
-          "",
-          "refactor.extract",
-          "refactor.inline",
-          "refactor.rewrite",
-          "source",
-          "source.fixAll",
-          "source.organizeImports",
+          'source.organizeLinkDefinitions',
+          'quickfix',
+          'refactor',
+          '',
+          'refactor.extract',
+          'refactor.inline',
+          'refactor.rewrite',
+          'source',
+          'source.fixAll',
+          'source.organizeImports',
         ],
         resolveProvider: true,
       },
       completionProvider: {
         resolveProvider: true,
-        triggerCharacters: [".", "/", "#", '"', "'", "`", "<", "@", " ", "*"],
+        triggerCharacters: ['.', '/', '#', '"', "'", '`', '<', '@', ' ', '*'],
       },
       definitionProvider: true,
       documentFormattingProvider: true,
@@ -50,25 +49,18 @@ test("initialize", async () => {
         resolveProvider: true,
       },
       documentOnTypeFormattingProvider: {
-        firstTriggerCharacter: ";",
-        moreTriggerCharacter: ["}", "\n"],
+        firstTriggerCharacter: ';',
+        moreTriggerCharacter: ['}', '\n'],
       },
       documentRangeFormattingProvider: true,
       documentSymbolProvider: true,
       executeCommandProvider: {
-        commands: [
-          "mdx.toggleDelete",
-          "mdx.toggleEmphasis",
-          "mdx.toggleInlineCode",
-          "mdx.toggleStrong",
-        ],
+        commands: ['mdx.toggleDelete', 'mdx.toggleEmphasis', 'mdx.toggleInlineCode', 'mdx.toggleStrong'],
       },
       experimental: {
         autoInsertionProvider: {
-          configurationSections: [
-            ["javascript.autoClosingTags", "typescript.autoClosingTags"],
-          ],
-          triggerCharacters: [">"],
+          configurationSections: [['javascript.autoClosingTags', 'typescript.autoClosingTags']],
+          triggerCharacters: ['>'],
         },
         documentDropEditsProvider: true,
         fileReferencesProvider: true,
@@ -86,34 +78,27 @@ test("initialize", async () => {
       semanticTokensProvider: {
         full: false,
         legend: {
-          tokenModifiers: [
-            "declaration",
-            "readonly",
-            "static",
-            "async",
-            "defaultLibrary",
-            "local",
-          ],
+          tokenModifiers: ['declaration', 'readonly', 'static', 'async', 'defaultLibrary', 'local'],
           tokenTypes: [
-            "namespace",
-            "class",
-            "enum",
-            "interface",
-            "typeParameter",
-            "type",
-            "parameter",
-            "variable",
-            "property",
-            "enumMember",
-            "function",
-            "method",
+            'namespace',
+            'class',
+            'enum',
+            'interface',
+            'typeParameter',
+            'type',
+            'parameter',
+            'variable',
+            'property',
+            'enumMember',
+            'function',
+            'method',
           ],
         },
         range: true,
       },
       signatureHelpProvider: {
-        retriggerCharacters: [")"],
-        triggerCharacters: ["(", ",", "<"],
+        retriggerCharacters: [')'],
+        triggerCharacters: ['(', ',', '<'],
       },
       textDocumentSync: 2,
       typeDefinitionProvider: true,

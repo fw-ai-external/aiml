@@ -1,13 +1,10 @@
-import { Plugin, PluggableList } from "unified";
-import { WorkspaceFolder } from "vscode-languageserver";
-import { URI } from "vscode-uri";
+import type { PluggableList, Plugin } from 'unified';
+import type { WorkspaceFolder } from 'vscode-languageserver';
+import type { URI } from 'vscode-uri';
 
 // Define a type for the workspace parameter
 type WorkspaceType = {
-  getWorkspaceFolders: () =>
-    | Promise<WorkspaceFolder[] | null>
-    | WorkspaceFolder[]
-    | null;
+  getWorkspaceFolders: () => Promise<WorkspaceFolder[] | null> | WorkspaceFolder[] | null;
   getConfiguration?: (section: string, resource?: string) => any;
 };
 
@@ -20,16 +17,12 @@ interface VirtualCode {
 /**
  * Creates an AIML language plugin
  */
-export function createAimlLanguagePlugin(
-  plugins: PluggableList,
-  checkAiml: boolean,
-  jsxImportSource: string
-) {
+export function createAimlLanguagePlugin(plugins: PluggableList, checkAiml: boolean, jsxImportSource: string) {
   return {
-    name: "aiml",
+    name: 'aiml',
     // Required by LanguagePlugin interface
     getLanguageId(uri: URI) {
-      return "aiml";
+      return 'aiml';
     },
     createVirtualFiles(fileName: string, content: string) {
       return [];
@@ -50,12 +43,12 @@ export function createAimlLanguagePlugin(
 export function createAimlServicePlugin(workspace: WorkspaceType) {
   // Implement the LanguageServicePlugin interface
   return {
-    name: "aiml-service",
+    name: 'aiml-service',
     // Required capabilities
     capabilities: {
       hoverProvider: true,
       completionProvider: {
-        triggerCharacters: [".", "/", "#"],
+        triggerCharacters: ['.', '/', '#'],
       },
     },
     // Required create method
@@ -81,7 +74,7 @@ export function createAimlServicePlugin(workspace: WorkspaceType) {
  */
 export async function resolveRemarkPlugins(
   config: any,
-  loadPlugin: (name: string) => Promise<Plugin>
+  loadPlugin: (name: string) => Promise<Plugin>,
 ): Promise<PluggableList> {
   if (!config || !config.plugins) {
     return [];

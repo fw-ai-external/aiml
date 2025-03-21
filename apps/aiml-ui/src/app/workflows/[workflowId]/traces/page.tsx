@@ -1,12 +1,12 @@
-"use client";
-import { use } from "react";
+'use client';
+import { use } from 'react';
 
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { TraceProvider } from "@/domains/traces/context/trace-context";
-import { WorkflowInformation } from "@/domains/workflows/workflow-information";
-import { WorkflowTraces } from "@/domains/workflows/workflow-traces";
-import { useWorkflow } from "@/hooks/use-workflows";
+import { TraceProvider } from '@/domains/traces/context/trace-context';
+import { WorkflowInformation } from '@/domains/workflows/workflow-information';
+import { WorkflowTraces } from '@/domains/workflows/workflow-traces';
+import { useWorkflow } from '@/hooks/use-workflows';
 
 export default function WorkflowTracesPage(props: {
   params: Promise<{ workflowId: string }>;

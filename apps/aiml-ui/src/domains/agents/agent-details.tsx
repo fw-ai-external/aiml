@@ -1,9 +1,9 @@
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
 
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { useAgent } from "@/hooks/use-agents";
+import { useAgent } from '@/hooks/use-agents';
 
 export function AgentDetails({ agentId }: { agentId: string }) {
   const { isLoading, agent } = useAgent(agentId);
@@ -51,9 +51,7 @@ export function AgentDetails({ agentId }: { agentId: string }) {
         </div>
         <div className="grid grid-cols-[100px_1fr] gap-2">
           <p className="text-aimll-3">Instructions</p>
-          <p className="text-aimll-5 whitespace-pre-wrap">
-            {agent?.instructions}
-          </p>
+          <p className="text-aimll-5 whitespace-pre-wrap">{agent?.instructions}</p>
         </div>
         <div className="grid grid-cols-[100px_1fr] gap-2">
           <p className="text-aimll-3">Model</p>
@@ -61,9 +59,7 @@ export function AgentDetails({ agentId }: { agentId: string }) {
         </div>
         <div className="grid grid-cols-[100px_1fr] gap-2">
           <p className="text-aimll-3">Provider</p>
-          <p className="text-aimll-5">
-            {agent?.provider?.split(".")[0].toUpperCase()}
-          </p>
+          <p className="text-aimll-5">{agent?.provider?.split('.')[0].toUpperCase()}</p>
         </div>
         <div className="grid grid-cols-[100px_1fr] gap-2">
           <p className="text-aimll-3">Tools</p>
@@ -72,13 +68,11 @@ export function AgentDetails({ agentId }: { agentId: string }) {
               <span
                 key={toolKey}
                 onClick={() => {
-                  router.push(
-                    `/tools/${agentId}/${"id" in tool ? tool.id : toolKey}`
-                  );
+                  router.push(`/tools/${agentId}/${'id' in tool ? tool.id : toolKey}`);
                 }}
                 className="no-underline"
               >
-                {"id" in tool ? tool.id : toolKey}
+                {'id' in tool ? tool.id : toolKey}
               </span>
             ))}
           </div>

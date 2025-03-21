@@ -1,20 +1,20 @@
 #!/usr/bin/env bun
-import { createRequire } from "node:module";
-import process from "node:process";
-import { fileURLToPath } from "node:url";
-import { build, BuildOptions, context } from "esbuild";
-import path from "node:path";
-import fs from "node:fs";
+import fs from 'node:fs';
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import process from 'node:process';
+import { fileURLToPath } from 'node:url';
+import { type BuildOptions, build, context } from 'esbuild';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(__dirname, "..");
-const distDir = path.join(rootDir, "dist");
-const workspaceRoot = path.resolve(rootDir, "../..");
+const rootDir = path.resolve(__dirname, '..');
+const distDir = path.join(rootDir, 'dist');
+const workspaceRoot = path.resolve(rootDir, '../..');
 
 // Determine if we're in watch mode
-const isWatchMode = process.argv.includes("--watch");
-const debug = process.argv.includes("debug");
+const isWatchMode = process.argv.includes('--watch');
+const debug = process.argv.includes('debug');
 
 // Create dist directory if it doesn't exist
 if (!fs.existsSync(distDir)) {
@@ -23,12 +23,12 @@ if (!fs.existsSync(distDir)) {
 
 // Create a custom bundled version of the language service
 function bundleLanguageService() {
-  console.log("Bundling language service into extension...");
+  console.log('Bundling language service into extension...');
 
   // Path to the language service
-  const languageServiceSrcDir = path.resolve(rootDir, "..", "language-service");
-  const languageServiceDistDir = path.join(languageServiceSrcDir, "dist");
-  const languageServiceDestDir = path.join(distDir, "language-service");
+  const languageServiceSrcDir = path.resolve(rootDir, '..', 'language-service');
+  const languageServiceDistDir = path.join(languageServiceSrcDir, 'dist');
+  const languageServiceDestDir = path.join(distDir, 'language-service');
 
   // Create language-service directory if it doesn't exist
   if (!fs.existsSync(languageServiceDestDir)) {
@@ -80,94 +80,75 @@ console.log('[AIML Language Service] Custom bundled version loaded');
   }
 
   // Write the custom index.js
-  fs.writeFileSync(
-    path.join(languageServiceDestDir, "index.js"),
-    customIndexJs,
-    { encoding: "utf8" }
-  );
+  fs.writeFileSync(path.join(languageServiceDestDir, 'index.js'), customIndexJs, { encoding: 'utf8' });
 
   // Create package.json for the language-service directory to mark it as ESM
   const packageJson = {
-    name: "@fireworks/language-service",
-    version: "0.0.1",
-    type: "module",
+    name: '@fireworks/language-service',
+    version: '0.0.1',
+    type: 'module',
   };
 
-  fs.writeFileSync(
-    path.join(languageServiceDestDir, "package.json"),
-    JSON.stringify(packageJson, null, 2),
-    { encoding: "utf8" }
-  );
+  fs.writeFileSync(path.join(languageServiceDestDir, 'package.json'), JSON.stringify(packageJson, null, 2), {
+    encoding: 'utf8',
+  });
 
-  console.log("Created custom bundled language service");
+  console.log('Created custom bundled language service');
 
   // Create a package.json in a language-server-deps subdirectory to avoid affecting the main extension files
-  const serverDepsDir = path.join(distDir, "language-server-deps");
+  const serverDepsDir = path.join(distDir, 'language-server-deps');
   if (!fs.existsSync(serverDepsDir)) {
     fs.mkdirSync(serverDepsDir, { recursive: true });
   }
 
   const distPackageJson = {
-    name: "vscode-aiml-server",
-    version: "0.0.1",
-    type: "module",
+    name: 'vscode-aiml-server',
+    version: '0.0.1',
+    type: 'module',
     dependencies: {
-      "vscode-languageserver": "^8.1.0",
-      "vscode-languageserver-textdocument": "^1.0.8",
+      'vscode-languageserver': '^8.1.0',
+      'vscode-languageserver-textdocument': '^1.0.8',
     },
   };
 
-  fs.writeFileSync(
-    path.join(serverDepsDir, "package.json"),
-    JSON.stringify(distPackageJson, null, 2),
-    { encoding: "utf8" }
-  );
+  fs.writeFileSync(path.join(serverDepsDir, 'package.json'), JSON.stringify(distPackageJson, null, 2), {
+    encoding: 'utf8',
+  });
 
-  console.log(
-    "Created package.json with language server dependencies in language-server-deps directory"
-  );
+  console.log('Created package.json with language server dependencies in language-server-deps directory');
 
   // Install the dependencies in the server deps directory
   try {
-    console.log("Installing language server dependencies...");
-    const { execSync } = require("child_process");
+    console.log('Installing language server dependencies...');
+    const { execSync } = require('child_process');
 
     // Using npm install to ensure compatibility across systems
-    execSync("npm install --no-package-lock", {
+    execSync('npm install --no-package-lock', {
       cwd: serverDepsDir,
-      stdio: "inherit",
-      env: { ...process.env, NODE_ENV: "development" },
+      stdio: 'inherit',
+      env: { ...process.env, NODE_ENV: 'development' },
     });
 
-    console.log("Successfully installed language server dependencies");
+    console.log('Successfully installed language server dependencies');
   } catch (error) {
-    console.warn(
-      "Warning: Failed to install language server dependencies:",
-      (error as Error).message
-    );
-    console.warn(
-      "The language server might not function correctly without these dependencies."
-    );
-    console.warn(
-      "You may need to manually install them in the language-server-deps directory."
-    );
+    console.warn('Warning: Failed to install language server dependencies:', (error as Error).message);
+    console.warn('The language server might not function correctly without these dependencies.');
+    console.warn('You may need to manually install them in the language-server-deps directory.');
   }
 
   // Create a package.json in the main dist directory to ensure CommonJS format
   const mainDistPackageJson = {
-    name: "vscode-aiml-extension",
-    version: "0.0.1",
-    type: "commonjs", // Critical: ensure VS Code can require() the extension.js file
+    name: 'vscode-aiml-extension',
+    version: '0.0.1',
+    type: 'commonjs', // Critical: ensure VS Code can require() the extension.js file
     private: true,
   };
 
-  fs.writeFileSync(
-    path.join(distDir, "package.json"),
-    JSON.stringify(mainDistPackageJson, null, 2),
-    { encoding: "utf8" }
-  );
+  fs.writeFileSync(path.join(distDir, 'package.json'), JSON.stringify(mainDistPackageJson, null, 2), {
+    encoding: 'utf8',
+  });
 
-  console.log("Created package.json in dist directory with type: commonjs");
+  console.log('Created package.json in dist directory with type: commonjs');
 
   // Create an ESM language server script file that uses dynamic require for dependencies
   const languageServerContent = `#!/usr/bin/env node
@@ -322,11 +303,7 @@ try {
 }
 `;
 
-  fs.writeFileSync(
-    path.join(distDir, "language-server.mjs"),
-    languageServerContent,
-    { encoding: "utf8" }
-  );
+  fs.writeFileSync(path.join(distDir, 'language-server.mjs'), languageServerContent, { encoding: 'utf8' });
 
   // Create a simple CommonJS wrapper that just executes the ESM script
   const cjsWrapperContent = `#!/usr/bin/env node
@@ -375,57 +352,41 @@ child.on('error', (error) => {
 });
 `;
 
-  fs.writeFileSync(
-    path.join(distDir, "language-server.js"),
-    cjsWrapperContent,
-    { encoding: "utf8" }
-  );
+  fs.writeFileSync(path.join(distDir, 'language-server.js'), cjsWrapperContent, { encoding: 'utf8' });
 }
 
 // Function to set up the TypeScript plugin
 function setupTypeScriptPlugin() {
   // Copy the typescript plugin directly instead of bundling
-  const typescriptPluginDir = path.resolve(
-    rootDir,
-    "..",
-    "typescript-plugin",
-    "dist"
-  );
-  const nodeModulesDir = path.resolve(rootDir, "node_modules", "@fireworks");
+  const typescriptPluginDir = path.resolve(rootDir, '..', 'typescript-plugin', 'dist');
+  const nodeModulesDir = path.resolve(rootDir, 'node_modules', '@fireworks');
 
-  if (!fs.existsSync(path.join(nodeModulesDir, "typescript-plugin"))) {
-    fs.mkdirSync(path.join(nodeModulesDir, "typescript-plugin"), {
+  if (!fs.existsSync(path.join(nodeModulesDir, 'typescript-plugin'))) {
+    fs.mkdirSync(path.join(nodeModulesDir, 'typescript-plugin'), {
       recursive: true,
     });
   }
 
   // Copy the typescript plugin files
   if (fs.existsSync(typescriptPluginDir)) {
-    fs.cpSync(
-      typescriptPluginDir,
-      path.join(nodeModulesDir, "typescript-plugin", "dist"),
-      { recursive: true }
-    );
-    console.log("Copied TypeScript plugin to node_modules");
+    fs.cpSync(typescriptPluginDir, path.join(nodeModulesDir, 'typescript-plugin', 'dist'), { recursive: true });
+    console.log('Copied TypeScript plugin to node_modules');
   } else {
-    console.warn(
-      "WARNING: typescript-plugin/dist not found at",
-      typescriptPluginDir
-    );
+    console.warn('WARNING: typescript-plugin/dist not found at', typescriptPluginDir);
   }
 
   // Create a simple package.json for the plugin
   const pluginPackageJson = {
-    name: "@fireworks/typescript-plugin",
-    version: "0.0.1",
-    main: "dist/index.js",
-    type: "module",
+    name: '@fireworks/typescript-plugin',
+    version: '0.0.1',
+    main: 'dist/index.js',
+    type: 'module',
   };
 
   fs.writeFileSync(
-    path.join(nodeModulesDir, "typescript-plugin", "package.json"),
+    path.join(nodeModulesDir, 'typescript-plugin', 'package.json'),
     JSON.stringify(pluginPackageJson, null, 2),
-    { encoding: "utf8" }
+    { encoding: 'utf8' },
   );
 }
 
@@ -435,36 +396,36 @@ async function runBuild(watch = false) {
     // Configure esbuild options for extension-logic.ts (with bundling)
     const extensionLogicBuildOptions: BuildOptions = {
       bundle: true,
-      entryPoints: [path.join(rootDir, "src/extension-logic.ts")],
-      format: "cjs",
-      outfile: path.join(distDir, "extension-logic.js"),
-      platform: "node",
+      entryPoints: [path.join(rootDir, 'src/extension-logic.ts')],
+      format: 'cjs',
+      outfile: path.join(distDir, 'extension-logic.js'),
+      platform: 'node',
       sourcemap: debug,
-      target: "node16",
-      external: ["vscode"], // Mark vscode as external since it's provided by the extension host
+      target: 'node16',
+      external: ['vscode'], // Mark vscode as external since it's provided by the extension host
       // Add allowOverwrite to fix any issues with duplicate outputs
       allowOverwrite: true,
       // Handle local workspace packages by setting up aliases or externals as needed
       define: {
-        "process.env.NODE_ENV": isWatchMode ? '"development"' : '"production"',
+        'process.env.NODE_ENV': isWatchMode ? '"development"' : '"production"',
       },
     };
 
     // Configure esbuild options for extension.ts (with bundling)
     const extensionBuildOptions: BuildOptions = {
       bundle: true,
-      entryPoints: [path.join(rootDir, "src/extension.ts")],
-      format: "cjs",
-      outfile: path.join(distDir, "extension.js"),
-      platform: "node",
+      entryPoints: [path.join(rootDir, 'src/extension.ts')],
+      format: 'cjs',
+      outfile: path.join(distDir, 'extension.js'),
+      platform: 'node',
       sourcemap: debug,
-      target: "node16",
-      external: ["vscode"], // Mark vscode as external since it's provided by the extension host
+      target: 'node16',
+      external: ['vscode'], // Mark vscode as external since it's provided by the extension host
       // Add allowOverwrite to fix any issues with duplicate outputs
       allowOverwrite: true,
       // Handle local workspace packages by setting up aliases or externals as needed
       define: {
-        "process.env.NODE_ENV": isWatchMode ? '"development"' : '"production"',
+        'process.env.NODE_ENV': isWatchMode ? '"development"' : '"production"',
       },
     };
 
@@ -474,7 +435,7 @@ async function runBuild(watch = false) {
 
     if (watch) {
       // Watch mode for development
-      console.log("Starting esbuild in watch mode...");
+      console.log('Starting esbuild in watch mode...');
 
       // Set up watchers for both extension files
       const ctxLogic = await context(extensionLogicBuildOptions);
@@ -484,17 +445,14 @@ async function runBuild(watch = false) {
       await Promise.all([ctxLogic.watch(), ctxMain.watch()]);
 
       // This line signals that the initial build is complete and VSCode can proceed
-      console.log("Watching for changes...");
+      console.log('Watching for changes...');
     } else {
       // Single build for both files
-      await Promise.all([
-        build(extensionLogicBuildOptions),
-        build(extensionBuildOptions),
-      ]);
-      console.log("Build completed successfully");
+      await Promise.all([build(extensionLogicBuildOptions), build(extensionBuildOptions)]);
+      console.log('Build completed successfully');
     }
   } catch (error) {
-    console.error("Build failed:", error);
+    console.error('Build failed:', error);
     process.exit(1);
   }
 }

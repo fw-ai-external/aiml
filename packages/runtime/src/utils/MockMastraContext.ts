@@ -1,6 +1,6 @@
-import { StepValue } from "@fireworks/shared";
-import type { ElementExecutionContext as ElementExecutionContextInterface } from "@fireworks/shared";
-import { ActionContext, deepMerge } from "@mastra/core";
+import { StepValue } from '@fireworks/shared';
+import type { ElementExecutionContext as ElementExecutionContextInterface } from '@fireworks/shared';
+import { type ActionContext, deepMerge } from '@mastra/core';
 
 /**
  * A simplified mock implementation of ElementExecutionContext for use in elements package
@@ -12,39 +12,39 @@ export class MockMastraContext implements ActionContext<any> {
   public runId: string;
 
   constructor(config: Partial<ElementExecutionContextInterface<any>>) {
-    const input = new StepValue({ type: "text", text: "input text" });
+    const input = new StepValue({ type: 'text', text: 'input text' });
     const defaultConfig: ElementExecutionContextInterface<any> = {
       input,
       workflowInput: {
-        userMessage: "",
+        userMessage: '',
         chatHistory: [],
         clientSideTools: [],
       },
       datamodel: {},
       attributes: {},
       state: {
-        id: "test",
+        id: 'test',
         attributes: {},
         input,
       },
       machine: {
-        id: "test",
+        id: 'test',
         secrets: {
           system: {},
           user: {},
         },
       },
       run: {
-        id: "test",
+        id: 'test',
       },
-      runId: "test",
+      runId: 'test',
       context: {},
       suspend: () => Promise.resolve(),
       serialize: () => Promise.resolve({}),
     };
     // Deeply merge the default config with the provided config
     this.context = deepMerge(defaultConfig, config);
-    this.runId = config.runId || "test";
+    this.runId = config.runId || 'test';
   }
 
   public async suspend(): Promise<void> {

@@ -1,13 +1,11 @@
-import { BaseElement } from "./elements/BaseElement";
-import { BuildContext } from "./graphBuilder/Context";
-import { ExecutionGraphElement } from "./types";
+import type { BaseElement } from './elements/BaseElement';
+import { BuildContext } from './graphBuilder/Context';
+import type { ExecutionGraphElement } from './types';
 
-export const defaultActionExecutionGraphMapper = (
-  buildContext: BuildContext
-): ExecutionGraphElement => {
+export const defaultActionExecutionGraphMapper = (buildContext: BuildContext): ExecutionGraphElement => {
   return {
     id: buildContext.attributes.id,
-    type: "action",
+    type: 'action',
     key: buildContext.elementKey,
     subType: buildContext.spec.elementType,
     attributes: {
@@ -16,12 +14,10 @@ export const defaultActionExecutionGraphMapper = (
   };
 };
 
-export const defaultStepExecutionGraphMapper = (
-  buildContext: BuildContext
-): ExecutionGraphElement => {
+export const defaultStepExecutionGraphMapper = (buildContext: BuildContext): ExecutionGraphElement => {
   const childEGs = buildContext.children
     .map((child) => {
-      if ("tag" in child) {
+      if ('tag' in child) {
         return (child as BaseElement).onExecutionGraphConstruction?.(
           new BuildContext(
             buildContext.workflow,
@@ -31,8 +27,8 @@ export const defaultStepExecutionGraphMapper = (
             buildContext.conditions,
             buildContext.spec,
             buildContext.fullSpec,
-            buildContext.graphCache
-          ) as any
+            buildContext.graphCache,
+          ) as any,
         );
       }
       return null;
@@ -43,8 +39,8 @@ export const defaultStepExecutionGraphMapper = (
   return {
     id: buildContext.attributes.id,
     key: buildContext.elementKey,
-    type: "state", // or "action" if you prefer
-    subType: "final",
+    type: 'state', // or "action" if you prefer
+    subType: 'final',
     attributes: {
       ...buildContext.attributes,
     },

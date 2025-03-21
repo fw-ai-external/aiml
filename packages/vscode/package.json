@@ -3,19 +3,14 @@
   "version": "0.0.1",
   "displayName": "AIML",
   "description": "Language support for AIML",
-  "categories": [
-    "Programming Languages"
-  ],
+  "categories": ["Programming Languages"],
   "license": "MIT",
   "private": true,
   "engines": {
     "vscode": "^1.96.0"
   },
   "main": "dist/extension.js",
-  "keywords": [
-    "aiml",
-    "aiml"
-  ],
+  "keywords": ["aiml", "aiml"],
   "icon": "assets/aiml.png",
   "scripts": {
     "dev": "bun ./script/build.ts --watch",
@@ -55,20 +50,12 @@
             "description": "Enable experimental IntelliSense support for MDX files."
           },
           "aiml.trace.server.verbosity": {
-            "enum": [
-              "off",
-              "messages",
-              "compact",
-              "verbose"
-            ],
+            "enum": ["off", "messages", "compact", "verbose"],
             "default": "off",
             "description": "Trace AIML language server requests in the output console."
           },
           "aiml.trace.server.format": {
-            "enum": [
-              "text",
-              "json"
-            ],
+            "enum": ["text", "json"],
             "default": "text",
             "description": "How to format traced AIML language server requests."
           }
@@ -78,12 +65,8 @@
     "languages": [
       {
         "id": "aiml",
-        "aliases": [
-          "AIML"
-        ],
-        "extensions": [
-          ".aiml"
-        ],
+        "aliases": ["AIML"],
+        "extensions": [".aiml"],
         "configuration": "./language-configuration.json",
         "icon": {
           "dark": "./assets/file-icon.svg",
@@ -93,13 +76,7 @@
     ],
     "jsonValidation": [
       {
-        "fileMatch": [
-          "tsconfig.json",
-          "tsconfig.*.json",
-          "tsconfig-*.json",
-          "jsconfig.json",
-          "jsconfig.*.json"
-        ],
+        "fileMatch": ["tsconfig.json", "tsconfig.*.json", "tsconfig-*.json", "jsconfig.json", "jsconfig.*.json"],
         "url": "./tsconfig.schema.json"
       }
     ],
@@ -169,9 +146,7 @@
       {
         "scopeName": "source.aiml.codeblock",
         "path": "./syntaxes/aiml.tmLanguage.json",
-        "injectTo": [
-          "text.html.markdown"
-        ],
+        "injectTo": ["text.html.markdown"],
         "embeddedLanguages": {
           "meta.embedded.block.aiml": "aiml"
         }

@@ -1,4 +1,4 @@
-import { Range, DiagnosticSeverity } from "vscode-languageserver/node";
+import type { DiagnosticSeverity, Range } from 'vscode-languageserver/node';
 
 export interface DiagnosticExpectation {
   message: string;

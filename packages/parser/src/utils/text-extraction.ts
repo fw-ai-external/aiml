@@ -2,28 +2,28 @@
  * Extract text content from a node, recursively including children
  */
 export function extractTextFromNode(node: any): string | null {
-  if (node.type === "mdxJsxTextElement" || node.type === "mdxJsxFlowElement") {
+  if (node.type === 'mdxJsxTextElement' || node.type === 'mdxJsxFlowElement') {
     return serializeJsxToText(node);
   }
 
   // For text nodes, simply return the value
-  if (node.type === "text") {
-    return node.value || "";
+  if (node.type === 'text') {
+    return node.value || '';
   }
 
   // For code blocks, return with markdown code formatting
-  if (node.type === "code") {
-    return `\`\`\`${node.lang || ""}\n${node.value || ""}\n\`\`\``;
+  if (node.type === 'code') {
+    return `\`\`\`${node.lang || ''}\n${node.value || ''}\n\`\`\``;
   }
 
   // For inline code, return with backticks
-  if (node.type === "inlineCode") {
-    return `\`${node.value || ""}\``;
+  if (node.type === 'inlineCode') {
+    return `\`${node.value || ''}\``;
   }
 
   // For headings, add the appropriate number of # characters
-  if (node.type === "heading") {
-    const prefix = "#".repeat(node.depth) + " ";
+  if (node.type === 'heading') {
+    const prefix = '#'.repeat(node.depth) + ' ';
     let text = prefix;
 
     if (node.children && node.children.length > 0) {
@@ -39,14 +39,14 @@ export function extractTextFromNode(node: any): string | null {
   }
 
   // For paragraphs, handle nested content
-  if (node.type === "paragraph") {
-    let text = "";
+  if (node.type === 'paragraph') {
+    let text = '';
 
     if (node.children && node.children.length > 0) {
       for (const child of node.children) {
         // Skip mdxTextExpression nodes in text extraction
-        if (child.type === "mdxTextExpression") {
-          text += "{...}"; // Placeholder for expressions
+        if (child.type === 'mdxTextExpression') {
+          text += '{...}'; // Placeholder for expressions
         } else {
           const childText = extractTextFromNode(child);
           if (childText) {
@@ -60,15 +60,15 @@ export function extractTextFromNode(node: any): string | null {
   }
 
   // For lists, convert to text representation
-  if (node.type === "list") {
-    let text = "";
+  if (node.type === 'list') {
+    let text = '';
 
     if (node.children && node.children.length > 0) {
       for (let i = 0; i < node.children.length; i++) {
-        const prefix = node.ordered ? `${i + 1}. ` : "- ";
+        const prefix = node.ordered ? `${i + 1}. ` : '- ';
         const childText = extractTextFromNode(node.children[i]);
         if (childText) {
-          text += prefix + childText + "\n";
+          text += prefix + childText + '\n';
         }
       }
     }
@@ -77,8 +77,8 @@ export function extractTextFromNode(node: any): string | null {
   }
 
   // For list items, process children
-  if (node.type === "listItem") {
-    let text = "";
+  if (node.type === 'listItem') {
+    let text = '';
 
     if (node.children && node.children.length > 0) {
       for (const child of node.children) {
@@ -93,8 +93,8 @@ export function extractTextFromNode(node: any): string | null {
   }
 
   // For links, convert to markdown link format
-  if (node.type === "link") {
-    let linkText = "";
+  if (node.type === 'link') {
+    let linkText = '';
 
     if (node.children && node.children.length > 0) {
       for (const child of node.children) {
@@ -105,17 +105,17 @@ export function extractTextFromNode(node: any): string | null {
       }
     }
 
-    return `[${linkText}](${node.url || ""})`;
+    return `[${linkText}](${node.url || ''})`;
   }
 
   // For images, convert to markdown image format
-  if (node.type === "image") {
-    return `![${node.alt || ""}](${node.url || ""})`;
+  if (node.type === 'image') {
+    return `![${node.alt || ''}](${node.url || ''})`;
   }
 
   // For emphasis, add asterisks
-  if (node.type === "emphasis") {
-    let text = "*";
+  if (node.type === 'emphasis') {
+    let text = '*';
 
     if (node.children && node.children.length > 0) {
       for (const child of node.children) {
@@ -126,12 +126,12 @@ export function extractTextFromNode(node: any): string | null {
       }
     }
 
-    return text + "*";
+    return text + '*';
   }
 
   // For strong emphasis, add double asterisks
-  if (node.type === "strong") {
-    let text = "**";
+  if (node.type === 'strong') {
+    let text = '**';
 
     if (node.children && node.children.length > 0) {
       for (const child of node.children) {
@@ -142,18 +142,18 @@ export function extractTextFromNode(node: any): string | null {
       }
     }
 
-    return text + "**";
+    return text + '**';
   }
 
   // For blockquotes, add > prefix
-  if (node.type === "blockquote") {
-    let text = "> ";
+  if (node.type === 'blockquote') {
+    let text = '> ';
 
     if (node.children && node.children.length > 0) {
       for (const child of node.children) {
         const childText = extractTextFromNode(child);
         if (childText) {
-          text += childText.replace(/\n/g, "\n> ");
+          text += childText.replace(/\n/g, '\n> ');
         }
       }
     }
@@ -162,13 +162,13 @@ export function extractTextFromNode(node: any): string | null {
   }
 
   // For horizontal rules
-  if (node.type === "thematicBreak") {
-    return "---";
+  if (node.type === 'thematicBreak') {
+    return '---';
   }
 
   // For other nodes with children, recursively extract text
   if (node.children && node.children.length > 0) {
-    let text = "";
+    let text = '';
 
     for (const child of node.children) {
       const childText = extractTextFromNode(child);
@@ -187,7 +187,7 @@ export function extractTextFromNode(node: any): string | null {
  * Serialize a JSX node to text representation
  */
 export function serializeJsxToText(node: any): string {
-  if (!node) return "";
+  if (!node) return '';
 
   // Start with opening tag
   let result = `<${node.name}`;
@@ -195,13 +195,10 @@ export function serializeJsxToText(node: any): string {
   // Add attributes
   if (node.attributes && Array.isArray(node.attributes)) {
     for (const attr of node.attributes) {
-      if (attr.type === "mdxJsxAttribute") {
-        if (typeof attr.value === "string") {
+      if (attr.type === 'mdxJsxAttribute') {
+        if (typeof attr.value === 'string') {
           result += ` ${attr.name}="${attr.value}"`;
-        } else if (
-          attr.value &&
-          attr.value.type === "mdxJsxAttributeValueExpression"
-        ) {
+        } else if (attr.value && attr.value.type === 'mdxJsxAttributeValueExpression') {
           result += ` ${attr.name}={${attr.value.value}}`;
         } else if (attr.value === null) {
           // Boolean attribute
@@ -213,18 +210,18 @@ export function serializeJsxToText(node: any): string {
 
   // Check if it's a self-closing tag
   if (!node.children || node.children.length === 0) {
-    result += " />";
+    result += ' />';
     return result;
   }
 
   // Close opening tag
-  result += ">";
+  result += '>';
 
   // Add children
   if (node.children && node.children.length > 0) {
     for (const child of node.children) {
-      if (child.type === "text") {
-        result += child.value || "";
+      if (child.type === 'text') {
+        result += child.value || '';
       } else {
         const childText = extractTextFromNode(child);
         if (childText) {

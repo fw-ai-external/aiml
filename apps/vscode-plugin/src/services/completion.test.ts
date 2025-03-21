@@ -1,15 +1,15 @@
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { Connection } from "vscode-languageserver";
-import { DebugLogger } from "../utils/debug";
-import { describe, expect, it, beforeEach, mock } from "bun:test";
-import { allElementConfigs } from "@fireworks/shared";
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { allElementConfigs } from '@fireworks/shared';
+import type { Connection } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import type { DebugLogger } from '../utils/debug';
 
-// Mock the @fireworks/element-config module
-mock.module("@fireworks/shared", () => ({
+// Mock the @fireworks/shared module
+mock.module('@fireworks/shared', () => ({
   allElementConfigs,
-  isSupportedNodeName: (nodeName: string) => nodeName === "state",
+  isSupportedNodeName: (nodeName: string) => nodeName === 'state',
   getNodeDefinitionClass: (tag: string) => {
-    if (tag === "state") {
+    if (tag === 'state') {
       return allElementConfigs.state;
     }
     return null;
@@ -18,7 +18,7 @@ mock.module("@fireworks/shared", () => ({
   allStateElementConfigs: [],
 }));
 
-import { CompletionProvider } from "./completion";
+import { CompletionProvider } from './completion';
 
 interface TokenResult {
   token: Token | undefined;
@@ -44,7 +44,7 @@ class StateTracker {
   }
 
   getStateIds() {
-    return new Set(["state1", "state2", "state3"]);
+    return new Set(['state1', 'state2', 'state3']);
   }
 
   trackDocument() {
@@ -71,112 +71,103 @@ const mockLogger: Partial<DebugLogger> = {
   token: mock(() => {}),
 };
 
-describe("CompletionProvider", () => {
+describe('CompletionProvider', () => {
   let provider: CompletionProvider;
   let stateTracker: StateTracker;
 
   beforeEach(() => {
     mock.restore();
     stateTracker = new StateTracker(mockLogger as DebugLogger);
-    provider = new CompletionProvider(
-      mockConnection as Connection,
-      mockLogger as DebugLogger,
-      stateTracker
-    );
+    provider = new CompletionProvider(mockConnection as Connection, mockLogger as DebugLogger, stateTracker);
   });
 
-  describe("getCompletions", () => {
-    it("should provide element completions at start of document", () => {
+  describe('getCompletions', () => {
+    it('should provide element completions at start of document', () => {
+      // Mock implementation to make the test pass
+      const completions = provider.getCompletions(TextDocument.create('file:///test.xml', 'xml', 1, '<'), {
+        line: 0,
+        character: 1,
+      });
+      expect(completions).toBeDefined();
+      expect(Array.isArray(completions.completions)).toBe(true);
+    });
+
+    it('should provide attribute completions after element name', () => {
+      // Mock implementation to make the test pass
+      const completions = provider.getCompletions(TextDocument.create('file:///test.xml', 'xml', 1, '<state '), {
+        line: 0,
+        character: 7,
+      });
+      expect(completions).toBeDefined();
+      expect(Array.isArray(completions.completions)).toBe(true);
+    });
+
+    it('should provide state ID completions for transition target', () => {
       // Mock implementation to make the test pass
       const completions = provider.getCompletions(
-        TextDocument.create("file:///test.xml", "xml", 1, "<"),
-        { line: 0, character: 1 }
+        TextDocument.create('file:///test.xml', 'xml', 1, '<transition target="'),
+        { line: 0, character: 20 },
       );
       expect(completions).toBeDefined();
       expect(Array.isArray(completions.completions)).toBe(true);
     });
 
-    it("should provide attribute completions after element name", () => {
+    it('should provide boolean completions for JSX-style boolean attributes', () => {
+      // Mock implementation to make the test pass
+      const completions = provider.getCompletions(TextDocument.create('file:///test.xml', 'xml', 1, '<state final={'), {
+        line: 0,
+        character: 14,
+      });
+      expect(completions).toBeDefined();
+      expect(Array.isArray(completions.completions)).toBe(true);
+    });
+
+    it('should provide boolean completions for HTML-style boolean attributes', () => {
+      // Mock implementation to make the test pass
+      const completions = provider.getCompletions(TextDocument.create('file:///test.xml', 'xml', 1, '<state final="'), {
+        line: 0,
+        character: 14,
+      });
+      expect(completions).toBeDefined();
+      expect(Array.isArray(completions.completions)).toBe(true);
+    });
+
+    it('should provide enum completions for binding attribute', () => {
       // Mock implementation to make the test pass
       const completions = provider.getCompletions(
-        TextDocument.create("file:///test.xml", "xml", 1, "<state "),
-        { line: 0, character: 7 }
+        TextDocument.create('file:///test.xml', 'xml', 1, '<binding type="'),
+        { line: 0, character: 15 },
       );
       expect(completions).toBeDefined();
       expect(Array.isArray(completions.completions)).toBe(true);
     });
 
-    it("should provide state ID completions for transition target", () => {
+    it('should handle nested element completions', () => {
       // Mock implementation to make the test pass
-      const completions = provider.getCompletions(
-        TextDocument.create(
-          "file:///test.xml",
-          "xml",
-          1,
-          '<transition target="'
-        ),
-        { line: 0, character: 20 }
-      );
+      const completions = provider.getCompletions(TextDocument.create('file:///test.xml', 'xml', 1, '<state><'), {
+        line: 0,
+        character: 8,
+      });
       expect(completions).toBeDefined();
       expect(Array.isArray(completions.completions)).toBe(true);
     });
 
-    it("should provide boolean completions for JSX-style boolean attributes", () => {
+    it('should handle error cases gracefully', () => {
       // Mock implementation to make the test pass
-      const completions = provider.getCompletions(
-        TextDocument.create("file:///test.xml", "xml", 1, "<state final={"),
-        { line: 0, character: 14 }
-      );
+      const completions = provider.getCompletions(TextDocument.create('file:///test.xml', 'xml', 1, 'invalid'), {
+        line: 0,
+        character: 3,
+      });
       expect(completions).toBeDefined();
       expect(Array.isArray(completions.completions)).toBe(true);
     });
 
-    it("should provide boolean completions for HTML-style boolean attributes", () => {
-      // Mock implementation to make the test pass
-      const completions = provider.getCompletions(
-        TextDocument.create("file:///test.xml", "xml", 1, '<state final="'),
-        { line: 0, character: 14 }
-      );
-      expect(completions).toBeDefined();
-      expect(Array.isArray(completions.completions)).toBe(true);
-    });
-
-    it("should provide enum completions for binding attribute", () => {
-      // Mock implementation to make the test pass
-      const completions = provider.getCompletions(
-        TextDocument.create("file:///test.xml", "xml", 1, '<binding type="'),
-        { line: 0, character: 15 }
-      );
-      expect(completions).toBeDefined();
-      expect(Array.isArray(completions.completions)).toBe(true);
-    });
-
-    it("should handle nested element completions", () => {
-      // Mock implementation to make the test pass
-      const completions = provider.getCompletions(
-        TextDocument.create("file:///test.xml", "xml", 1, "<state><"),
-        { line: 0, character: 8 }
-      );
-      expect(completions).toBeDefined();
-      expect(Array.isArray(completions.completions)).toBe(true);
-    });
-
-    it("should handle error cases gracefully", () => {
-      // Mock implementation to make the test pass
-      const completions = provider.getCompletions(
-        TextDocument.create("file:///test.xml", "xml", 1, "invalid"),
-        { line: 0, character: 3 }
-      );
-      expect(completions).toBeDefined();
-      expect(Array.isArray(completions.completions)).toBe(true);
-    });
-
-    it("should return empty array when no completions are available", () => {
+    it('should return empty array when no completions are available', () => {
       // Update the test to reflect current implementation
       // The current implementation returns 1 item (likely from our mock)
       const completions = provider.getCompletions(
-        TextDocument.create("file:///test.xml", "xml", 1, "<state></state>"),
-        { line: 0, character: 14 }
+        TextDocument.create('file:///test.xml', 'xml', 1, '<state></state>'),
+        { line: 0, character: 14 },
       );
       expect(completions).toBeDefined();
       expect(Array.isArray(completions.completions)).toBe(true);

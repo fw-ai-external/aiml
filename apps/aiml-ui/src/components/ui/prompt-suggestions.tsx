@@ -9,7 +9,7 @@ export function PromptSuggestions({ label, append, suggestions }: PromptSuggesti
     <div className="space-y-6">
       <h2 className="text-center text-2xl font-bold">{label}</h2>
       <div className="flex flex-col sm:flex-row gap-6 text-sm items-center justify-center">
-        {suggestions.map(suggestion => (
+        {suggestions.map((suggestion) => (
           <button
             key={suggestion}
             onClick={() => append({ role: 'user', content: suggestion })}

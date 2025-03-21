@@ -1,9 +1,9 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { AgentDetails } from "./agent-details";
-import { AgentEndpoints } from "./agent-endpoints";
-import { AgentPromptEnhancer } from "./agent-instructions-enhancer";
-import { AgentLogs } from "./agent-logs";
+import { AgentDetails } from './agent-details';
+import { AgentEndpoints } from './agent-endpoints';
+import { AgentPromptEnhancer } from './agent-instructions-enhancer';
+import { AgentLogs } from './agent-logs';
 
 export function AgentInformation({ agentId }: { agentId: string }) {
   return (
@@ -30,9 +30,7 @@ export function AgentInformation({ agentId }: { agentId: string }) {
           </p>
         </TabsTrigger>
       </TabsList>
-      <TabsContent value="details">
-        {agentId ? <AgentDetails agentId={agentId} /> : null}
-      </TabsContent>
+      <TabsContent value="details">{agentId ? <AgentDetails agentId={agentId} /> : null}</TabsContent>
       <TabsContent value="endpoints">
         <AgentEndpoints agentId={agentId} />
       </TabsContent>

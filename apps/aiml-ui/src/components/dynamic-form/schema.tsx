@@ -1,36 +1,28 @@
-import * as React from "react";
-import type { Control } from "react-hook-form";
-import type { ZodSchema } from "zod";
-import {
-  z,
-  ZodArray,
-  ZodBoolean,
-  ZodDate,
-  ZodEnum,
-  ZodLiteral,
-  ZodNumber,
-} from "zod";
+import type * as React from 'react';
+import type { Control } from 'react-hook-form';
+import type { ZodSchema } from 'zod';
+import { ZodArray, ZodBoolean, ZodDate, ZodEnum, ZodLiteral, ZodNumber, z } from 'zod';
 
-import { flattenObject, getPath } from "../../lib/object";
-import { toTitleCase } from "../../lib/string";
-import { Label } from "../ui/label";
-import { Text } from "../ui/text";
+import { flattenObject, getPath } from '../../lib/object';
+import { toTitleCase } from '../../lib/string';
+import { Label } from '../ui/label';
+import { Text } from '../ui/text';
 
 type ActionVariables = Record<string, any>;
 
 export enum FormConfigType {
-  STRING = "STRING",
-  NUMBER = "NUMBER",
-  DATE = "DATE",
-  ENUM = "ENUM",
-  ARRAY = "ARRAY",
-  BOOLEAN = "BOOLEAN",
-  RECORD = "RECORD",
-  OBJECT = "OBJECT",
-  UNION = "UNION",
-  CREATABLE = "CREATABLE",
-  SELECT = "SELECT",
-  MULTI_SELECT = "MULTI_SELECT",
+  STRING = 'STRING',
+  NUMBER = 'NUMBER',
+  DATE = 'DATE',
+  ENUM = 'ENUM',
+  ARRAY = 'ARRAY',
+  BOOLEAN = 'BOOLEAN',
+  RECORD = 'RECORD',
+  OBJECT = 'OBJECT',
+  UNION = 'UNION',
+  CREATABLE = 'CREATABLE',
+  SELECT = 'SELECT',
+  MULTI_SELECT = 'MULTI_SELECT',
 }
 
 type FormConfig = {
@@ -54,10 +46,7 @@ export function getFormConfigTypesFromSchemaDef({
 
   if (schema instanceof z.ZodString) {
     // if it's a datetime -- accounts for date weirdness during zod schema serialization to JSON
-    if (
-      schema instanceof z.ZodString &&
-      schema._def.checks.some((check: any) => check.kind === "datetime")
-    ) {
+    if (schema instanceof z.ZodString && schema._def.checks.some((check: any) => check.kind === 'datetime')) {
       return { type: FormConfigType.DATE, isOptional };
     }
     return { type: FormConfigType.STRING, isOptional };
@@ -84,14 +73,9 @@ export function getFormConfigTypesFromSchemaDef({
       type: FormConfigType.ARRAY,
       isOptional,
       options:
-        schema.element instanceof ZodEnum
-          ? schema.element.options.map((v: string) => ({ label: v, value: v }))
-          : [],
+        schema.element instanceof ZodEnum ? schema.element.options.map((v: string) => ({ label: v, value: v })) : [],
     };
-  } else if (
-    schema instanceof z.ZodOptional ||
-    schema instanceof z.ZodDefault
-  ) {
+  } else if (schema instanceof z.ZodOptional || schema instanceof z.ZodDefault) {
     return getFormConfigTypesFromSchemaDef({
       schema: schema._def.innerType,
       isOptional: true,
@@ -146,10 +130,7 @@ export function schemaToFormFieldRenderer<T extends ZodSchema>({
 }: {
   schema: ZodSchema<any>;
   errors: any;
-  renderFieldMap?: Record<
-    FormConfigType,
-    (props: FieldProps) => React.ReactNode
-  >;
+  renderFieldMap?: Record<FormConfigType, (props: FieldProps) => React.ReactNode>;
   schemaField: string;
   control: any;
   onFieldChange: (props: {
@@ -172,9 +153,7 @@ export function schemaToFormFieldRenderer<T extends ZodSchema>({
 }): any {
   const fieldConfig = getFormConfigTypesFromSchemaDef({ schema, isOptional });
 
-  const parentFieldValue = schemaOptions?.parentField
-    ? getPath(values, schemaOptions?.parentField)
-    : "";
+  const parentFieldValue = schemaOptions?.parentField ? getPath(values, schemaOptions?.parentField) : '';
 
   if (schemaOptions?.parentField && !parentFieldValue) {
     return null;
@@ -182,12 +161,11 @@ export function schemaToFormFieldRenderer<T extends ZodSchema>({
 
   if (!renderFieldMap) return;
 
-  const flattenedErrors = flattenObject(errors, ["message", "type"]);
+  const flattenedErrors = flattenObject(errors, ['message', 'type']);
 
   const fieldOptions = schemaOptions?.parentField
     ? schemaOptions?.options?.[parentFieldValue as string]
-    : (schemaOptions?.options as { label: string; value: string }[]) ||
-      fieldConfig.options;
+    : (schemaOptions?.options as { label: string; value: string }[]) || fieldConfig.options;
 
   return (
     <div key={schemaField} className="flex flex-col gap-1 mt-3 w-full">
@@ -197,14 +175,10 @@ export function schemaToFormFieldRenderer<T extends ZodSchema>({
           schemaField,
         })
       ) : (
-        <Label
-          className="flex gap-0.5 capitalize"
-          htmlFor={schemaField}
-          aria-required={!fieldConfig.isOptional}
-        >
+        <Label className="flex gap-0.5 capitalize" htmlFor={schemaField} aria-required={!fieldConfig.isOptional}>
           {!fieldConfig?.isOptional && <span className="text-red-500">*</span>}
           <Text variant="secondary" className="text-aiml-el-3" size="xs">
-            {toTitleCase(schemaField.split(".").pop() || "")}
+            {toTitleCase(schemaField.split('.').pop() || '')}
           </Text>
         </Label>
       )}

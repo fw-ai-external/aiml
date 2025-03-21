@@ -1,19 +1,19 @@
-import { createElementDefinition } from "../createElementFactory";
-import { StepValue } from "../../StepValue";
-import { logConfig } from "@fireworks/shared";
+import { logConfig } from '@fireworks/shared';
+import { StepValue } from '../../StepValue';
+import { createElementDefinition } from '../createElementFactory';
 
 export const Log = createElementDefinition({
   ...logConfig,
-  tag: "log" as const,
-  role: "action" as const,
-  elementType: "log" as const,
-  allowedChildren: "none" as const,
+  tag: 'log' as const,
+  role: 'action' as const,
+  elementType: 'log' as const,
+  allowedChildren: 'none' as const,
   onExecutionGraphConstruction(buildContext) {
     return {
       id: buildContext.attributes.id,
       key: buildContext.elementKey,
-      type: "action",
-      subType: "log",
+      type: 'action',
+      subType: 'log',
       attributes: {
         ...buildContext.attributes, // { expr, label, etc. }
       },
@@ -25,10 +25,7 @@ export const Log = createElementDefinition({
     try {
       // Create a function that evaluates the expression in the context of the datamodel
       const evaluateExpression = (expression: string) => {
-        const fn = new Function(
-          ...Object.keys(ctx.datamodel),
-          `return ${expression}`
-        );
+        const fn = new Function(...Object.keys(ctx.datamodel), `return ${expression}`);
         return fn(...Object.values(ctx.datamodel));
       };
 
@@ -38,7 +35,7 @@ export const Log = createElementDefinition({
 
       return {
         result: new StepValue({
-          type: "object",
+          type: 'object',
           object: { message, value },
           raw: JSON.stringify({ message, value }),
         }),

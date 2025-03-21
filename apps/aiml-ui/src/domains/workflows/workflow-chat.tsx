@@ -1,4 +1,4 @@
-import { Thread } from "@/components/assistant-ui/thread";
+import { Thread } from '@/components/assistant-ui/thread';
 
 export function WorkflowChat({
   workflowId,

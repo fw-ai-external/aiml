@@ -1,13 +1,9 @@
-import type {
-  CodeMapping,
-  LanguagePlugin,
-  VirtualCode,
-} from "@volar/language-core";
-import type { IScriptSnapshot } from "typescript";
+import type { CodeMapping, LanguagePlugin, VirtualCode } from '@volar/language-core';
+import type { IScriptSnapshot } from 'typescript';
 
 export const language = {
   createVirtualCode(fileId, languageId, snapshot) {
-    if (languageId !== "aiml") return;
+    if (languageId !== 'aiml') return;
 
     return new AimlLanguageVirtualCode(snapshot);
   },
@@ -16,13 +12,13 @@ export const language = {
     return languageCode;
   },
   getLanguageId(scriptId: any) {
-    return "aiml";
+    return 'aiml';
   },
 } satisfies LanguagePlugin<AimlLanguageVirtualCode>;
 
 export class AimlLanguageVirtualCode implements VirtualCode {
-  id = "root";
-  languageId = "aiml";
+  id = 'root';
+  languageId = 'aiml';
   mappings = [];
   embeddedCodes: VirtualCode[] = [];
 
@@ -48,8 +44,7 @@ export class AimlLanguageVirtualCode implements VirtualCode {
         languageId: embeddedLanguage.languageId,
         mappings: [],
         snapshot: {
-          getText: (start, end) =>
-            embeddedLanguage.content.substring(start, end),
+          getText: (start, end) => embeddedLanguage.content.substring(start, end),
           getLength: () => embeddedLanguage.content.length,
           getChangeRange: () => undefined,
         },
@@ -71,15 +66,14 @@ function _findEmbeddedLanguages(content: string): {
   const scriptTagMatches = content.match(/<script[^>]*>/g) || [];
 
   for (const scriptTagMatch of scriptTagMatches) {
-    const scriptTagStart =
-      scriptTagMatch.indexOf(scriptTagMatch) + scriptTagMatch.length;
-    const scriptTagEnd = content.lastIndexOf("</script>");
+    const scriptTagStart = scriptTagMatch.indexOf(scriptTagMatch) + scriptTagMatch.length;
+    const scriptTagEnd = content.lastIndexOf('</script>');
     // get the language attribute from the script tag as language="", and language={''} style onm the matched script tag
     let language = scriptTagMatch.match(/language=["']([^"']+)["']/)?.[1];
 
     if (!language) {
-      language = "javascript";
-    } else if (language !== "javascript" && language !== "python") {
+      language = 'javascript';
+    } else if (language !== 'javascript' && language !== 'python') {
       // we only support javascript and python for now
       continue;
     }

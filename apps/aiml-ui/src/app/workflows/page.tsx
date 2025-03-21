@@ -1,22 +1,15 @@
-"use client";
+'use client';
 
-import { Workflow } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Workflow } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-import { Button } from "@/components/ui/button";
-import { Header } from "@/components/ui/header";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
+import { Button } from '@/components/ui/button';
+import { Header } from '@/components/ui/header';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-import { useWorkflows } from "@/hooks/use-workflows";
+import { useWorkflows } from '@/hooks/use-workflows';
 
 export default function Workflows() {
   const { workflows, isLoading } = useWorkflows();
@@ -50,18 +43,13 @@ export default function Workflows() {
                 </TableRow>
               ) : (
                 Object.entries(workflows).map(([key, workflow]) => (
-                  <TableRow
-                    key={key}
-                    className="border-b-gray-6 border-b-[0.1px] text-[0.8125rem]"
-                  >
+                  <TableRow key={key} className="border-b-gray-6 border-b-[0.1px] text-[0.8125rem]">
                     <TableCell>
                       <div className="h-8 w-full flex items-center justify-center">
                         <Workflow className="h-4 w-4 text-aimll-5" />
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium truncate max-w-[500px] text-aimll-5">
-                      {workflow.name}
-                    </TableCell>
+                    <TableCell className="font-medium truncate max-w-[500px] text-aimll-5">{workflow.name}</TableCell>
                     <TableCell className="text-aimll-5 text-sm">
                       <span
                         onClick={() => {

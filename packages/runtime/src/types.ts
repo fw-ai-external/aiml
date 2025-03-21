@@ -1,13 +1,13 @@
-import { TextStreamPart, ObjectStreamPart } from "ai";
-import { StepValue } from "./StepValue";
-import { ElementDefinition } from "@fireworks/shared";
-import { BaseElement } from "./elements/BaseElement";
-import { z } from "zod";
-import { BuildContext } from "./graphBuilder/Context";
-import { ElementExecutionContext } from "./ElementExecutionContext";
+import type { ElementDefinition } from '@fireworks/shared';
+import type { ObjectStreamPart, TextStreamPart } from 'ai';
+import type { z } from 'zod';
+import type { ElementExecutionContext } from './ElementExecutionContext';
+import type { StepValue } from './StepValue';
+import type { BaseElement } from './elements/BaseElement';
+import type { BuildContext } from './graphBuilder/Context';
 // Define ErrorResult locally to avoid circular dependency
 export interface ErrorResult {
-  type: "error";
+  type: 'error';
   error: string | number | any;
   code: string;
 }
@@ -32,7 +32,7 @@ export interface ExecutionGraphElement {
    * - "shadow" => a control-flow node that does not execute, but is used to track dependencies.
    *   (e.g. parallelDone, historyDone, etc.)
    */
-  type: "state" | "action" | "error" | "user-input" | "output";
+  type: 'state' | 'action' | 'error' | 'user-input' | 'output';
 
   /**
    * subType clarifies the exact kind of step/action, e.g.
@@ -85,12 +85,9 @@ export type TOOLS = {
 export type StepValueChunk =
   | Omit<
       TextStreamPart<TOOLS>,
-      | "experimental_providerMetadata"
-      | "providerMetadata"
-      | "experimental_providerMetadata"
-      | "response"
+      'experimental_providerMetadata' | 'providerMetadata' | 'experimental_providerMetadata' | 'response'
     >
-  | Omit<ObjectStreamPart<any>, "response" | "providerMetadata">;
+  | Omit<ObjectStreamPart<any>, 'response' | 'providerMetadata'>;
 
 export interface ExecutionReturnType {
   result: StepValue;
@@ -107,15 +104,10 @@ export type RuntimeElementDefinition<
 > = ElementDefinition<PropsSchema, Props> & {
   execute?: (
     ctx: InstanceType<typeof ElementExecutionContext<Props>>,
-    childrenNodes: BaseElement[]
+    childrenNodes: BaseElement[],
   ) => Promise<ExecutionReturnType>;
-  render?: (
-    ctx: InstanceType<typeof ElementExecutionContext<Props>>,
-    childrenNodes: BaseElement[]
-  ) => Promise<any>;
+  render?: (ctx: InstanceType<typeof ElementExecutionContext<Props>>, childrenNodes: BaseElement[]) => Promise<any>;
   enter?: () => Promise<void>;
   exit?: () => Promise<void>;
-  onExecutionGraphConstruction?: (
-    buildContext: BuildContext
-  ) => ExecutionGraphElement;
+  onExecutionGraphConstruction?: (buildContext: BuildContext) => ExecutionGraphElement;
 };

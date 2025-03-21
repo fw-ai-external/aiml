@@ -1,10 +1,10 @@
-import { Terminal, Wand2, MessageSquare } from "lucide-react";
+import { MessageSquare, Terminal, Wand2 } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
-import { CodeDisplay } from "@/components/ui/code-display";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from '@/components/ui/button';
+import { CodeDisplay } from '@/components/ui/code-display';
+import { Textarea } from '@/components/ui/textarea';
 
-import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 
 interface CurrentInstructionsProps {
   instructions?: string;
@@ -34,17 +34,14 @@ export function CurrentInstructions({
   const currentContent = enhancedPrompt || instructions?.trim();
 
   const { isCopied, handleCopy } = useCopyToClipboard({
-    text: currentContent || "",
+    text: currentContent || '',
   });
 
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
         <div>
-          <h3 className="text-sm font-medium text-aiml-el-5">
-            {" "}
-            Current Instructions{" "}
-          </h3>
+          <h3 className="text-sm font-medium text-aiml-el-5"> Current Instructions </h3>
         </div>
 
         <Button
@@ -70,7 +67,7 @@ export function CurrentInstructions({
 
       <div className="space-y-2">
         <CodeDisplay
-          content={currentContent || ""}
+          content={currentContent || ''}
           isCopied={isCopied}
           isDraft={!!enhancedPrompt}
           onCopy={() => currentContent && handleCopy()}
@@ -88,14 +85,9 @@ export function CurrentInstructions({
             </Button>
           </div>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onCommentToggle}
-          className="text-aimll-4 hover:text-aiaiml5"
-        >
+        <Button variant="ghost" size="sm" onClick={onCommentToggle} className="text-aimll-4 hover:text-aiaiml5">
           <MessageSquare className="h-3 w-3 mr-1" />
-          {showCommentInput ? "Hide Comment" : "Add Comment"}
+          {showCommentInput ? 'Hide Comment' : 'Add Comment'}
         </Button>
       </div>
 

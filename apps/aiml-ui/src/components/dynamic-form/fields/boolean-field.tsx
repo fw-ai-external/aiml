@@ -19,7 +19,7 @@ export function BooleanField({ name, control, handleFieldChange }: BooleanFieldP
       render={({ field }) => (
         <Switch
           checked={field.value}
-          onCheckedChange={checked => {
+          onCheckedChange={(checked) => {
             field.onChange(checked);
             handleFieldChange?.({ key: name, value: checked });
           }}

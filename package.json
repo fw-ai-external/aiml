@@ -12,6 +12,7 @@
     "validate": "bun run build && bun test"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@types/bun": "^1.2.5",
     "concurrently": "^9.1.2",
     "tsup": "^8.4.0",
