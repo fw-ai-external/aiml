@@ -23,8 +23,6 @@ import { createScopedDataModel } from "../elements/context/ScopedDataModel";
 import type { BaseElement } from "../elements/BaseElement";
 import { hydreateElementTree } from "../hydrateElementTree";
 
-type TagNodeDTO = any;
-
 /**
  * Serialized execution context
  */
@@ -75,7 +73,7 @@ export class ExecutionContext<
     secrets: Secrets;
   };
   datamodel: Record<string, any>;
-  props: PropValues & { children?: TagNodeDTO[] } = {} as PropValues;
+  props: PropValues & { children?: BaseElement[] } = {} as PropValues;
 
   state: {
     id: string;

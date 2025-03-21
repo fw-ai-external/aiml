@@ -1,18 +1,18 @@
-import { type AssignProps, assignConfig } from '@fireworks/shared';
-import { validateValueType } from '@fireworks/shared';
-import { v4 as uuidv4 } from 'uuid';
-import type { ElementExecutionContext } from '../../ElementExecutionContext';
-import { StepValue } from '../../StepValue';
-import type { BuildContext } from '../../graphBuilder/Context';
-import type { ExecutionReturnType } from '../../types';
-import { createElementDefinition } from '../createElementFactory';
+import { type AssignProps, assignConfig } from "@fireworks/shared";
+import { validateValueType } from "@fireworks/shared";
+import { v4 as uuidv4 } from "uuid";
+import type { ElementExecutionContext } from "../../ElementExecutionContext";
+import { StepValue } from "../../StepValue";
+import type { BuildContext } from "../../graphBuilder/Context";
+import type { ExecutionReturnType } from "../../types";
+import { createElementDefinition } from "../createElementFactory";
 
 /**
  * Resolves the value to assign from either an expression or input
  */
 async function resolveAssignValue(
   ctx: InstanceType<typeof ElementExecutionContext<AssignProps>>,
-  expr?: string,
+  expr?: string
 ): Promise<any> {
   // If expr is provided, evaluate it
   if (expr) {
@@ -36,7 +36,11 @@ async function resolveAssignValue(
   const inputValue = await ctx.input.value();
 
   // If the input is a StepValue-like object, extract the text
-  if (typeof inputValue === 'object' && inputValue !== null && 'text' in inputValue) {
+  if (
+    typeof inputValue === "object" &&
+    inputValue !== null &&
+    "text" in inputValue
+  ) {
     return inputValue.text;
   }
 
@@ -50,7 +54,7 @@ async function resolveAssignValue(
 function validateAssignment(
   ctx: InstanceType<typeof ElementExecutionContext<AssignProps>>,
   location: string,
-  value: any,
+  value: any
 ): void {
   // Get metadata for type validation
   const metadata = ctx.datamodel.__metadata?.[location];
@@ -68,17 +72,17 @@ function validateAssignment(
 
 export const Assign = createElementDefinition({
   ...assignConfig,
-  tag: 'assign' as const,
-  role: 'action' as const,
-  elementType: 'assign' as const,
-  allowedChildren: 'none' as const,
+  tag: "assign" as const,
+  role: "action" as const,
+  elementType: "assign" as const,
+  allowedChildren: "none" as const,
 
   onExecutionGraphConstruction(buildContext: BuildContext) {
     return {
       id: buildContext.attributes.id,
       key: buildContext.attributes.id ?? uuidv4(),
-      type: 'action',
-      subType: 'assign',
+      type: "action",
+      subType: "assign",
       attributes: {
         ...buildContext.attributes, // location, expr, etc.
       },
@@ -92,8 +96,8 @@ export const Assign = createElementDefinition({
     if (!location) {
       // Create an error StepValue
       const errorResult = new StepValue({
-        type: 'error',
-        code: 'ASSIGN_ERROR',
+        type: "error",
+        code: "ASSIGN_ERROR",
         error: "Assign element requires a 'location' attribute",
       });
 
@@ -108,14 +112,16 @@ export const Assign = createElementDefinition({
       if (!(location in ctx.datamodel)) {
         // Create an error StepValue
         const errorResult = new StepValue({
-          type: 'error',
-          code: 'ASSIGN_ERROR',
+          type: "error",
+          code: "ASSIGN_ERROR",
           error: `Variable ${location} does not exist in datamodel`,
         });
 
         return {
           result: errorResult,
-          exception: new Error(`Variable ${location} does not exist in datamodel`),
+          exception: new Error(
+            `Variable ${location} does not exist in datamodel`
+          ),
         };
       }
 
@@ -128,8 +134,8 @@ export const Assign = createElementDefinition({
       } catch (error) {
         // Create an error StepValue for validation errors
         const errorResult = new StepValue({
-          type: 'error',
-          code: 'ASSIGN_ERROR',
+          type: "error",
+          code: "ASSIGN_ERROR",
           error: error instanceof Error ? error.message : String(error),
         });
 
@@ -141,7 +147,7 @@ export const Assign = createElementDefinition({
 
       // Create a success StepValue with the assigned value
       const successResult = new StepValue({
-        type: 'object',
+        type: "object",
         object: {
           location,
           value,
@@ -157,8 +163,8 @@ export const Assign = createElementDefinition({
     } catch (error) {
       // Create an error StepValue for any other errors
       const errorResult = new StepValue({
-        type: 'error',
-        code: 'ASSIGN_ERROR',
+        type: "error",
+        code: "ASSIGN_ERROR",
         error: error instanceof Error ? error.message : String(error),
       });
 
