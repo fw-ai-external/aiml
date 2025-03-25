@@ -1,10 +1,10 @@
-import { Handle, Position } from '@xyflow/react';
-import type { Node, NodeProps } from '@xyflow/react';
-import { Footprints } from 'lucide-react';
+import { Handle, Position } from "@xyflow/react";
+import type { Node, NodeProps } from "@xyflow/react";
+import { Footprints } from "lucide-react";
 
-import { Text } from '@/components/ui/text';
+import { Text } from "@/components/ui/text";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 export type StateNode = Node<
   {
@@ -14,14 +14,21 @@ export type StateNode = Node<
     withoutBottomHandle?: boolean;
     actions: any;
   },
-  'state-node'
+  "state-node"
 >;
 
 export function WorkflowStateNode({ data }: NodeProps<StateNode>) {
-  const { label, description, withoutTopHandle, withoutBottomHandle, actions } = data;
+  const { label, description, withoutTopHandle, withoutBottomHandle, actions } =
+    data;
   return (
-    <div className={cn('bg-aiml-bg-8 rounded-md w-[274px]')}>
-      {!withoutTopHandle && <Handle type="target" position={Position.Top} style={{ visibility: 'hidden' }} />}
+    <div className={cn("bg-aiml-bg-8 rounded-md w-[274px]")}>
+      {!withoutTopHandle && (
+        <Handle
+          type="target"
+          position={Position.Top}
+          style={{ visibility: "hidden" }}
+        />
+      )}
       <div className="p-2">
         <div className="text-sm bg-aimlg-9 flex items-center gap-[6px] rounded-sm  p-2">
           <Footprints className="text-current w-4 h-4" />
@@ -37,12 +44,18 @@ export function WorkflowStateNode({ data }: NodeProps<StateNode>) {
           </Text>
           <ul>
             {actions.map((action: any) => (
-              <li key={action.elementType}>- {action.elementType}</li>
+              <li key={action.tag}>- {action.tag}</li>
             ))}
           </ul>
         </div>
       )}
-      {!withoutBottomHandle && <Handle type="source" position={Position.Bottom} style={{ visibility: 'hidden' }} />}
+      {!withoutBottomHandle && (
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          style={{ visibility: "hidden" }}
+        />
+      )}
     </div>
   );
 }
