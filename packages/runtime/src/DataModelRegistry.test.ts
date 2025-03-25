@@ -89,7 +89,7 @@ describe("DataModelRegistry Class", () => {
       });
 
       const scoped = registry.getScopedDataModel("test");
-      const json = scoped.toJson();
+      const json = scoped.toJSON();
       expect(json).toEqual({ field1: "default", field2: 42 });
     });
   });
@@ -412,14 +412,18 @@ describe("DataModelRegistry Class", () => {
         },
       };
 
-      registry.hydrateDataModels(models);
+      const newRegistry = DataModelRegistry.rehydrateFromDump({
+        scopedDataModels: models,
+        fieldValues: {},
+      });
 
-      expect(registry.getScopedDataModel("scope1").get("field1")).toBe("valid");
-      expect(registry.getScopedDataModel("scope2").get("field2")).toBe(42);
+      expect(newRegistry.getScopedDataModel("scope1").get("field1")).toBe(
+        "valid"
+      );
+      expect(newRegistry.getScopedDataModel("scope2").get("field2")).toBe(42);
     });
 
     test("should throw when hydrating invalid models", () => {
-      const registry = new DataModelRegistry();
       const models: Record<string, DataModel> = {
         scope1: {
           field1: {
@@ -434,7 +438,12 @@ describe("DataModelRegistry Class", () => {
         },
       };
 
-      expect(() => registry.hydrateDataModels(models)).toThrow();
+      expect(() =>
+        DataModelRegistry.rehydrateFromDump({
+          scopedDataModels: models,
+          fieldValues: {},
+        })
+      ).toThrow();
     });
 
     test("should rehydrate from dump while skipping fromRequest fields", () => {
@@ -461,8 +470,7 @@ describe("DataModelRegistry Class", () => {
       });
 
       const json = registry.toJSON();
-      const newRegistry = new DataModelRegistry();
-      newRegistry.rehydrateFromDump(json);
+      const newRegistry = DataModelRegistry.rehydrateFromDump(json);
 
       const scoped = newRegistry.getScopedDataModel("test");
       expect(scoped.get("field1")).toBe("value1");
@@ -495,8 +503,7 @@ describe("DataModelRegistry Class", () => {
       });
 
       const json = registry.toJSON();
-      const newRegistry = new DataModelRegistry();
-      newRegistry.rehydrateFromDump(json);
+      const newRegistry = DataModelRegistry.rehydrateFromDump(json);
 
       const scoped = newRegistry.getScopedDataModel("parent.child.grandchild");
       expect(scoped.get("parentField")).toBe("parentValue");

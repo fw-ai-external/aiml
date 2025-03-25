@@ -55,6 +55,7 @@ export async function parseMDXToAIML(
         {
           type: "paragraph",
           key: "1",
+          scope: ["root"],
           lineStart: 1,
           lineEnd: 1,
           columnStart: 1,
@@ -63,6 +64,7 @@ export async function parseMDXToAIML(
             {
               type: "text",
               key: "2",
+              scope: ["root"],
               lineStart: 1,
               lineEnd: 1,
               columnStart: 1,

@@ -1,8 +1,6 @@
 import { type AssignProps, assignConfig } from "@fireworks/shared";
-import { validateValueType } from "@fireworks/shared";
 import { v4 as uuidv4 } from "uuid";
 import type { ElementExecutionContext } from "../../ElementExecutionContext";
-import { StepValue } from "../../StepValue";
 import type { BuildContext } from "../../graphBuilder/Context";
 import type { ExecutionReturnType } from "../../types";
 import { createElementDefinition } from "../createElementFactory";
@@ -47,29 +45,6 @@ async function resolveAssignValue(
   return inputValue;
 }
 
-/**
- * Validates that the value can be assigned to the location
- * Checks type constraints and readonly status
- */
-function validateAssignment(
-  ctx: InstanceType<typeof ElementExecutionContext<AssignProps>>,
-  location: string,
-  value: any
-): void {
-  // Get metadata for type validation
-  const metadata = ctx.datamodel.__metadata?.[location];
-
-  // Validate the value against the type if metadata exists
-  if (metadata) {
-    validateValueType(value, metadata.type, metadata.schema);
-
-    // Check if the variable is readonly
-    if (metadata?.readonly) {
-      throw new Error(`Cannot assign to readonly variable: ${location}`);
-    }
-  }
-}
-
 export const Assign = createElementDefinition({
   ...assignConfig,
   tag: "assign" as const,
@@ -92,84 +67,18 @@ export const Assign = createElementDefinition({
   async execute(ctx): Promise<ExecutionReturnType> {
     const { location, expr } = ctx.props;
 
-    // Validate location is provided
-    if (!location) {
-      // Create an error StepValue
-      const errorResult = new StepValue({
-        type: "error",
-        code: "ASSIGN_ERROR",
-        error: "Assign element requires a 'location' attribute",
-      });
-
-      return {
-        result: errorResult,
-        exception: new Error("Assign element requires a 'location' attribute"),
-      };
-    }
+    // Get the value to assign - either from expression or input
+    const value = await resolveAssignValue(ctx as any, expr);
 
     try {
-      // Check if the variable exists in the datamodel
-      if (!(location in ctx.datamodel)) {
-        // Create an error StepValue
-        const errorResult = new StepValue({
-          type: "error",
-          code: "ASSIGN_ERROR",
-          error: `Variable ${location} does not exist in datamodel`,
-        });
-
-        return {
-          result: errorResult,
-          exception: new Error(
-            `Variable ${location} does not exist in datamodel`
-          ),
-        };
-      }
-
-      // Get the value to assign - either from expression or input
-      const value = await resolveAssignValue(ctx as any, expr);
-
-      try {
-        // Validate the value and check if it can be assigned
-        validateAssignment(ctx as any, location, value);
-      } catch (error) {
-        // Create an error StepValue for validation errors
-        const errorResult = new StepValue({
-          type: "error",
-          code: "ASSIGN_ERROR",
-          error: error instanceof Error ? error.message : String(error),
-        });
-
-        return {
-          result: errorResult,
-          exception: error instanceof Error ? error : new Error(String(error)),
-        };
-      }
-
-      // Create a success StepValue with the assigned value
-      const successResult = new StepValue({
-        type: "object",
-        object: {
-          location,
-          value,
-        },
-        raw: JSON.stringify({ location, value }),
-      });
-
-      // Return result with context update
+      // Validate the value and check if it can be assigned
+      ctx.datamodel.set(location, value);
       return {
-        result: successResult,
-        contextUpdate: { [location]: value },
+        result: ctx.input,
       };
     } catch (error) {
-      // Create an error StepValue for any other errors
-      const errorResult = new StepValue({
-        type: "error",
-        code: "ASSIGN_ERROR",
-        error: error instanceof Error ? error.message : String(error),
-      });
-
       return {
-        result: errorResult,
+        result: ctx.input,
         exception: error instanceof Error ? error : new Error(String(error)),
       };
     }

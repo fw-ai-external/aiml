@@ -67,7 +67,8 @@ export function processAttributes(attributes: any[]): Record<string, any> {
  * Convert a paragraph node to an LLM element
  */
 export function convertParagraphToLlmNode(
-  paragraphNode: SerializedBaseElement
+  paragraphNode: SerializedBaseElement,
+  scope: string[]
 ): SerializedBaseElement {
   let promptText = "";
 
@@ -87,6 +88,7 @@ export function convertParagraphToLlmNode(
     tag: "llm",
     role: "action",
     elementType: "llm",
+    scope,
     attributes: {
       prompt: "${input}",
       instructions: promptText,
@@ -303,10 +305,16 @@ export function transformNode(
       context.currentStates.pop();
     }
 
+    const scope =
+      context.currentStates.length > 0
+        ? ["root", ...context.currentStates]
+        : ["root"];
+
     return {
       type: "element",
       key: generateKey(),
       tag: node.name,
+      scope,
       role: isState
         ? "state"
         : node.name.toLowerCase().includes("error")
@@ -338,11 +346,17 @@ export function transformNode(
     const children: SerializedBaseElement[] = [];
     if (node.children && node.children.length > 0) {
       for (const child of node.children) {
+        const scope =
+          context.currentStates.length > 0
+            ? ["root", ...context.currentStates]
+            : ["root"];
+
         if (child.type === "text") {
           // Add text node
           children.push({
             type: "text",
             key: generateKey(),
+            scope,
             value: child.value,
             lineStart: getPosition(child, "start", "line"),
             lineEnd: getPosition(child, "end", "line"),
@@ -354,6 +368,7 @@ export function transformNode(
           children.push({
             type: "expression",
             key: generateKey(),
+            scope,
             value: child.value,
             lineStart: getPosition(child, "start", "line"),
             lineEnd: getPosition(child, "end", "line"),
@@ -375,10 +390,16 @@ export function transformNode(
       }
     }
 
+    const scope =
+      context.currentStates.length > 0
+        ? ["root", ...context.currentStates]
+        : ["root"];
+
     // Create paragraph node
     return {
       type: "paragraph",
       key: generateKey(),
+      scope,
       children,
       lineStart,
       lineEnd,
@@ -407,6 +428,7 @@ export function transformNode(
             fields.push({
               type: "headerField",
               key: generateKey(),
+              scope: ["root"],
               id,
               value,
               lineStart: getPosition(node, "start", "line"),
@@ -440,6 +462,7 @@ export function transformNode(
     return {
       type: "header",
       key: generateKey(),
+      scope: ["root"],
       children: fields,
       lineStart: getPosition(node, "start", "line"),
       lineEnd: getPosition(node, "end", "line"),
@@ -457,6 +480,7 @@ export function transformNode(
         return {
           type: "import",
           key: generateKey(),
+          scope: ["root"],
           filePath: source,
           namedImports,
           defaultImport,
@@ -472,13 +496,20 @@ export function transformNode(
   } else if (node.type === "heading") {
     // Process headings - could convert to a special element or text
     const text = extractTextFromNode(node);
+    const scope =
+      context.currentStates.length > 0
+        ? ["root", ...context.currentStates]
+        : ["root"];
+
     return {
       type: "paragraph",
       key: generateKey(),
+      scope,
       children: [
         {
           type: "text",
           key: generateKey(),
+          scope,
           value: text || "",
           lineStart: getPosition(node, "start", "line"),
           lineEnd: getPosition(node, "end", "line"),
@@ -493,9 +524,15 @@ export function transformNode(
     };
   } else if (node.type === "html") {
     // Raw HTML - convert to text
+    const scope =
+      context.currentStates.length > 0
+        ? ["root", ...context.currentStates]
+        : ["root"];
+
     return {
       type: "text",
       key: generateKey(),
+      scope,
       value: node.value,
       lineStart: getPosition(node, "start", "line"),
       lineEnd: getPosition(node, "end", "line"),
@@ -505,13 +542,20 @@ export function transformNode(
   } else if (node.type === "list" || node.type === "listItem") {
     // Convert lists to text paragraphs
     const text = extractTextFromNode(node);
+    const scope =
+      context.currentStates.length > 0
+        ? ["root", ...context.currentStates]
+        : ["root"];
+
     return {
       type: "paragraph",
       key: generateKey(),
+      scope,
       children: [
         {
           type: "text",
           key: generateKey(),
+          scope,
           value: text || "",
           lineStart: getPosition(node, "start", "line"),
           lineEnd: getPosition(node, "end", "line"),
@@ -530,14 +574,21 @@ export function transformNode(
       return null; // Skip empty text nodes
     }
 
+    const scope =
+      context.currentStates.length > 0
+        ? ["root", ...context.currentStates]
+        : ["root"];
+
     // If it's a standalone text node, wrap it in a paragraph
     return {
       type: "paragraph",
       key: generateKey(),
+      scope,
       children: [
         {
           type: "text",
           key: generateKey(),
+          scope,
           value: node.value,
           lineStart: getPosition(node, "start", "line"),
           lineEnd: getPosition(node, "end", "line"),
@@ -553,13 +604,20 @@ export function transformNode(
   } else if (node.type === "code") {
     // Code blocks - convert to text
     const text = `\`\`\`${node.lang || ""}\n${node.value || ""}\n\`\`\``;
+    const scope =
+      context.currentStates.length > 0
+        ? ["root", ...context.currentStates]
+        : ["root"];
+
     return {
       type: "paragraph",
       key: generateKey(),
+      scope,
       children: [
         {
           type: "text",
           key: generateKey(),
+          scope,
           value: text,
           lineStart: getPosition(node, "start", "line"),
           lineEnd: getPosition(node, "end", "line"),
@@ -574,9 +632,15 @@ export function transformNode(
     };
   } else if (node.type === "inlineCode") {
     // Inline code - convert to text
+    const scope =
+      context.currentStates.length > 0
+        ? ["root", ...context.currentStates]
+        : ["root"];
+
     return {
       type: "text",
       key: generateKey(),
+      scope,
       value: `\`${node.value || ""}\``,
       lineStart: getPosition(node, "start", "line"),
       lineEnd: getPosition(node, "end", "line"),
@@ -585,9 +649,15 @@ export function transformNode(
     };
   } else if (node.type === "thematicBreak") {
     // Horizontal rule - convert to text
+    const scope =
+      context.currentStates.length > 0
+        ? ["root", ...context.currentStates]
+        : ["root"];
+
     return {
       type: "text",
       key: generateKey(),
+      scope,
       value: "---",
       lineStart: getPosition(node, "start", "line"),
       lineEnd: getPosition(node, "end", "line"),
@@ -596,9 +666,15 @@ export function transformNode(
     };
   } else if (node.type === "mdxFlowExpression") {
     // MDX expression outside JSX - create an expression node
+    const scope =
+      context.currentStates.length > 0
+        ? ["root", ...context.currentStates]
+        : ["root"];
+
     return {
       type: "expression",
       key: generateKey(),
+      scope,
       value: node.value,
       lineStart: getPosition(node, "start", "line"),
       lineEnd: getPosition(node, "end", "line"),
@@ -608,13 +684,20 @@ export function transformNode(
   } else if (node.type === "blockquote") {
     // Convert blockquotes to text
     const text = extractTextFromNode(node);
+    const scope =
+      context.currentStates.length > 0
+        ? ["root", ...context.currentStates]
+        : ["root"];
+
     return {
       type: "paragraph",
       key: generateKey(),
+      scope,
       children: [
         {
           type: "text",
           key: generateKey(),
+          scope,
           value: text || "",
           lineStart: getPosition(node, "start", "line"),
           lineEnd: getPosition(node, "end", "line"),

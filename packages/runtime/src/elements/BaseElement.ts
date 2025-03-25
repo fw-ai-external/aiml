@@ -16,14 +16,14 @@ import type {
   RuntimeElementDefinition,
 } from "../types";
 import { defaultStepExecutionGraphMapper } from "../utils";
+import type { DataModelRegistry } from "../DataModelRegistry";
 
 export class BaseElement
   implements Omit<SerializedElement, "parent" | "children">
 {
   public readonly inputSchema = z.object({
     input: z.any(),
-    other: z.any(),
-    debug: z.any(),
+    getDatamodel: z.any(),
   });
   public readonly outputSchema = z.object({
     result: z.any(),
@@ -66,7 +66,7 @@ export class BaseElement
     context: InstanceType<typeof ElementExecutionContext<any, any>>,
     childrenNodes: BaseElement[]
   ) => Promise<ExecutionReturnType>;
-
+  public readonly scope: string[];
   constructor(
     config: Omit<RuntimeElementDefinition, "propsSchema"> &
       Omit<SerializedElementConfig, "parent" | "children"> & {
@@ -84,7 +84,7 @@ export class BaseElement
     this._parent = config.parent
       ? (config.parent as WeakRef<BaseElement>)
       : undefined;
-
+    this.scope = (config as any).scope ?? ["root"];
     // Set parent ID if parent is provided
     if (this._parent) {
       const parent = this._parent.deref();
@@ -170,13 +170,17 @@ export class BaseElement
         result: context.context.input,
       };
     }
+
+    const datamodel: DataModelRegistry = context.context.getDatamodel();
+    const scopedDatamodel = datamodel.getScopedDataModel(this.scope.join("."));
+
     try {
       const executeResult = await this._execute(
         new ElementExecutionContext({
           ...context,
           input: context.context.input,
           requestInput: context.context.workflowInput || {},
-          datamodel: context.context.datamodel,
+          datamodel: scopedDatamodel,
           state: {
             id: this.id,
             props: this.attributes,
@@ -346,6 +350,7 @@ export class BaseElement
       role: this.role,
       elementType: this.elementType,
       attributes: this.attributes,
+      scope: this.scope,
       children: this.children.map((child) => child.toJSON()),
       lineStart: this.lineStart,
       lineEnd: this.lineEnd,

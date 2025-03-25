@@ -1,5 +1,5 @@
 import type { Workflow } from "@mastra/core/workflows";
-import { BaseElement } from "../elements/BaseElement";
+import type { BaseElement } from "../elements/BaseElement";
 import type { ExecutionGraphElement } from "../types";
 
 // Define missing types

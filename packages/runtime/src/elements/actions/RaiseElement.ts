@@ -1,13 +1,12 @@
-import { raiseConfig } from '@fireworks/shared';
-import { StepValue } from '../../StepValue';
-import { createElementDefinition } from '../createElementFactory';
+import { raiseConfig } from "@fireworks/shared";
+import { createElementDefinition } from "../createElementFactory";
 
 export const Raise = createElementDefinition({
   ...raiseConfig,
-  tag: 'raise' as const,
-  role: 'action' as const,
-  elementType: 'raise' as const,
-  allowedChildren: 'none' as const,
+  tag: "raise" as const,
+  role: "action" as const,
+  elementType: "raise" as const,
+  allowedChildren: "none" as const,
   async execute(ctx) {
     const { event } = ctx.props;
 
@@ -20,14 +19,8 @@ export const Raise = createElementDefinition({
       // @ts-expect-error until we fix it lol
       ctx.sendEvent(event);
 
-      const resultObject = { event };
-
       return {
-        result: new StepValue({
-          type: 'object',
-          object: resultObject,
-          raw: JSON.stringify(resultObject),
-        }),
+        result: ctx.input,
       };
     } catch (error) {
       console.error(`Error in raise element (${event}):`, error);

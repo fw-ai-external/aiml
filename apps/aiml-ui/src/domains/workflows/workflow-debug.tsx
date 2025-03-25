@@ -1,16 +1,16 @@
-import { JsonViewer } from '@/components/json-viewer';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useWorkflow } from '@/hooks/use-workflows';
-import { RefreshCcwIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { JsonViewer } from "@/components/json-viewer";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useWorkflow } from "@/hooks/use-workflows";
+import { RefreshCcwIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export function WorkflowDebug({
   workflowId,
   debugType,
 }: {
   workflowId: string;
-  debugType: 'ast' | 'elementTree' | 'stepGraph';
+  debugType: "ast" | "elementTree" | "stepGraph";
 }) {
   const {
     prompt: workflowPrompt,
@@ -19,6 +19,7 @@ export function WorkflowDebug({
     elementTree,
     astNodes,
     executionGraph,
+    datamodel,
     updatePrompt,
     isUpdating,
   } = useWorkflow(workflowId);
@@ -29,8 +30,8 @@ export function WorkflowDebug({
       setPrompt(workflowPrompt);
     }
     if (workflowPrompt && prompt !== workflowPrompt) {
-      updatePrompt(prompt || '').catch((error) => {
-        console.error('Error updating workflow prompt', error);
+      updatePrompt(prompt || "").catch((error) => {
+        console.error("Error updating workflow prompt", error);
       });
     }
   }, [prompt, workflowPrompt]);
@@ -56,12 +57,13 @@ export function WorkflowDebug({
             <JsonViewer
               key={`${debugType}-${workflowId}`}
               data={
-                debugType === 'ast'
+                debugType === "ast"
                   ? {
                       nodes: astNodes,
                       diagnostics: astDiagnostics,
+                      datamodel: datamodel,
                     }
-                  : debugType === 'elementTree'
+                  : debugType === "elementTree"
                     ? elementTree
                     : executionGraph
               }

@@ -1,6 +1,10 @@
-import type { CommentNode, Diagnostic, SerializedBaseElement } from '@fireworks/shared';
-import { generateKey } from '../utils/helpers.js';
-import { convertParagraphToLlmNode } from './transform-nodes.js';
+import type {
+  CommentNode,
+  Diagnostic,
+  SerializedBaseElement,
+} from "@fireworks/shared";
+import { generateKey } from "../utils/helpers.js";
+import { convertParagraphToLlmNode } from "./transform-nodes.js";
 
 /**
  * Process the intermediate nodes into a final structure ready for hydration
@@ -11,7 +15,7 @@ import { convertParagraphToLlmNode } from './transform-nodes.js';
  */
 export function processFinalStructure(
   nodes: SerializedBaseElement[],
-  diagnostics: Diagnostic[],
+  diagnostics: Diagnostic[]
 ): SerializedBaseElement[] {
   const rootLevelNodes: SerializedBaseElement[] = [];
   const comments: CommentNode[] = [];
@@ -21,14 +25,14 @@ export function processFinalStructure(
 
   // First pass: categorize nodes
   for (const node of nodes) {
-    if (node.type === 'header') {
+    if (node.type === "header") {
       headerNode = node;
       rootLevelNodes.push(node);
-    } else if (node.type === 'comment') {
+    } else if (node.type === "comment") {
       comments.push(node as CommentNode);
-    } else if (node.type === 'paragraph') {
+    } else if (node.type === "paragraph") {
       rootLevelParagraphs.push(node);
-    } else if (node.type === 'element' && node.elementType === 'workflow') {
+    } else if (node.type === "element" && node.elementType === "workflow") {
       workflowNode = node;
       rootLevelNodes.push(node);
     } else {
@@ -39,11 +43,12 @@ export function processFinalStructure(
   // Create workflow node if one doesn't exist
   if (!workflowNode) {
     workflowNode = {
-      type: 'element',
+      type: "element",
       key: generateKey(),
-      tag: 'workflow',
-      role: 'state',
-      elementType: 'workflow',
+      tag: "workflow",
+      role: "state",
+      scope: ["root"],
+      elementType: "workflow",
       attributes: {},
       children: [],
       lineStart: 1,
@@ -55,27 +60,30 @@ export function processFinalStructure(
     if (!workflowNode.attributes) {
       workflowNode.attributes = {};
     }
-    workflowNode.attributes.id = 'workflow-root';
+    workflowNode.attributes.id = "workflow-root";
     rootLevelNodes.push(workflowNode);
   }
 
   // Check if workflow has a final element; if not, add one
   let hasFinalElement = false;
   if (workflowNode.children) {
-    hasFinalElement = workflowNode.children.some((child) => child.type === 'element' && child.tag === 'final');
+    hasFinalElement = workflowNode.children.some(
+      (child) => child.type === "element" && child.tag === "final"
+    );
   }
 
   if (!hasFinalElement && workflowNode) {
     // Create a final element with a unique ID
     const finalElement: SerializedBaseElement = {
-      type: 'element',
+      type: "element",
       key: generateKey(),
-      tag: 'final',
-      role: 'output',
-      elementType: 'final',
+      tag: "final",
+      role: "output",
+      elementType: "final",
       attributes: {
-        id: 'final',
+        id: "final",
       },
+      scope: ["root", "final"],
       children: [],
       lineStart: workflowNode.lineStart,
       lineEnd: workflowNode.lineEnd,
@@ -97,19 +105,23 @@ export function processFinalStructure(
   // Process root level paragraphs by converting them to LLM elements wrapped in state elements
   if (rootLevelParagraphs.length > 0) {
     for (const [index, paragraph] of rootLevelParagraphs.entries()) {
+      const stateId = `root-state-${index}`;
+      const scope: string[] = ["root", stateId];
+
       // Convert paragraph to LLM element
-      const llmElement = convertParagraphToLlmNode(paragraph);
+      const llmElement = convertParagraphToLlmNode(paragraph, scope);
 
       // Create state element to wrap the LLM element
       const stateElement: SerializedBaseElement = {
-        type: 'element',
+        type: "element",
         key: generateKey(),
-        tag: 'state',
-        role: 'state',
-        elementType: 'state',
+        tag: "state",
+        role: "state",
+        elementType: "state",
         attributes: {
-          id: `root-state-${index}`,
+          id: stateId,
         },
+        scope,
         children: [llmElement],
         lineStart: paragraph.lineStart,
         lineEnd: paragraph.lineEnd,
@@ -130,17 +142,27 @@ export function processFinalStructure(
 
   // Add non-paragraph, non-header nodes to workflow
   for (const node of rootLevelNodes) {
-    if (node !== workflowNode && node !== headerNode && node.type === 'element') {
+    if (
+      node !== workflowNode &&
+      node !== headerNode &&
+      node.type === "element"
+    ) {
       // Handle action elements that aren't already part of a state
-      if (node.role === 'action') {
+      if (node.role === "action") {
         // Check if it already has a state ancestor
         let hasStateAncestor = false;
         let currentParentId = node.parentId;
 
         // Find parent nodes recursively by their IDs
-        const findParentNode = (parentId: string): SerializedBaseElement | undefined => {
+        const findParentNode = (
+          parentId: string
+        ): SerializedBaseElement | undefined => {
           // Check if the parent is the workflow node
-          if (workflowNode && workflowNode.attributes && workflowNode.attributes.id === parentId) {
+          if (
+            workflowNode &&
+            workflowNode.attributes &&
+            workflowNode.attributes.id === parentId
+          ) {
             return workflowNode;
           }
 
@@ -169,11 +191,12 @@ export function processFinalStructure(
           return undefined;
         };
 
+        let parentNode: SerializedBaseElement | undefined;
         while (currentParentId) {
-          const parentNode = findParentNode(currentParentId);
+          parentNode = findParentNode(currentParentId);
           if (!parentNode) break;
 
-          if (parentNode.role === 'state') {
+          if (parentNode.role === "state") {
             hasStateAncestor = true;
             break;
           }
@@ -183,11 +206,12 @@ export function processFinalStructure(
         if (!hasStateAncestor && workflowNode) {
           // Wrap action in a state
           const stateElement: SerializedBaseElement = {
-            type: 'element',
+            type: "element",
             key: generateKey(),
-            tag: 'state',
-            role: 'state',
-            elementType: 'state',
+            tag: "state",
+            role: "state",
+            elementType: "state",
+            scope: [...(parentNode?.scope || ["root"]), `state-${node.key}`],
             attributes: {
               id: `state-${node.key}`,
             },
@@ -220,9 +244,18 @@ export function processFinalStructure(
   }
 
   // Process header information
-  if (headerNode && headerNode.children && workflowNode && workflowNode.attributes) {
+  if (
+    headerNode &&
+    headerNode.children &&
+    workflowNode &&
+    workflowNode.attributes
+  ) {
     for (const field of headerNode.children) {
-      if (field.type === 'headerField' && field.id && field.value !== undefined) {
+      if (
+        field.type === "headerField" &&
+        field.id &&
+        field.value !== undefined
+      ) {
         workflowNode.attributes[field.id] = field.value;
       }
     }
@@ -234,10 +267,22 @@ export function processFinalStructure(
   }
 
   // If this is an auto-created workflow, set the initial state to the first state element
-  if (workflowNode && workflowNode.children && workflowNode.children.length > 0 && workflowNode.attributes) {
-    const firstState = workflowNode.children.find((child) => child.role === 'state');
+  if (
+    workflowNode &&
+    workflowNode.children &&
+    workflowNode.children.length > 0 &&
+    workflowNode.attributes
+  ) {
+    const firstState = workflowNode.children.find(
+      (child) => child.role === "state"
+    );
 
-    if (firstState && firstState.attributes && firstState.attributes.id && !workflowNode.attributes.initial) {
+    if (
+      firstState &&
+      firstState.attributes &&
+      firstState.attributes.id &&
+      !workflowNode.attributes.initial
+    ) {
       workflowNode.attributes.initial = firstState.attributes.id;
     }
   }
@@ -249,7 +294,10 @@ export function processFinalStructure(
 /**
  * Assign comments to elements based on their position in the document
  */
-export function assignCommentsToElement(element: SerializedBaseElement, remainingComments: CommentNode[]): void {
+export function assignCommentsToElement(
+  element: SerializedBaseElement,
+  remainingComments: CommentNode[]
+): void {
   const elementComments: CommentNode[] = [];
   const otherComments: CommentNode[] = [];
 
@@ -267,7 +315,7 @@ export function assignCommentsToElement(element: SerializedBaseElement, remainin
 
   if (element.children) {
     for (const child of element.children) {
-      if (child.type === 'element') {
+      if (child.type === "element") {
         assignCommentsToElement(child, otherComments);
       }
     }
@@ -282,10 +330,13 @@ export function assignCommentsToElement(element: SerializedBaseElement, remainin
  * @param diagnostics Array to collect diagnostics
  * @returns Healed nodes
  */
-export function healFlowOrError(nodes: SerializedBaseElement[], diagnostics: Diagnostic[]): SerializedBaseElement[] {
+export function healFlowOrError(
+  nodes: SerializedBaseElement[],
+  diagnostics: Diagnostic[]
+): SerializedBaseElement[] {
   // Get the workflow node (should be the first node after processFinalStructure)
   const workflowNode = nodes[0];
-  if (!workflowNode || workflowNode.elementType !== 'workflow') {
+  if (!workflowNode || workflowNode.elementType !== "workflow") {
     return nodes; // No workflow node found, return as is
   }
 
@@ -298,11 +349,16 @@ export function healFlowOrError(nodes: SerializedBaseElement[], diagnostics: Dia
   if (workflowNode.children) {
     // Check for existing final element and error state
     for (const child of workflowNode.children) {
-      if (child.type === 'element' && child.tag === 'final') {
+      if (child.type === "element" && child.tag === "final") {
         hasFinalElement = true;
         finalElement = child;
       }
-      if (child.type === 'element' && child.tag === 'state' && child.attributes && child.attributes.id === 'error') {
+      if (
+        child.type === "element" &&
+        child.tag === "state" &&
+        child.attributes &&
+        child.attributes.id === "error"
+      ) {
         hasErrorState = true;
         errorState = child;
       }
@@ -311,13 +367,14 @@ export function healFlowOrError(nodes: SerializedBaseElement[], diagnostics: Dia
     // Create final element if needed
     if (!hasFinalElement) {
       finalElement = {
-        type: 'element',
+        type: "element",
         key: generateKey(),
-        tag: 'final',
-        role: 'output',
-        elementType: 'final',
+        tag: "final",
+        role: "output",
+        elementType: "final",
+        scope: ["root", "final"],
         attributes: {
-          id: 'final',
+          id: "final",
         },
         children: [],
         lineStart: workflowNode.lineStart,
@@ -332,14 +389,15 @@ export function healFlowOrError(nodes: SerializedBaseElement[], diagnostics: Dia
     // Create error state if needed
     if (!hasErrorState) {
       errorState = {
-        type: 'element',
+        type: "element",
         key: generateKey(),
-        tag: 'state',
-        role: 'state',
-        elementType: 'state',
+        tag: "state",
+        role: "state",
+        elementType: "state",
         attributes: {
-          id: 'error',
+          id: "error",
         },
+        scope: ["root", "error"],
         children: [],
         lineStart: workflowNode.lineStart,
         lineEnd: workflowNode.lineEnd,
@@ -352,7 +410,10 @@ export function healFlowOrError(nodes: SerializedBaseElement[], diagnostics: Dia
 
     // Find all direct child states of the workflow
     const directChildStates = workflowNode.children.filter(
-      (child) => child.type === 'element' && child.role === 'state' && child !== errorState,
+      (child) =>
+        child.type === "element" &&
+        child.role === "state" &&
+        child !== errorState
     );
 
     // Process all direct child states of the workflow
@@ -368,14 +429,15 @@ export function healFlowOrError(nodes: SerializedBaseElement[], diagnostics: Dia
 
         // Add transition to next sibling
         currentState.children.push({
-          type: 'element',
+          type: "element",
           key: generateKey(),
-          tag: 'transition',
-          role: 'action',
-          elementType: 'transition',
+          tag: "transition",
+          role: "action",
+          elementType: "transition",
           attributes: {
             target: nextState.attributes?.id,
           },
+          scope: currentState.scope,
           children: [],
           lineStart: currentState.lineStart,
           lineEnd: currentState.lineEnd,
@@ -396,14 +458,15 @@ export function healFlowOrError(nodes: SerializedBaseElement[], diagnostics: Dia
         }
 
         lastDirectChild.children.push({
-          type: 'element',
+          type: "element",
           key: generateKey(),
-          tag: 'transition',
-          role: 'action',
-          elementType: 'transition',
+          tag: "transition",
+          role: "action",
+          elementType: "transition",
           attributes: {
-            target: 'final',
+            target: "final",
           },
+          scope: lastDirectChild.scope,
           children: [],
           lineStart: lastDirectChild.lineStart,
           lineEnd: lastDirectChild.lineEnd,
@@ -416,13 +479,22 @@ export function healFlowOrError(nodes: SerializedBaseElement[], diagnostics: Dia
 
     // Process states that already have conditional transitions but no conditionless ones
     for (const child of workflowNode.children) {
-      if (child.type === 'element' && child.tag === 'state' && child !== errorState) {
+      if (
+        child.type === "element" &&
+        child.tag === "state" &&
+        child !== errorState
+      ) {
         if (
-          child.children?.some((c) => c.type === 'element' && c.tag === 'transition' && c.attributes?.cond) &&
+          child.children?.some(
+            (c) =>
+              c.type === "element" &&
+              c.tag === "transition" &&
+              c.attributes?.cond
+          ) &&
           !hasConditionlessTransition(child)
         ) {
           // Find next sibling or final
-          let targetId: string | undefined = 'final';
+          let targetId: string | undefined = "final";
 
           const index = directChildStates.indexOf(child);
           if (index >= 0 && index < directChildStates.length - 1) {
@@ -436,14 +508,15 @@ export function healFlowOrError(nodes: SerializedBaseElement[], diagnostics: Dia
 
             // Add conditionless transition
             child.children.push({
-              type: 'element',
+              type: "element",
               key: generateKey(),
-              tag: 'transition',
-              role: 'action',
-              elementType: 'transition',
+              tag: "transition",
+              role: "action",
+              elementType: "transition",
               attributes: {
                 target: targetId,
               },
+              scope: child.scope,
               children: [],
               lineStart: child.lineStart,
               lineEnd: child.lineEnd,
@@ -459,10 +532,10 @@ export function healFlowOrError(nodes: SerializedBaseElement[], diagnostics: Dia
     // Now recursively process nested states
     for (const child of workflowNode.children) {
       if (
-        child.type === 'element' &&
-        child.role === 'state' &&
-        child.tag !== 'final' && // Use tag comparison instead of object reference
-        child.attributes?.id !== 'error' // Use id comparison for error state
+        child.type === "element" &&
+        child.role === "state" &&
+        child.tag !== "final" && // Use tag comparison instead of object reference
+        child.attributes?.id !== "error" // Use id comparison for error state
       ) {
         processStateAndChildren(child, workflowNode, finalElement);
       }
@@ -478,14 +551,16 @@ export function healFlowOrError(nodes: SerializedBaseElement[], diagnostics: Dia
 function processStateAndChildren(
   state: SerializedBaseElement,
   workflow: SerializedBaseElement,
-  finalElement: SerializedBaseElement | undefined,
+  finalElement: SerializedBaseElement | undefined
 ): void {
   if (!state.children) {
     state.children = [];
   }
 
   // Get all nested states within this state
-  const nestedStates = state.children.filter((child) => child.type === 'element' && child.role === 'state');
+  const nestedStates = state.children.filter(
+    (child) => child.type === "element" && child.role === "state"
+  );
 
   // Process all nested states first (depth-first)
   for (const nestedState of nestedStates) {
@@ -504,15 +579,16 @@ function processStateAndChildren(
 
       // Add transition to next sibling
       currentState.children.push({
-        type: 'element',
+        type: "element",
         key: generateKey(),
-        tag: 'transition',
-        role: 'action',
-        elementType: 'transition',
+        tag: "transition",
+        role: "action",
+        elementType: "transition",
         attributes: {
           target: nextState.attributes?.id,
         },
         children: [],
+        scope: currentState.scope,
         lineStart: currentState.lineStart,
         lineEnd: currentState.lineEnd,
         columnStart: currentState.columnStart,
@@ -542,12 +618,18 @@ function processStateAndChildren(
           // If parent has no direct sibling but is a child of the workflow,
           // find the next workflow child after the parent
           const directWorkflowChildren = workflow.children?.filter(
-            (child) => child.type === 'element' && child.role === 'state' && child.attributes?.id !== 'error', // Exclude error state
+            (child) =>
+              child.type === "element" &&
+              child.role === "state" &&
+              child.attributes?.id !== "error" // Exclude error state
           );
 
           if (directWorkflowChildren && directWorkflowChildren.length > 0) {
             const parentIndex = directWorkflowChildren.indexOf(parent);
-            if (parentIndex >= 0 && parentIndex < directWorkflowChildren.length - 1) {
+            if (
+              parentIndex >= 0 &&
+              parentIndex < directWorkflowChildren.length - 1
+            ) {
               targetState = directWorkflowChildren[parentIndex + 1];
             }
           }
@@ -558,15 +640,24 @@ function processStateAndChildren(
       if (!targetState) {
         // For deeply nested case - find a direct transition to next workflow state
         const directWorkflowChildren = workflow.children?.filter(
-          (child) => child.type === 'element' && child.role === 'state' && child.attributes?.id !== 'error', // Exclude error state
+          (child) =>
+            child.type === "element" &&
+            child.role === "state" &&
+            child.attributes?.id !== "error" // Exclude error state
         );
 
         if (directWorkflowChildren && directWorkflowChildren.length > 0) {
           // Try to find the grandparent in the workflow children
-          const stateAncestor = findAncestorInList(state, directWorkflowChildren);
+          const stateAncestor = findAncestorInList(
+            state,
+            directWorkflowChildren
+          );
           if (stateAncestor) {
             const ancestorIndex = directWorkflowChildren.indexOf(stateAncestor);
-            if (ancestorIndex >= 0 && ancestorIndex < directWorkflowChildren.length - 1) {
+            if (
+              ancestorIndex >= 0 &&
+              ancestorIndex < directWorkflowChildren.length - 1
+            ) {
               targetState = directWorkflowChildren[ancestorIndex + 1];
             }
           }
@@ -585,15 +676,16 @@ function processStateAndChildren(
 
         // Add transition to target
         lastNestedState.children.push({
-          type: 'element',
+          type: "element",
           key: generateKey(),
-          tag: 'transition',
-          role: 'action',
-          elementType: 'transition',
+          tag: "transition",
+          role: "action",
+          elementType: "transition",
           attributes: {
             target: targetState.attributes.id,
           },
           children: [],
+          scope: lastNestedState.scope,
           lineStart: lastNestedState.lineStart,
           lineEnd: lastNestedState.lineEnd,
           columnStart: lastNestedState.columnStart,
@@ -612,7 +704,7 @@ export function findNextTargetState(
   state: SerializedBaseElement,
   parent: SerializedBaseElement,
   workflow: SerializedBaseElement,
-  finalElement: SerializedBaseElement | undefined,
+  finalElement: SerializedBaseElement | undefined
 ): SerializedBaseElement | null {
   // Check if the state has a next sibling
   let nextSibling = findNextSibling(parent, state);
@@ -623,13 +715,16 @@ export function findNextTargetState(
   }
 
   // If parent is the workflow and no next sibling, we should target the final state
-  if (parent.elementType === 'workflow' && finalElement) {
+  if (parent.elementType === "workflow" && finalElement) {
     return finalElement;
   }
 
   // If no next sibling and parent is not the workflow, we need to look up the hierarchy
   // Find the parent's parent
-  let grandparent: SerializedBaseElement | null = findParentOf(workflow, parent);
+  let grandparent: SerializedBaseElement | null = findParentOf(
+    workflow,
+    parent
+  );
 
   // If we found a grandparent, continue the recursive search
   if (grandparent) {
@@ -644,7 +739,10 @@ export function findNextTargetState(
 /**
  * Find the parent of a node in the tree
  */
-export function findParentOf(root: SerializedBaseElement, target: SerializedBaseElement): SerializedBaseElement | null {
+export function findParentOf(
+  root: SerializedBaseElement,
+  target: SerializedBaseElement
+): SerializedBaseElement | null {
   if (!root.children) return null;
 
   // Check if any child is the target
@@ -668,19 +766,21 @@ export function findParentOf(root: SerializedBaseElement, target: SerializedBase
  */
 export function findNextSibling(
   parent: SerializedBaseElement,
-  currentState: SerializedBaseElement,
+  currentState: SerializedBaseElement
 ): SerializedBaseElement | null {
   if (!parent.children) return null;
 
   const stateChildren = parent.children.filter(
     (child) =>
-      child.type === 'element' &&
-      child.role === 'state' &&
-      child.tag !== 'final' && // Exclude final state from siblings
-      child.attributes?.id !== 'error', // Exclude error state from siblings
+      child.type === "element" &&
+      child.role === "state" &&
+      child.tag !== "final" && // Exclude final state from siblings
+      child.attributes?.id !== "error" // Exclude error state from siblings
   );
 
-  const currentIndex = stateChildren.findIndex((state) => state === currentState);
+  const currentIndex = stateChildren.findIndex(
+    (state) => state === currentState
+  );
   if (currentIndex === -1 || currentIndex === stateChildren.length - 1) {
     return null; // No next sibling
   }
@@ -691,11 +791,16 @@ export function findNextSibling(
 /**
  * Check if a state has a conditionless transition
  */
-export function hasConditionlessTransition(state: SerializedBaseElement): boolean {
+export function hasConditionlessTransition(
+  state: SerializedBaseElement
+): boolean {
   if (!state.children) return false;
 
   return state.children.some(
-    (child) => child.type === 'element' && child.tag === 'transition' && (!child.attributes || !child.attributes.cond),
+    (child) =>
+      child.type === "element" &&
+      child.tag === "transition" &&
+      (!child.attributes || !child.attributes.cond)
   );
 }
 
@@ -704,7 +809,7 @@ export function hasConditionlessTransition(state: SerializedBaseElement): boolea
  */
 function findAncestorInList(
   state: SerializedBaseElement,
-  potentialAncestors: SerializedBaseElement[],
+  potentialAncestors: SerializedBaseElement[]
 ): SerializedBaseElement | null {
   // First check if state is directly in the list
   const directMatch = potentialAncestors.find((ancestor) => ancestor === state);
@@ -724,7 +829,7 @@ function findAncestorInList(
 
     // Check recursively (depth-first)
     for (const child of ancestor.children) {
-      if (child.type === 'element' && child.role === 'state') {
+      if (child.type === "element" && child.role === "state") {
         const result = isStateDescendantOf(state, child);
         if (result) {
           return ancestor;
@@ -739,7 +844,10 @@ function findAncestorInList(
 /**
  * Check if a state is a descendant of a potential ancestor
  */
-function isStateDescendantOf(state: SerializedBaseElement, potentialAncestor: SerializedBaseElement): boolean {
+function isStateDescendantOf(
+  state: SerializedBaseElement,
+  potentialAncestor: SerializedBaseElement
+): boolean {
   // If no children, can't be an ancestor
   if (!potentialAncestor.children) return false;
 
@@ -750,7 +858,7 @@ function isStateDescendantOf(state: SerializedBaseElement, potentialAncestor: Se
 
   // Check recursively (depth-first)
   for (const child of potentialAncestor.children) {
-    if (child.type === 'element' && child.role === 'state') {
+    if (child.type === "element" && child.role === "state") {
       if (isStateDescendantOf(state, child)) {
         return true;
       }
@@ -764,24 +872,38 @@ function isStateDescendantOf(state: SerializedBaseElement, potentialAncestor: Se
  * Make sure the addTransitionsRecursively function gets called for each workflow child
  * to ensure all states get proper transitions
  */
-export function addAllTransitions(nodes: SerializedBaseElement[], diagnostics: Diagnostic[]): SerializedBaseElement[] {
+export function addAllTransitions(
+  nodes: SerializedBaseElement[],
+  diagnostics: Diagnostic[]
+): SerializedBaseElement[] {
   const workflowNode = nodes[0];
-  if (!workflowNode || workflowNode.elementType !== 'workflow' || !workflowNode.children) {
+  if (
+    !workflowNode ||
+    workflowNode.elementType !== "workflow" ||
+    !workflowNode.children
+  ) {
     return nodes;
   }
 
   // Find the final element if it exists
-  const finalElement = workflowNode.children.find((child) => child.type === 'element' && child.tag === 'final');
+  const finalElement = workflowNode.children.find(
+    (child) => child.type === "element" && child.tag === "final"
+  );
 
   // Process each state element recursively
   for (const child of workflowNode.children) {
     if (
-      child.type === 'element' &&
-      child.role === 'state' &&
-      child.tag !== 'final' &&
-      child.attributes?.id !== 'error'
+      child.type === "element" &&
+      child.role === "state" &&
+      child.tag !== "final" &&
+      child.attributes?.id !== "error"
     ) {
-      addTransitionsRecursively(child, workflowNode, workflowNode, finalElement);
+      addTransitionsRecursively(
+        child,
+        workflowNode,
+        workflowNode,
+        finalElement
+      );
     }
   }
 
@@ -795,17 +917,17 @@ export function addTransitionsRecursively(
   state: SerializedBaseElement,
   parent: SerializedBaseElement,
   workflow: SerializedBaseElement,
-  finalElement: SerializedBaseElement | undefined,
+  finalElement: SerializedBaseElement | undefined
 ): void {
   // Skip if not a state element
-  if (state.type !== 'element' || state.role !== 'state') return;
+  if (state.type !== "element" || state.role !== "state") return;
 
   // Process children first (depth-first)
   if (state.children) {
     // Clone the array because we might add transitions during iteration
     const children = [...state.children];
     for (const child of children) {
-      if (child.type === 'element' && child.role === 'state') {
+      if (child.type === "element" && child.role === "state") {
         addTransitionsRecursively(child, state, workflow, finalElement);
       }
     }
@@ -822,11 +944,12 @@ export function addTransitionsRecursively(
     if (targetState) {
       // If there's a next sibling, transition to it
       const transition: SerializedBaseElement = {
-        type: 'element',
+        type: "element",
         key: generateKey(),
-        tag: 'transition',
-        role: 'action',
-        elementType: 'transition',
+        tag: "transition",
+        role: "action",
+        elementType: "transition",
+        scope: state.scope,
         attributes: {
           target: targetState.attributes?.id as string,
         },
@@ -850,11 +973,12 @@ export function addTransitionsRecursively(
       // If we found a target, add a transition
       if (target && target.attributes && target.attributes.id) {
         const transition: SerializedBaseElement = {
-          type: 'element',
+          type: "element",
           key: generateKey(),
-          tag: 'transition',
-          role: 'action',
-          elementType: 'transition',
+          tag: "transition",
+          role: "action",
+          elementType: "transition",
+          scope: state.scope,
           attributes: {
             target: target.attributes.id,
           },

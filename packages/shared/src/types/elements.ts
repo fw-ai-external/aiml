@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from "zod";
 /**
  * This file contains all element type definitions for the AIML system.
  * It serves as the single source of truth for element types, roles, and relationships.
@@ -8,43 +8,43 @@ import type { z } from 'zod';
  * All possible AIML element types.
  */
 export const aimlElements = [
-  'workflow',
-  'state',
-  'parallel',
-  'final',
-  'datamodel',
-  'data',
-  'assign',
-  'onentry',
-  'onexit',
-  'transition',
-  'if',
-  'elseif',
-  'else',
-  'foreach',
-  'script',
-  'llm',
-  'toolcall',
-  'log',
-  'sendText',
-  'sendToolCalls',
-  'sendObject',
-  'onerror',
-  'onchunk',
-  'prompt',
-  'instructions',
-  'cancel',
-  'raise',
-  'send',
+  "workflow",
+  "state",
+  "parallel",
+  "final",
+  "datamodel",
+  "data",
+  "assign",
+  "onentry",
+  "onexit",
+  "transition",
+  "if",
+  "elseif",
+  "else",
+  "foreach",
+  "script",
+  "llm",
+  "toolcall",
+  "log",
+  "sendText",
+  "sendToolCalls",
+  "sendObject",
+  "onerror",
+  "onchunk",
+  "prompt",
+  "instructions",
+  "cancel",
+  "raise",
+  "send",
   // SCXML specific node types
-  'scxml',
-  'initial',
-  'history',
-  'donedata',
-  'content',
-  'param',
-  'invoke',
-  'finalize',
+  "scxml",
+  "initial",
+  "history",
+  "donedata",
+  "content",
+  "param",
+  "invoke",
+  "finalize",
 ] as const;
 
 /**
@@ -55,53 +55,58 @@ export type ElementType = (typeof aimlElements)[number];
 /**
  * Element roles define the general category of an element
  */
-export type ElementRole = 'state' | 'action' | 'error' | 'user-input' | 'output';
+export type ElementRole =
+  | "state"
+  | "action"
+  | "error"
+  | "user-input"
+  | "output";
 
 /**
  * Defines what types of children an element can have
  */
-export type AllowedChildrenType = string[] | 'none' | 'any' | 'text';
+export type AllowedChildrenType = string[] | "none" | "any" | "text";
 
 /**
  * Maps element types to their roles
  */
 export const elementRoleMap: Record<ElementType, ElementRole> = {
-  workflow: 'state',
-  state: 'state',
-  parallel: 'state',
-  final: 'state',
-  datamodel: 'state',
-  data: 'state',
-  assign: 'action',
-  onentry: 'action',
-  onexit: 'action',
-  transition: 'action',
-  if: 'action',
-  elseif: 'action',
-  else: 'action',
-  foreach: 'action',
-  script: 'action',
-  llm: 'output',
-  toolcall: 'action',
-  log: 'action',
-  sendText: 'output',
-  sendToolCalls: 'output',
-  sendObject: 'output',
-  onerror: 'error',
-  onchunk: 'action',
-  prompt: 'user-input',
-  instructions: 'user-input',
-  cancel: 'action',
-  raise: 'action',
-  send: 'action',
-  scxml: 'state',
-  initial: 'state',
-  history: 'state',
-  donedata: 'state',
-  content: 'state',
-  param: 'state',
-  invoke: 'action',
-  finalize: 'state',
+  workflow: "state",
+  state: "state",
+  parallel: "state",
+  final: "state",
+  datamodel: "state",
+  data: "state",
+  assign: "action",
+  onentry: "action",
+  onexit: "action",
+  transition: "action",
+  if: "action",
+  elseif: "action",
+  else: "action",
+  foreach: "action",
+  script: "action",
+  llm: "output",
+  toolcall: "action",
+  log: "action",
+  sendText: "output",
+  sendToolCalls: "output",
+  sendObject: "output",
+  onerror: "error",
+  onchunk: "action",
+  prompt: "user-input",
+  instructions: "user-input",
+  cancel: "action",
+  raise: "action",
+  send: "action",
+  scxml: "state",
+  initial: "state",
+  history: "state",
+  donedata: "state",
+  content: "state",
+  param: "state",
+  invoke: "action",
+  finalize: "state",
 };
 
 /**
@@ -115,15 +120,15 @@ export interface Attributes {
  * Node types for the AIML AST
  */
 export type ASTNodeType =
-  | 'paragraph'
-  | 'text'
-  | 'comment'
-  | 'element'
-  | 'import'
-  | 'header'
-  | 'expression'
-  | 'headerField'
-  | 'field';
+  | "paragraph"
+  | "text"
+  | "comment"
+  | "element"
+  | "import"
+  | "header"
+  | "expression"
+  | "headerField"
+  | "field";
 
 /**
  * Base interface for all AIML nodes in the AST
@@ -139,6 +144,7 @@ export interface SerializedBaseElement {
   attributes?: Attributes;
   children?: SerializedBaseElement[];
   parentId?: string;
+  scope: string[];
   value?: string | number | boolean;
   filePath?: string;
   namedImports?: string[];
@@ -154,7 +160,7 @@ export interface SerializedBaseElement {
  * Import node in the AIML AST
  */
 export interface ImportNode extends SerializedBaseElement {
-  kind: 'import';
+  kind: "import";
   filePath: string;
   namedImports?: string[];
   defaultImport?: string;
@@ -164,7 +170,7 @@ export interface ImportNode extends SerializedBaseElement {
  * Header node in the AIML AST
  */
 export interface HeaderNode extends SerializedBaseElement {
-  kind: 'header';
+  kind: "header";
   children: HeaderFieldNode[];
 }
 
@@ -172,7 +178,7 @@ export interface HeaderNode extends SerializedBaseElement {
  * Header field node in the AIML AST
  */
 export interface HeaderFieldNode extends SerializedBaseElement {
-  kind: 'headerField';
+  kind: "headerField";
   id: string;
   value: string;
 }
@@ -181,7 +187,7 @@ export interface HeaderFieldNode extends SerializedBaseElement {
  * Comment node in the AIML AST
  */
 export interface CommentNode extends SerializedBaseElement {
-  kind: 'comment';
+  kind: "comment";
   value: string;
 }
 
@@ -189,7 +195,7 @@ export interface CommentNode extends SerializedBaseElement {
  * Text node in the AIML AST
  */
 export interface TextNode extends SerializedBaseElement {
-  kind: 'text';
+  kind: "text";
   value: string | number | boolean;
 }
 
@@ -197,7 +203,7 @@ export interface TextNode extends SerializedBaseElement {
  * Expression node in the AIML AST
  */
 export interface ExpressionNode extends SerializedBaseElement {
-  kind: 'expression';
+  kind: "expression";
   value: string;
 }
 
@@ -205,7 +211,7 @@ export interface ExpressionNode extends SerializedBaseElement {
  * Paragraph node in the AIML AST
  */
 export interface ParagraphNode extends SerializedBaseElement {
-  kind: 'paragraph';
+  kind: "paragraph";
   children: (TextNode | ExpressionNode)[];
 }
 
@@ -214,7 +220,7 @@ export interface ParagraphNode extends SerializedBaseElement {
  * Renamed from IBaseElement to SerializedElement for consistency
  */
 export interface SerializedElement extends SerializedBaseElement {
-  type: 'element';
+  type: "element";
   readonly id: string;
   readonly key: string;
   readonly tag: string;
