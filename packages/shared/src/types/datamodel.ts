@@ -3,7 +3,7 @@ import type { DataElementMetadata } from "./values/data-types";
 export type { DataElementMetadata };
 
 // Define field types
-type FieldType = "string" | "number" | "boolean" | "json";
+export type FieldType = "string" | "number" | "boolean" | "json";
 
 // Field definition interface
 export interface FieldDefinition {

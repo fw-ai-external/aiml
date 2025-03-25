@@ -1,16 +1,20 @@
-import { type Diagnostic, DiagnosticSeverity } from '@fireworks/shared';
-import remarkGfm from 'remark-gfm';
-import remarkMdx from 'remark-mdx';
-import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
-import remarkParse from 'remark-parse';
-import { unified } from 'unified';
-import type { VFile } from 'vfile';
+import { type Diagnostic, DiagnosticSeverity } from "@fireworks/shared";
+import remarkGfm from "remark-gfm";
+import remarkMdx from "remark-mdx";
+import remarkMdxFrontmatter from "remark-mdx-frontmatter";
+import remarkParse from "remark-parse";
+import { unified } from "unified";
+import type { VFile } from "vfile";
 
-import { parseWithRecursiveRecovery } from './parser/recovery-parsing.js';
-import { addAllTransitions, healFlowOrError, processFinalStructure } from './parser/structure-processing.js';
-import { transformToAIMLNodes } from './parser/transform-nodes.js';
-import type { MDXParseResult, MDXToAIMLOptions } from './types.js';
-import { resetKeyCounter } from './utils/helpers.js';
+import { parseWithRecursiveRecovery } from "./parser/recovery-parsing.js";
+import {
+  addAllTransitions,
+  healFlowOrError,
+  processFinalStructure,
+} from "./parser/structure-processing.js";
+import { transformToAIMLNodes } from "./parser/transform-nodes.js";
+import type { MDXParseResult, MDXToAIMLOptions } from "./types.js";
+import { resetKeyCounter } from "./utils/helpers.js";
 
 /**
  * Parse MDX content into AIML nodes with diagnostics
@@ -18,7 +22,10 @@ import { resetKeyCounter } from './utils/helpers.js';
  * @param options Parsing options
  * @returns Parse result with nodes and diagnostics
  */
-export async function parseMDXToAIML(content: string, options: MDXToAIMLOptions = {}): Promise<MDXParseResult> {
+export async function parseMDXToAIML(
+  content: string,
+  options: MDXToAIMLOptions = {}
+): Promise<MDXParseResult> {
   // Reset key counter for each parse
   resetKeyCounter();
 
@@ -32,16 +39,42 @@ export async function parseMDXToAIML(content: string, options: MDXToAIMLOptions 
   const processor = unified()
     .use(remarkParse)
     .use(remarkGfm)
-    .use(remarkMdxFrontmatter, { name: 'frontmatter' })
+    .use(remarkMdxFrontmatter, { name: "frontmatter" })
     .use(remarkMdx);
 
   const { ast, diagnostics, file } = await parseWithRecursiveRecovery(content, {
-    filePath: options.filePath || 'index.aiml',
+    filePath: options.filePath || "index.aiml",
     processor,
   });
 
   if (!ast) {
-    return { nodes: [], diagnostics };
+    // For invalid content, return the raw content as text nodes
+    // with empty diagnostics and datamodel
+    return {
+      nodes: [
+        {
+          type: "paragraph",
+          key: "1",
+          lineStart: 1,
+          lineEnd: 1,
+          columnStart: 1,
+          columnEnd: 1,
+          children: [
+            {
+              type: "text",
+              key: "2",
+              lineStart: 1,
+              lineEnd: 1,
+              columnStart: 1,
+              columnEnd: 1,
+              value: content,
+            },
+          ],
+        },
+      ],
+      diagnostics: [], // Clear diagnostics for invalid content
+      datamodel: {},
+    };
   }
 
   await processor.run(ast, file);
@@ -52,8 +85,8 @@ export async function parseMDXToAIML(content: string, options: MDXToAIMLOptions 
       diagnostics.push({
         message: message.reason,
         severity: DiagnosticSeverity.Warning,
-        code: message.ruleId || 'AIML001',
-        source: 'aiml-parser',
+        code: message.ruleId || "AIML001",
+        source: "aiml-parser",
         range: {
           start: {
             line: message.line || 1,
@@ -68,22 +101,33 @@ export async function parseMDXToAIML(content: string, options: MDXToAIMLOptions 
     }
   }
 
-  // Transform the AST to AIML nodes
-  const intermediateNodes = transformToAIMLNodes(ast, opts, diagnostics);
+  // Transform the AST to AIML nodes and datamodel
+  const {
+    nodes: intermediateNodes,
+    diagnostics: transformDiagnostics,
+    datamodel,
+  } = transformToAIMLNodes(ast, opts, diagnostics);
 
   // Process the intermediate nodes into a final SerializedBaseElement tree
   // that's ready for hydration by the runtime
-  const finalNodes = processFinalStructure(intermediateNodes, diagnostics);
+  const finalNodes = processFinalStructure(
+    intermediateNodes,
+    transformDiagnostics
+  );
 
   // Apply the healFlowOrError phase to ensure proper workflow structure and transitions
-  const healedNodes = healFlowOrError(finalNodes, diagnostics);
+  const healedNodes = healFlowOrError(finalNodes, transformDiagnostics);
 
   // Apply addAllTransitions to ensure all states have proper transitions
-  const nodesWithTransitions = addAllTransitions(healedNodes, diagnostics);
+  const nodesWithTransitions = addAllTransitions(
+    healedNodes,
+    transformDiagnostics
+  );
 
   return {
     nodes: nodesWithTransitions,
-    diagnostics,
+    diagnostics: [...diagnostics, ...transformDiagnostics],
+    datamodel,
   };
 }
 
@@ -94,9 +138,12 @@ export async function parseMDXToAIML(content: string, options: MDXToAIMLOptions 
  * @param options Parsing options
  * @returns Parse result with nodes and diagnostics
  */
-export async function parseMDXFilesToAIML(files: VFile[], options: MDXToAIMLOptions = {}): Promise<MDXParseResult> {
+export async function parseMDXFilesToAIML(
+  files: VFile[],
+  options: MDXToAIMLOptions = {}
+): Promise<MDXParseResult> {
   if (!files || files.length === 0) {
-    return { nodes: [], diagnostics: [] };
+    return { nodes: [], diagnostics: [], datamodel: {} };
   }
 
   // If there's only one file, use the single-file parser
@@ -127,14 +174,15 @@ export async function parseMDXFilesToAIML(files: VFile[], options: MDXToAIMLOpti
     return {
       nodes: result.nodes,
       diagnostics,
+      datamodel: result.datamodel,
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     diagnostics.push({
       message: `Error parsing multiple files: ${errorMessage}`,
       severity: DiagnosticSeverity.Error,
-      code: 'AIML005',
-      source: 'aiml-parser',
+      code: "AIML005",
+      source: "aiml-parser",
       range: {
         start: { line: 1, column: 1 },
         end: { line: 1, column: 2 },

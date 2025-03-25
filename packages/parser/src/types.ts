@@ -1,5 +1,6 @@
-import type { Diagnostic, SerializedBaseElement } from '@fireworks/shared';
-import type { VFile } from 'vfile';
+import type { Diagnostic, SerializedBaseElement } from "@fireworks/shared";
+import type { DataModel } from "@fireworks/shared";
+import type { VFile } from "vfile";
 
 // Options for parsing MDX to AIML nodes
 export interface MDXToAIMLOptions {
@@ -12,4 +13,5 @@ export interface MDXToAIMLOptions {
 export interface MDXParseResult {
   nodes: SerializedBaseElement[];
   diagnostics: Diagnostic[];
+  datamodel?: Record<string, DataModel>;
 }

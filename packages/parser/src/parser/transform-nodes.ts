@@ -4,12 +4,27 @@ import {
   type ExpressionNode,
   type SerializedBaseElement,
   type TextNode,
-} from '@fireworks/shared';
-import type { Node } from 'unist';
-import type { MDXToAIMLOptions } from '../types.js';
-import { generateKey, getPosition, parseImportStatement } from '../utils/helpers.js';
-import { extractTextFromNode } from '../utils/text-extraction.js';
-import { buildDatamodelFromAST, validateAssignElements } from './validate-assign.js';
+  type DataModel,
+  type FieldDefinition,
+  type FieldType,
+} from "@fireworks/shared";
+
+interface ParserContext {
+  currentStates: string[];
+  datamodel: Map<string, Record<string, FieldDefinition>>;
+}
+import type { Node } from "unist";
+import type { MDXToAIMLOptions } from "../types.js";
+import {
+  generateKey,
+  getPosition,
+  parseImportStatement,
+} from "../utils/helpers.js";
+import { extractTextFromNode } from "../utils/text-extraction.js";
+import {
+  buildDatamodelFromAST,
+  validateAssignElements,
+} from "./validate-assign.js";
 
 /**
  * Process attributes from an AST node into a record
@@ -22,19 +37,21 @@ export function processAttributes(attributes: any[]): Record<string, any> {
   const result: Record<string, any> = {};
 
   for (const attr of attributes) {
-    if (attr.type === 'mdxJsxAttribute') {
+    if (attr.type === "mdxJsxAttribute") {
       if (attr.value === null) {
         // Boolean attribute
         result[attr.name] = true;
-      } else if (typeof attr.value === 'string') {
+      } else if (typeof attr.value === "string") {
         // String attribute
         result[attr.name] = attr.value;
-      } else if (attr.value?.type === 'mdxJsxAttributeValueExpression') {
+      } else if (attr.value?.type === "mdxJsxAttributeValueExpression") {
         // Expression attribute - try to evaluate simple expressions
         try {
           // For simple literals like numbers, booleans, etc.
           // eslint-disable-next-line no-eval
-          result[attr.name] = Function(`"use strict"; return (${attr.value.value})`)();
+          result[attr.name] = Function(
+            `"use strict"; return (${attr.value.value})`
+          )();
         } catch (e) {
           // If evaluation fails, store as a string expression
           result[attr.name] = `\${${attr.value.value}}`;
@@ -49,29 +66,31 @@ export function processAttributes(attributes: any[]): Record<string, any> {
 /**
  * Convert a paragraph node to an LLM element
  */
-export function convertParagraphToLlmNode(paragraphNode: SerializedBaseElement): SerializedBaseElement {
-  let promptText = '';
+export function convertParagraphToLlmNode(
+  paragraphNode: SerializedBaseElement
+): SerializedBaseElement {
+  let promptText = "";
 
   if (paragraphNode.children) {
     for (const child of paragraphNode.children) {
-      if (child.type === 'text') {
+      if (child.type === "text") {
         promptText += (child as TextNode).value;
-      } else if (child.type === 'expression') {
+      } else if (child.type === "expression") {
         promptText += `\${${(child as ExpressionNode).value}}`;
       }
     }
   }
 
   return {
-    type: 'element',
+    type: "element",
     key: generateKey(),
-    tag: 'llm',
-    role: 'action',
-    elementType: 'llm',
+    tag: "llm",
+    role: "action",
+    elementType: "llm",
     attributes: {
-      prompt: '${input}',
+      prompt: "${input}",
       instructions: promptText,
-      model: 'accounts/fireworks/models/llama-v3p1-8b-instruct', // Default model
+      model: "accounts/fireworks/models/llama-v3p1-8b-instruct", // Default model
     },
     children: [],
     lineStart: paragraphNode.lineStart,
@@ -91,39 +110,74 @@ export function convertParagraphToLlmNode(paragraphNode: SerializedBaseElement):
 export function transformToAIMLNodes(
   ast: Node,
   options: MDXToAIMLOptions,
-  diagnostics: Diagnostic[],
-): SerializedBaseElement[] {
+  diagnostics: Diagnostic[]
+): {
+  nodes: SerializedBaseElement[];
+  diagnostics: Diagnostic[];
+  datamodel: Record<string, DataModel>;
+} {
   const nodes: SerializedBaseElement[] = [];
-  const additionalNodes: SerializedBaseElement[] = [];
+  const context: ParserContext = {
+    currentStates: [],
+    datamodel: new Map(),
+  };
 
   // Process root node's children
-  if ('children' in ast && Array.isArray(ast.children)) {
+  if ("children" in ast && Array.isArray(ast.children)) {
     for (const child of ast.children) {
-      const transformed = transformNode(child, options, diagnostics, additionalNodes);
+      const transformed = transformNode(child, options, diagnostics, context);
       if (transformed) {
         nodes.push(transformed);
       }
     }
 
-    // Add any additional nodes from processing
-    if (additionalNodes.length > 0) {
-      nodes.push(...additionalNodes);
-    }
-
     // Merge adjacent paragraphs
     mergeParagraphs(nodes);
 
-    // Build datamodel from data elements
-    const datamodel = buildDatamodelFromAST(ast);
+    // Build datamodel from data elements and merge with context datamodel
+    const builtDatamodel = buildDatamodelFromAST(ast);
+
+    // Convert built datamodel to same format as context datamodel
+    for (const [scope, fields] of Object.entries(builtDatamodel)) {
+      if (!context.datamodel.has(scope)) {
+        context.datamodel.set(scope, {});
+      }
+      for (const [fieldName, fieldDef] of Object.entries(fields)) {
+        context.datamodel.get(scope)![fieldName] = {
+          type: fieldDef.type as FieldType,
+          readonly: fieldDef.readonly,
+          fromRequest: fieldDef.fromRequest,
+          defaultValue: fieldDef.defaultValue,
+          schema: fieldDef.schema,
+        };
+      }
+    }
 
     // Validate assign elements
-    const assignDiagnostics = validateAssignElements(ast, datamodel);
-
-    // Add assign diagnostics to the result
+    const assignDiagnostics = validateAssignElements(ast, builtDatamodel);
     diagnostics.push(...assignDiagnostics);
   }
 
-  return nodes;
+  // Convert RuntimeFieldDefinition to DataModel format
+  const convertedDatamodel: Record<string, DataModel> = {};
+  for (const [scope, fields] of context.datamodel.entries()) {
+    convertedDatamodel[scope] = {};
+    for (const [fieldName, fieldDef] of Object.entries(fields)) {
+      convertedDatamodel[scope][fieldName] = {
+        type: fieldDef.type as FieldType,
+        readonly: fieldDef.readonly,
+        fromRequest: fieldDef.fromRequest,
+        defaultValue: fieldDef.defaultValue,
+        schema: fieldDef.schema,
+      };
+    }
+  }
+
+  return {
+    nodes,
+    diagnostics,
+    datamodel: convertedDatamodel,
+  };
 }
 
 /**
@@ -138,78 +192,182 @@ export function transformNode(
   node: any,
   options: MDXToAIMLOptions,
   diagnostics: Diagnostic[],
-  additionalNodes: SerializedBaseElement[],
+  context: ParserContext
 ): SerializedBaseElement | null {
   // Handle different node types
-  if (node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') {
+  if (node.type === "mdxJsxFlowElement" || node.type === "mdxJsxTextElement") {
     // Process JSX elements into AIML elements
-    const lineStart = getPosition(node, 'start', 'line');
-    const columnStart = getPosition(node, 'start', 'column');
-    const lineEnd = getPosition(node, 'end', 'line');
-    const columnEnd = getPosition(node, 'end', 'column');
+    const lineStart = getPosition(node, "start", "line");
+    const columnStart = getPosition(node, "start", "column");
+    const lineEnd = getPosition(node, "end", "line");
+    const columnEnd = getPosition(node, "end", "column");
 
     // Handle elements
+    const isState = ["state", "workflow"].includes(node.name.toLowerCase());
+    let stateId: string | undefined;
+
+    if (isState) {
+      stateId = processAttributes(node.attributes).id;
+      if (!stateId) {
+        stateId = `anonymous_state_${generateKey()}`;
+        diagnostics.push({
+          message: `State element missing ID - generated: ${stateId}`,
+          severity: DiagnosticSeverity.Warning,
+          code: "AIML005",
+          source: "aiml-parser",
+          range: {
+            start: { line: lineStart, column: columnStart },
+            end: { line: lineEnd, column: columnEnd },
+          },
+        });
+      }
+      context.currentStates.push(stateId);
+    }
+
+    const isData = node.name.toLowerCase() === "data";
+    if (isData) {
+      const attrs = processAttributes(node.attributes);
+      const fieldName =
+        attrs.id || (isData ? `data_${generateKey()}` : `dm_${generateKey()}`);
+      let defaultValueString = extractTextFromNode(node.children?.[0]) || "";
+      let typedDefaultValue: any = defaultValueString;
+      try {
+        typedDefaultValue =
+          attrs.type === "json"
+            ? JSON.parse(defaultValueString)
+            : attrs.type === "number"
+              ? defaultValueString.includes(".")
+                ? parseFloat(defaultValueString)
+                : parseInt(defaultValueString)
+              : attrs.type === "boolean"
+                ? defaultValueString === "false"
+                  ? false
+                  : true
+                : defaultValueString;
+      } catch (e) {
+        diagnostics.push({
+          message: `Error parsing default value into type ${attrs.type} for ${fieldName}: ${e}`,
+          severity: DiagnosticSeverity.Warning,
+          code: "AIML006",
+          source: "aiml-parser",
+          range: {
+            start: { line: lineStart, column: columnStart },
+            end: { line: lineEnd, column: columnEnd },
+          },
+        });
+      }
+
+      const fieldDef: FieldDefinition = {
+        type: attrs.type || "json",
+        readonly: !!attrs.readonly,
+        fromRequest: false,
+        defaultValue: typedDefaultValue,
+        schema:
+          attrs.type === "string"
+            ? {
+                type: "string",
+              }
+            : attrs.type === "number"
+              ? {
+                  type: "number",
+                }
+              : attrs.type === "boolean"
+                ? {
+                    type: "boolean",
+                  }
+                : attrs.type === "json"
+                  ? attrs.schema
+                  : {
+                      type: "string",
+                    },
+      };
+      const scopeKey =
+        context.currentStates.length > 0
+          ? `root.${context.currentStates.join(".")}`
+          : "root";
+
+      if (!context.datamodel.has(scopeKey)) {
+        context.datamodel.set(scopeKey, {});
+      }
+      context.datamodel.get(scopeKey)![fieldName] = fieldDef;
+    }
+
+    const children =
+      node.children
+        ?.map((child: any) =>
+          transformNode(child, options, diagnostics, context)
+        )
+        .filter(Boolean) || [];
+
+    if (isState && stateId) {
+      context.currentStates.pop();
+    }
+
     return {
-      type: 'element',
+      type: "element",
       key: generateKey(),
       tag: node.name,
-      role:
-        node.name.toLowerCase().includes('state') || node.name.toLowerCase() === 'workflow'
-          ? 'state'
-          : node.name.toLowerCase().includes('error')
-            ? 'error'
-            : node.name.toLowerCase().includes('output')
-              ? 'output'
-              : node.name.toLowerCase().includes('input')
-                ? 'user-input'
-                : 'action',
+      role: isState
+        ? "state"
+        : node.name.toLowerCase().includes("error")
+          ? "error"
+          : node.name.toLowerCase().includes("output")
+            ? "output"
+            : node.name.toLowerCase().includes("input")
+              ? "user-input"
+              : "action",
       elementType: node.name.toLowerCase() as any,
-      attributes: processAttributes(node.attributes),
-      children:
-        node.children
-          ?.map((child: any) => transformNode(child, options, diagnostics, additionalNodes))
-          .filter(Boolean) || [],
+      attributes: {
+        ...processAttributes(node.attributes),
+        ...(isState && stateId ? { id: stateId } : {}),
+      },
+      children,
       lineStart,
       lineEnd,
       columnStart,
       columnEnd,
     };
-  } else if (node.type === 'paragraph') {
+  } else if (node.type === "paragraph") {
     // Create a paragraph node
-    const lineStart = getPosition(node, 'start', 'line');
-    const columnStart = getPosition(node, 'start', 'column');
-    const lineEnd = getPosition(node, 'end', 'line');
-    const columnEnd = getPosition(node, 'end', 'column');
+    const lineStart = getPosition(node, "start", "line");
+    const columnStart = getPosition(node, "start", "column");
+    const lineEnd = getPosition(node, "end", "line");
+    const columnEnd = getPosition(node, "end", "column");
 
     // Process the children of the paragraph
     const children: SerializedBaseElement[] = [];
     if (node.children && node.children.length > 0) {
       for (const child of node.children) {
-        if (child.type === 'text') {
+        if (child.type === "text") {
           // Add text node
           children.push({
-            type: 'text',
+            type: "text",
             key: generateKey(),
             value: child.value,
-            lineStart: getPosition(child, 'start', 'line'),
-            lineEnd: getPosition(child, 'end', 'line'),
-            columnStart: getPosition(child, 'start', 'column'),
-            columnEnd: getPosition(child, 'end', 'column'),
+            lineStart: getPosition(child, "start", "line"),
+            lineEnd: getPosition(child, "end", "line"),
+            columnStart: getPosition(child, "start", "column"),
+            columnEnd: getPosition(child, "end", "column"),
           });
-        } else if (child.type === 'mdxTextExpression') {
+        } else if (child.type === "mdxTextExpression") {
           // Process JSX expressions in text (like {someVar})
           children.push({
-            type: 'expression',
+            type: "expression",
             key: generateKey(),
             value: child.value,
-            lineStart: getPosition(child, 'start', 'line'),
-            lineEnd: getPosition(child, 'end', 'line'),
-            columnStart: getPosition(child, 'start', 'column'),
-            columnEnd: getPosition(child, 'end', 'column'),
+            lineStart: getPosition(child, "start", "line"),
+            lineEnd: getPosition(child, "end", "line"),
+            columnStart: getPosition(child, "start", "column"),
+            columnEnd: getPosition(child, "end", "column"),
           });
-        } else if (child.type === 'mdxJsxTextElement') {
+        } else if (child.type === "mdxJsxTextElement") {
           // Nested JSX in paragraph
-          const transformed = transformNode(child, options, diagnostics, additionalNodes);
+          const transformed = transformNode(
+            child,
+            options,
+            diagnostics,
+            context
+          );
           if (transformed) {
             children.push(transformed);
           }
@@ -219,7 +377,7 @@ export function transformNode(
 
     // Create paragraph node
     return {
-      type: 'paragraph',
+      type: "paragraph",
       key: generateKey(),
       children,
       lineStart,
@@ -227,10 +385,10 @@ export function transformNode(
       columnStart,
       columnEnd,
     };
-  } else if (node.type === 'mdxJsxAttribute') {
+  } else if (node.type === "mdxJsxAttribute") {
     // Skip attribute nodes - they are handled by their parent element
     return null;
-  } else if (node.type === 'mdxjsFrontmatter') {
+  } else if (node.type === "mdxjsFrontmatter") {
     // Process frontmatter into a header node
     const fields: SerializedBaseElement[] = [];
 
@@ -238,23 +396,23 @@ export function transformNode(
       // Try to parse YAML frontmatter
       try {
         const yaml = node.value;
-        const lines = yaml.split('\n');
+        const lines = yaml.split("\n");
 
         for (const line of lines) {
           const match = line.match(/^\s*([a-zA-Z0-9_-]+)\s*:\s*(.+?)\s*$/);
           if (match) {
             const id = match[1];
-            const value = match[2].replace(/^['"]|['"]$/g, ''); // Remove quotes
+            const value = match[2].replace(/^['"]|['"]$/g, ""); // Remove quotes
 
             fields.push({
-              type: 'headerField',
+              type: "headerField",
               key: generateKey(),
               id,
               value,
-              lineStart: getPosition(node, 'start', 'line'),
-              lineEnd: getPosition(node, 'end', 'line'),
-              columnStart: getPosition(node, 'start', 'column'),
-              columnEnd: getPosition(node, 'end', 'column'),
+              lineStart: getPosition(node, "start", "line"),
+              lineEnd: getPosition(node, "end", "line"),
+              columnStart: getPosition(node, "start", "column"),
+              columnEnd: getPosition(node, "end", "column"),
             });
           }
         }
@@ -263,16 +421,16 @@ export function transformNode(
         diagnostics.push({
           message: `Failed to parse frontmatter: ${e}`,
           severity: DiagnosticSeverity.Warning,
-          code: 'AIML003',
-          source: 'aiml-parser',
+          code: "AIML003",
+          source: "aiml-parser",
           range: {
             start: {
-              line: getPosition(node, 'start', 'line'),
-              column: getPosition(node, 'start', 'column'),
+              line: getPosition(node, "start", "line"),
+              column: getPosition(node, "start", "column"),
             },
             end: {
-              line: getPosition(node, 'end', 'line'),
-              column: getPosition(node, 'end', 'column'),
+              line: getPosition(node, "end", "line"),
+              column: getPosition(node, "end", "column"),
             },
           },
         });
@@ -280,192 +438,194 @@ export function transformNode(
     }
 
     return {
-      type: 'header',
+      type: "header",
       key: generateKey(),
       children: fields,
-      lineStart: getPosition(node, 'start', 'line'),
-      lineEnd: getPosition(node, 'end', 'line'),
-      columnStart: getPosition(node, 'start', 'column'),
-      columnEnd: getPosition(node, 'end', 'column'),
+      lineStart: getPosition(node, "start", "line"),
+      lineEnd: getPosition(node, "end", "line"),
+      columnStart: getPosition(node, "start", "column"),
+      columnEnd: getPosition(node, "end", "column"),
     };
-  } else if (node.type === 'mdxjsEsm') {
+  } else if (node.type === "mdxjsEsm") {
     // Process ES modules (import statements)
-    if (node.value && node.value.includes('import')) {
-      const { namedImports, defaultImport, source } = parseImportStatement(node.value);
+    if (node.value && node.value.includes("import")) {
+      const { namedImports, defaultImport, source } = parseImportStatement(
+        node.value
+      );
 
       if (source) {
         return {
-          type: 'import',
+          type: "import",
           key: generateKey(),
           filePath: source,
           namedImports,
           defaultImport,
-          lineStart: getPosition(node, 'start', 'line'),
-          lineEnd: getPosition(node, 'end', 'line'),
-          columnStart: getPosition(node, 'start', 'column'),
-          columnEnd: getPosition(node, 'end', 'column'),
+          lineStart: getPosition(node, "start", "line"),
+          lineEnd: getPosition(node, "end", "line"),
+          columnStart: getPosition(node, "start", "column"),
+          columnEnd: getPosition(node, "end", "column"),
         };
       }
     }
 
     return null;
-  } else if (node.type === 'heading') {
+  } else if (node.type === "heading") {
     // Process headings - could convert to a special element or text
     const text = extractTextFromNode(node);
     return {
-      type: 'paragraph',
+      type: "paragraph",
       key: generateKey(),
       children: [
         {
-          type: 'text',
+          type: "text",
           key: generateKey(),
-          value: text || '',
-          lineStart: getPosition(node, 'start', 'line'),
-          lineEnd: getPosition(node, 'end', 'line'),
-          columnStart: getPosition(node, 'start', 'column'),
-          columnEnd: getPosition(node, 'end', 'column'),
+          value: text || "",
+          lineStart: getPosition(node, "start", "line"),
+          lineEnd: getPosition(node, "end", "line"),
+          columnStart: getPosition(node, "start", "column"),
+          columnEnd: getPosition(node, "end", "column"),
         },
       ],
-      lineStart: getPosition(node, 'start', 'line'),
-      lineEnd: getPosition(node, 'end', 'line'),
-      columnStart: getPosition(node, 'start', 'column'),
-      columnEnd: getPosition(node, 'end', 'column'),
+      lineStart: getPosition(node, "start", "line"),
+      lineEnd: getPosition(node, "end", "line"),
+      columnStart: getPosition(node, "start", "column"),
+      columnEnd: getPosition(node, "end", "column"),
     };
-  } else if (node.type === 'html') {
+  } else if (node.type === "html") {
     // Raw HTML - convert to text
     return {
-      type: 'text',
+      type: "text",
       key: generateKey(),
       value: node.value,
-      lineStart: getPosition(node, 'start', 'line'),
-      lineEnd: getPosition(node, 'end', 'line'),
-      columnStart: getPosition(node, 'start', 'column'),
-      columnEnd: getPosition(node, 'end', 'column'),
+      lineStart: getPosition(node, "start", "line"),
+      lineEnd: getPosition(node, "end", "line"),
+      columnStart: getPosition(node, "start", "column"),
+      columnEnd: getPosition(node, "end", "column"),
     };
-  } else if (node.type === 'list' || node.type === 'listItem') {
+  } else if (node.type === "list" || node.type === "listItem") {
     // Convert lists to text paragraphs
     const text = extractTextFromNode(node);
     return {
-      type: 'paragraph',
+      type: "paragraph",
       key: generateKey(),
       children: [
         {
-          type: 'text',
+          type: "text",
           key: generateKey(),
-          value: text || '',
-          lineStart: getPosition(node, 'start', 'line'),
-          lineEnd: getPosition(node, 'end', 'line'),
-          columnStart: getPosition(node, 'start', 'column'),
-          columnEnd: getPosition(node, 'end', 'column'),
+          value: text || "",
+          lineStart: getPosition(node, "start", "line"),
+          lineEnd: getPosition(node, "end", "line"),
+          columnStart: getPosition(node, "start", "column"),
+          columnEnd: getPosition(node, "end", "column"),
         },
       ],
-      lineStart: getPosition(node, 'start', 'line'),
-      lineEnd: getPosition(node, 'end', 'line'),
-      columnStart: getPosition(node, 'start', 'column'),
-      columnEnd: getPosition(node, 'end', 'column'),
+      lineStart: getPosition(node, "start", "line"),
+      lineEnd: getPosition(node, "end", "line"),
+      columnStart: getPosition(node, "start", "column"),
+      columnEnd: getPosition(node, "end", "column"),
     };
-  } else if (node.type === 'text') {
+  } else if (node.type === "text") {
     // Plain text outside of paragraphs
-    if (node.value.trim() === '') {
+    if (node.value.trim() === "") {
       return null; // Skip empty text nodes
     }
 
     // If it's a standalone text node, wrap it in a paragraph
     return {
-      type: 'paragraph',
+      type: "paragraph",
       key: generateKey(),
       children: [
         {
-          type: 'text',
+          type: "text",
           key: generateKey(),
           value: node.value,
-          lineStart: getPosition(node, 'start', 'line'),
-          lineEnd: getPosition(node, 'end', 'line'),
-          columnStart: getPosition(node, 'start', 'column'),
-          columnEnd: getPosition(node, 'end', 'column'),
+          lineStart: getPosition(node, "start", "line"),
+          lineEnd: getPosition(node, "end", "line"),
+          columnStart: getPosition(node, "start", "column"),
+          columnEnd: getPosition(node, "end", "column"),
         },
       ],
-      lineStart: getPosition(node, 'start', 'line'),
-      lineEnd: getPosition(node, 'end', 'line'),
-      columnStart: getPosition(node, 'start', 'column'),
-      columnEnd: getPosition(node, 'end', 'column'),
+      lineStart: getPosition(node, "start", "line"),
+      lineEnd: getPosition(node, "end", "line"),
+      columnStart: getPosition(node, "start", "column"),
+      columnEnd: getPosition(node, "end", "column"),
     };
-  } else if (node.type === 'code') {
+  } else if (node.type === "code") {
     // Code blocks - convert to text
-    const text = `\`\`\`${node.lang || ''}\n${node.value || ''}\n\`\`\``;
+    const text = `\`\`\`${node.lang || ""}\n${node.value || ""}\n\`\`\``;
     return {
-      type: 'paragraph',
+      type: "paragraph",
       key: generateKey(),
       children: [
         {
-          type: 'text',
+          type: "text",
           key: generateKey(),
           value: text,
-          lineStart: getPosition(node, 'start', 'line'),
-          lineEnd: getPosition(node, 'end', 'line'),
-          columnStart: getPosition(node, 'start', 'column'),
-          columnEnd: getPosition(node, 'end', 'column'),
+          lineStart: getPosition(node, "start", "line"),
+          lineEnd: getPosition(node, "end", "line"),
+          columnStart: getPosition(node, "start", "column"),
+          columnEnd: getPosition(node, "end", "column"),
         },
       ],
-      lineStart: getPosition(node, 'start', 'line'),
-      lineEnd: getPosition(node, 'end', 'line'),
-      columnStart: getPosition(node, 'start', 'column'),
-      columnEnd: getPosition(node, 'end', 'column'),
+      lineStart: getPosition(node, "start", "line"),
+      lineEnd: getPosition(node, "end", "line"),
+      columnStart: getPosition(node, "start", "column"),
+      columnEnd: getPosition(node, "end", "column"),
     };
-  } else if (node.type === 'inlineCode') {
+  } else if (node.type === "inlineCode") {
     // Inline code - convert to text
     return {
-      type: 'text',
+      type: "text",
       key: generateKey(),
-      value: `\`${node.value || ''}\``,
-      lineStart: getPosition(node, 'start', 'line'),
-      lineEnd: getPosition(node, 'end', 'line'),
-      columnStart: getPosition(node, 'start', 'column'),
-      columnEnd: getPosition(node, 'end', 'column'),
+      value: `\`${node.value || ""}\``,
+      lineStart: getPosition(node, "start", "line"),
+      lineEnd: getPosition(node, "end", "line"),
+      columnStart: getPosition(node, "start", "column"),
+      columnEnd: getPosition(node, "end", "column"),
     };
-  } else if (node.type === 'thematicBreak') {
+  } else if (node.type === "thematicBreak") {
     // Horizontal rule - convert to text
     return {
-      type: 'text',
+      type: "text",
       key: generateKey(),
-      value: '---',
-      lineStart: getPosition(node, 'start', 'line'),
-      lineEnd: getPosition(node, 'end', 'line'),
-      columnStart: getPosition(node, 'start', 'column'),
-      columnEnd: getPosition(node, 'end', 'column'),
+      value: "---",
+      lineStart: getPosition(node, "start", "line"),
+      lineEnd: getPosition(node, "end", "line"),
+      columnStart: getPosition(node, "start", "column"),
+      columnEnd: getPosition(node, "end", "column"),
     };
-  } else if (node.type === 'mdxFlowExpression') {
+  } else if (node.type === "mdxFlowExpression") {
     // MDX expression outside JSX - create an expression node
     return {
-      type: 'expression',
+      type: "expression",
       key: generateKey(),
       value: node.value,
-      lineStart: getPosition(node, 'start', 'line'),
-      lineEnd: getPosition(node, 'end', 'line'),
-      columnStart: getPosition(node, 'start', 'column'),
-      columnEnd: getPosition(node, 'end', 'column'),
+      lineStart: getPosition(node, "start", "line"),
+      lineEnd: getPosition(node, "end", "line"),
+      columnStart: getPosition(node, "start", "column"),
+      columnEnd: getPosition(node, "end", "column"),
     };
-  } else if (node.type === 'blockquote') {
+  } else if (node.type === "blockquote") {
     // Convert blockquotes to text
     const text = extractTextFromNode(node);
     return {
-      type: 'paragraph',
+      type: "paragraph",
       key: generateKey(),
       children: [
         {
-          type: 'text',
+          type: "text",
           key: generateKey(),
-          value: text || '',
-          lineStart: getPosition(node, 'start', 'line'),
-          lineEnd: getPosition(node, 'end', 'line'),
-          columnStart: getPosition(node, 'start', 'column'),
-          columnEnd: getPosition(node, 'end', 'column'),
+          value: text || "",
+          lineStart: getPosition(node, "start", "line"),
+          lineEnd: getPosition(node, "end", "line"),
+          columnStart: getPosition(node, "start", "column"),
+          columnEnd: getPosition(node, "end", "column"),
         },
       ],
-      lineStart: getPosition(node, 'start', 'line'),
-      lineEnd: getPosition(node, 'end', 'line'),
-      columnStart: getPosition(node, 'start', 'column'),
-      columnEnd: getPosition(node, 'end', 'column'),
+      lineStart: getPosition(node, "start", "line"),
+      lineEnd: getPosition(node, "end", "line"),
+      columnStart: getPosition(node, "start", "column"),
+      columnEnd: getPosition(node, "end", "column"),
     };
   }
 
@@ -474,16 +634,16 @@ export function transformNode(
   diagnostics.push({
     message: `Unsupported node type: ${node.type}`,
     severity: DiagnosticSeverity.Information,
-    code: 'AIML004',
-    source: 'aiml-parser',
+    code: "AIML004",
+    source: "aiml-parser",
     range: {
       start: {
-        line: getPosition(node, 'start', 'line'),
-        column: getPosition(node, 'start', 'column'),
+        line: getPosition(node, "start", "line"),
+        column: getPosition(node, "start", "column"),
       },
       end: {
-        line: getPosition(node, 'end', 'line'),
-        column: getPosition(node, 'end', 'column'),
+        line: getPosition(node, "end", "line"),
+        column: getPosition(node, "end", "column"),
       },
     },
   });
@@ -500,12 +660,15 @@ export function mergeParagraphs(nodes: SerializedBaseElement[]): void {
 
   for (let i = 0; i < nodes.length - 1; i++) {
     // Check if current and next nodes are both paragraphs
-    if (nodes[i]?.type === 'paragraph' && nodes[i + 1]?.type === 'paragraph') {
+    if (nodes[i]?.type === "paragraph" && nodes[i + 1]?.type === "paragraph") {
       const currentNode = nodes[i];
       const nextNode = nodes[i + 1];
 
       // Combine the children arrays
-      const combinedChildren = [...(currentNode.children || []), ...(nextNode.children || [])];
+      const combinedChildren = [
+        ...(currentNode.children || []),
+        ...(nextNode.children || []),
+      ];
 
       // Update the current node with combined children and adjusted end position
       currentNode.children = combinedChildren;
