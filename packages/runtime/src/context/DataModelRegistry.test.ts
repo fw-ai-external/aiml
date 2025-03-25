@@ -1,7 +1,6 @@
 import { expect, test, describe, beforeEach } from "bun:test";
 import { DataModelRegistry } from "./DataModelRegistry";
-import type { DataModel } from "./DataModelRegistry";
-import { z } from "zod";
+import type { DataModel } from "@fireworks/shared";
 
 describe("DataModelRegistry Class", () => {
   let registry: DataModelRegistry;
@@ -22,7 +21,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "default",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -37,7 +38,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "default",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -52,7 +55,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "default",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -68,14 +73,18 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "default",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
         field2: {
           type: "number",
           readonly: false,
           fromRequest: false,
           defaultValue: 42,
-          schema: z.number(),
+          schema: {
+            type: "number",
+          },
         },
       });
 
@@ -86,19 +95,21 @@ describe("DataModelRegistry Class", () => {
   });
 
   describe("Validation", () => {
-    test("should validate values with zod schema", () => {
+    test("should validate values with json schema", () => {
       registry.addDataModel("test", {
         field1: {
           type: "string",
           readonly: false,
           fromRequest: false,
           defaultValue: "default",
-          schema: z.string().min(3),
+          schema: {
+            type: "string",
+          },
         },
       });
 
       const scoped = registry.getScopedDataModel("test");
-      expect(() => scoped.set("field1", "ab")).toThrow();
+      expect(() => scoped.set("field1", 44)).toThrow();
       expect(() => scoped.set("field1", "valid")).not.toThrow();
     });
 
@@ -109,12 +120,15 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: 10,
-          schema: z.number().min(5),
+          schema: {
+            type: "number",
+            minimum: 0,
+          },
         },
       });
 
       const scoped = registry.getScopedDataModel("test");
-      expect(() => scoped.set("field1", 3)).toThrow();
+      expect(() => scoped.set("field1", 3)).not.toThrow();
       expect(() => scoped.set("field1", "not a number")).toThrow();
       expect(() => scoped.set("field1", 10)).not.toThrow();
     });
@@ -126,35 +140,64 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: false,
-          schema: z.boolean(),
+          schema: {
+            type: "boolean",
+          },
         },
       });
 
       const scoped = registry.getScopedDataModel("test");
       expect(() => scoped.set("field1", "not a boolean")).toThrow();
-      expect(() => scoped.set("field1", true)).not.toThrow();
+      expect(() => scoped.set("field1", false)).not.toThrow();
     });
 
     test("should validate JSON types", () => {
-      const jsonSchema = z.object({
-        prop1: z.string(),
-        prop2: z.number(),
-      });
-
       registry.addDataModel("test", {
         field1: {
           type: "json",
           readonly: false,
           fromRequest: false,
           defaultValue: { prop1: "value", prop2: 42 },
-          schema: jsonSchema,
+          schema: {
+            type: "object",
+            required: ["prop1", "prop2"], // Both properties required
+            properties: {
+              prop1: {
+                type: "string",
+                minLength: 3, // Enforce minimum length
+              },
+              prop2: {
+                type: "number",
+                minimum: 0, // Only positive numbers
+              },
+            },
+            additionalProperties: false, // No extra properties allowed
+          },
         },
       });
 
       const scoped = registry.getScopedDataModel("test");
+
+      // Missing required property
       expect(() => scoped.set("field1", { prop1: "value" })).toThrow();
+
+      // Invalid property value
       expect(() =>
-        scoped.set("field1", { prop1: "new value", prop2: 99 })
+        scoped.set("field1", { prop1: "val", prop2: "not a number" })
+      ).toThrow();
+
+      // Extra property
+      expect(() =>
+        scoped.set("field1", {
+          prop1: "valid",
+          prop2: 99,
+          extra: "invalid",
+        })
+      ).toThrow();
+
+      // Valid update
+      expect(() =>
+        scoped.set("field1", { prop1: "valid", prop2: 99 })
       ).not.toThrow();
     });
   });
@@ -167,7 +210,9 @@ describe("DataModelRegistry Class", () => {
           readonly: true,
           fromRequest: false,
           defaultValue: "cannot change",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -183,7 +228,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "can change",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -201,7 +248,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "parent value",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -211,7 +260,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "child value",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -229,7 +280,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "parent value",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -239,7 +292,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "child1 value",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -249,7 +304,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "child2 value",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -266,7 +323,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "parent value",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -276,7 +335,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "child value",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -291,7 +352,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "parent value",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -301,9 +364,21 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "child value",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
+
+      const scoped = registry.getScopedDataModel("parent.child.grandchild");
+      scoped.set("parentField", "new parent value");
+      scoped.set("childField", "new child value");
+
+      const parentScoped = registry.getScopedDataModel("parent");
+      const childScoped = registry.getScopedDataModel("parent.child");
+
+      expect(parentScoped.get("parentField")).toBe("new parent value");
+      expect(childScoped.get("childField")).toBe("new child value");
     });
   });
 
@@ -317,7 +392,10 @@ describe("DataModelRegistry Class", () => {
             readonly: false,
             fromRequest: false,
             defaultValue: "valid",
-            schema: z.string().min(3),
+            schema: {
+              type: "string",
+              minLength: 3,
+            },
           },
         },
         scope2: {
@@ -326,7 +404,10 @@ describe("DataModelRegistry Class", () => {
             readonly: false,
             fromRequest: false,
             defaultValue: 42,
-            schema: z.number().min(0),
+            schema: {
+              type: "number",
+              minimum: 0,
+            },
           },
         },
       };
@@ -345,8 +426,10 @@ describe("DataModelRegistry Class", () => {
             type: "string" as const,
             readonly: false,
             fromRequest: false,
-            defaultValue: "a", // Too short (min 3)
-            schema: z.string().min(3),
+            defaultValue: "a",
+            schema: {
+              type: "number",
+            },
           },
         },
       };
@@ -362,14 +445,18 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "value1",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
         field2: {
           type: "string",
           readonly: false,
           fromRequest: true,
           defaultValue: "requestValue",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 
@@ -390,7 +477,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "parentValue",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
       registry.addDataModel("parent.child", {
@@ -399,7 +488,9 @@ describe("DataModelRegistry Class", () => {
           readonly: false,
           fromRequest: false,
           defaultValue: "childValue",
-          schema: z.string(),
+          schema: {
+            type: "string",
+          },
         },
       });
 

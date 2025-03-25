@@ -1,32 +1,9 @@
-import type { z } from "zod";
-
-// Define field types
-type FieldType = "string" | "number" | "boolean" | "json";
-
-// Field definition interface
-interface FieldDefinition {
-  type: FieldType;
-  // Whether the field is read-only, meaning the value is static and cannot be changed
-  // via the workflow
-  readonly: boolean;
-  // Whether the field is set from the request, the value is an aditional input in the request body
-  // when this is true, the value is also read-only
-  fromRequest: boolean;
-  // The default value of the field if no other value is set or provided
-  defaultValue: any;
-  // The schema of the field, used to validate the field value
-  schema: z.ZodType<any>;
-}
-
-// Data model interface - collection of fields
-export interface DataModel {
-  [fieldName: string]: FieldDefinition;
-}
-
-// Storage for field values
-export interface FieldValues {
-  [fieldName: string]: any;
-}
+import type {
+  DataModel,
+  FieldDefinition,
+  FieldValues,
+} from "@fireworks/shared";
+import { JSONSchemaToZod } from "@dmitryrechkin/json-schema-to-zod";
 
 /**
  * Context class that provides scoped access to data values
@@ -70,7 +47,7 @@ export class DataModelRegistry {
     for (const [scope, dataModel] of Object.entries(models)) {
       for (const [fieldName, fieldDef] of Object.entries(dataModel)) {
         try {
-          fieldDef.schema.parse(fieldDef.defaultValue);
+          JSONSchemaToZod.convert(fieldDef.schema).parse(fieldDef.defaultValue);
         } catch (error) {
           throw new Error(
             `Validation failed for ${scope}.${fieldName} default value: ${error}`
@@ -112,7 +89,8 @@ export class DataModelRegistry {
         if (!fieldDef || fieldDef.fromRequest) continue;
 
         try {
-          const validatedValue = fieldDef.schema.parse(value);
+          const validator = JSONSchemaToZod.convert(fieldDef.schema);
+          const validatedValue = validator.parse(value);
           currentValues[fieldName] = validatedValue;
         } catch (error) {
           console.warn(
@@ -178,7 +156,9 @@ export class DataModelRegistry {
         if (!fieldDef || fieldDef.fromRequest) continue;
 
         try {
-          const validatedValue = fieldDef.schema.parse(value);
+          const validatedValue = JSONSchemaToZod.convert(fieldDef.schema).parse(
+            value
+          );
           currentValues[fieldName] = validatedValue;
         } catch (error) {
           console.warn(
@@ -226,8 +206,12 @@ export class DataModelRegistry {
       }
     }
 
-    // Sort by specificity (most specific first)
-    return relevantScopes.sort((a, b) => b.length - a.length);
+    // Sort by specificity (most specific first) based on depth, then length
+    return relevantScopes.sort((a, b) => {
+      const aDepth = a.split(".").length;
+      const bDepth = b.split(".").length;
+      return bDepth - aDepth || b.length - a.length;
+    });
   }
 
   /**
@@ -238,16 +222,15 @@ export class DataModelRegistry {
     const result = new Map<string, FieldDefinition>();
     const parentScopes = this.getParentScopes(scope);
 
-    // Process from least specific to most specific (most specific wins for conflicts)
-    for (let i = parentScopes.length - 1; i >= 0; i--) {
-      const parentScope = parentScopes[i];
-      if (!parentScope) {
-        continue;
-      }
-      const dataModel = this.dataModels.get(parentScope);
+    // Process from most specific to least specific (first definition wins)
+    for (const parentScope of parentScopes) {
+      if (!parentScope) continue;
 
-      if (dataModel) {
-        for (const [fieldName, fieldDef] of Object.entries(dataModel)) {
+      const dataModel = this.dataModels.get(parentScope);
+      if (!dataModel) continue;
+
+      for (const [fieldName, fieldDef] of Object.entries(dataModel)) {
+        if (!result.has(fieldName)) {
           result.set(fieldName, fieldDef);
         }
       }
@@ -351,7 +334,8 @@ export class DataModelRegistry {
 
     // Validate with schema
     try {
-      const validatedValue = fieldDef.schema.parse(value);
+      const validator = JSONSchemaToZod.convert(fieldDef.schema);
+      const validatedValue = validator.parse(value);
       values[fieldName] = validatedValue;
     } catch (error) {
       throw new Error(`Validation failed for field '${fieldName}': ${error}`);

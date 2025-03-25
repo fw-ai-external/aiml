@@ -6,7 +6,6 @@
  */
 
 import type {
-  ScopedDataModel,
   Secrets,
   SerializedBaseElement,
   StepValueResult,
@@ -19,7 +18,10 @@ import type {
 } from "ai";
 import type { ChatCompletionMessageToolCall } from "openai/resources/chat/completions";
 import { StepValue } from "../StepValue";
-import { createScopedDataModel } from "../elements/context/ScopedDataModel";
+import {
+  createScopedDataModel,
+  type ScopedDataModel,
+} from "../elements/context/ScopedDataModel";
 import type { BaseElement } from "../elements/BaseElement";
 import { hydreateElementTree } from "../hydrateElementTree";
 

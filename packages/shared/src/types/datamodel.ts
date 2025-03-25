@@ -1,78 +1,31 @@
-import type { DataElementMetadata } from './values/data-types';
+import type { JSONSchemaToZod } from "@dmitryrechkin/json-schema-to-zod";
+import type { DataElementMetadata } from "./values/data-types";
 export type { DataElementMetadata };
 
-/**
- * Interface for a scoped data model that provides access to variables
- * based on the element hierarchy
- */
-export interface ScopedDataModel {
-  /**
-   * Get a variable value by name, respecting scope
-   * @param key The variable name
-   * @returns The variable value or undefined if not found
-   */
-  get(key: string): any | undefined;
+// Define field types
+type FieldType = "string" | "number" | "boolean" | "json";
 
-  /**
-   * Check if a variable exists in the current scope or any parent scope
-   * @param key The variable name
-   * @returns True if the variable exists, false otherwise
-   */
-  has(key: string): boolean;
+// Field definition interface
+export interface FieldDefinition {
+  type: FieldType;
+  // Whether the field is read-only, meaning the value is static and cannot be changed
+  // via the workflow
+  readonly: boolean;
+  // Whether the field is set from the request, the value is an aditional input in the request body
+  // when this is true, the value is also read-only
+  fromRequest: boolean;
+  // The default value of the field if no other value is set or provided
+  defaultValue: any;
+  // The schema of the field, used to validate the field value
+  schema: Parameters<typeof JSONSchemaToZod.convert>[0];
+}
 
-  /**
-   * Get metadata for a variable
-   * @param key The variable name
-   * @returns The variable metadata or undefined if not found
-   */
-  getMetadata(key: string): DataElementMetadata | undefined;
+// Data model interface - collection of fields
+export interface DataModel {
+  [fieldName: string]: FieldDefinition;
+}
 
-  /**
-   * Get all metadata from the current scope and parent scopes
-   * @returns A record of all metadata
-   */
-  getAllMetadata(): Record<string, DataElementMetadata>;
-
-  /**
-   * Set a variable value
-   * @param key The variable name
-   * @param value The new value
-   * @param validate Whether to validate the assignment (check readonly, etc.)
-   * @returns True if the assignment was successful, false otherwise
-   * @throws Error if validation fails
-   */
-  set(key: string, value: any, validate?: boolean): boolean;
-
-  /**
-   * Set a variable value with metadata
-   * @param key The variable name
-   * @param value The new value
-   * @param metadata The metadata for the variable
-   * @returns True if the assignment was successful, false otherwise
-   */
-  setValue(key: string, value: any, metadata: DataElementMetadata): boolean;
-
-  /**
-   * Get all variables in the current scope
-   * @returns A record of all variables in the current scope
-   */
-  getLocalVariables(): Record<string, any>;
-
-  /**
-   * Get all variables accessible from the current scope (including parent scopes)
-   * @returns A record of all accessible variables
-   */
-  getAllVariables(): Record<string, any>;
-
-  /**
-   * Get the element ID that owns this scope
-   * @returns The element ID
-   */
-  getElementId(): string;
-
-  /**
-   * Get the parent scope
-   * @returns The parent scope or undefined if this is the root scope
-   */
-  getParentScope(): ScopedDataModel | undefined;
+// Storage for field values
+export interface FieldValues {
+  [fieldName: string]: any;
 }

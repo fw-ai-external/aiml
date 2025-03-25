@@ -2,10 +2,10 @@
  * ValueType - Enum for data element types
  */
 export enum ValueType {
-  STRING = 'string',
-  NUMBER = 'number',
-  BOOLEAN = 'boolean',
-  JSON = 'json', // For complex nested structures with schema
+  STRING = "string",
+  NUMBER = "number",
+  BOOLEAN = "boolean",
+  JSON = "json", // For complex nested structures with schema
 }
 
 /**
@@ -17,11 +17,16 @@ export interface JSONSchema {
   items?: JSONSchema; // For arrays
   required?: string[]; // Required properties for objects
   enum?: any[]; // Enumerated values
+  const?: any; // Fixed value
   pattern?: string; // Regex pattern for strings
   minimum?: number; // Minimum value for numbers
   maximum?: number; // Maximum value for numbers
   minLength?: number; // Minimum length for strings and arrays
   maxLength?: number; // Maximum length for strings and arrays
+  additionalProperties?: boolean | JSONSchema; // Additional properties validation
+  format?: string; // Format validation (date, email, etc.)
+  default?: any; // Default value
+  examples?: any[]; // Example values
 }
 
 /**
@@ -67,10 +72,14 @@ export interface DataElementMetadata {
  * @returns The validated value
  * @throws Error if the value does not match the type
  */
-export function validateValueType(value: any, type: ValueType | string, schema?: JSONSchema): any {
+export function validateValueType(
+  value: any,
+  type: ValueType | string,
+  schema?: JSONSchema
+): any {
   switch (type) {
     case ValueType.STRING:
-      if (typeof value !== 'string') {
+      if (typeof value !== "string") {
         throw new Error(`Value must be a string, got ${typeof value}`);
       }
 
@@ -89,14 +98,14 @@ export function validateValueType(value: any, type: ValueType | string, schema?:
         }
 
         if (schema.enum && !schema.enum.includes(value)) {
-          throw new Error(`Value must be one of: ${schema.enum.join(', ')}`);
+          throw new Error(`Value must be one of: ${schema.enum.join(", ")}`);
         }
       }
 
       return value;
 
     case ValueType.NUMBER:
-      if (typeof value !== 'number' || isNaN(value)) {
+      if (typeof value !== "number" || isNaN(value)) {
         throw new Error(`Value must be a number, got ${typeof value}`);
       }
 
@@ -111,14 +120,14 @@ export function validateValueType(value: any, type: ValueType | string, schema?:
         }
 
         if (schema.enum && !schema.enum.includes(value)) {
-          throw new Error(`Value must be one of: ${schema.enum.join(', ')}`);
+          throw new Error(`Value must be one of: ${schema.enum.join(", ")}`);
         }
       }
 
       return value;
 
     case ValueType.BOOLEAN:
-      if (typeof value !== 'boolean') {
+      if (typeof value !== "boolean") {
         throw new Error(`Value must be a boolean, got ${typeof value}`);
       }
       return value;
@@ -126,11 +135,15 @@ export function validateValueType(value: any, type: ValueType | string, schema?:
     case ValueType.JSON:
       // For JSON type, we need a schema
       if (!schema) {
-        throw new Error('Schema is required for JSON type');
+        throw new Error("Schema is required for JSON type");
       }
 
       // If it's an object
-      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      if (
+        typeof value === "object" &&
+        value !== null &&
+        !Array.isArray(value)
+      ) {
         // Validate object against schema if provided
         if (schema.properties) {
           const validatedObject: Record<string, any> = {};
@@ -145,9 +158,15 @@ export function validateValueType(value: any, type: ValueType | string, schema?:
           }
 
           // Validate each property against its schema
-          for (const [propName, propSchema] of Object.entries(schema.properties)) {
+          for (const [propName, propSchema] of Object.entries(
+            schema.properties
+          )) {
             if (propName in value) {
-              validatedObject[propName] = validateValueType(value[propName], propSchema.type, propSchema);
+              validatedObject[propName] = validateValueType(
+                value[propName],
+                propSchema.type,
+                propSchema
+              );
             }
           }
 
@@ -168,7 +187,9 @@ export function validateValueType(value: any, type: ValueType | string, schema?:
 
         // Validate each item against the items schema if provided
         if (schema.items) {
-          return value.map((item) => validateValueType(item, schema.items!.type, schema.items));
+          return value.map((item) =>
+            validateValueType(item, schema.items!.type, schema.items)
+          );
         }
       }
 
@@ -185,26 +206,34 @@ export function validateValueType(value: any, type: ValueType | string, schema?:
  * @param schema Optional schema for complex types
  * @returns The default value for the type
  */
-export function getDefaultForType(type: ValueType | string, schema?: JSONSchema): any {
+export function getDefaultForType(
+  type: ValueType | string,
+  schema?: JSONSchema
+): any {
   switch (type) {
     case ValueType.STRING:
-      return schema?.enum?.[0] ?? '';
+      return schema?.enum?.[0] ?? "";
     case ValueType.NUMBER:
       return schema?.enum?.[0] ?? 0;
     case ValueType.BOOLEAN:
       return schema?.enum?.[0] ?? false;
     case ValueType.JSON:
       if (!schema) {
-        throw new Error('Schema is required for JSON type');
+        throw new Error("Schema is required for JSON type");
       }
 
       // If it's an object type with properties
       if (schema.properties) {
         const defaultObj: Record<string, any> = {};
-        for (const [propName, propSchema] of Object.entries(schema.properties)) {
+        for (const [propName, propSchema] of Object.entries(
+          schema.properties
+        )) {
           // Only set default for required properties
           if (schema.required?.includes(propName)) {
-            defaultObj[propName] = getDefaultForType(propSchema.type, propSchema);
+            defaultObj[propName] = getDefaultForType(
+              propSchema.type,
+              propSchema
+            );
           }
         }
         return defaultObj;
@@ -213,12 +242,14 @@ export function getDefaultForType(type: ValueType | string, schema?: JSONSchema)
       // If it's an array type with items
       if (schema.items) {
         // Return empty array or array with one default item
-        return schema.minLength && schema.minLength > 0 ? [getDefaultForType(schema.items.type, schema.items)] : [];
+        return schema.minLength && schema.minLength > 0
+          ? [getDefaultForType(schema.items.type, schema.items)]
+          : [];
       }
 
       // Default JSON value
       return {};
     default:
-      return ''; // Default to empty string
+      return ""; // Default to empty string
   }
 }
