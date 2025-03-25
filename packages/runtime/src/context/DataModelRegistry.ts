@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 
 // Define field types
 type FieldType = "string" | "number" | "boolean" | "json";
@@ -6,26 +6,32 @@ type FieldType = "string" | "number" | "boolean" | "json";
 // Field definition interface
 interface FieldDefinition {
   type: FieldType;
+  // Whether the field is read-only, meaning the value is static and cannot be changed
+  // via the workflow
   readonly: boolean;
+  // Whether the field is set from the request, the value is an aditional input in the request body
+  // when this is true, the value is also read-only
   fromRequest: boolean;
+  // The default value of the field if no other value is set or provided
   defaultValue: any;
+  // The schema of the field, used to validate the field value
   schema: z.ZodType<any>;
 }
 
 // Data model interface - collection of fields
-interface DataModel {
+export interface DataModel {
   [fieldName: string]: FieldDefinition;
 }
 
 // Storage for field values
-interface FieldValues {
+export interface FieldValues {
   [fieldName: string]: any;
 }
 
 /**
  * Context class that provides scoped access to data values
  */
-export class Context {
+export class DataModelRegistry {
   private dataModels: Map<string, DataModel> = new Map();
   private fieldValues: Map<string, FieldValues> = new Map();
 
@@ -46,11 +52,152 @@ export class Context {
   }
 
   /**
+   * Add multiple data models to multiple scopes in one call
+   * @param models Record of scope keys to data models
+   */
+  public addDataModels(models: Record<string, DataModel>): void {
+    for (const [scope, dataModel] of Object.entries(models)) {
+      this.addDataModel(scope, dataModel);
+    }
+  }
+
+  /**
+   * Bulk hydrate data models with validation before adding any
+   * @param models Map of scope names to data model definitions
+   */
+  public hydrateDataModels(models: Record<string, DataModel>): void {
+    // First validate all models
+    for (const [scope, dataModel] of Object.entries(models)) {
+      for (const [fieldName, fieldDef] of Object.entries(dataModel)) {
+        try {
+          fieldDef.schema.parse(fieldDef.defaultValue);
+        } catch (error) {
+          throw new Error(
+            `Validation failed for ${scope}.${fieldName} default value: ${error}`
+          );
+        }
+      }
+    }
+
+    // If validation passes, add all models
+    this.addDataModels(models);
+  }
+
+  /**
+   * Rehydrate from a dump while skipping fromRequest fields
+   * @param data Output from dump()
+   */
+  public rehydrateFromDump(data: {
+    dataModels: Record<string, DataModel>;
+    fieldValues: Record<string, FieldValues>;
+  }): void {
+    // Clear existing state
+    this.dataModels.clear();
+    this.fieldValues.clear();
+
+    // Restore data models
+    for (const [scope, model] of Object.entries(data.dataModels)) {
+      this.dataModels.set(scope, { ...model });
+    }
+
+    // Restore field values (excluding fromRequest fields)
+    for (const [scope, values] of Object.entries(data.fieldValues)) {
+      const dataModel = this.dataModels.get(scope);
+      if (!dataModel) continue;
+
+      const currentValues: FieldValues = {};
+
+      for (const [fieldName, value] of Object.entries(values)) {
+        const fieldDef = dataModel[fieldName];
+        if (!fieldDef || fieldDef.fromRequest) continue;
+
+        try {
+          const validatedValue = fieldDef.schema.parse(value);
+          currentValues[fieldName] = validatedValue;
+        } catch (error) {
+          console.warn(
+            `Validation failed during rehydration for ${scope}.${fieldName}:`,
+            error
+          );
+        }
+      }
+
+      this.fieldValues.set(scope, currentValues);
+    }
+  }
+
+  /**
+   * Convert the entire registry state to JSON including schemas, configs and values
+   */
+  public toJSON(): {
+    dataModels: Record<string, DataModel>;
+    fieldValues: Record<string, FieldValues>;
+  } {
+    const dataModels: Record<string, DataModel> = {};
+    const fieldValues: Record<string, FieldValues> = {};
+
+    // Convert dataModels Map to plain object
+    for (const [scope, model] of this.dataModels.entries()) {
+      dataModels[scope] = { ...model };
+    }
+
+    // Convert fieldValues Map to plain object
+    for (const [scope, values] of this.fieldValues.entries()) {
+      fieldValues[scope] = { ...values };
+    }
+
+    return { dataModels, fieldValues };
+  }
+
+  /**
+   * Hydrate the entire registry from a dump
+   * @param data Complete registry state from dump()
+   */
+  public hydrate(data: {
+    dataModels: Record<string, DataModel>;
+    fieldValues: Record<string, FieldValues>;
+  }): void {
+    // Clear existing state
+    this.dataModels.clear();
+    this.fieldValues.clear();
+
+    // Restore data models
+    for (const [scope, model] of Object.entries(data.dataModels)) {
+      this.dataModels.set(scope, { ...model });
+    }
+
+    // Restore field values (excluding fromRequest fields)
+    for (const [scope, values] of Object.entries(data.fieldValues)) {
+      const dataModel = this.dataModels.get(scope);
+      if (!dataModel) continue;
+
+      const currentValues: FieldValues = {};
+
+      for (const [fieldName, value] of Object.entries(values)) {
+        const fieldDef = dataModel[fieldName];
+        if (!fieldDef || fieldDef.fromRequest) continue;
+
+        try {
+          const validatedValue = fieldDef.schema.parse(value);
+          currentValues[fieldName] = validatedValue;
+        } catch (error) {
+          console.warn(
+            `Validation failed during hydration for ${scope}.${fieldName}:`,
+            error
+          );
+        }
+      }
+
+      this.fieldValues.set(scope, currentValues);
+    }
+  }
+
+  /**
    * Get a scoped data model for accessing and modifying values
    * @param scope Dot-notated scope key
    */
-  public getScopedDataModel(scope: string): ScopedDataModel {
-    return new ScopedDataModel(this, scope);
+  public getScopedDataModel(scope: string): ScopedDataModelRegistry {
+    return new ScopedDataModelRegistry(this, scope);
   }
 
   /**
@@ -215,12 +362,12 @@ export class Context {
 /**
  * Provides scoped access to data fields
  */
-export class ScopedDataModel {
-  private context: Context;
+export class ScopedDataModelRegistry {
+  private registry: DataModelRegistry;
   private scope: string;
 
-  constructor(context: Context, scope: string) {
-    this.context = context;
+  constructor(registry: DataModelRegistry, scope: string) {
+    this.registry = registry;
     this.scope = scope;
   }
 
@@ -229,7 +376,7 @@ export class ScopedDataModel {
    * @param fieldName Field name to check
    */
   public has(fieldName: string): boolean {
-    return this.context.hasField(this.scope, fieldName);
+    return this.registry.hasField(this.scope, fieldName);
   }
 
   /**
@@ -237,7 +384,7 @@ export class ScopedDataModel {
    * @param fieldName Field to get
    */
   public get(fieldName: string): any {
-    return this.context.getFieldValue(this.scope, fieldName);
+    return this.registry.getFieldValue(this.scope, fieldName);
   }
 
   /**
@@ -246,7 +393,7 @@ export class ScopedDataModel {
    * @param value Value to set
    */
   public set(fieldName: string, value: any): void {
-    this.context.setFieldValue(this.scope, fieldName, value);
+    this.registry.setFieldValue(this.scope, fieldName, value);
   }
 
   /**
@@ -254,7 +401,7 @@ export class ScopedDataModel {
    */
   public toJson(): Record<string, any> {
     const result: Record<string, any> = {};
-    const fieldDefs = this.context.getAllFieldDefinitions(this.scope);
+    const fieldDefs = this.registry.getAllFieldDefinitions(this.scope);
 
     // Get values for all accessible fields
     for (const [fieldName] of fieldDefs) {
