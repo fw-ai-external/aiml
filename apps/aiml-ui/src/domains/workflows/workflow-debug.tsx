@@ -10,7 +10,7 @@ export function WorkflowDebug({
   debugType,
 }: {
   workflowId: string;
-  debugType: "ast" | "elementTree" | "stepGraph";
+  debugType: "ast" | "elementTree" | "stepGraph" | "datamodel";
 }) {
   const {
     prompt: workflowPrompt,
@@ -65,7 +65,29 @@ export function WorkflowDebug({
                     }
                   : debugType === "elementTree"
                     ? elementTree
-                    : executionGraph
+                    : debugType === "datamodel"
+                      ? (
+                          Object.keys(datamodel.scopedDataModels).reduce(
+                            (acc, scope) => ({
+                              ...acc,
+                              [scope]: Object.keys(
+                                datamodel.scopedDataModels[scope]
+                              ).reduce(
+                                (acc, field) => ({
+                                  ...acc,
+                                  [field]:
+                                    datamodel.fieldValues[field] ||
+                                    datamodel.scopedDataModels[scope][field]
+                                      .defaultValue ||
+                                    null,
+                                }),
+                                {}
+                              ),
+                            }),
+                            {}
+                          ) as any
+                        ).root
+                      : executionGraph
               }
             />
           </div>
