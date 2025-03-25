@@ -7,6 +7,7 @@ import {
   type DataModel,
   type FieldDefinition,
   type FieldType,
+  aimlElements,
 } from "@fireworks/shared";
 
 interface ParserContext {
@@ -198,6 +199,55 @@ export function transformNode(
 ): SerializedBaseElement | null {
   // Handle different node types
   if (node.type === "mdxJsxFlowElement" || node.type === "mdxJsxTextElement") {
+    // Check if the node name is a valid AIML element
+    if (!aimlElements.includes(node.name.toLowerCase() as any)) {
+      // If not a valid AIML element, treat as text
+      const textContent = extractTextFromNode(node);
+      const scope =
+        context.currentStates.length > 0
+          ? ["root", ...context.currentStates]
+          : ["root"];
+
+      if (node.children && node.children.length !== 0) {
+        diagnostics.push({
+          message: `XML tag syntax (<${node.name}> ... </${node.name}>) with opening and closing tags is wrapping AIML elements... this will cause the elements to be treated as text`,
+          severity: DiagnosticSeverity.Error,
+          code: "AIML007",
+          source: "aiml-parser",
+          range: {
+            start: {
+              line: getPosition(node, "start", "line"),
+              column: getPosition(node, "start", "column"),
+            },
+            end: {
+              line: getPosition(node, "end", "line"),
+              column: getPosition(node, "end", "column"),
+            },
+          },
+        });
+      }
+      return {
+        type: "paragraph",
+        key: generateKey(),
+        scope,
+        children: [
+          {
+            type: "text",
+            key: generateKey(),
+            scope,
+            value: textContent || "",
+            lineStart: getPosition(node, "start", "line"),
+            lineEnd: getPosition(node, "end", "line"),
+            columnStart: getPosition(node, "start", "column"),
+            columnEnd: getPosition(node, "end", "column"),
+          },
+        ],
+        lineStart: getPosition(node, "start", "line"),
+        lineEnd: getPosition(node, "end", "line"),
+        columnStart: getPosition(node, "start", "column"),
+        columnEnd: getPosition(node, "end", "column"),
+      };
+    }
     // Process JSX elements into AIML elements
     const lineStart = getPosition(node, "start", "line");
     const columnStart = getPosition(node, "start", "column");
