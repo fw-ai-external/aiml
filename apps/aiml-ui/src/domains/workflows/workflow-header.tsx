@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useWorkflow } from '@/hooks/use-workflows';
-import { usePathname, useRouter } from 'next/navigation';
+import { useWorkflow } from "@/hooks/use-workflows";
+import { usePathname, useRouter } from "next/navigation";
 
 export function WorkflowHeader({ workflowId }: { workflowId: string }) {
   const { name } = useWorkflow(workflowId);
@@ -19,15 +19,22 @@ export function WorkflowHeader({ workflowId }: { workflowId: string }) {
           <button
             onClick={() => router.push(`/workflows/${workflowId}`)}
             className={`px-3 py-1 rounded-md text-sm ${
-              isGraphPage ? 'bg-aiml-bg-4/70 text-aiml-el-1' : 'hover:bg-aiml-bg-4/30 text-aiml-el-2'
+              isGraphPage
+                ? "bg-aiml-bg-4/70 text-aiml-el-1"
+                : "hover:bg-aiml-bg-4/30 text-aiml-el-2"
             }`}
           >
             Graph
           </button>
           <button
-            onClick={() => router.push(`/workflows/${workflowId}/traces`)}
+            // onClick={() => router.push(`/workflows/${workflowId}/traces`)}
+            onClick={() => {
+              alert("Coming soon!");
+            }}
             className={`px-3 py-1 rounded-md text-sm ${
-              isTracesPage ? 'bg-aiml-bg-4/70 text-aiml-el-1' : 'hover:bg-aiml-bg-4/30 text-aiml-el-2'
+              isTracesPage
+                ? "bg-aiml-bg-4/70 text-aiml-el-1"
+                : "hover:bg-aiml-bg-4/30 text-aiml-el-2"
             }`}
           >
             Traces
