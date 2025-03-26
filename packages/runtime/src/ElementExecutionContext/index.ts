@@ -21,7 +21,7 @@ import { StepValue } from "../StepValue";
 import type { BaseElement } from "../elements/BaseElement";
 import { hydreateElementTree } from "../hydrateElementTree";
 import type { ScopedDataModelRegistry } from "../DataModelRegistry";
-
+import { isErrorResult } from "@fireworks/shared";
 /**
  * Serialized execution context
  */
@@ -144,6 +144,42 @@ export class ExecutionContext<
     };
   }
 
+  private async simpleValue() {
+    const value = await this.input.value();
+    if (isErrorResult(value)) {
+      return value;
+    }
+    if (value.text) return value.text;
+    if (value.object) return value.object;
+    if (value.items) return value.items;
+    if (value.toolCalls) return value.toolCalls;
+    if (value.toolResults) return value.toolResults;
+    return value;
+  }
+
+  private async simpleValueAsText() {
+    const value = await this.input.value();
+    if (isErrorResult(value)) {
+      return value;
+    }
+    if (value.text) return value.text;
+    if (value.object) return JSON.stringify(value.object);
+    if (value.items) return value.items.map((item) => item.text).join("\n");
+    if (value.toolCalls)
+      return value.toolCalls.map((toolCall) => toolCall.toolName).join("\n");
+    if (value.toolResults)
+      return value.toolResults
+        .map((toolResult) => {
+          try {
+            return JSON.stringify(toolResult);
+          } catch (e) {
+            console.error("Error stringifying tool result", toolResult, e);
+            return "";
+          }
+        })
+        .join("\n");
+    return value;
+  }
   /**
    * Serialize the execution context
    * @returns The serialized execution context
@@ -158,7 +194,7 @@ export class ExecutionContext<
     // if the value is a StepValue, use the serialize() method
     const entries = Object.entries(serialized).map(async ([key, value]) => {
       if (value instanceof StepValue) {
-        return [key, await value.value()];
+        return [key, await value.simpleValue()];
       }
       if ((value as BaseElement)?.onExecutionGraphConstruction) {
         return [key, value.toJSON()];
@@ -171,7 +207,9 @@ export class ExecutionContext<
     });
 
     return Object.fromEntries(
-      (await Promise.all(entries)).filter(([key]) => key !== null)
+      (await Promise.all(entries))
+        .filter(([key]) => key !== null)
+        .concat([["inputAsText", await this.simpleValueAsText()]])
     );
   }
 

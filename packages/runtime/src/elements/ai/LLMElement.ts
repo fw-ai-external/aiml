@@ -32,14 +32,18 @@ export const LLM = createElementDefinition({
     return llmNode;
   },
   async execute(ctx): Promise<ExecutionReturnType> {
-    const { prompt: promptTemplate, system: systemTemplate } = ctx.props;
-
+    const { prompt: promptTemplate, instructions: systemTemplate } = ctx.props;
     const serializedCtx = await ctx.serialize();
-    const prompt = parseTemplateLiteral(promptTemplate || "", serializedCtx);
-    const systemPrompt = parseTemplateLiteral(
+    const prompt = await parseTemplateLiteral(
+      promptTemplate || "",
+      serializedCtx
+    );
+
+    const systemPrompt = await parseTemplateLiteral(
       systemTemplate || "",
       serializedCtx
     );
+
     try {
       const { provider } = getProviderWithClient(
         ctx.props.model,

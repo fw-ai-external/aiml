@@ -30,7 +30,7 @@ export type RuntimeOptions = {
  * Workflow runner
  */
 export class Workflow<
-  InputSchema extends z.ZodType<any>,
+  InputSchema extends z.AnyZodObject,
   InputType extends z.infer<InputSchema>,
 > {
   private debug: string = "";
@@ -40,6 +40,19 @@ export class Workflow<
   private value: RunValue | null = null;
   private executionGraph: ExecutionGraphElement;
   public datamodel: DataModelRegistry;
+
+  // TODO this is a temp solution. Workflows should be able to define their own input
+  // schema in addition to the default config
+  private defaultInputSchema = z.object({
+    chatHistory: z.array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string(),
+      })
+    ),
+    userInput: z.string(),
+    secrets: z.record(z.any()),
+  }) as unknown as InputSchema;
   constructor(
     private readonly spec: BaseElement,
     datamodel: {
@@ -57,16 +70,7 @@ export class Workflow<
 
     this.workflow = new MastraWorkflow({
       name: "workflow",
-      triggerSchema: z.object({
-        chatHistory: z.array(
-          z.object({
-            role: z.enum(["user", "assistant"]),
-            content: z.string(),
-          })
-        ),
-        userInput: z.string(),
-        secrets: z.record(z.any()),
-      }),
+      triggerSchema: this.defaultInputSchema,
     });
     // this.workflow.__setLogger(
     //   createLogger({

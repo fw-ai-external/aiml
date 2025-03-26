@@ -191,7 +191,7 @@ export class BaseElement
             id: context.context.machine?.id,
             secrets: {
               system: {},
-              ...context?.context.machine?.secrets,
+              ...context?.context.triggerData?.secrets,
             },
           },
           run: {

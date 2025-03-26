@@ -1,15 +1,14 @@
 import type { ElementExecutionContextSerialized } from "../ElementExecutionContext";
 import { sandboxedEval } from "../codeSandbox/JS";
 
-export function parseTemplateLiteral(
+export async function parseTemplateLiteral(
   template: string,
   context: ElementExecutionContextSerialized
-): string {
+): Promise<string> {
   try {
-    const result = sandboxedEval(
-      "`" + escapeBackticks(template) + "`",
-      context as any
-    ).toString();
+    const result = JSON.stringify(
+      await sandboxedEval("`" + escapeBackticks(template) + "`", context as any)
+    );
     if (
       template.trim() !== "" &&
       (result === undefined || result === null || result.trim() === "")

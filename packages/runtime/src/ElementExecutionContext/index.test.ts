@@ -1,28 +1,30 @@
-import { describe, expect, it } from 'bun:test';
-import { ElementExecutionContext } from '.';
-import { StepValue } from '../StepValue';
+import { describe, expect, it } from "bun:test";
+import { ElementExecutionContext } from ".";
+import { StepValue } from "../StepValue";
+import { DataModelRegistry } from "../DataModelRegistry";
+import { ScopedDataModelRegistry } from "../DataModelRegistry";
 
-describe('ElementExecutionContext', () => {
+describe("ElementExecutionContext", () => {
   it("builtinKeys array  should map 1:1 to serialized method's returnd keys ensuring validation of data elements works", async () => {
     const builtinKeys = ElementExecutionContext.builtinKeys.toSorted();
     const context = new ElementExecutionContext({
-      input: new StepValue({ type: 'text', text: '' }),
-      datamodel: { values: {} },
+      input: new StepValue({ type: "text", text: "" }),
+      datamodel: new ScopedDataModelRegistry(new DataModelRegistry(), "root"),
       requestInput: {
-        userMessage: 'Hello, world!',
-        systemMessage: '',
+        userMessage: "Hello, world!",
+        systemMessage: "",
         chatHistory: [],
         clientSideTools: [],
         secrets: { system: {}, user: {} },
       },
       props: {},
-      run: { id: 'run_0' },
+      run: { id: "run_0" },
       state: {
-        id: 'rs_0',
+        id: "rs_0",
         props: {},
-        input: new StepValue({ type: 'text', text: '' }),
+        input: new StepValue({ type: "text", text: "" }),
       },
-      machine: { id: 'machine_0', secrets: { system: {} } },
+      machine: { id: "machine_0", secrets: { system: {} } },
     });
     const serialized = await context.serialize();
     const serializedKeys = Object.keys(serialized).toSorted();
