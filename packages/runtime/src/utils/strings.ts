@@ -6,9 +6,20 @@ export async function parseTemplateLiteral(
   context: ElementExecutionContextSerialized
 ): Promise<string> {
   try {
-    const result = JSON.stringify(
-      await sandboxedEval("`" + escapeBackticks(template) + "`", context as any)
+    // if template consains `${input}` and never `${input.`, replace context.input with context.inputAsText
+    if (template.includes("${input}") && !template.includes("${input.}")) {
+      template = template.replace("${input}", context.inputAsText);
+    }
+
+    const result = await sandboxedEval(
+      "`" + escapeBackticks(template) + "`",
+      context as any
     );
+
+    // Convert non-object results to string
+    const finalResult =
+      typeof result !== "object" ? result : result?.toString();
+
     if (
       template.trim() !== "" &&
       (result === undefined || result === null || result.trim() === "")
@@ -17,7 +28,7 @@ export async function parseTemplateLiteral(
         `Error evaluating expression: ${template.trim()}: result is undefined, null, or empty`
       );
     }
-    return result;
+    return finalResult;
   } catch (error: any) {
     throw new Error(
       `Error evaluating expression: ${template.trim()}: ${error.message}`,

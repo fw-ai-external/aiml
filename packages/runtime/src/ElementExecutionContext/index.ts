@@ -39,6 +39,7 @@ export type ElementExecutionContextSerialized = Omit<
 > & {
   element?: SerializedBaseElement;
   parentContext?: ElementExecutionContextSerialized;
+  inputAsText: string;
 };
 
 /**
