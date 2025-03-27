@@ -1,18 +1,19 @@
-import { forEachConfig } from '@fireworks/shared';
-import { createElementDefinition } from '../createElementFactory';
+import { forEachConfig } from "@fireworks/shared";
+import { createElementDefinition } from "../createElementFactory";
 
 export const ForEach = createElementDefinition({
   ...forEachConfig,
-  tag: 'foreach',
-  role: 'action',
-  elementType: 'foreach',
-  allowedChildren: 'any',
+  tag: "foreach",
+  role: "action",
+  elementType: "foreach",
+  allowedChildren: "any",
   onExecutionGraphConstruction: (buildContext) => {
     return {
       id: buildContext.attributes.id,
       key: buildContext.elementKey,
-      type: 'action',
-      subType: 'foreach',
+      type: "action",
+      tag: "foreach",
+      scope: buildContext.scope,
       attributes: buildContext.attributes,
       next: [],
     };

@@ -2,6 +2,7 @@ import type {
   AllowedChildrenType,
   ElementRole,
   ElementType,
+  ExecutionGraphElement,
   SerializedBaseElement,
   SerializedElement,
   SerializedElementConfig,
@@ -10,11 +11,7 @@ import type { ActionContext as MastraActionContext } from "@mastra/core";
 import { z } from "zod";
 import { ElementExecutionContext } from "../ElementExecutionContext";
 import type { BuildContext } from "../graphBuilder/Context";
-import type {
-  ExecutionGraphElement,
-  ExecutionReturnType,
-  RuntimeElementDefinition,
-} from "../types";
+import type { ExecutionReturnType, RuntimeElementDefinition } from "../types";
 import { defaultStepExecutionGraphMapper } from "../utils";
 import type { DataModelRegistry } from "../DataModelRegistry";
 
@@ -66,12 +63,13 @@ export class BaseElement
     context: InstanceType<typeof ElementExecutionContext<any, any>>,
     childrenNodes: BaseElement[]
   ) => Promise<ExecutionReturnType>;
-  public readonly scope: string[];
+  public readonly scope: ["root", ...string[]];
   constructor(
     config: Omit<RuntimeElementDefinition, "propsSchema"> &
       Omit<SerializedElementConfig, "parent" | "children"> & {
         children?: BaseElement[];
         parent?: WeakRef<BaseElement>;
+        scope?: ["root", ...string[]];
       }
   ) {
     this.id = config.id;

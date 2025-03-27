@@ -1,16 +1,18 @@
-import { stateConfig } from '@fireworks/shared';
-import { v4 as uuidv4 } from 'uuid';
-import type { ExecutionGraphElement } from '../../types';
-import { BaseElement } from '../BaseElement';
-import { createElementDefinition } from '../createElementFactory';
+import { stateConfig } from "@fireworks/shared";
+import { v4 as uuidv4 } from "uuid";
+import type { ExecutionGraphElement } from "@fireworks/shared";
+import { BaseElement } from "../BaseElement";
+import { createElementDefinition } from "../createElementFactory";
 
 export const State = createElementDefinition({
   ...stateConfig,
-  role: 'state' as const,
-  elementType: 'state' as const,
-  tag: 'state' as const,
+  role: "state" as const,
+  elementType: "state" as const,
+  tag: "state" as const,
   onExecutionGraphConstruction(buildContext) {
-    const existing = buildContext.getCachedGraphElement(buildContext.elementKey);
+    const existing = buildContext.getCachedGraphElement(
+      buildContext.elementKey
+    );
 
     if (existing) {
       return existing;
@@ -23,8 +25,9 @@ export const State = createElementDefinition({
     const mainStateNode: ExecutionGraphElement = {
       id,
       key: buildContext.elementKey,
-      type: 'state',
-      subType: 'state',
+      type: "state",
+      tag: "state",
+      scope: buildContext.scope,
       attributes: {
         ...buildContext.attributes,
         // e.g. storing SCXML 'initial', 'id', etc.
@@ -38,13 +41,15 @@ export const State = createElementDefinition({
     //    but we have to treat transitions differently than sub-states
     for (const child of buildContext.children) {
       if (!(child instanceof BaseElement)) {
-        console.log('child is not a BaseElement', child);
+        console.log("child is not a BaseElement", child);
         // TODO: handle as value in parser
         continue;
       }
-      if (child.elementType === 'transition') {
+      if (child.elementType === "transition") {
         // We'll build the transition action
-        const txEG = child.onExecutionGraphConstruction?.(buildContext.createNewContextForChild(child));
+        const txEG = child.onExecutionGraphConstruction?.(
+          buildContext.createNewContextForChild(child)
+        );
         if (!txEG) {
           // TODO: handle as value in parser
           continue;
@@ -54,9 +59,11 @@ export const State = createElementDefinition({
         // We might attach it as a separate sibling or a child.
         // Example: We'll add it as a child. The runtime can interpret it as a sub-action
         mainStateNode.next!.push(txEG);
-      } else if (child.role === 'state') {
+      } else if (child.role === "state") {
         // Another sub-state => build it
-        const subEG = child.onExecutionGraphConstruction?.(buildContext.createNewContextForChild(child));
+        const subEG = child.onExecutionGraphConstruction?.(
+          buildContext.createNewContextForChild(child)
+        );
         if (!subEG) {
           // TODO: handle as value in parser
           continue;
@@ -76,12 +83,14 @@ export const State = createElementDefinition({
 
         // We'll push this sub-state as a child, or as a sibling.
         mainStateNode.next!.push(subEG);
-      } else if (child.elementType === 'onexit') {
+      } else if (child.elementType === "onexit") {
         // TODO: onexit elements should run after any transition that leaves this state aka not going to a sub-state
 
         // or other sub constructs
         // you might store them differently
-        const onexitEG = child.onExecutionGraphConstruction(buildContext.createNewContextForChild(child));
+        const onexitEG = child.onExecutionGraphConstruction(
+          buildContext.createNewContextForChild(child)
+        );
         if (!onexitEG) {
           // TODO: handle as value in parser
           continue;
@@ -89,20 +98,25 @@ export const State = createElementDefinition({
         // attach as child
         mainStateNode.next!.push(onexitEG);
       } else {
-        const actionEG = child.onExecutionGraphConstruction(buildContext.createNewContextForChild(child));
+        const actionEG = child.onExecutionGraphConstruction(
+          buildContext.createNewContextForChild(child)
+        );
         if (actionEG) {
           // We'll attach it as a child or we could flatten
           mainStateNode.next!.push(actionEG);
         } else {
           throw new Error(
-            `Error during onExecutionGraphConstruction for element of type ${child.elementType} with id ${child.id}. No graph config returned`,
+            `Error during onExecutionGraphConstruction for element of type ${child.elementType} with id ${child.id}. No graph config returned`
           );
         }
       }
     }
 
     // store it in the cache
-    buildContext.setCachedGraphElement([key, buildContext.attributes.id].filter(Boolean), mainStateNode);
+    buildContext.setCachedGraphElement(
+      [key, buildContext.attributes.id].filter(Boolean),
+      mainStateNode
+    );
 
     return mainStateNode;
   },

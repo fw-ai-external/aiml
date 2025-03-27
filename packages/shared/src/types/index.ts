@@ -1,9 +1,14 @@
 // Import everything explicitly from each module to avoid ambiguity
-import { type Unpack, isAIMLElement } from './utils';
+import { type Unpack, isAIMLElement } from "./utils";
 
-import type { z } from 'zod';
-import type { AllowedChildrenType, ElementRole, ElementType, SerializedElement } from './elements';
-import { HTTPErrorCode } from './errorCodes';
+import type { z } from "zod";
+import type {
+  AllowedChildrenType,
+  ElementRole,
+  ElementType,
+  SerializedElement,
+} from "./elements";
+import { HTTPErrorCode } from "./errorCodes";
 import {
   type APIStreamEvent,
   type ErrorResult,
@@ -14,15 +19,15 @@ import {
   type TOOLS,
   type ToolCall,
   ToolCallSchema,
-} from './values';
-export * from './values/data-types';
-export * from './values';
+} from "./values";
+export * from "./values/data-types";
+export * from "./values";
 // Re-export everything explicitly
 export {
   // From utils
   isAIMLElement,
 };
-export * from './diagnostics';
+export * from "./diagnostics";
 
 export type {
   // From utils
@@ -46,10 +51,11 @@ export { ToolCallSchema };
 export { HTTPErrorCode };
 
 // Re-export modules
-export * from './diagnostics';
-export * from './elements';
-export * from './openai';
-export * from './datamodel';
+export * from "./diagnostics";
+export * from "./elements";
+export * from "./openai";
+export * from "./datamodel";
+export * from "./graph";
 
 // Re-export types from elements.ts to maintain backward compatibility
 export type {
@@ -68,9 +74,9 @@ export type {
   HeaderFieldNode,
   ImportNode,
   FireAgentNode,
-} from './elements';
+} from "./elements";
 
-export { elementRoleMap } from './elements';
+export { elementRoleMap } from "./elements";
 
 /**
  * Configuration for a base element
@@ -89,7 +95,7 @@ export interface SerializedElementConfig {
   documentation?: string;
   allowedChildren: AllowedChildrenType;
   schema: z.ZodType<any>;
-  type: 'element';
+  type: "element";
   lineStart: number;
   lineEnd: number;
   columnStart: number;

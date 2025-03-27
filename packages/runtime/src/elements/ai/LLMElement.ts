@@ -3,10 +3,11 @@ import type { StepValueChunk } from "@fireworks/shared";
 import { ReplayableAsyncIterableStream } from "@fireworks/shared";
 import { streamText } from "ai";
 import { StepValue } from "../../StepValue";
-import type { ExecutionGraphElement, ExecutionReturnType } from "../../types";
+import type { ExecutionReturnType } from "../../types";
 import { parseTemplateLiteral } from "../../utils/strings";
 import { createElementDefinition } from "../createElementFactory";
 import { getProviderWithClient } from "./utils";
+import type { ExecutionGraphElement } from "@fireworks/shared";
 
 // Use the LLMProps type from element-config
 export const LLM = createElementDefinition({
@@ -20,8 +21,9 @@ export const LLM = createElementDefinition({
       id: buildContext.attributes.id,
       key: buildContext.elementKey,
       type: "action",
-      subType: "llm",
+      tag: "llm",
       attributes: buildContext.attributes,
+      scope: buildContext.scope,
       next: [],
     };
 

@@ -1,6 +1,6 @@
 import type { Workflow } from "@mastra/core/workflows";
 import type { BaseElement } from "../elements/BaseElement";
-import type { ExecutionGraphElement } from "../types";
+import type { ExecutionGraphElement } from "@fireworks/shared";
 
 // Define missing types
 export interface StepConfig<
@@ -18,6 +18,7 @@ export class BuildContext {
    * keyed by their SCXML element's 'id'.
    */
   public children: BaseElement[];
+  public scope: ["root", ...string[]];
   constructor(
     public workflow: Workflow,
     public readonly elementKey: string,
@@ -29,6 +30,7 @@ export class BuildContext {
     public graphCache = new Map<string, ExecutionGraphElement>()
   ) {
     this.children = children;
+    this.scope = spec.scope as any;
   }
 
   public findElementByKey(

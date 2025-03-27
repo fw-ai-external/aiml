@@ -140,9 +140,7 @@ describe("AssignElement", () => {
           has: hasMethod,
           get: getMethod,
           set: setMethod,
-          evaluate,
-          __metadata: metadata,
-        },
+        } as any,
         state: {
           id: "state_1",
           props: {},

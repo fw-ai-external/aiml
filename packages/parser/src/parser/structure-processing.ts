@@ -15,7 +15,7 @@ import { convertParagraphToLlmNode } from "./transform-nodes.js";
  */
 export function processFinalStructure(
   nodes: SerializedBaseElement[],
-  diagnostics: Diagnostic[]
+  diagnostics: Set<Diagnostic>
 ): SerializedBaseElement[] {
   const rootLevelNodes: SerializedBaseElement[] = [];
   const comments: CommentNode[] = [];
@@ -332,7 +332,7 @@ export function assignCommentsToElement(
  */
 export function healFlowOrError(
   nodes: SerializedBaseElement[],
-  diagnostics: Diagnostic[]
+  diagnostics: Set<Diagnostic>
 ): SerializedBaseElement[] {
   // Get the workflow node (should be the first node after processFinalStructure)
   const workflowNode = nodes[0];
@@ -874,7 +874,7 @@ function isStateDescendantOf(
  */
 export function addAllTransitions(
   nodes: SerializedBaseElement[],
-  diagnostics: Diagnostic[]
+  diagnostics: Set<Diagnostic>
 ): SerializedBaseElement[] {
   const workflowNode = nodes[0];
   if (

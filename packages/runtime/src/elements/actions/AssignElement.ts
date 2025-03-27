@@ -57,10 +57,11 @@ export const Assign = createElementDefinition({
       id: buildContext.attributes.id,
       key: buildContext.attributes.id ?? uuidv4(),
       type: "action",
-      subType: "assign",
+      tag: "assign",
       attributes: {
         ...buildContext.attributes, // location, expr, etc.
       },
+      scope: buildContext.scope,
     };
   },
 

@@ -63,7 +63,7 @@ export async function GET(
       datamodel: workflow.datamodel,
       ast: persistedWorkflow.ast,
       elementTree: elementTree.toJSON(),
-      stepGraph: workflow.toGraph(),
+      mastraStepGraph: workflow.toGraph(),
       executionGraph: workflow.getExecutionGraph(),
       contextValues,
     };

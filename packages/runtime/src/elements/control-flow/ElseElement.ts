@@ -1,8 +1,8 @@
-import { v4 as uuidv4 } from 'uuid';
-import { z } from 'zod';
-import type { ExecutionGraphElement } from '../../types';
-import type { BaseElement } from '../BaseElement';
-import { createElementDefinition } from '../createElementFactory';
+import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
+import type { ExecutionGraphElement } from "@fireworks/shared";
+import type { BaseElement } from "../BaseElement";
+import { createElementDefinition } from "../createElementFactory";
 
 const elseSchema = z.object({
   id: z.string().optional(),
@@ -11,39 +11,47 @@ const elseSchema = z.object({
 type ElseProps = z.infer<typeof elseSchema>;
 
 export const Else = createElementDefinition({
-  tag: 'else',
+  tag: "else",
   propsSchema: elseSchema,
-  role: 'state',
-  elementType: 'else',
-  allowedChildren: 'any',
+  role: "state",
+  elementType: "else",
+  allowedChildren: "any",
 
   onExecutionGraphConstruction(buildContext): ExecutionGraphElement {
-    const cached = buildContext.getCachedGraphElement(buildContext.attributes.id);
+    const cached = buildContext.getCachedGraphElement(
+      buildContext.attributes.id
+    );
     if (cached) return cached;
 
-    // In naive mode, subType="else", when="true"
+    // In naive mode, tag="else", when="true"
     // The IfElement logic will combine short-circuit for doc order.
     const childActions: ExecutionGraphElement[] = buildContext.children
       .map((ch) =>
-        'tag' in ch
-          ? (ch as BaseElement).onExecutionGraphConstruction?.(buildContext.createNewContextForChild(ch))
-          : null,
+        "tag" in ch
+          ? (ch as BaseElement).onExecutionGraphConstruction?.(
+              buildContext.createNewContextForChild(ch)
+            )
+          : null
       )
       .filter((ch) => ch !== null) as ExecutionGraphElement[];
 
     const node: ExecutionGraphElement = {
       id: buildContext.attributes.id || `else_${uuidv4()}`,
       key: buildContext.elementKey,
-      type: 'state',
-      subType: 'else',
-      when: 'true',
+      type: "state",
+      tag: "else",
+      when: "true",
+      scope: buildContext.scope,
       attributes: {
         ...buildContext.attributes,
       },
       next: childActions,
     };
 
-    buildContext.setCachedGraphElement([buildContext.attributes.id, node.key].filter(Boolean), node);
+    buildContext.setCachedGraphElement(
+      [buildContext.attributes.id, node.key].filter(Boolean),
+      node
+    );
     return node;
   },
 });

@@ -6,12 +6,17 @@
  * improve maintainability.
  */
 
-import type { ElementRole, ElementType, SerializedBaseElement } from '@fireworks/shared';
-import { v4 as uuidv4 } from 'uuid';
-import type { z } from 'zod';
-import type { BuildContext } from '../graphBuilder/Context';
-import type { ExecutionGraphElement, RuntimeElementDefinition } from '../types';
-import { BaseElement } from './BaseElement';
+import type {
+  ElementRole,
+  ElementType,
+  SerializedBaseElement,
+} from "@fireworks/shared";
+import { v4 as uuidv4 } from "uuid";
+import type { z } from "zod";
+import type { BuildContext } from "../graphBuilder/Context";
+import type { RuntimeElementDefinition } from "../types";
+import { BaseElement } from "./BaseElement";
+import type { ExecutionGraphElement } from "@fireworks/shared";
 
 /**
  * Element definition type
@@ -29,7 +34,7 @@ export const createElementDefinition = <
   >,
   Props extends z.infer<PropsSchema> = z.infer<PropsSchema>,
 >(
-  config: RuntimeElementDefinition<PropsSchema, Props>,
+  config: RuntimeElementDefinition<PropsSchema, Props>
 ) => {
   const {
     tag,
@@ -38,7 +43,7 @@ export const createElementDefinition = <
     propsSchema,
     description,
     documentation,
-    allowedChildren = 'none',
+    allowedChildren = "none",
     execute,
     enter,
     exit,
@@ -51,7 +56,9 @@ export const createElementDefinition = <
     validateProps: (props: Props) => {
       const result = propsSchema.safeParse(props);
       if (!result.success) {
-        throw new Error(`Invalid props for the "${tag}" element: ${JSON.stringify(result.error.errors)}`);
+        throw new Error(
+          `Invalid props for the "${tag}" element: ${JSON.stringify(result.error.errors)}`
+        );
       }
       return result.data as Props;
     },
@@ -61,32 +68,37 @@ export const createElementDefinition = <
         return true;
       }
 
-      if (allowedChildren === 'any' || allowedChildren === 'text') {
+      if (allowedChildren === "any" || allowedChildren === "text") {
         return true;
       }
 
-      if (allowedChildren === 'none') {
+      if (allowedChildren === "none") {
         return false;
       }
 
       const allowedChildrenArray = Array.isArray(allowedChildren)
         ? allowedChildren
-        : typeof allowedChildren === 'function'
+        : typeof allowedChildren === "function"
           ? allowedChildren({} as Props)
           : [];
 
-      return children.every((child) => !child || allowedChildrenArray.includes(child));
+      return children.every(
+        (child) => !child || allowedChildrenArray.includes(child)
+      );
     },
 
     initFromAttributesAndNodes: (
       props: Partial<Props>,
       nodes: SerializedBaseElement[] = [],
       parent?: WeakRef<BaseElement>,
+      scope: ["root", ...string[]] = ["root"]
     ): BaseElement => {
       const validatedProps = factory.validateProps(props as Props);
 
       // Convert nodes to BaseElement instances if needed
-      const childElements: BaseElement[] = nodes.every((n) => n instanceof BaseElement)
+      const childElements: BaseElement[] = nodes.every(
+        (n) => n instanceof BaseElement
+      )
         ? nodes
         : // TODO this is wrong, we need a real init loop
           (nodes as BaseElement[]);
@@ -97,17 +109,22 @@ export const createElementDefinition = <
         tag,
         role,
         elementType,
+        scope,
         attributes: validatedProps,
         children: childElements,
         parent,
         onExecutionGraphConstruction:
-          onExecutionGraphConstruction || createDefaultExecutionGraphConstruction(tag, role),
-        type: 'element',
+          onExecutionGraphConstruction ||
+          createDefaultExecutionGraphConstruction(tag, role),
+        type: "element",
         lineStart: nodes[0]?.lineStart ?? 0,
         lineEnd: nodes[nodes.length - 1]?.lineEnd ?? 0,
         columnStart: nodes[0]?.columnStart ?? 0,
         columnEnd: nodes[nodes.length - 1]?.columnEnd ?? 0,
-        allowedChildren: typeof allowedChildren === 'function' ? allowedChildren({} as Props) : allowedChildren,
+        allowedChildren:
+          typeof allowedChildren === "function"
+            ? allowedChildren({} as Props)
+            : allowedChildren,
         schema: propsSchema,
         execute: execute as any,
         description,
@@ -116,9 +133,14 @@ export const createElementDefinition = <
       return element;
     },
 
-    initFromSerialized: (serialized: SerializedBaseElement, parent?: WeakRef<BaseElement>): BaseElement => {
-      if (serialized.type !== 'element') {
-        throw new Error(`Cannot create element from non-element node: ${serialized.type}`);
+    initFromSerialized: (
+      serialized: SerializedBaseElement,
+      parent?: WeakRef<BaseElement>
+    ): BaseElement => {
+      if (serialized.type !== "element") {
+        throw new Error(
+          `Cannot create element from non-element node: ${serialized.type}`
+        );
       }
 
       return new BaseElement({
@@ -131,13 +153,17 @@ export const createElementDefinition = <
         children: [],
         parent,
         onExecutionGraphConstruction:
-          onExecutionGraphConstruction || createDefaultExecutionGraphConstruction(tag, role),
-        type: 'element',
+          onExecutionGraphConstruction ||
+          createDefaultExecutionGraphConstruction(tag, role),
+        type: "element",
         lineStart: serialized.lineStart,
         lineEnd: serialized.lineEnd,
         columnStart: serialized.columnStart,
         columnEnd: serialized.columnEnd,
-        allowedChildren: typeof allowedChildren === 'function' ? allowedChildren({} as Props) : allowedChildren,
+        allowedChildren:
+          typeof allowedChildren === "function"
+            ? allowedChildren({} as Props)
+            : allowedChildren,
         schema: propsSchema,
         execute: execute as any,
         description,
@@ -151,10 +177,15 @@ export const createElementDefinition = <
 /**
  * Creates a default execution graph construction function
  */
-function createDefaultExecutionGraphConstruction(tag: ElementType, role: ElementRole) {
+function createDefaultExecutionGraphConstruction(
+  tag: ElementType,
+  role: ElementRole
+) {
   return (buildContext: BuildContext): ExecutionGraphElement => {
     // If we already built this node, return the cached version.
-    const existing = buildContext.getCachedGraphElement(buildContext.attributes.id);
+    const existing = buildContext.getCachedGraphElement(
+      buildContext.attributes.id
+    );
     if (existing) {
       return existing;
     }
@@ -163,14 +194,18 @@ function createDefaultExecutionGraphConstruction(tag: ElementType, role: Element
       id: buildContext.attributes.id || `${tag}_${uuidv4()}`,
       type: role,
       key: buildContext.elementKey,
-      subType: tag,
+      tag: tag,
       attributes: buildContext.attributes,
+      scope: buildContext.scope,
     };
 
     // store it in the cache
     buildContext.setCachedGraphElement(
-      [buildContext.attributes.id || defaultExecutionGraphConfig.id, defaultExecutionGraphConfig.key].filter(Boolean),
-      defaultExecutionGraphConfig,
+      [
+        buildContext.attributes.id || defaultExecutionGraphConfig.id,
+        defaultExecutionGraphConfig.key,
+      ].filter(Boolean),
+      defaultExecutionGraphConfig
     );
 
     return defaultExecutionGraphConfig;

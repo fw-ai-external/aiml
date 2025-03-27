@@ -7,7 +7,7 @@ import { parseMDXFilesToAIML } from "../../packages/parser/src";
 function printGraph(node: any, indent = 0) {
   const spaces = " ".repeat(indent);
   console.log(
-    `${spaces}ID: ${node.id || node.attributes?.id}, Type: ${node.type}, Tag: ${node.tag || node.subType}`
+    `${spaces}ID: ${node.id || node.attributes?.id}, Type: ${node.type}, Tag: ${node.tag || node.tag}`
   );
 
   if (node.next && node.next.length > 0) {

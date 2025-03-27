@@ -16,7 +16,7 @@ import { ServiceIdentifiers, container } from "./di";
 import { BaseElement } from "./elements/BaseElement";
 import type { GraphBuilder } from "./graphBuilder";
 import { BuildContext } from "./graphBuilder/Context";
-import type { ExecutionGraphElement } from "./types";
+import type { ExecutionGraphElement } from "@fireworks/shared";
 import type { DataModel, FieldValues } from "@fireworks/shared";
 import { DataModelRegistry } from "./DataModelRegistry";
 
@@ -464,9 +464,9 @@ export class Workflow<
     const step = buildContext.findElementByKey(element.key, buildContext.spec);
 
     // Should never happen, so we add this here to catch issues/bugs
-    if (!step || element.key !== step.key || element.subType !== step.tag) {
+    if (!step || element.key !== step.key || element.tag !== step.tag) {
       throw new Error(
-        `Step mismatch: ${element.key} !== ${step?.key} || ${element.subType} !== ${step?.tag}`
+        `Step mismatch: ${element.key} !== ${step?.key} || ${element.tag} !== ${step?.tag}`
       );
     }
 

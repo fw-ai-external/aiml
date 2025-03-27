@@ -6,6 +6,8 @@ import type { VFile } from "vfile";
 export interface MDXToAIMLOptions {
   filePath?: string;
   generateIds?: boolean;
+  maxIterations: number;
+
   files?: VFile[]; // Add files array for import resolution
 }
 

@@ -1,45 +1,45 @@
-import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
-import fs from 'fs';
-import path from 'path';
-import { container } from './di';
-import type { BaseElement } from './elements';
-import { registerGraphBuilder } from './graphBuilder';
-import { Workflow } from './workflow';
+import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
+import fs from "fs";
+import path from "path";
+import { container } from "./di";
+import type { BaseElement } from "./elements";
+import { registerGraphBuilder } from "./graphBuilder";
+import { Workflow } from "./workflow";
 
 // Sample workflow data for testing
 const createTestElement = () => {
   return {
-    id: 'test-element',
-    key: 'test-element-key',
-    tag: 'workflow',
-    elementType: 'workflow',
+    id: "test-element",
+    key: "test-element-key",
+    tag: "workflow",
+    elementType: "workflow",
     children: [
       {
-        id: 'test-child',
-        key: 'test-child-key',
-        tag: 'state',
-        elementType: 'state',
+        id: "test-child",
+        key: "test-child-key",
+        tag: "state",
+        elementType: "state",
         children: [],
-        attributes: { id: 'test-child' },
-        toJSON: () => ({ id: 'test-child' }),
+        attributes: { id: "test-child" },
+        toJSON: () => ({ id: "test-child" }),
         onExecutionGraphConstruction: (context: any) => ({
-          key: 'test-child-key',
-          subType: 'state',
-          type: 'state',
+          key: "test-child-key",
+          tag: "state",
+          type: "state",
         }),
       },
     ],
-    attributes: { id: 'test-element' },
-    toJSON: () => ({ id: 'test-element' }),
+    attributes: { id: "test-element" },
+    toJSON: () => ({ id: "test-element" }),
     onExecutionGraphConstruction: (context: any) => ({
-      key: 'test-element-key',
-      subType: 'workflow',
-      type: 'workflow',
+      key: "test-element-key",
+      tag: "workflow",
+      type: "workflow",
       next: [
         {
-          key: 'test-child-key',
-          subType: 'state',
-          type: 'state',
+          key: "test-child-key",
+          tag: "state",
+          type: "state",
         },
       ],
     }),
@@ -47,10 +47,10 @@ const createTestElement = () => {
 };
 
 // Temporary directory for test files
-const testDir = path.join(process.cwd(), 'test-tmp');
+const testDir = path.join(process.cwd(), "test-tmp");
 
 // Create a test scope to avoid contaminating global scope
-describe('Workflow Context Management', () => {
+describe("Workflow Context Management", () => {
   let workflow: Workflow<any, any>;
   let testElement: BaseElement;
   let originalServices: Map<string, any>;
@@ -66,21 +66,21 @@ describe('Workflow Context Management', () => {
 
     // Make sure required services are available in the container
     // Save original services if they exist
-    originalServices = new Map(container['services']);
+    originalServices = new Map(container["services"]);
 
     // Register the graph builder service
     try {
       registerGraphBuilder();
     } catch (error) {
       // Service might already be registered
-      console.log('Service already registered:', error);
+      console.log("Service already registered:", error);
     }
 
     // Create a workflow instance for testing
     try {
       workflow = new Workflow(testElement);
     } catch (error) {
-      console.error('Error creating workflow:', error);
+      console.error("Error creating workflow:", error);
       throw error;
     }
   });
@@ -95,21 +95,21 @@ describe('Workflow Context Management', () => {
     }
 
     // Restore original services
-    container['services'] = originalServices;
+    container["services"] = originalServices;
   });
 
-  describe('getContextValues', () => {
-    it('should retrieve context values from workflow', () => {
+  describe("getContextValues", () => {
+    it("should retrieve context values from workflow", () => {
       // Create a custom implementation for the spy
       const originalMethod = workflow.getContextValues;
 
       // Set up spy
-      const spy = spyOn(workflow, 'getContextValues');
+      const spy = spyOn(workflow, "getContextValues");
 
       // Replace with mock implementation for this test only
       spy.mockImplementation(() => ({
-        datamodel: { testVar: 'test value' },
-        steps: { step1: { status: 'success' } },
+        datamodel: { testVar: "test value" },
+        steps: { step1: { status: "success" } },
       }));
 
       const contextValues = workflow.getContextValues();
@@ -120,22 +120,22 @@ describe('Workflow Context Management', () => {
       // Check the structure is as expected
       expect(contextValues).toBeDefined();
       expect(contextValues.datamodel).toBeDefined();
-      expect(contextValues.datamodel.testVar).toBe('test value');
+      expect(contextValues.datamodel.testVar).toBe("test value");
 
       // Restore the original method
       spy.mockRestore();
     });
 
-    it('should handle errors gracefully', () => {
+    it("should handle errors gracefully", () => {
       // Create a custom implementation for the spy
       const originalMethod = workflow.getContextValues;
 
       // Set up spy
-      const spy = spyOn(workflow, 'getContextValues');
+      const spy = spyOn(workflow, "getContextValues");
 
       // Make it throw an error
       spy.mockImplementation(() => {
-        throw new Error('Test error');
+        throw new Error("Test error");
       });
 
       let error;
@@ -160,20 +160,20 @@ describe('Workflow Context Management', () => {
     });
   });
 
-  describe('rehydrateContextValues', () => {
-    it('should accept context values', () => {
+  describe("rehydrateContextValues", () => {
+    it("should accept context values", () => {
       const contextValues = {
         datamodel: {
-          testVar: 'rehydrated value',
-          newVar: 'new value',
+          testVar: "rehydrated value",
+          newVar: "new value",
         },
         steps: {
-          step1: { status: 'success' },
+          step1: { status: "success" },
         },
       };
 
       // Set up spy
-      const spy = spyOn(workflow, 'rehydrateContextValues');
+      const spy = spyOn(workflow, "rehydrateContextValues");
 
       // Call the method
       workflow.rehydrateContextValues(contextValues);
@@ -185,17 +185,17 @@ describe('Workflow Context Management', () => {
       spy.mockRestore();
     });
 
-    it('should handle null or invalid context values', () => {
+    it("should handle null or invalid context values", () => {
       // Set up spy
-      const spy = spyOn(workflow, 'rehydrateContextValues');
+      const spy = spyOn(workflow, "rehydrateContextValues");
 
       // Test with null
       workflow.rehydrateContextValues(null as any);
       expect(spy).toHaveBeenCalledWith(null);
 
       // Test with non-object
-      workflow.rehydrateContextValues('not an object' as any);
-      expect(spy).toHaveBeenCalledWith('not an object');
+      workflow.rehydrateContextValues("not an object" as any);
+      expect(spy).toHaveBeenCalledWith("not an object");
 
       // Restore the spy
       spy.mockRestore();

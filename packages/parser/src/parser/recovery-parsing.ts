@@ -44,10 +44,12 @@ export async function parseWithRecursiveRecovery(
       const ast = options.processor.parse(file);
 
       // If we reach here, parsing succeeded
+      console.log("Parsing succeeded, current content: ", currentContent);
       return { ast, diagnostics, file };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
+      console.log("Error parsing content: ", errorMessage);
 
       // Extract error position information if available
       let errorPosition = { line: 1, column: 1 };
@@ -185,7 +187,12 @@ export async function parseWithRecursiveRecovery(
             contentLines[errorPosition.line - 1] = "";
           }
           currentContent = contentLines.join("\n");
+          console.log(
+            "Recovered from error, current content: ",
+            currentContent
+          );
         } else {
+          console.log("No line found to recover from");
           // If we can't locate the line, we can't continue
           break;
         }

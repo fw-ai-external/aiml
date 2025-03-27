@@ -5,10 +5,10 @@
  * It separates the graph construction logic from the element definition and execution.
  */
 
-import { ServiceIdentifiers, container } from '../di';
-import type { BaseElement } from '../elements/BaseElement';
-import type { ExecutionGraphElement } from '../types';
-import { BuildContext } from './Context';
+import { ServiceIdentifiers, container } from "../di";
+import type { BaseElement } from "../elements/BaseElement";
+import type { ExecutionGraphElement } from "@fireworks/shared";
+import { BuildContext } from "./Context";
 
 /**
  * Graph builder service
@@ -38,7 +38,10 @@ export class GraphBuilder {
    * @param parent The parent context (optional)
    * @returns The build context
    */
-  private createBuildContext(element: BaseElement, parent?: BuildContext): BuildContext {
+  private createBuildContext(
+    element: BaseElement,
+    parent?: BuildContext
+  ): BuildContext {
     const context = new BuildContext(
       parent?.workflow!,
       element.key,
@@ -47,7 +50,7 @@ export class GraphBuilder {
       element.conditions ?? {},
       element,
       element,
-      this.graphElementCache,
+      this.graphElementCache
     );
 
     return context;

@@ -1,23 +1,28 @@
-import type { BaseElement } from './elements/BaseElement';
-import { BuildContext } from './graphBuilder/Context';
-import type { ExecutionGraphElement } from './types';
+import type { BaseElement } from "./elements/BaseElement";
+import { BuildContext } from "./graphBuilder/Context";
+import type { ExecutionGraphElement } from "@fireworks/shared";
 
-export const defaultActionExecutionGraphMapper = (buildContext: BuildContext): ExecutionGraphElement => {
+export const defaultActionExecutionGraphMapper = (
+  buildContext: BuildContext
+): ExecutionGraphElement => {
   return {
     id: buildContext.attributes.id,
-    type: 'action',
+    type: "action",
     key: buildContext.elementKey,
-    subType: buildContext.spec.elementType,
+    tag: buildContext.spec.elementType,
+    scope: buildContext.scope,
     attributes: {
       ...buildContext.attributes, // location, expr, etc.
     },
   };
 };
 
-export const defaultStepExecutionGraphMapper = (buildContext: BuildContext): ExecutionGraphElement => {
+export const defaultStepExecutionGraphMapper = (
+  buildContext: BuildContext
+): ExecutionGraphElement => {
   const childEGs = buildContext.children
     .map((child) => {
-      if ('tag' in child) {
+      if ("tag" in child) {
         return (child as BaseElement).onExecutionGraphConstruction?.(
           new BuildContext(
             buildContext.workflow,
@@ -27,8 +32,8 @@ export const defaultStepExecutionGraphMapper = (buildContext: BuildContext): Exe
             buildContext.conditions,
             buildContext.spec,
             buildContext.fullSpec,
-            buildContext.graphCache,
-          ) as any,
+            buildContext.graphCache
+          ) as any
         );
       }
       return null;
@@ -39,8 +44,9 @@ export const defaultStepExecutionGraphMapper = (buildContext: BuildContext): Exe
   return {
     id: buildContext.attributes.id,
     key: buildContext.elementKey,
-    type: 'state', // or "action" if you prefer
-    subType: 'final',
+    type: "state", // or "action" if you prefer
+    tag: "final",
+    scope: buildContext.scope,
     attributes: {
       ...buildContext.attributes,
     },

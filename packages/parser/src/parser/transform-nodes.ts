@@ -26,6 +26,7 @@ import {
   buildDatamodelFromAST,
   validateAssignElements,
 } from "./validate-assign.js";
+import { allElementConfigs, type ElementDefinition } from "@fireworks/shared";
 
 /**
  * Process attributes from an AST node into a record
@@ -113,10 +114,10 @@ export function convertParagraphToLlmNode(
 export function transformToAIMLNodes(
   ast: Node,
   options: MDXToAIMLOptions,
-  diagnostics: Diagnostic[]
+  diagnostics: Set<Diagnostic>
 ): {
   nodes: SerializedBaseElement[];
-  diagnostics: Diagnostic[];
+  diagnostics: Set<Diagnostic>;
   datamodel: Record<string, DataModel>;
 } {
   const nodes: SerializedBaseElement[] = [];
@@ -158,7 +159,9 @@ export function transformToAIMLNodes(
 
     // Validate assign elements
     const assignDiagnostics = validateAssignElements(ast, builtDatamodel);
-    diagnostics.push(...assignDiagnostics);
+    for (const diagnostic of assignDiagnostics) {
+      diagnostics.add(diagnostic);
+    }
   }
 
   // Convert RuntimeFieldDefinition to DataModel format
@@ -194,7 +197,7 @@ export function transformToAIMLNodes(
 export function transformNode(
   node: any,
   options: MDXToAIMLOptions,
-  diagnostics: Diagnostic[],
+  diagnostics: Set<Diagnostic>,
   context: ParserContext
 ): SerializedBaseElement | null {
   // Handle different node types
@@ -209,7 +212,7 @@ export function transformNode(
           : ["root"];
 
       if (node.children && node.children.length !== 0) {
-        diagnostics.push({
+        diagnostics.add({
           message: `XML tag syntax (<${node.name}> ... </${node.name}>) with opening and closing tags is wrapping AIML elements... this will cause the elements to be treated as text`,
           severity: DiagnosticSeverity.Error,
           code: "AIML007",
@@ -254,15 +257,21 @@ export function transformNode(
     const lineEnd = getPosition(node, "end", "line");
     const columnEnd = getPosition(node, "end", "column");
 
+    const nodeConfig: ElementDefinition =
+      allElementConfigs[
+        node.name.toLowerCase() as keyof typeof allElementConfigs
+      ];
     // Handle elements
-    const isState = ["state", "workflow"].includes(node.name.toLowerCase());
+    const isState =
+      ["state", "user-input", "output"].includes(nodeConfig.role) &&
+      nodeConfig.tag !== "workflow";
     let stateId: string | undefined;
 
     if (isState) {
       stateId = processAttributes(node.attributes).id;
       if (!stateId) {
         stateId = `anonymous_state_${generateKey()}`;
-        diagnostics.push({
+        diagnostics.add({
           message: `State element missing ID - generated: ${stateId}`,
           severity: DiagnosticSeverity.Warning,
           code: "AIML005",
@@ -297,7 +306,7 @@ export function transformNode(
                   : true
                 : defaultValueString;
       } catch (e) {
-        diagnostics.push({
+        diagnostics.add({
           message: `Error parsing default value into type ${attrs.type} for ${fieldName}: ${e}`,
           severity: DiagnosticSeverity.Warning,
           code: "AIML006",
@@ -352,7 +361,7 @@ export function transformNode(
         .filter(Boolean) || [];
 
     if (isState && stateId) {
-      context.currentStates.pop();
+      // context.currentStates.pop();
     }
 
     const scope =
@@ -490,7 +499,7 @@ export function transformNode(
         }
       } catch (e) {
         // Add diagnostic for failed frontmatter parsing
-        diagnostics.push({
+        diagnostics.add({
           message: `Failed to parse frontmatter: ${e}`,
           severity: DiagnosticSeverity.Warning,
           code: "AIML003",
@@ -764,7 +773,7 @@ export function transformNode(
 
   // For unsupported node types, log a diagnostic and return null
   console.warn(`Unsupported node type: ${node.type}`);
-  diagnostics.push({
+  diagnostics.add({
     message: `Unsupported node type: ${node.type}`,
     severity: DiagnosticSeverity.Information,
     code: "AIML004",

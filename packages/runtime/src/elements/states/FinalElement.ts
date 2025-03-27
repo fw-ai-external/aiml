@@ -1,7 +1,7 @@
-import { v4 as uuidv4 } from 'uuid';
-import { z } from 'zod';
-import type { ExecutionGraphElement } from '../../types';
-import { createElementDefinition } from '../createElementFactory';
+import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
+import type { ExecutionGraphElement } from "@fireworks/shared";
+import { createElementDefinition } from "../createElementFactory";
 
 const finalSchema = z.object({
   id: z.string().optional(),
@@ -10,13 +10,15 @@ const finalSchema = z.object({
 type FinalProps = { id?: string } & Record<string, any>;
 
 export const Final = createElementDefinition({
-  tag: 'final',
+  tag: "final",
   propsSchema: finalSchema,
-  role: 'output',
-  elementType: 'final',
-  allowedChildren: ['onentry', 'onexit'],
+  role: "output",
+  elementType: "final",
+  allowedChildren: ["onentry", "onexit"],
   onExecutionGraphConstruction(buildContext) {
-    const existing = buildContext.getCachedGraphElement(buildContext.elementKey);
+    const existing = buildContext.getCachedGraphElement(
+      buildContext.elementKey
+    );
 
     if (existing) {
       return existing;
@@ -26,22 +28,28 @@ export const Final = createElementDefinition({
     const finalEG: ExecutionGraphElement = {
       id: buildContext.attributes.id || `final_${uuidv4()}`,
       key: buildContext.elementKey,
-      type: 'state',
-      subType: 'final',
+      type: this.role,
+      tag: "final",
+      scope: buildContext.scope,
       attributes: {
         ...buildContext.attributes,
       },
     };
 
-    console.log(`Registering final state with ID: ${finalEG.id} and key: ${finalEG.key}`);
+    console.log(
+      `Registering final state with ID: ${finalEG.id} and key: ${finalEG.key}`
+    );
 
     // Register with specific ID
-    buildContext.setCachedGraphElement([buildContext.elementKey, buildContext.attributes.id].filter(Boolean), finalEG);
+    buildContext.setCachedGraphElement(
+      [buildContext.elementKey, buildContext.attributes.id].filter(Boolean),
+      finalEG
+    );
 
     // Also register with generic 'final' ID to help transitions that target 'final'
-    buildContext.setCachedGraphElement('final', finalEG);
+    buildContext.setCachedGraphElement("final", finalEG);
 
-    console.log('Final element registered successfully');
+    console.log("Final element registered successfully");
 
     return finalEG;
   },

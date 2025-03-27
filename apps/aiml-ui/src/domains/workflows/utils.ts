@@ -2,6 +2,7 @@ import Dagre from "@dagrejs/dagre";
 import type { StepCondition } from "@mastra/core/workflows";
 import type { Edge, Node } from "@xyflow/react";
 import { MarkerType } from "@xyflow/react";
+import type { ExecutionGraphElement } from "@fireworks/shared";
 
 export type Condition = {
   ref: {
@@ -107,204 +108,110 @@ const defaultEdgeOptions = {
 
 export const contructNodesAndEdges = ({
   stepGraph,
-  stepSubscriberGraph,
 }: {
-  stepGraph: any;
-  stepSubscriberGraph: any;
+  stepGraph: ExecutionGraphElement;
+  stepSubscriberGraph?: any;
 }) => {
   if (!stepGraph) {
-    return { nodes: [], edges: [] };
-  }
-  const { initial, ...stepsList } = stepGraph;
-  if (!initial.length) {
     return { nodes: [], edges: [] };
   }
 
   let nodes: Node[] = [];
   let edges: Edge[] = [];
+  const processedNodeIds = new Set<string>();
 
-  for (const [_index, _step] of initial.entries()) {
-    const step = _step.step;
-    const stepId = step.id;
-    const steps = [_step, ...(stepsList?.[stepId] || [])]?.reduce(
-      (acc, step, i) => {
-        if (step.step.role === "action") {
-          return acc;
-        }
-        const newStep = {
-          ...step.step,
-          label: step.step.id,
-          type: step.step.role === "state" ? "state-node" : "default-node",
-          id: nodes.some((node) => node.id === step.step.id)
-            ? `${step.step.id}-${i}`
-            : step.step.id,
-        };
-        if (step.config?.when) {
-          const conditions = extractConditions(step.config.when);
-          const conditionStep = {
-            id: crypto.randomUUID(),
-            conditions,
-            type: "condition-node",
-          };
+  // Process an ExecutionGraphElement and its children recursively
+  const processGraphElement = (
+    element: ExecutionGraphElement,
+    parentId?: string,
+    depth = 0,
+    horizontalIndex = 0
+  ): string => {
+    // Avoid processing the same node twice
+    if (processedNodeIds.has(element.id)) {
+      // If we've already processed this node, just return the ID for edge creation
+      return element.id;
+    }
 
-          acc.push(conditionStep);
-        }
-        acc.push(newStep);
-        return acc;
-      },
-      []
-    );
+    processedNodeIds.add(element.id);
 
-    const newNodes = [...steps].map((step: any, index: number) => {
-      const subscriberGraph = stepSubscriberGraph?.[step.id];
-      return {
-        id: step.id,
-        position: { x: _index * 300, y: index * 100 },
-        type: step.type,
+    // Create node for this element
+    const nodeId = element.id;
+    const nodeType = getNodeType(element);
+    if (nodeType) {
+      const nodeLabel = getNodeLabel(element);
+
+      // Base position - will be optimized by dagre later
+      const position = {
+        x: horizontalIndex * 300,
+        y: depth * 150,
+      };
+
+      // Create the node
+      const node: Node = {
+        id: nodeId,
+        position,
+        type: nodeType,
         data: {
-          color: step.elementType === "workflow" ? "green" : null,
-          conditions: step.conditions,
-          label:
-            step.elementType === "workflow"
-              ? "Incoming Request"
-              : // TODO this should look inside the state to se what actions are there
-                // for now we just assume
-                step.elementType === "state"
-                ? "AI Call"
-                : step.label,
-          description: step.description,
-          actions: step.children,
-          withoutTopHandle: subscriberGraph?.[step.id] ? false : index === 0,
-          withoutBottomHandle: false,
+          label: nodeLabel,
+          ...element,
+          withoutTopHandle: !parentId,
+          withoutBottomHandle:
+            !element.next?.length && !element.parallel?.length,
         },
       };
-    });
 
-    nodes = [...nodes, ...newNodes];
-
-    const edgeSteps = [...steps].slice(0, -1);
-
-    const newEdges = edgeSteps.map((step: any, index: number) => ({
-      id: `e${step.id}-${steps[index + 1].id}`,
-      source: step.id,
-      target: steps[index + 1].id,
-      ...defaultEdgeOptions,
-    }));
-
-    edges = [...edges, ...newEdges];
-  }
-
-  if (!stepSubscriberGraph || !Object.keys(stepSubscriberGraph).length) {
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      nodes,
-      edges
-    );
-    return { nodes: layoutedNodes, edges: layoutedEdges };
-  }
-
-  for (const [connectingStepId, stepInfoGraph] of Object.entries(
-    stepSubscriberGraph
-  )) {
-    const { initial, ...stepsList } = stepInfoGraph as any;
-
-    if (initial.length) {
-      for (const [_index, _step] of initial.entries()) {
-        const step = _step.step;
-        const stepId = step.id;
-        const originalSteps = [_step, ...(stepsList?.[stepId] || [])]?.map(
-          (step) => step.step
-        );
-        const steps = [_step, ...(stepsList?.[stepId] || [])]?.reduce(
-          (acc, step, i) => {
-            const newStep = {
-              ...step.step,
-              label: step.step.id,
-              type: "default-node",
-              id: nodes.some((node) => node.id === step.step.id)
-                ? `${step.step.id}-${i}`
-                : step.step.id,
-            };
-            if (step.config?.when) {
-              const conditions = extractConditions(step.config.when);
-              const conditionStep = {
-                id: crypto.randomUUID(),
-                conditions,
-                type: "condition-node",
-              };
-
-              acc.push(conditionStep);
-            }
-
-            acc.push(newStep);
-            return acc;
-          },
-          []
-        );
-
-        const newNodes = [...steps].map((step: any, index: number) => {
-          const subscriberGraph = stepSubscriberGraph?.[step.id];
-          return {
-            id: step.id,
-            position: { x: _index * 300 + 300, y: index * 100 + 100 },
-            type: step.type,
-            data: {
-              conditions: step.conditions,
-              label: step.label,
-              description: step.description,
-              withoutBottomHandle:
-                originalSteps.some(
-                  ({ id }) => id === step.label && id !== step.id
-                ) || subscriberGraph
-                  ? false
-                  : index === steps.length - 1,
-            },
-          };
-        });
-
-        nodes = [...nodes, ...newNodes];
-        console.log("nodes", nodes);
-
-        const edgeSteps = [...steps].slice(0, -1);
-
-        const newEdges = edgeSteps.map((step: any, index: number) => ({
-          id: `e${step.id}-${steps[index + 1].id}`,
-          source: step.id,
-          target: steps[index + 1].id,
-          ...defaultEdgeOptions,
-        }));
-
-        const firstEdgeStep = steps[0];
-        const lastEdgeStep = steps[steps.length - 1];
-
-        // Only create subscriber connecting edges if not linking directly to the response node,
-        // ensuring that responseEdge/responseNode remain the final elements.
-        const connectingEdge =
-          connectingStepId === firstEdgeStep.id
-            ? []
-            : [
-                {
-                  id: `e${connectingStepId}-${firstEdgeStep.id}`,
-                  source: connectingStepId,
-                  target: firstEdgeStep.id,
-                  ...defaultEdgeOptions,
-                },
-              ];
-
-        const lastEdge = !originalSteps.some(({ id }) => id !== lastEdgeStep.id)
-          ? []
-          : [
-              {
-                id: `e${lastEdgeStep.id}-${connectingStepId}`,
-                source: lastEdgeStep.id,
-                target: connectingStepId,
-                ...defaultEdgeOptions,
-              },
-            ];
-
-        edges = [...edges, ...connectingEdge, ...newEdges, ...lastEdge];
-      }
+      nodes.push(node);
     }
-  }
+    // Create edge from parent to this node if there is a parent
+    if (parentId) {
+      edges.push({
+        id: `e${parentId}-${nodeId}`,
+        source: parentId,
+        target: nodeId,
+        ...defaultEdgeOptions,
+        // If there's a condition, add it to the edge label
+        label: element.when ? truncateCondition(element.when) : undefined,
+      });
+    }
+
+    // Process next elements sequentially
+    if (element.next?.length) {
+      let currentParentId =
+        element.type === "action"
+          ? element.scope[element.scope.length - 1]
+          : nodeId;
+
+      element.next.forEach((nextElement, i) => {
+        const nextId = processGraphElement(
+          nextElement,
+          currentParentId,
+          depth + 1,
+          horizontalIndex + i
+        );
+        currentParentId = nextId;
+      });
+    }
+
+    // Process parallel elements
+    if (element.parallel?.length) {
+      element.parallel.forEach((parallelElement) => {
+        processGraphElement(
+          parallelElement,
+          nodeId,
+          depth + 1,
+          horizontalIndex
+        );
+      });
+    }
+
+    return nodeId;
+  };
+
+  // Start processing from the root element
+  processGraphElement(stepGraph);
+
+  // Apply layout using Dagre
   const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
     nodes,
     edges
@@ -312,3 +219,25 @@ export const contructNodesAndEdges = ({
 
   return { nodes: layoutedNodes, edges: layoutedEdges };
 };
+
+// Helper to determine node type based on ExecutionGraphElement
+function getNodeType(element: ExecutionGraphElement): string | null {
+  if (element.type === "state") return "state-node";
+  if (element.type === "error") return "default-node";
+  if (element.type === "user-input") return "default-node";
+  if (element.type === "output") return "default-node";
+
+  return null;
+}
+
+// Helper to determine label based on ExecutionGraphElement
+function getNodeLabel(element: ExecutionGraphElement): string {
+  if (element.attributes?.name) return element.attributes.name;
+  if (element.attributes?.label) return element.attributes.label;
+  return element.id;
+}
+
+// Helper to truncate conditions for edge labels
+function truncateCondition(condition: string): string {
+  return condition.length > 20 ? `${condition.substring(0, 20)}...` : condition;
+}
