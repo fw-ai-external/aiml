@@ -160,15 +160,18 @@ export async function POST(
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-
+    console.log("body.prompt", body.prompt ? "yes" : "no", body.prompt);
     const ast = await parseMDXToAIML(body.prompt);
+    console.log("ast?", ast.nodes ? "yes" : "no");
+    console.log("ast.nodes is array?", Array.isArray(ast.nodes) ? "yes" : "no");
+    console.log("ast.nodes length", ast.nodes.length);
     const elementTree = hydreateElementTree(ast.nodes);
-
+    console.log("elementTree?", elementTree ? "yes" : "no");
     const workflow = new Workflow(elementTree, {
       scopedDataModels: ast.datamodel || {},
       fieldValues: body.datamodel?.fieldValues || {},
     });
-
+    console.log("workflow?", workflow ? "yes" : "no");
     // Create a structure that excludes circular references for serialization
     const workflowData = {
       ...body,

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { safeParse } from "./safeParse";
+import { safeParse } from ".";
 import { DiagnosticSeverity } from "@fireworks/shared";
 import { VFile } from "vfile";
 
@@ -98,6 +98,57 @@ This is a paragraph.
     expect(result.ast).toBeDefined();
     expect(result.ast.type).toBe("root");
     expect(result.ast.children.length).toBeGreaterThan(0);
+  });
+
+  test("treats unknown tags that don't fuzzy match as text/paragraphs", () => {
+    const contentWithUnknownTags = `<completelyfaketag>
+This is some text inside an unknown tag
+</completelyfaketag>
+
+Some regular paragraph text.
+
+<anotherfaketag attr="value">
+  With some nested content
+</anotherfaketag>`;
+
+    const result = safeParse(contentWithUnknownTags, {
+      filePath: "test.aiml",
+      maxIterations: 10,
+      files: [],
+      generateIds: true,
+    });
+
+    // Verify diagnostics are generated
+    expect(result.diagnostics.size).toBeGreaterThan(0);
+
+    // Verify AST is created
+    expect(result.ast).toBeDefined();
+    expect(result.ast.type).toBe("root");
+
+    // Check that the content is treated as text paragraphs
+    const paragraphs = result.ast.children.filter(
+      (node) => node.type === "paragraph"
+    );
+    expect(paragraphs.length).toBeGreaterThan(0);
+
+    // Check that the content of the unknown tags is preserved
+    const allText = result.ast.children
+      .flatMap((node: any) =>
+        node.type === "paragraph"
+          ? node.children.map((child: any) => child.value || "")
+          : []
+      )
+      .join("");
+
+    // The text should contain our original content in some form
+    expect(allText).toContain(`<completelyfaketag>
+This is some text inside an unknown tag
+</completelyfaketag>`);
+    expect(allText).toContain("Some regular paragraph text");
+
+    expect(allText).toContain(`<anotherfaketag attr="value">
+  With some nested content
+</anotherfaketag>`);
   });
 
   test("handles unclosed tags", () => {

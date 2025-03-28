@@ -1,5 +1,5 @@
 import { type Diagnostic, DiagnosticSeverity } from "@fireworks/shared";
-import { fuzzyMatch } from "./fuzzySearchTags.js";
+import { fuzzyMatch } from "../utils/fuzzySearchTags.js";
 import { visit } from "unist-util-visit";
 import { getPosition } from "../utils/helpers.js";
 import type { Root } from "mdast";
@@ -45,9 +45,14 @@ function findBestMatchingTag(tagName: string, aimlElements: string[]): string {
 }
 
 /**
- * Parse the content and check for non-allowed JSX elements
+ * Run through the AST as a secondary pass at validation of the AST
+ * - Checks for tag name mismatches
+ * - Checks for JSX tags that are wrapping AIML elements
+ * - Converts non-allowed JSX elements to paragraphs
+ *
+ *  TODO: Merge this functionality into safeParse
  */
-export function processAst(
+export function cleanASTTree(
   ast: Root,
   content: string,
   aimlElements: string[],

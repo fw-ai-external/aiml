@@ -15,6 +15,8 @@ interface Datamodel {
   [scope: string]: Record<string, FieldDefinition>;
 }
 
+// TODO: do this based on the final Element Tree not the AST
+// TODO: This should be part of a larger flow that also checks expressions and scripts for type safety
 export function validateAssignElements(
   ast: any,
   datamodel: Datamodel

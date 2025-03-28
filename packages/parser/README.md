@@ -47,9 +47,6 @@ The parser code has been refactored into a modular architecture for better maint
   - `findNextTargetState()`, `findParentOf()`, `findNextSibling()`: Tree navigation
   - `hasConditionlessTransition()`, `addTransitionsRecursively()`: Transition handling
 
-- **parser/recovery-parsing.ts**: Error recovery
-  - `parseWithRecursiveRecovery()`: Handles parsing errors gracefully
-
 ## Processing Pipeline
 
 1. **Parsing**: MDX is parsed using remark plugins

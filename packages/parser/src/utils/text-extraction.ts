@@ -2,6 +2,7 @@
  * Extract text content from a node, recursively including children
  */
 export function extractTextFromNode(node: any): any {
+  if (!node) return null;
   if (node.type === "mdxJsxTextElement" || node.type === "mdxJsxFlowElement") {
     return serializeJsxToText(node);
   }

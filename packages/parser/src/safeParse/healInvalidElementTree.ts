@@ -4,7 +4,7 @@ import type {
   SerializedBaseElement,
 } from "@fireworks/shared";
 import { generateKey } from "../utils/helpers.js";
-import { convertParagraphToLlmNode } from "./transform-nodes.js";
+import { convertParagraphToLlmNode } from "./astToElementTree.js";
 
 /**
  * Process the intermediate nodes into a final structure ready for hydration
@@ -13,7 +13,7 @@ import { convertParagraphToLlmNode } from "./transform-nodes.js";
  * - Ensures proper parent-child relationships
  * - Creates a workflow element if one doesn't exist
  */
-export function processFinalStructure(
+export function healInvalidElementTree(
   nodes: SerializedBaseElement[],
   diagnostics: Set<Diagnostic>
 ): SerializedBaseElement[] {

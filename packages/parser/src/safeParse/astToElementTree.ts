@@ -25,7 +25,7 @@ import { extractTextFromNode } from "../utils/text-extraction.js";
 import {
   buildDatamodelFromAST,
   validateAssignElements,
-} from "./validate-assign.js";
+} from "./validateAssignElements.js";
 import { allElementConfigs, type ElementDefinition } from "@fireworks/shared";
 
 /**
@@ -129,7 +129,12 @@ export function transformToAIMLNodes(
   // Process root node's children
   if ("children" in ast && Array.isArray(ast.children)) {
     for (const child of ast.children) {
-      const transformed = transformNode(child, options, diagnostics, context);
+      const transformed = astToElementTree(
+        child,
+        options,
+        diagnostics,
+        context
+      );
       if (transformed) {
         nodes.push(transformed);
       }
@@ -182,13 +187,26 @@ export function transformToAIMLNodes(
   for (const [scope, fields] of context.datamodel.entries()) {
     convertedDatamodel[scope] = {};
     for (const [fieldName, fieldDef] of Object.entries(fields)) {
-      convertedDatamodel[scope][fieldName] = {
-        type: fieldDef.type as FieldType,
-        readonly: fieldDef.readonly,
-        fromRequest: fieldDef.fromRequest,
-        defaultValue: fieldDef.defaultValue,
-        schema: fieldDef.schema,
-      };
+      if (fieldDef) {
+        convertedDatamodel[scope][fieldName] = {
+          type: fieldDef.type as FieldType,
+          readonly: fieldDef.readonly,
+          fromRequest: fieldDef.fromRequest,
+          defaultValue: fieldDef.defaultValue,
+          schema: fieldDef.schema,
+        };
+      } else {
+        diagnostics.add({
+          message: `Invalid definition for <data id="${fieldName}">`,
+          severity: DiagnosticSeverity.Error,
+          code: "AIML008",
+          source: "aiml-parser",
+          range: {
+            start: { line: 0, column: 0 },
+            end: { line: 0, column: 0 },
+          },
+        });
+      }
     }
   }
 
@@ -207,7 +225,7 @@ export function transformToAIMLNodes(
  * @param additionalNodes Array to collect additional nodes
  * @returns Transformed AIML node or null
  */
-export function transformNode(
+export function astToElementTree(
   node: any,
   options: MDXToAIMLOptions,
   diagnostics: Set<Diagnostic>,
@@ -369,7 +387,7 @@ export function transformNode(
     const children =
       node.children
         ?.map((child: any) =>
-          transformNode(child, options, diagnostics, context)
+          astToElementTree(child, options, diagnostics, context)
         )
         .filter(Boolean) || [];
 
@@ -449,7 +467,7 @@ export function transformNode(
           });
         } else if (child.type === "mdxJsxTextElement") {
           // Nested JSX in paragraph
-          const transformed = transformNode(
+          const transformed = astToElementTree(
             child,
             options,
             diagnostics,

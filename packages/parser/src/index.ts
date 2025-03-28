@@ -1,13 +1,13 @@
 import type { MDXToAIMLOptions, MDXParseResult } from "./types.js";
 import { VFile } from "vfile";
 import { DiagnosticSeverity } from "@fireworks/shared";
-import { safeParse } from "./parser/safeParse.js";
-import { transformToAIMLNodes } from "./parser/transform-nodes.js";
+import { safeParse } from "./safeParse/index.js";
+import { transformToAIMLNodes } from "./safeParse/astToElementTree.js";
 import {
   addAllTransitions,
   healFlowOrError,
-  processFinalStructure,
-} from "./parser/structure-processing.js";
+  healInvalidElementTree,
+} from "./safeParse/healInvalidElementTree.js";
 
 /**
  * Parse MDX content into AIML nodes with diagnostics
@@ -60,6 +60,13 @@ export async function parseMDXFilesToAIML(
       files,
     });
 
+    console.log("result.ast?", result.ast ? "yes" : "no");
+    console.log("result.ast.children?", result.ast.children ? "yes" : "no");
+    console.log(
+      "result.ast.children is array?",
+      Array.isArray(result.ast.children) ? "yes" : "no"
+    );
+    console.log("result.ast.children length", result.ast.children.length);
     // Transform the AST to AIML nodes and datamodel
     const {
       nodes: intermediateNodes,
@@ -67,9 +74,15 @@ export async function parseMDXFilesToAIML(
       datamodel,
     } = transformToAIMLNodes(result.ast, options, result.diagnostics);
 
+    console.log("intermediateNodes?", intermediateNodes ? "yes" : "no");
+    console.log(
+      "intermediateNodes is array?",
+      Array.isArray(intermediateNodes) ? "yes" : "no"
+    );
+    console.log("intermediateNodes length", intermediateNodes.length);
     // Process the intermediate nodes into a final SerializedBaseElement tree
     // that's ready for hydration by the runtime
-    const finalNodes = processFinalStructure(
+    const finalNodes = healInvalidElementTree(
       intermediateNodes,
       transformDiagnostics
     );
@@ -90,7 +103,12 @@ export async function parseMDXFilesToAIML(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    console.log("caught error", errorMessage);
+    console.error(
+      "caught error",
+      errorMessage,
+      "stack",
+      (error as Error).stack
+    );
     return {
       nodes: [],
       diagnostics: [

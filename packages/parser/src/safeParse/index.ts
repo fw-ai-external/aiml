@@ -10,7 +10,7 @@ import remarkParse from "remark-parse";
 import { unified } from "unified";
 import { VFile } from "vfile";
 import { extractErrorLocation } from "../utils/helpers.js";
-import { processAst } from "./processAST.js";
+import { cleanASTTree } from "./cleanASTTree.js";
 import type { MDXToAIMLOptions } from "../types.js";
 import { ObjectSet } from "@fireworks/shared";
 import type { Root } from "mdast";
@@ -322,7 +322,7 @@ export function safeParse(
       const file = new VFile({ value: currentContent, path: filePath });
       const ast = mdxProcessor.parse(file);
 
-      const cleanedAst = processAst(
+      const cleanedAst = cleanASTTree(
         ast,
         currentContent,
         functionalTags as any,
