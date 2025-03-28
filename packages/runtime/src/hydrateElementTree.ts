@@ -1,6 +1,8 @@
-import type {
-  SerializedBaseElement,
-  SerializedElement,
+import {
+  DiagnosticSeverity,
+  type Diagnostic,
+  type SerializedBaseElement,
+  type SerializedElement,
 } from "@fireworks/shared";
 import * as allElements from "./elements";
 import type { BaseElement } from "./elements/BaseElement";
@@ -15,8 +17,9 @@ import type { createElementDefinition } from "./elements/createElementFactory";
  * @returns The root BaseElement of the tree
  */
 export function hydreateElementTree(
-  nodes: SerializedBaseElement[]
-): BaseElement {
+  nodes: SerializedBaseElement[],
+  diagnostics: Set<Diagnostic>
+): { elementTree?: BaseElement; diagnostics: Set<Diagnostic> } {
   // Assume the first node is the workflow
   const rootNode = nodes[0];
 
@@ -29,9 +32,16 @@ export function hydreateElementTree(
   }
 
   // Create the root element
-  const rootElement = hydrateElement(rootNode as SerializedElement);
+  const rootElement = hydrateElement(
+    rootNode as SerializedElement,
+    undefined,
+    diagnostics
+  );
 
-  return rootElement;
+  return {
+    elementTree: rootElement.element,
+    diagnostics: rootElement.diagnostics,
+  };
 }
 
 /**
@@ -39,8 +49,9 @@ export function hydreateElementTree(
  */
 function hydrateElement(
   node: SerializedElement,
-  parentElement?: BaseElement
-): BaseElement {
+  parentElement: BaseElement | undefined,
+  diagnostics: Set<Diagnostic>
+): { element?: BaseElement; diagnostics: Set<Diagnostic> } {
   if (node.type !== "element") {
     throw new Error(`Cannot hydrate non-element node of type ${node.type}`);
   }
@@ -49,13 +60,51 @@ function hydrateElement(
   const Constructor = getElementClassByTagName(node.tag as any);
 
   // Create the element
-  const element = Constructor.initFromAttributesAndNodes(
-    node.attributes || {},
-    [], // Empty children array, will add children after element is created
-    parentElement ? new WeakRef(parentElement) : undefined,
-    node.scope as ["root", ...string[]]
-  );
-
+  let element: BaseElement | undefined = undefined;
+  try {
+    element = Constructor.initFromAttributesAndNodes(
+      node.attributes || {},
+      [], // Empty children array, will add children after element is created
+      parentElement ? new WeakRef(parentElement) : undefined,
+      node.scope as ["root", ...string[]]
+    );
+  } catch (error) {
+    if (error instanceof Error) {
+      diagnostics.add({
+        message: error.message,
+        severity: DiagnosticSeverity.Error,
+        source: "AIML",
+        code: "100",
+        range: {
+          start: {
+            line: node.lineStart,
+            column: node.columnStart,
+          },
+          end: {
+            line: node.lineEnd,
+            column: node.columnEnd,
+          },
+        },
+      });
+    } else {
+      diagnostics.add({
+        message: "Unable to parse AIML Element",
+        severity: DiagnosticSeverity.Error,
+        source: "AIML",
+        code: "101",
+        range: {
+          start: {
+            line: node.lineStart,
+            column: node.columnStart,
+          },
+          end: {
+            line: node.lineEnd,
+            column: node.columnEnd,
+          },
+        },
+      });
+    }
+  }
   // Process children
   if (node.children && node.children.length > 0) {
     for (const child of node.children) {
@@ -63,15 +112,21 @@ function hydrateElement(
         // Recursively hydrate child elements
         const childElement = hydrateElement(
           child as SerializedElement,
-          element
+          element,
+          diagnostics
         );
-        element.children.push(childElement);
+        if (element && childElement.element) {
+          element.children.push(childElement.element);
+        }
+        childElement.diagnostics.forEach((diagnostic) => {
+          diagnostics.add(diagnostic);
+        });
       }
       // Ignore non-element children, they should have been processed by the parser
     }
   }
 
-  return element;
+  return { element, diagnostics };
 }
 
 /**

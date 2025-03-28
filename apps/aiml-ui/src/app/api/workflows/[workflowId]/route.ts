@@ -3,6 +3,7 @@ import { parseMDXToAIML } from "@fireworks/parser";
 import { Workflow, hydreateElementTree } from "@fireworks/runtime";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { DiagnosticSeverity, ObjectSet } from "@fireworks/shared";
 
 /**
  * Helper function to strip circular references from any object
@@ -51,7 +52,13 @@ export async function GET(
     );
     persistedWorkflow = JSON.parse(fileContent);
 
-    const elementTree = hydreateElementTree(persistedWorkflow.ast.nodes);
+    const { elementTree, diagnostics } = hydreateElementTree(
+      persistedWorkflow.ast.nodes,
+      new ObjectSet(persistedWorkflow.ast.diagnostics, "message")
+    );
+    if (!elementTree) {
+      throw new Error("Failed to hydrate element tree");
+    }
     const workflow = new Workflow(elementTree, persistedWorkflow.datamodel);
 
     // Get the context values from the workflow
@@ -61,8 +68,14 @@ export async function GET(
     const responseData = {
       ...persistedWorkflow,
       datamodel: workflow.datamodel,
-      ast: persistedWorkflow.ast,
-      elementTree: elementTree.toJSON(),
+      ast: {
+        nodes: persistedWorkflow.ast.nodes,
+        diagnostics: Array.from([
+          ...persistedWorkflow.ast.diagnostics,
+          ...diagnostics,
+        ]),
+      },
+      elementTree: elementTree?.toJSON(),
       mastraStepGraph: workflow.toGraph(),
       executionGraph: workflow.getExecutionGraph(),
       contextValues,
@@ -160,43 +173,82 @@ export async function POST(
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    console.log("body.prompt", body.prompt ? "yes" : "no", body.prompt);
+
     const ast = await parseMDXToAIML(body.prompt);
-    console.log("ast?", ast.nodes ? "yes" : "no");
-    console.log("ast.nodes is array?", Array.isArray(ast.nodes) ? "yes" : "no");
-    console.log("ast.nodes length", ast.nodes.length);
-    const elementTree = hydreateElementTree(ast.nodes);
-    console.log("elementTree?", elementTree ? "yes" : "no");
-    const workflow = new Workflow(elementTree, {
-      scopedDataModels: ast.datamodel || {},
-      fieldValues: body.datamodel?.fieldValues || {},
-    });
-    console.log("workflow?", workflow ? "yes" : "no");
+
+    const { elementTree, diagnostics } = hydreateElementTree(
+      ast.nodes,
+      new ObjectSet(ast.diagnostics, "message")
+    );
+
+    if (!elementTree) {
+      diagnostics.add({
+        message: "Failed to process prompt as AIML",
+        severity: DiagnosticSeverity.Error,
+        source: "AIML",
+        code: "0000",
+        range: {
+          start: {
+            line: 0,
+            column: 0,
+          },
+          end: {
+            line: body.prompt.split("\n").length,
+            column:
+              body.prompt.split("\n")[body.prompt.split("\n").length - 1]
+                .length,
+          },
+        },
+      });
+    }
+    let workflow: Workflow<any, any> | undefined;
+    if (elementTree) {
+      workflow = new Workflow(elementTree, {
+        scopedDataModels: ast.datamodel || {},
+        fieldValues: body.datamodel?.fieldValues || {},
+      });
+    }
     // Create a structure that excludes circular references for serialization
     const workflowData = {
       ...body,
-      stepGraph: workflow.toGraph(),
-      ast,
-      datamodel: workflow.datamodel,
-      elementTree: elementTree.toJSON(),
-      executionGraph: workflow.getExecutionGraph(),
-      contextValues: workflow.getContextValues(),
+      stepGraph: workflow?.toGraph(),
+      ast: {
+        nodes: ast.nodes,
+        diagnostics: Array.from([...ast.diagnostics, ...diagnostics]),
+      },
+      datamodel: workflow?.datamodel,
+      elementTree: elementTree?.toJSON(),
+      executionGraph: workflow?.getExecutionGraph(),
+      contextValues: workflow?.getContextValues(),
     };
 
     // Also check if we're rehydrating with existing context values
     if (body.contextValues && Object.keys(body.contextValues).length > 0) {
       try {
-        workflow.rehydrateContextValues(body.contextValues);
+        workflow?.rehydrateContextValues(body.contextValues);
 
         // Re-fetch the context values after rehydration to include in response
-        workflowData.contextValues = workflow.getContextValues();
+        workflowData.contextValues = workflow?.getContextValues();
       } catch (error) {
+        diagnostics.add({
+          message: "Error rehydrating context values",
+          severity: DiagnosticSeverity.Warning,
+          source: "AIML",
+          code: "R0001",
+          range: {
+            start: {
+              line: 0,
+              column: 0,
+            },
+            end: {
+              line: 0,
+              column: 0,
+            },
+          },
+        });
         console.error("Error rehydrating context values:", error);
       }
     }
-
-    // Sanitize the workflow data to remove any circular references
-    const serializedWorkflow = sanitizeForJSON(workflowData);
 
     // Save workflow data to file
     fs.writeFileSync(
