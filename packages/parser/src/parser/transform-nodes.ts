@@ -147,13 +147,26 @@ export function transformToAIMLNodes(
         context.datamodel.set(scope, {});
       }
       for (const [fieldName, fieldDef] of Object.entries(fields)) {
-        context.datamodel.get(scope)![fieldName] = {
-          type: fieldDef.type as FieldType,
-          readonly: fieldDef.readonly,
-          fromRequest: fieldDef.fromRequest,
-          defaultValue: fieldDef.defaultValue,
-          schema: fieldDef.schema,
-        };
+        if (fieldDef) {
+          context.datamodel.get(scope)![fieldName] = {
+            type: fieldDef.type as FieldType,
+            readonly: fieldDef.readonly,
+            fromRequest: fieldDef.fromRequest,
+            defaultValue: fieldDef.defaultValue,
+            schema: fieldDef.schema,
+          };
+        } else {
+          diagnostics.add({
+            message: `Invalid definition for <data id="${fieldName}">`,
+            severity: DiagnosticSeverity.Error,
+            code: "AIML008",
+            source: "aiml-parser",
+            range: {
+              start: { line: 0, column: 0 },
+              end: { line: 0, column: 0 },
+            },
+          });
+        }
       }
     }
 
