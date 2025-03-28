@@ -57,7 +57,18 @@ export async function GET(
       new ObjectSet(persistedWorkflow.ast.diagnostics, "message")
     );
     if (!elementTree) {
-      throw new Error("Failed to hydrate element tree");
+      diagnostics.add({
+        message: "Failed to parse AIML prompt",
+        severity: DiagnosticSeverity.Error,
+        source: "AIML",
+        code: "0000",
+        range: {
+          start: {
+            line: 0,
+            column: 0,
+          },
+        },
+      });
     }
     const workflow = new Workflow(elementTree, persistedWorkflow.datamodel);
 

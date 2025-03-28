@@ -11,7 +11,7 @@
     },
 
     "@fireworks/runtime#build": {
-      "dependsOn": ["^@fireworks/shared#build"],
+      "dependsOn": ["^@fireworks/shared#build", "^@fireworks/parser#build"],
       "outputs": ["dist/**"]
     },
     "@fireworks/parser#build": {
@@ -19,11 +19,23 @@
       "outputs": ["dist/**"]
     },
     "fireagent-plugin-vscode#build": {
-      "dependsOn": ["^@fireworks/shared#build", "^@fireworks/parser#build"],
+      "dependsOn": ["^@fireworks/parser#build"],
+      "outputs": ["dist/**"]
+    },
+    "@fireworks/shared#dev": {
+      "outputs": ["dist/**"],
+      "persistent": true
+    },
+
+    "@fireworks/runtime#dev": {
+      "outputs": ["dist/**"],
+      "persistent": true
+    },
+    "@fireworks/parser#dev": {
+      "persistent": true,
       "outputs": ["dist/**"]
     },
     "@fireworks/aiml-ui#dev": {
-      "dependsOn": ["@fireworks/shared#build", "@fireworks/parser#build", "@fireworks/runtime#build"],
       "persistent": true
     },
     "lint": {

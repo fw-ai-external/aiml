@@ -18,7 +18,7 @@ export interface ExecutionGraphElement extends Record<string, any> {
    * - "shadow" => a control-flow node that does not execute, but is used to track dependencies.
    *   (e.g. parallelDone, historyDone, etc.)
    */
-  type: "state" | "action" | "error" | "user-input" | "output";
+  type: "state" | "action" | "error" | "user-input" | "output" | "data-model";
 
   /**
    * subType is used to further refine the type of the node.

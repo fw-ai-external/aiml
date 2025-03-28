@@ -391,30 +391,27 @@ export function astToElementTree(
         )
         .filter(Boolean) || [];
 
-    if (isState && stateId) {
-      // context.currentStates.pop();
-    }
-
     const scope =
       context.currentStates.length > 0
         ? ["root", ...context.currentStates]
         : ["root"];
 
+    const config =
+      allElementConfigs[
+        node.name.toLowerCase() as keyof typeof allElementConfigs
+      ];
+
+    if (!config) {
+      return null;
+    }
+
     return {
       type: "element",
       key: generateKey(),
-      tag: node.name,
+      tag: config.tag,
       scope,
-      role: isState
-        ? "state"
-        : node.name.toLowerCase().includes("error")
-          ? "error"
-          : node.name.toLowerCase().includes("output")
-            ? "output"
-            : node.name.toLowerCase().includes("input")
-              ? "user-input"
-              : "action",
-      elementType: node.name.toLowerCase() as any,
+      role: config.role,
+      elementType: config.elementType,
       attributes: {
         ...processAttributes(node.attributes),
         ...(isState && stateId ? { id: stateId } : {}),

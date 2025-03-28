@@ -246,7 +246,7 @@ export class ExecutionContext<
       machine: serialized.machine,
       run: serialized.run,
       element: serialized.element
-        ? hydreateElementTree([serialized.element])
+        ? hydreateElementTree([serialized.element], new Set()).elementTree
         : undefined,
       parentContext: serialized.parentContext,
     });

@@ -71,7 +71,7 @@ export type InstructionsProps = z.infer<typeof instructionsConfig.propsSchema>;
 export const dataConfig: BaseElementDefinition = {
   tag: "data",
   elementType: "data",
-  role: "state",
+  role: "data-model",
   propsSchema: z.object({
     id: z.string(),
     src: z.string().optional(),
@@ -102,7 +102,7 @@ export type DataProps = z.infer<typeof dataConfig.propsSchema>;
 export const dataModelConfig: BaseElementDefinition = {
   tag: "datamodel",
   elementType: "datamodel",
-  role: "state",
+  role: "data-model",
   description: "Container for data model declarations",
   propsSchema: z.object({
     id: z.string().optional(),

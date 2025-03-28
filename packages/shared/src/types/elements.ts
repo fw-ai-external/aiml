@@ -58,6 +58,7 @@ export type ElementType = (typeof aimlElements)[number];
 export type ElementRole =
   | "state"
   | "action"
+  | "data-model"
   | "error"
   | "user-input"
   | "output";
