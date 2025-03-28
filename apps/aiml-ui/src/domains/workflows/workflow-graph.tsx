@@ -1,9 +1,4 @@
-import {
-  Background,
-  BackgroundVariant,
-  MiniMap,
-  ReactFlow,
-} from "@xyflow/react";
+import { Background, BackgroundVariant, ReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import { contructNodesAndEdges } from "./utils";
@@ -45,7 +40,7 @@ function WorkflowGraph({
   );
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full nokey">
       <nav className="flex px-4 py-2 border-b" aria-label="Breadcrumb">
         <ol className="inline-flex items-center space-x-1 md:space-x-3">
           {breadcrumbItems.map((item, index) => (
@@ -74,13 +69,6 @@ function WorkflowGraph({
           maxZoom: 0.85,
         }}
       >
-        <MiniMap
-          pannable
-          zoomable
-          maskColor="#121212"
-          bgColor="#171717"
-          nodeColor="#2c2c2c"
-        />
         <Background variant={BackgroundVariant.Dots} gap={12} size={0.5} />
       </ReactFlow>
     </div>

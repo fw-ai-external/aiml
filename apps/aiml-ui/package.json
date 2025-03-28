@@ -51,7 +51,7 @@
     "@tanstack/react-virtual": "^3.10.4",
     "@uiw/codemirror-theme-github": "^4.23.8",
     "@uiw/react-codemirror": "^4.23.8",
-    "@xyflow/react": "^12.3.6",
+    "@xyflow/react": "^12.5.0",
     "ai": "^4.1.54",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

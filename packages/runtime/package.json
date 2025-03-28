@@ -21,6 +21,8 @@
     "@dmitryrechkin/json-schema-to-zod": "^1.0.1",
     "@fireworks/shared": "workspace:*",
     "@mastra/core": "^0.6.0",
+    "@nyariv/sandboxjs": "^0.8.23",
+    "openai": "^4.90.0",
     "uuid": "^9.0.0",
     "zod": "^3.22.4"
   },
