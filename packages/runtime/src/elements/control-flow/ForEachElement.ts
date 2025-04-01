@@ -1,8 +1,8 @@
-import { forEachConfig } from "@fireworks/shared";
+import { foreachConfig } from "@fireworks/shared";
 import { createElementDefinition } from "../createElementFactory";
 
 export const ForEach = createElementDefinition({
-  ...forEachConfig,
+  ...foreachConfig,
   tag: "foreach",
   role: "action",
   elementType: "foreach",

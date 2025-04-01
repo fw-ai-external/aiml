@@ -125,7 +125,12 @@ export function safeParse(
 
   // Helper function to find a tag mismatch in a line and try to fix it
   function fixTagMismatch(
-    line: string,
+    lineInfo: {
+      lineNumber: number;
+      lineContent: string;
+      tagStart: number;
+      tagEnd: number;
+    },
     errorMsg: string
   ): { fixed: boolean; newLine: string } {
     // Check if the error is related to mismatched opening/closing tags
@@ -134,7 +139,7 @@ export function safeParse(
     const match = errorMsg.match(mismatchRegex);
 
     if (!match) {
-      return { fixed: false, newLine: line };
+      return { fixed: false, newLine: lineInfo.lineContent };
     }
 
     const closingTag = match[1]; // The tag name in the closing tag (e.g., script)
@@ -181,144 +186,34 @@ export function safeParse(
     ) {
       // Add diagnostic
       diagnostics.add({
-        message: `Corrected mismatched tag: <${openingTag}> to <${bestMatch}>`,
+        message: `The tag <${openingTag}> is not a valid AIML element, but <${bestMatch}> is. Corrected <${openingTag}> to <${bestMatch}>`,
         severity: DiagnosticSeverity.Warning,
         code: "AIML011",
         source: "aiml-parser",
         range: {
-          start: { line: 1, column: 1 },
-          end: { line: 1, column: line.length },
+          start: { line: lineInfo.lineNumber, column: lineInfo.tagStart },
+          end: {
+            line: lineInfo.lineNumber,
+            column: lineInfo.lineContent.length,
+          },
         },
       });
 
       // Fix the tag in the line
       return {
         fixed: true,
-        newLine: line.replace(
+        newLine: lineInfo.lineContent.replace(
           new RegExp(`<${openingTag}(\\s|>)`, "g"),
           `<${bestMatch}$1`
         ),
       };
     }
 
-    return { fixed: false, newLine: line };
-  }
-
-  // More robust approach to fix all mismatched tags in the entire content
-  function fixAllTagMismatches(content: string): {
-    fixed: boolean;
-    newContent: string;
-  } {
-    // Look for pattern: <tag1>...</tag2> where tag1 and tag2 are different
-    // Use regex to find all opening and closing tags
-    let contentFixed = false;
-    let newContent = content;
-
-    const openStack: { tag: string; index: number }[] = [];
-
-    // Find all tags
-    const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9_-]*)([^>]*)>/g;
-    let tagMatch;
-
-    while ((tagMatch = tagRegex.exec(newContent)) !== null) {
-      const fullTag = tagMatch[0];
-      const tagName = tagMatch[1];
-      const isClosing = fullTag.startsWith("</");
-      const index = tagMatch.index;
-
-      // Skip self-closing tags
-      const isSelfClosing = !isClosing && fullTag.endsWith("/>");
-      if (isSelfClosing) continue;
-
-      if (!isClosing) {
-        // Push opening tag to stack
-        openStack.push({ tag: tagName, index });
-      } else if (openStack.length > 0) {
-        // Compare with last opening tag
-        const openTag = openStack.pop();
-        if (openTag && openTag.tag !== tagName) {
-          // Mismatch found - find best match
-          let bestMatch = "";
-          let bestSimilarity = 0;
-
-          // Prefer the closing tag as the correct one
-          for (const validTag of functionalTags) {
-            if (validTag.toLowerCase() === tagName.toLowerCase()) {
-              bestMatch = validTag;
-              break;
-            }
-
-            // Calculate similarity with opening tag
-            const openLower = openTag.tag.toLowerCase();
-            const validLower = validTag.toLowerCase();
-            const similarity = calculateSimilarity(openLower, validLower);
-
-            if (similarity > bestSimilarity) {
-              bestSimilarity = similarity;
-              bestMatch = validTag;
-            }
-          }
-
-          // If good match found, fix the opening tag
-          if (
-            bestMatch &&
-            (bestSimilarity >= 0.7 ||
-              bestMatch.toLowerCase() === tagName.toLowerCase())
-          ) {
-            const openTagStr = `<${openTag.tag}`;
-            const fixedTag = `<${bestMatch}`;
-
-            // Replace just the tag name part
-            newContent =
-              newContent.substring(0, openTag.index) +
-              newContent.substring(openTag.index).replace(openTagStr, fixedTag);
-
-            contentFixed = true;
-
-            // Add diagnostic
-            diagnostics.add({
-              message: `Corrected mismatched tag: <${openTag.tag}> to <${bestMatch}>`,
-              severity: DiagnosticSeverity.Warning,
-              code: "AIML011",
-              source: "aiml-parser",
-              range: {
-                start: { line: 1, column: 1 },
-                end: { line: 1, column: 10 },
-              },
-            });
-          }
-        }
-      }
-    }
-
-    return { fixed: contentFixed, newContent };
-  }
-
-  // Helper to calculate string similarity
-  function calculateSimilarity(str1: string, str2: string): number {
-    const maxLength = Math.max(str1.length, str2.length);
-    if (maxLength === 0) return 0;
-
-    let matchingChars = 0;
-    const minLength = Math.min(str1.length, str2.length);
-
-    for (let i = 0; i < minLength; i++) {
-      if (str1[i] === str2[i]) {
-        matchingChars++;
-      }
-    }
-
-    return matchingChars / maxLength;
+    return { fixed: false, newLine: lineInfo.lineContent };
   }
 
   while (iterations < maxIterations) {
     try {
-      // Try to fix known tag mismatches in the entire content first
-      const { fixed, newContent } = fixAllTagMismatches(currentContent);
-      if (fixed) {
-        currentContent = newContent;
-      }
-
       const file = new VFile({ value: currentContent, path: filePath });
       const ast = mdxProcessor.parse(file);
 
@@ -439,7 +334,15 @@ export function safeParse(
 
       // Try to fix tag mismatches if possible
       const errorStr = String(error);
-      const { fixed, newLine } = fixTagMismatch(lineInfo.lineContent, errorStr);
+      const { fixed, newLine } = fixTagMismatch(
+        {
+          lineNumber: lineInfo.lineNumber,
+          lineContent: lineInfo.lineContent,
+          tagStart: lineInfo.lineStart,
+          tagEnd: lineInfo.lineEnd,
+        },
+        errorStr
+      );
 
       if (fixed) {
         // Replace the line in the current content

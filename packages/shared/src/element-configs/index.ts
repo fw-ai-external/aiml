@@ -1,16 +1,23 @@
-import type { z } from 'zod';
-import type { ElementDefinition, ElementType } from '../types';
+import type { z } from "zod";
+import type { ElementDefinition, ElementType } from "../types";
 
-import { assignConfig, cancelConfig, logConfig, raiseConfig, scriptConfig, sendConfig } from './schemas/actions';
+import {
+  assignConfig,
+  cancelConfig,
+  logConfig,
+  raiseConfig,
+  scriptConfig,
+  sendConfig,
+} from "./schemas/actions";
 import {
   elseConfig,
   elseIfConfig,
-  forEachConfig,
+  foreachConfig,
   ifConfig,
   onEntryConfig,
   onExitConfig,
   transitionConfig,
-} from './schemas/control-flow';
+} from "./schemas/control-flow";
 import {
   contentConfig,
   donedataConfig,
@@ -20,7 +27,7 @@ import {
   invokeConfig,
   paramConfig,
   scxmlConfig,
-} from './schemas/scxml';
+} from "./schemas/scxml";
 import {
   dataConfig,
   dataModelConfig,
@@ -34,8 +41,8 @@ import {
   sendToolCallsConfig,
   toolCallConfig,
   workflowConfig,
-} from './schemas/specialized';
-import { finalConfig, parallelConfig, stateConfig } from './schemas/states';
+} from "./schemas/specialized";
+import { finalConfig, parallelConfig, stateConfig } from "./schemas/states";
 
 export const allElementConfigs: Record<ElementType, ElementDefinition> = {
   workflow: workflowConfig,
@@ -51,7 +58,7 @@ export const allElementConfigs: Record<ElementType, ElementDefinition> = {
   if: ifConfig,
   elseif: elseIfConfig,
   else: elseConfig,
-  foreach: forEachConfig,
+  foreach: foreachConfig,
   script: scriptConfig,
   llm: llmConfig,
   toolcall: toolCallConfig,
@@ -78,18 +85,20 @@ export const allElementConfigs: Record<ElementType, ElementDefinition> = {
 } as const;
 
 // Import the registration function AFTER allElementConfigs is defined
-import { registerAllElementConfigs } from './nodeDefinitions';
+import { registerAllElementConfigs } from "./nodeDefinitions";
 
 // Register all element conf, ElementDefinitionigs now that they've been initialized
 registerAllElementConfigs(allElementConfigs);
 
-export const allStateElementConfigs = Object.values(allElementConfigs).filter((config) => config.role === 'state');
+export const allStateElementConfigs = Object.values(allElementConfigs).filter(
+  (config) => config.role === "state"
+);
 
-export * from './schemas/states';
-export * from './schemas/actions';
-export * from './schemas/control-flow';
-export * from './schemas/specialized';
-export * from './schemas/scxml';
+export * from "./schemas/states";
+export * from "./schemas/actions";
+export * from "./schemas/control-flow";
+export * from "./schemas/specialized";
+export * from "./schemas/scxml";
 
 // Export prop types
 export type AssignProps = z.infer<typeof assignConfig.propsSchema>;
@@ -99,7 +108,9 @@ export type OnEntryProps = z.infer<typeof onEntryConfig.propsSchema>;
 export type OnExitProps = z.infer<typeof onExitConfig.propsSchema>;
 export type ToolCallProps = z.infer<typeof toolCallConfig.propsSchema>;
 export type SendTextProps = z.infer<typeof sendTextConfig.propsSchema>;
-export type SendToolCallsProps = z.infer<typeof sendToolCallsConfig.propsSchema>;
+export type SendToolCallsProps = z.infer<
+  typeof sendToolCallsConfig.propsSchema
+>;
 export type SendObjectProps = z.infer<typeof sendObjectConfig.propsSchema>;
 export type OnErrorProps = z.infer<typeof onErrorConfig.propsSchema>;
 export type OnChunkProps = z.infer<typeof onChunkConfig.propsSchema>;
@@ -118,4 +129,4 @@ export type ParamProps = z.infer<typeof paramConfig.propsSchema>;
 export type InvokeProps = z.infer<typeof invokeConfig.propsSchema>;
 export type FinalizeProps = z.infer<typeof finalizeConfig.propsSchema>;
 
-export * from './nodeDefinitions';
+export * from "./nodeDefinitions";

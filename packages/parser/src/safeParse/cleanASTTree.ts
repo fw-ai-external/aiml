@@ -82,7 +82,7 @@ export function cleanASTTree(
           node.name = bestMatch;
 
           diagnostics.add({
-            message: `Detected possible tag name mismatch. Corrected <${tagName}> to <${bestMatch}>`,
+            message: `Detected possible tag name mismatch. ${tagName} is not Corrected <${tagName}> to <${bestMatch}>`,
             severity: DiagnosticSeverity.Warning,
             code: "AIML011",
             source: "aiml-parser",
@@ -126,8 +126,8 @@ export function cleanASTTree(
       (node as any).__convertToParagraph = true;
     }
 
-    // Check if JSX tags are wrapping AIML elements
-    if (node.children) {
+    if (node.children && !aimlElements.includes(node.name)) {
+      // Check if JSX tags are wrapping AIML elements
       const hasNestedAimlElements = node.children.some(
         (child: any) =>
           child.type === "mdxJsxFlowElement" &&

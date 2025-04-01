@@ -56,14 +56,14 @@ export const elseConfig: BaseElementDefinition = {
 export type ElseProps = z.infer<typeof elseConfig.propsSchema>;
 
 // ForEach Element - Iteration construct
-export const forEachConfig: BaseElementDefinition = {
+export const foreachConfig: BaseElementDefinition = {
   tag: "foreach",
   elementType: "foreach",
   role: "action",
   propsSchema: z.object({
     id: z.string().optional(),
-    array: jsExpressionSchema,
-    item: z.string(),
+    items: jsExpressionSchema,
+    var: z.string(),
     index: z.string().optional(),
   }),
   description: "Iteration construct for arrays",
@@ -71,7 +71,7 @@ export const forEachConfig: BaseElementDefinition = {
   documentation: "Iteration construct for processing arrays",
 };
 
-export type ForEachProps = z.infer<typeof forEachConfig.propsSchema>;
+export type ForEachProps = z.infer<typeof foreachConfig.propsSchema>;
 
 // Transition Element - Defines state transitions
 export const transitionConfig: BaseElementDefinition = {

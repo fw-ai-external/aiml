@@ -18,7 +18,30 @@ export const jsExpressionSchema = z
       return; // Pass validation
     }
 
-    // If val is defined, proceed with parsing
+    // Handle JSX/MDX expression syntax
+    if (val.startsWith("{") && val.endsWith("}")) {
+      // Extract the expression inside curly braces
+      const expr = val.slice(1, -1);
+      try {
+        acorn.parse(expr, { ecmaVersion: "latest", sourceType: "script" });
+        // Parsing succeeded, no action needed
+        return;
+      } catch (e: unknown) {
+        let message = "Invalid JavaScript expression";
+        if (e instanceof Error) {
+          // Extract the message up to the first line break
+          message = e.message.split("\n")[0] || "Invalid syntax";
+        }
+        // Add the specific parse error as a custom issue
+        ctx.addIssue({
+          code: ZodIssueCode.custom,
+          message: message,
+        });
+        return;
+      }
+    }
+
+    // If not in curly braces, try parsing directly
     try {
       acorn.parse(val, { ecmaVersion: "latest", sourceType: "script" });
       // Parsing succeeded, no action needed
@@ -33,7 +56,6 @@ export const jsExpressionSchema = z
         code: ZodIssueCode.custom,
         message: message,
       });
-      // No return false needed, addIssue handles the failure indication
     }
   });
 

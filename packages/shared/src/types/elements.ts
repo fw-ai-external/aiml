@@ -45,6 +45,7 @@ export const aimlElements = [
   "param",
   "invoke",
   "finalize",
+  "llm",
 ] as const;
 
 /**

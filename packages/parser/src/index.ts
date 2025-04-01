@@ -67,6 +67,7 @@ export async function parseMDXFilesToAIML(
       Array.isArray(result.ast.children) ? "yes" : "no"
     );
     console.log("result.ast.children length", result.ast.children.length);
+
     // Transform the AST to AIML nodes and datamodel
     const {
       nodes: intermediateNodes,
@@ -80,6 +81,7 @@ export async function parseMDXFilesToAIML(
       Array.isArray(intermediateNodes) ? "yes" : "no"
     );
     console.log("intermediateNodes length", intermediateNodes.length);
+
     // Process the intermediate nodes into a final SerializedBaseElement tree
     // that's ready for hydration by the runtime
     const finalNodes = healInvalidElementTree(
@@ -95,6 +97,7 @@ export async function parseMDXFilesToAIML(
       healedNodes,
       transformDiagnostics
     );
+
     return {
       nodes: nodesWithTransitions,
       diagnostics: Array.from(result.diagnostics),

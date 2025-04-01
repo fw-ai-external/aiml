@@ -77,6 +77,7 @@ export const dataConfig: BaseElementDefinition = {
     id: z.string(),
     src: z.string().optional(),
     expr: jsExpressionSchema.optional(),
+    value: jsExpressionSchema.optional(),
     content: z.string().optional(),
     type: z
       .enum([

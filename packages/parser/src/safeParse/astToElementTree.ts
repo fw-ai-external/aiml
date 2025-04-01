@@ -48,8 +48,57 @@ export function processAttributes(attributes: any[]): Record<string, any> {
         // String attribute
         result[attr.name] = attr.value;
       } else if (attr.value?.type === "mdxJsxAttributeValueExpression") {
-        // Store all expressions as strings without evaluation
-        result[attr.name] = `\${${attr.value.value}}`;
+        // Use AST information from the expression if available
+        if (attr.value.data && attr.value.data.estree) {
+          const expression = attr.value.data.estree.body[0]?.expression;
+
+          if (expression) {
+            const expressionType = expression.type;
+
+            if (expressionType === "ArrayExpression") {
+              // Array expression: []
+              result[attr.name] = `\${array:${attr.value.value}}`;
+            } else if (expressionType === "ObjectExpression") {
+              // Object expression: {}
+              result[attr.name] = `\${object:${attr.value.value}}`;
+            } else if (
+              expressionType === "ArrowFunctionExpression" ||
+              expressionType === "FunctionExpression"
+            ) {
+              // Function expression: () => {} or function() {}
+              result[attr.name] = `\${function:${attr.value.value}}`;
+            } else {
+              // Other expression types
+              result[attr.name] = `\${${attr.value.value}}`;
+            }
+          } else {
+            // Fallback if no expression is found
+            result[attr.name] = `\${${attr.value.value}}`;
+          }
+        } else {
+          // Fallback to the old approach if estree data is not available
+          const expressionValue = attr.value.value.trim();
+
+          // Fallback checks for expressions without full AST info
+          if (
+            expressionValue.includes("=>") ||
+            /^\s*function\s*\(/.test(expressionValue)
+          ) {
+            result[attr.name] = `\${function:${expressionValue}}`;
+          } else if (
+            expressionValue.startsWith("[") &&
+            expressionValue.endsWith("]")
+          ) {
+            result[attr.name] = `\${array:${expressionValue}}`;
+          } else if (
+            expressionValue.startsWith("{") &&
+            expressionValue.endsWith("}")
+          ) {
+            result[attr.name] = `\${object:${expressionValue}}`;
+          } else {
+            result[attr.name] = `\${${expressionValue}}`;
+          }
+        }
       }
     }
   }
@@ -237,22 +286,14 @@ export function astToElementTree(
     // Process attributes
     const processedAttributes = processAttributes(node.attributes);
 
-    const isValidAimlElement = aimlElements.includes(
-      node.name.toLowerCase() as any
-    );
+    // Check if this is a valid AIML element
+    const normalizedName = node.name.toLowerCase();
+    const isValidAimlElement = aimlElements.includes(normalizedName as any);
 
     if (!isValidAimlElement) {
-      // For unknown elements, preserve them as custom elements
-      const children =
-        node.children
-          ?.map((child: any) =>
-            astToElementTree(child, options, diagnostics, context)
-          )
-          .filter(Boolean) || [];
-
-      // Only add warning if strict mode is enabled
+      // For unknown elements, add warning and skip
       diagnostics.add({
-        message: `Unknown element <${node.name}> will be treated as custom element`,
+        message: `Unknown element <${node.name}> will be skipped`,
         severity: DiagnosticSeverity.Warning,
         code: "AIML014",
         source: "aiml-parser",
@@ -261,33 +302,12 @@ export function astToElementTree(
           end: { line: lineEnd, column: columnEnd },
         },
       });
+      return null;
+    }
 
-      // Convert to LLM element (default behavior)
-      const textContent = extractTextFromNode(node);
-      return convertParagraphToLlmNode(
-        {
-          type: "paragraph",
-          key: generateKey(),
-          scope,
-          children: [
-            {
-              type: "text",
-              key: generateKey(),
-              scope,
-              value: textContent || "",
-              lineStart,
-              lineEnd,
-              columnStart,
-              columnEnd,
-            },
-          ],
-          lineStart,
-          lineEnd,
-          columnStart,
-          columnEnd,
-        },
-        scope
-      );
+    // Special handling for workflow element
+    if (normalizedName === "workflow" && context.currentStates.length === 0) {
+      context.currentStates.push("root");
     }
 
     // For valid AIML elements, proceed with normal processing

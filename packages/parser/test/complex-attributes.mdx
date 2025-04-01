@@ -1,0 +1,37 @@
+---
+name: Complex Attribute Demo
+---
+
+# Complex Attribute Expressions Demo
+
+<data id="emptyArray" value={[]} />
+
+<data id="filledArray" value={["apple", "banana", "cherry"]} />
+
+<data id="simpleObject" value={{ name: "John", age: 30 }} />
+
+<data id="nestedObject" value={{ 
+  user: { 
+    name: "John", 
+    details: { 
+      age: 30, 
+      role: "admin" 
+    } 
+  } 
+}} />
+
+<forEach items={(ctx) => ctx.lastElement.actions} var="currentAction">
+  <data id={currentAction.id} value={currentAction.value} />
+</forEach>
+
+<data id="mixedTypes" value={[
+  { id: 1, name: "Task 1", completed: false },
+  { id: 2, name: "Task 2", completed: true },
+  { id: 3, function: "filtered" }
+]} />
+
+<script>
+  function processItems(items) {
+    return items.filter(item => item.completed);
+  }
+</script> 
