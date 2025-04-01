@@ -1,11 +1,11 @@
-import { describe, expect, it } from 'bun:test';
-import { isAIMLElement } from '@fireworks/shared';
-import { VFile } from 'vfile';
-import { parseMDXFilesToAIML } from '..';
+import { describe, expect, it } from "bun:test";
+import { isAIMLElement, type Diagnostic } from "@fireworks/shared";
+import { VFile } from "vfile";
+import { parseMDXFilesToAIML } from "..";
 
-describe('Tag Escaping Tests', () => {
-  describe('Custom tag handling', () => {
-    it('should preserve custom tags in the preprocessed content', async () => {
+describe("Tag Escaping Tests", () => {
+  describe("Custom tag handling", () => {
+    it("should preserve custom tags in the preprocessed content", async () => {
       const input = `
 <workflow id="test">
   <state id="start">
@@ -17,21 +17,30 @@ describe('Tag Escaping Tests', () => {
       `;
 
       const testFile = new VFile({
-        path: 'test.mdx',
+        path: "test.mdx",
         value: input,
       });
 
-      const result = await parseMDXFilesToAIML([testFile]);
-      expect(result.diagnostics).toHaveLength(0);
+      const result = await parseMDXFilesToAIML([testFile], {
+        filePath: "test.mdx",
+        files: [],
+        preserveCustomTags: true,
+      });
+      // We expect warnings about unknown elements when strict mode is enabled
+      const diagnostics = Array.from(result.diagnostics) as Diagnostic[];
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].message).toContain("Unknown element <customTag>");
       expect(result.nodes).not.toBeNull();
 
       // Find the workflow node
       const workflow = result.nodes[0];
-      expect(workflow.type).toBe('element');
-      expect(workflow.tag).toBe('workflow');
+      expect(workflow.type).toBe("element");
+      expect(workflow.tag).toBe("workflow");
 
       // Find the state with id="start"
-      const startState = workflow.children?.find((child) => child.tag === 'state' && child.attributes?.id === 'start');
+      const startState = workflow.children?.find(
+        (child) => child.tag === "state" && child.attributes?.id === "start"
+      );
       expect(startState).not.toBeUndefined();
 
       // The parser's behavior has changed - custom tags may be treated differently
@@ -44,12 +53,14 @@ describe('Tag Escaping Tests', () => {
         // The behavior for custom tags has changed - they are now parsed into elements
         // and can be accessed as a direct child of the state
         // Let's simply verify that we have the transition element as expected
-        const transition = startState.children?.find((child) => child.tag === 'transition');
+        const transition = startState.children?.find(
+          (child) => child.tag === "transition"
+        );
         expect(transition).not.toBeUndefined();
       }
     });
 
-    it('should only include valid AIML elements in the AST', async () => {
+    it("should only include valid AIML elements in the AST", async () => {
       const input = `
 <workflow id="test">
   <state id="start">
@@ -61,22 +72,29 @@ describe('Tag Escaping Tests', () => {
       `;
 
       const testFile = new VFile({
-        path: 'test.mdx',
+        path: "test.mdx",
         value: input,
       });
 
-      const result = await parseMDXFilesToAIML([testFile]);
-      expect(result.diagnostics).toHaveLength(0);
+      const result = await parseMDXFilesToAIML([testFile], {
+        filePath: "test.mdx",
+        files: [],
+        preserveCustomTags: false,
+      });
+      // We expect warnings about unknown elements when strict mode is enabled
+      const diagnostics = Array.from(result.diagnostics) as Diagnostic[];
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].message).toContain("Unknown element <customTag>");
       expect(result.nodes).not.toBeNull();
 
       // Check that customTag is not a valid AIML element
-      expect(isAIMLElement('customTag')).toBe(false);
+      expect(isAIMLElement("customTag")).toBe(false);
 
       // Check that workflow, state, transition, and final are valid AIML elements
-      expect(isAIMLElement('workflow')).toBe(true);
-      expect(isAIMLElement('state')).toBe(true);
-      expect(isAIMLElement('transition')).toBe(true);
-      expect(isAIMLElement('final')).toBe(true);
+      expect(isAIMLElement("workflow")).toBe(true);
+      expect(isAIMLElement("state")).toBe(true);
+      expect(isAIMLElement("transition")).toBe(true);
+      expect(isAIMLElement("final")).toBe(true);
     });
   });
 });

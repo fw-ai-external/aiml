@@ -17,6 +17,7 @@ import type { BuildContext } from "../graphBuilder/Context";
 import type { RuntimeElementDefinition } from "../types";
 import { BaseElement } from "./BaseElement";
 import type { ExecutionGraphElement } from "@fireworks/shared";
+import { fromError } from "zod-validation-error";
 
 /**
  * Element definition type
@@ -57,7 +58,7 @@ export const createElementDefinition = <
       const result = propsSchema.safeParse(props);
       if (!result.success) {
         throw new Error(
-          `Invalid props for the "${tag}" element: ${JSON.stringify(result.error.errors)}`
+          `Invalid props for the "${tag}" element: ${fromError(result.error).toString()}`
         );
       }
       return result.data as Props;

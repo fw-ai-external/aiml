@@ -44,6 +44,16 @@ export interface ExecutionGraphElement extends Record<string, any> {
   when?: string;
 
   /**
+   * Optional expression that, if false, means we repeat this node at runtime until it returns true.
+   */
+  until?: string;
+
+  /**
+   * creates a suspension point in your workflow that waits for a specific event to be received before continuing execution.
+   */
+  waitFor?: string;
+
+  /**
    * List of other node IDs that must complete before this node can run.
    * Used for complex flow with multi-joins or ordering constraints.
    */
@@ -61,6 +71,10 @@ export interface ExecutionGraphElement extends Record<string, any> {
    *
    */
   parallel?: ExecutionGraphElement[];
+
+  /**
+   * The following are runtime only properties
+   */
 
   /**
    * The duration of the node in milliseconds.

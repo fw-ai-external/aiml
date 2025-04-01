@@ -67,6 +67,19 @@ export async function GET(
             line: 0,
             column: 0,
           },
+          end: {
+            line: 0,
+            column: 0,
+          },
+        },
+      });
+      return NextResponse.json({
+        ast: {
+          nodes: persistedWorkflow.ast.nodes,
+          diagnostics: Array.from([
+            ...persistedWorkflow.ast.diagnostics,
+            ...diagnostics,
+          ]),
         },
       });
     }

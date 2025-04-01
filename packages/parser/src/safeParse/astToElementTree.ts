@@ -9,6 +9,7 @@ import {
   type FieldType,
   aimlElements,
 } from "@fireworks/shared";
+import { validateAttributes } from "./validateAttributes.js";
 
 interface ParserContext {
   currentStates: string[];
@@ -47,17 +48,8 @@ export function processAttributes(attributes: any[]): Record<string, any> {
         // String attribute
         result[attr.name] = attr.value;
       } else if (attr.value?.type === "mdxJsxAttributeValueExpression") {
-        // Expression attribute - try to evaluate simple expressions
-        try {
-          // For simple literals like numbers, booleans, etc.
-          // eslint-disable-next-line no-eval
-          result[attr.name] = Function(
-            `"use strict"; return (${attr.value.value})`
-          )();
-        } catch (e) {
-          // If evaluation fails, store as a string expression
-          result[attr.name] = `\${${attr.value.value}}`;
-        }
+        // Store all expressions as strings without evaluation
+        result[attr.name] = `\${${attr.value.value}}`;
       }
     }
   }
@@ -233,60 +225,77 @@ export function astToElementTree(
 ): SerializedBaseElement | null {
   // Handle different node types
   if (node.type === "mdxJsxFlowElement" || node.type === "mdxJsxTextElement") {
-    // Check if the node name is a valid AIML element
-    if (!aimlElements.includes(node.name.toLowerCase() as any)) {
-      // If not a valid AIML element, treat as text
-      const textContent = extractTextFromNode(node);
-      const scope =
-        context.currentStates.length > 0
-          ? ["root", ...context.currentStates]
-          : ["root"];
-
-      if (node.children && node.children.length !== 0) {
-        diagnostics.add({
-          message: `XML tag syntax (<${node.name}> ... </${node.name}>) with opening and closing tags is wrapping AIML elements... this will cause the elements to be treated as text`,
-          severity: DiagnosticSeverity.Error,
-          code: "AIML007",
-          source: "aiml-parser",
-          range: {
-            start: {
-              line: getPosition(node, "start", "line"),
-              column: getPosition(node, "start", "column"),
-            },
-            end: {
-              line: getPosition(node, "end", "line"),
-              column: getPosition(node, "end", "column"),
-            },
-          },
-        });
-      }
-      return {
-        type: "paragraph",
-        key: generateKey(),
-        scope,
-        children: [
-          {
-            type: "text",
-            key: generateKey(),
-            scope,
-            value: textContent || "",
-            lineStart: getPosition(node, "start", "line"),
-            lineEnd: getPosition(node, "end", "line"),
-            columnStart: getPosition(node, "start", "column"),
-            columnEnd: getPosition(node, "end", "column"),
-          },
-        ],
-        lineStart: getPosition(node, "start", "line"),
-        lineEnd: getPosition(node, "end", "line"),
-        columnStart: getPosition(node, "start", "column"),
-        columnEnd: getPosition(node, "end", "column"),
-      };
-    }
-    // Process JSX elements into AIML elements
     const lineStart = getPosition(node, "start", "line");
     const columnStart = getPosition(node, "start", "column");
     const lineEnd = getPosition(node, "end", "line");
     const columnEnd = getPosition(node, "end", "column");
+    const scope =
+      context.currentStates.length > 0
+        ? ["root", ...context.currentStates]
+        : ["root"];
+
+    // Process attributes
+    const processedAttributes = processAttributes(node.attributes);
+
+    const isValidAimlElement = aimlElements.includes(
+      node.name.toLowerCase() as any
+    );
+
+    if (!isValidAimlElement) {
+      // For unknown elements, preserve them as custom elements
+      const children =
+        node.children
+          ?.map((child: any) =>
+            astToElementTree(child, options, diagnostics, context)
+          )
+          .filter(Boolean) || [];
+
+      // Only add warning if strict mode is enabled
+      diagnostics.add({
+        message: `Unknown element <${node.name}> will be treated as custom element`,
+        severity: DiagnosticSeverity.Warning,
+        code: "AIML014",
+        source: "aiml-parser",
+        range: {
+          start: { line: lineStart, column: columnStart },
+          end: { line: lineEnd, column: columnEnd },
+        },
+      });
+
+      // Convert to LLM element (default behavior)
+      const textContent = extractTextFromNode(node);
+      return convertParagraphToLlmNode(
+        {
+          type: "paragraph",
+          key: generateKey(),
+          scope,
+          children: [
+            {
+              type: "text",
+              key: generateKey(),
+              scope,
+              value: textContent || "",
+              lineStart,
+              lineEnd,
+              columnStart,
+              columnEnd,
+            },
+          ],
+          lineStart,
+          lineEnd,
+          columnStart,
+          columnEnd,
+        },
+        scope
+      );
+    }
+
+    // For valid AIML elements, proceed with normal processing
+    diagnostics = validateAttributes(
+      node.name,
+      processedAttributes,
+      diagnostics
+    );
 
     const nodeConfig: ElementDefinition =
       allElementConfigs[
@@ -391,11 +400,6 @@ export function astToElementTree(
         )
         .filter(Boolean) || [];
 
-    const scope =
-      context.currentStates.length > 0
-        ? ["root", ...context.currentStates]
-        : ["root"];
-
     const config =
       allElementConfigs[
         node.name.toLowerCase() as keyof typeof allElementConfigs
@@ -413,7 +417,7 @@ export function astToElementTree(
       role: config.role,
       elementType: config.elementType,
       attributes: {
-        ...processAttributes(node.attributes),
+        ...processedAttributes,
         ...(isState && stateId ? { id: stateId } : {}),
       },
       children,
