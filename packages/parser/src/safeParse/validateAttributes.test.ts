@@ -10,7 +10,7 @@ describe("validateAttributes", () => {
 
     const diagnostics = new Set<Diagnostic>();
     const diagnosticsResult = validateAttributes(
-      "assign",
+      { name: "assign" },
       attributes,
       diagnostics
     );
@@ -45,9 +45,19 @@ describe("validateAttributes", () => {
         name: "script",
         start: { line: 1, column: 1 },
         end: { line: 1, column: 10 },
+        children: [
+          {
+            type: "text",
+            value: "const x = ;",
+            position: {
+              start: { line: 1, column: 1 },
+              end: { line: 1, column: 10 },
+            },
+          },
+        ],
       };
       const attributes = {
-        content: "const x = ;", // Invalid syntax
+        content: "const x = ;",
         language: "javascript",
       };
 
@@ -119,32 +129,76 @@ describe("validateAttributes", () => {
 
       expect(diagnosticsResult.size).toBe(0);
     });
+
+    test("validates script with valid Python code", () => {
+      const node = {
+        name: "script",
+        start: { line: 1, column: 1 },
+        end: { line: 1, column: 10 },
+      };
+      const attributes = {
+        content: "def greet(name):\n  print(f'Hello, {name}!')",
+        language: "python",
+      };
+
+      const diagnostics = new Set<Diagnostic>();
+      const diagnosticsResult = validateAttributes(
+        node,
+        attributes,
+        diagnostics
+      );
+
+      expect(diagnosticsResult.size).toBe(0);
+    });
+
+    test("fails validation for invalid Python syntax", () => {
+      const node = {
+        name: "script",
+        start: { line: 1, column: 1 },
+        end: { line: 1, column: 10 },
+      };
+      const attributes = {
+        content: "def greet(name)\n  print(f'Hello, {name}!')", // Missing colon
+        language: "python",
+      };
+
+      const diagnostics = new Set<Diagnostic>();
+      const diagnosticsResult = validateAttributes(
+        node,
+        attributes,
+        diagnostics
+      );
+
+      expect(diagnosticsResult.size).toBe(0);
+    });
   });
 
   test("fails validation for assign element without required location attribute", () => {
     const attributes = {
       wrongAttr: "test",
     };
+    const node = {
+      name: "assign",
+      start: { line: 1, column: 1 },
+      end: { line: 1, column: 1 },
+    };
 
     const diagnostics = new Set<Diagnostic>();
-    const diagnosticsResult = validateAttributes(
-      "assign",
-      attributes,
-      diagnostics
-    );
+    const diagnosticsResult = validateAttributes(node, attributes, diagnostics);
 
     expect(diagnosticsResult.size).toBe(1);
     const diagnosticsArray = Array.from(diagnostics);
     expect(diagnosticsArray).toHaveLength(1);
     expect(diagnosticsArray[0]).toEqual(
       expect.objectContaining({
-        message: "Invalid props for element <assign>: Validation error: Required at \"location\"",
+        message:
+          'Invalid props for element <assign>: Validation error: Required at "location"',
         severity: DiagnosticSeverity.Error,
         code: "ATTR001",
         source: "AIML",
         range: {
           start: { line: 1, column: 1 },
-          end: { line: 1, column: 1 },
+          end: { line: 2, column: 2 },
         },
       })
     );
@@ -158,7 +212,7 @@ describe("validateAttributes", () => {
 
     const diagnostics = new Set<Diagnostic>();
     const diagnosticsResult = validateAttributes(
-      "assign",
+      { name: "assign" },
       attributes,
       diagnostics
     );
@@ -174,7 +228,7 @@ describe("validateAttributes", () => {
 
     const diagnostics = new Set<Diagnostic>();
     const diagnosticsResult = validateAttributes(
-      "llm",
+      { name: "llm" },
       attributes,
       diagnostics
     );
@@ -186,26 +240,28 @@ describe("validateAttributes", () => {
     const attributes = {
       instructions: "Some instructions",
     };
+    const node = {
+      name: "llm",
+      start: { line: 1, column: 1 },
+      end: { line: 1, column: 1 },
+    };
 
     const diagnostics = new Set<Diagnostic>();
-    const diagnosticsResult = validateAttributes(
-      "llm",
-      attributes,
-      diagnostics
-    );
+    const diagnosticsResult = validateAttributes(node, attributes, diagnostics);
 
     expect(diagnosticsResult.size).toBe(1);
     const diagnosticsArray = Array.from(diagnostics);
     expect(diagnosticsArray).toHaveLength(1);
     expect(diagnosticsArray[0]).toEqual(
       expect.objectContaining({
-        message: "Invalid props for element <llm>: Validation error: Required at \"model\"",
+        message:
+          'Invalid props for element <llm>: Validation error: Required at "model"',
         severity: DiagnosticSeverity.Error,
         code: "ATTR001",
         source: "AIML",
         range: {
           start: { line: 1, column: 1 },
-          end: { line: 1, column: 1 },
+          end: { line: 2, column: 2 },
         },
       })
     );
@@ -220,7 +276,7 @@ describe("validateAttributes", () => {
 
     const diagnostics = new Set<Diagnostic>();
     const diagnosticsResult = validateAttributes(
-      "transition",
+      { name: "transition" },
       attributes,
       diagnostics
     );
@@ -236,7 +292,7 @@ describe("validateAttributes", () => {
 
     const diagnostics = new Set<Diagnostic>();
     const diagnosticsResult = validateAttributes(
-      "data",
+      { name: "data" },
       attributes,
       diagnostics
     );
@@ -248,26 +304,28 @@ describe("validateAttributes", () => {
     const attributes = {
       type: "string",
     };
+    const node = {
+      name: "data",
+      start: { line: 1, column: 1 },
+      end: { line: 1, column: 1 },
+    };
 
     const diagnostics = new Set<Diagnostic>();
-    const diagnosticsResult = validateAttributes(
-      "data",
-      attributes,
-      diagnostics
-    );
+    const diagnosticsResult = validateAttributes(node, attributes, diagnostics);
 
     expect(diagnosticsResult.size).toBe(1);
     const diagnosticsArray = Array.from(diagnostics);
     expect(diagnosticsArray).toHaveLength(1);
     expect(diagnosticsArray[0]).toEqual(
       expect.objectContaining({
-        message: "Invalid props for element <data>: Validation error: Required at \"id\"",
+        message:
+          'Invalid props for element <data>: Validation error: Required at "id"',
         severity: DiagnosticSeverity.Error,
         code: "ATTR001",
         source: "AIML",
         range: {
           start: { line: 1, column: 1 },
-          end: { line: 1, column: 1 },
+          end: { line: 2, column: 2 },
         },
       })
     );
@@ -280,7 +338,22 @@ describe("validateAttributes", () => {
 
     const diagnostics = new Set<Diagnostic>();
     const diagnosticsResult = validateAttributes(
-      "unknownElement",
+      { name: "unknownElement" },
       attributes,
       diagnostics
     );
+    expect(diagnosticsResult.size).toBe(0);
+  });
+
+  // Add a test for an unknown element, which should pass without validation
+  test("allows unknown elements through without validation", () => {
+    const attributes = { anyAttribute: "anyValue" };
+    const diagnostics = new Set<Diagnostic>();
+    const diagnosticsResult = validateAttributes(
+      { name: "unknownElement" },
+      attributes,
+      diagnostics
+    );
+    expect(diagnosticsResult.size).toBe(0);
+  });
+});

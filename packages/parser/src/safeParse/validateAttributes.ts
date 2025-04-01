@@ -4,6 +4,8 @@ import { fromError } from "zod-validation-error";
 import { getPosition } from "../utils/helpers.js";
 import * as acorn from "acorn";
 import { extractTextFromNode } from "../utils/text-extraction.js";
+// @ts-expect-error no types
+import { Python3Parser } from "dt-python-parser";
 
 type AcornError = {
   message: string;
@@ -19,7 +21,7 @@ type AcornError = {
  * @param tag The element tag name
  * @param attributes The element's attributes
  * @param diagnostics Set to collect validation diagnostics
- * @returns true if validation passed, false if there were errors
+ * @returns diagnostics
  */
 export function validateAttributes(
   node: { name: string; start?: any; end?: any; children?: any[] },
@@ -89,13 +91,11 @@ export function validateAttributes(
     }
 
     if (language === "javascript") {
-      console.log("code", code);
       try {
         acorn.parse(code, {
           ecmaVersion: "latest",
           sourceType: "module",
         });
-        console.log("parsed");
       } catch (error: unknown) {
         const codeLineStart = getPosition(node.children?.[0], "start", "line");
         const codeColumnStart = getPosition(
@@ -122,6 +122,33 @@ export function validateAttributes(
 
     if (language === "python") {
       // TODO validate python code using an AST then typecheck somehow
+      const parser = new Python3Parser();
+      try {
+        parser.parse(code);
+      } catch (error: any) {
+        const codeLineStart = getPosition(node.children?.[0], "start", "line");
+        const codeColumnStart = getPosition(
+          node.children?.[0],
+          "start",
+          "column"
+        );
+        const codeLineEnd = getPosition(node.children?.[0], "end", "line");
+        const codeColumnEnd = getPosition(node.children?.[0], "end", "column");
+
+        // Attempt to extract a meaningful error message
+        const errorMessage = error.message || "Unknown Python syntax error";
+
+        diagnostics.add({
+          message: `Python syntax error: ${errorMessage}`,
+          severity: DiagnosticSeverity.Error,
+          code: "SCRIPT002", // Use a new code for Python errors
+          source: "AIML",
+          range: {
+            start: { line: codeLineStart, column: codeColumnStart },
+            end: { line: codeLineEnd, column: codeColumnEnd },
+          },
+        });
+      }
     }
   }
 
