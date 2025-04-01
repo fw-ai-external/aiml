@@ -18,6 +18,109 @@ describe("validateAttributes", () => {
     expect(diagnosticsResult.size).toBe(0);
   });
 
+  describe("script element validation", () => {
+    test("validates script with valid JavaScript code", () => {
+      const node = {
+        name: "script",
+        start: { line: 1, column: 1 },
+        end: { line: 1, column: 10 },
+      };
+      const attributes = {
+        content: "const x = 1; console.log(x);",
+        language: "javascript",
+      };
+
+      const diagnostics = new Set<Diagnostic>();
+      const diagnosticsResult = validateAttributes(
+        node,
+        attributes,
+        diagnostics
+      );
+
+      expect(diagnosticsResult.size).toBe(0);
+    });
+
+    test("fails validation for invalid JavaScript syntax", () => {
+      const node = {
+        name: "script",
+        start: { line: 1, column: 1 },
+        end: { line: 1, column: 10 },
+      };
+      const attributes = {
+        content: "const x = ;", // Invalid syntax
+        language: "javascript",
+      };
+
+      const diagnostics = new Set<Diagnostic>();
+      const diagnosticsResult = validateAttributes(
+        node,
+        attributes,
+        diagnostics
+      );
+
+      expect(diagnosticsResult.size).toBe(1);
+      const diagnosticsArray = Array.from(diagnostics);
+      expect(diagnosticsArray[0]).toEqual(
+        expect.objectContaining({
+          message: expect.stringContaining("JavaScript syntax error"),
+          severity: DiagnosticSeverity.Error,
+          code: "SCRIPT001",
+          source: "AIML",
+        })
+      );
+    });
+
+    test("fails validation for missing code content", () => {
+      const node = {
+        name: "script",
+        start: { line: 1, column: 1 },
+        end: { line: 1, column: 10 },
+      };
+      const attributes = {
+        language: "javascript",
+      };
+
+      const diagnostics = new Set<Diagnostic>();
+      const diagnosticsResult = validateAttributes(
+        node,
+        attributes,
+        diagnostics
+      );
+
+      expect(diagnosticsResult.size).toBe(1);
+      const diagnosticsArray = Array.from(diagnostics);
+      expect(diagnosticsArray[0]).toEqual(
+        expect.objectContaining({
+          message: "Script elements must contain code as a child/children",
+          severity: DiagnosticSeverity.Error,
+          code: "ATTR001",
+          source: "AIML",
+        })
+      );
+    });
+
+    test("skips validation for non-JavaScript language", () => {
+      const node = {
+        name: "script",
+        start: { line: 1, column: 1 },
+        end: { line: 1, column: 10 },
+      };
+      const attributes = {
+        content: "print('Hello')",
+        language: "python",
+      };
+
+      const diagnostics = new Set<Diagnostic>();
+      const diagnosticsResult = validateAttributes(
+        node,
+        attributes,
+        diagnostics
+      );
+
+      expect(diagnosticsResult.size).toBe(0);
+    });
+  });
+
   test("fails validation for assign element without required location attribute", () => {
     const attributes = {
       wrongAttr: "test",
@@ -35,11 +138,14 @@ describe("validateAttributes", () => {
     expect(diagnosticsArray).toHaveLength(1);
     expect(diagnosticsArray[0]).toEqual(
       expect.objectContaining({
-        message: expect.stringContaining(
-          "Required attribute 'location' is missing"
-        ),
+        message: "Invalid props for element <assign>: Validation error: Required at \"location\"",
         severity: DiagnosticSeverity.Error,
         code: "ATTR001",
+        source: "AIML",
+        range: {
+          start: { line: 1, column: 1 },
+          end: { line: 1, column: 1 },
+        },
       })
     );
   });
@@ -93,11 +199,14 @@ describe("validateAttributes", () => {
     expect(diagnosticsArray).toHaveLength(1);
     expect(diagnosticsArray[0]).toEqual(
       expect.objectContaining({
-        message: expect.stringContaining(
-          "Required attribute 'model' is missing"
-        ),
+        message: "Invalid props for element <llm>: Validation error: Required at \"model\"",
         severity: DiagnosticSeverity.Error,
         code: "ATTR001",
+        source: "AIML",
+        range: {
+          start: { line: 1, column: 1 },
+          end: { line: 1, column: 1 },
+        },
       })
     );
   });
@@ -152,9 +261,14 @@ describe("validateAttributes", () => {
     expect(diagnosticsArray).toHaveLength(1);
     expect(diagnosticsArray[0]).toEqual(
       expect.objectContaining({
-        message: expect.stringContaining("Required attribute 'id' is missing"),
+        message: "Invalid props for element <data>: Validation error: Required at \"id\"",
         severity: DiagnosticSeverity.Error,
         code: "ATTR001",
+        source: "AIML",
+        range: {
+          start: { line: 1, column: 1 },
+          end: { line: 1, column: 1 },
+        },
       })
     );
   });
@@ -170,7 +284,3 @@ describe("validateAttributes", () => {
       attributes,
       diagnostics
     );
-
-    expect(diagnosticsResult.size).toBe(0);
-  });
-});

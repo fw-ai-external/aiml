@@ -291,11 +291,7 @@ export function astToElementTree(
     }
 
     // For valid AIML elements, proceed with normal processing
-    diagnostics = validateAttributes(
-      node.name,
-      processedAttributes,
-      diagnostics
-    );
+    diagnostics = validateAttributes(node, processedAttributes, diagnostics);
 
     const nodeConfig: ElementDefinition =
       allElementConfigs[

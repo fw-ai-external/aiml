@@ -23,6 +23,7 @@
   "dependencies": {
     "@fireworks/shared": "workspace:*",
     "@mdx-js/typescript-plugin": "^0.0.8",
+    "acorn": "^8.14.1",
     "ajv": "^8.17.1",
     "arktype": "^2.1.0",
     "js-sourcemap": "^0.0.6",
