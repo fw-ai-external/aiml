@@ -18,6 +18,7 @@
     "dev": "tsup --watch"
   },
   "dependencies": {
+    "acorn": "^8.14.1",
     "ai": "^4.1.63"
   },
   "devDependencies": {

@@ -70,13 +70,11 @@ export function validateAttributes(
     }
   }
 
-  console.log("normalizedTag", normalizedTag);
   if (normalizedTag === "script") {
     const code = attributes.content || extractTextFromNode(node);
     const language = attributes.language || "javascript";
 
     if (!code) {
-      console.log("no code", node);
       diagnostics.add({
         message: "Script elements must contain code as a child/children",
         severity: DiagnosticSeverity.Error,

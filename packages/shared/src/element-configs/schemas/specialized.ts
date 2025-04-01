@@ -4,6 +4,7 @@ import {
   type BaseElementDefinition,
   ValueType,
 } from "../../types";
+import { jsExpressionSchema, jsTemplateStringSchema } from "../../utils/zod";
 
 /**
  * Specialized Elements
@@ -17,8 +18,8 @@ export const llmConfig: BaseElementDefinition = {
   propsSchema: z.object({
     id: z.string().optional(),
     model: z.string(),
-    instructions: z.string().optional(),
-    prompt: z.string().optional(), // Add prompt field
+    instructions: jsTemplateStringSchema.optional(),
+    prompt: jsTemplateStringSchema.optional(), // Add prompt field
     temperature: z.number().min(0).max(2).optional(),
     includeChatHistory: z.boolean().optional(),
     stopSequences: z.array(z.string()).optional(),
@@ -75,7 +76,7 @@ export const dataConfig: BaseElementDefinition = {
   propsSchema: z.object({
     id: z.string(),
     src: z.string().optional(),
-    expr: z.string().optional(),
+    expr: jsExpressionSchema.optional(),
     content: z.string().optional(),
     type: z
       .enum([
@@ -120,12 +121,7 @@ export const workflowConfig: BaseElementDefinition = {
   role: "state",
   propsSchema: z.object({
     id: z.string().optional(),
-    version: z.string().optional(),
     initial: z.string().optional(),
-    name: z.string().optional(),
-    xmlns: z.string().optional(),
-    datamodel: z.string().optional(),
-    binding: z.string().optional(),
   }),
   description: "Root workflow element",
   allowedChildren: [
