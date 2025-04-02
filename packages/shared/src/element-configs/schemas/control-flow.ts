@@ -1,6 +1,9 @@
 import { z } from "zod";
 import type { AllowedChildrenType, BaseElementDefinition } from "../../types";
-import { jsExpressionSchema } from "../../utils/zod";
+import {
+  elementConditionCallbackSchema,
+  elementArrayExpressionCallbackSchema,
+} from "../../utils/zod";
 
 /**
  * Control Flow Elements
@@ -14,7 +17,7 @@ export const ifConfig: BaseElementDefinition = {
   role: "action",
   propsSchema: z.object({
     id: z.string().optional(),
-    cond: jsExpressionSchema,
+    cond: elementConditionCallbackSchema,
   }),
   description: "Conditional execution based on a test condition",
   allowedChildren: ["elseif", "else"] as AllowedChildrenType,
@@ -31,7 +34,7 @@ export const elseIfConfig: BaseElementDefinition = {
   role: "action",
   propsSchema: z.object({
     id: z.string().optional(),
-    cond: jsExpressionSchema,
+    cond: elementConditionCallbackSchema,
   }),
   description: "Alternative conditional branch for an if element",
   allowedChildren: "any" as AllowedChildrenType,
@@ -62,7 +65,7 @@ export const foreachConfig: BaseElementDefinition = {
   role: "action",
   propsSchema: z.object({
     id: z.string().optional(),
-    items: jsExpressionSchema,
+    items: elementArrayExpressionCallbackSchema,
     var: z.string(),
     index: z.string().optional(),
   }),
@@ -81,7 +84,7 @@ export const transitionConfig: BaseElementDefinition = {
   propsSchema: z.object({
     id: z.string().optional(),
     event: z.string().optional(),
-    cond: jsExpressionSchema.optional(),
+    cond: elementConditionCallbackSchema.optional(),
     target: z.string().optional(),
     type: z.enum(["internal", "external"]).optional(),
   }),

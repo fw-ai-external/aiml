@@ -4,7 +4,10 @@ import {
   type BaseElementDefinition,
   ValueType,
 } from "../../types";
-import { jsExpressionSchema, jsTemplateStringSchema } from "../../utils/zod";
+import {
+  elementExpressionCallbackSchema,
+  jsTemplateStringSchema,
+} from "../../utils/zod";
 
 /**
  * Specialized Elements
@@ -28,7 +31,7 @@ export const llmConfig: BaseElementDefinition = {
     tools: z.array(z.any()).optional(),
     grammar: z.string().optional(),
     repetitionPenalty: z.number().optional(),
-    responseFormat: z.enum(["text", "json"]).optional(),
+    responseFormat: z.union([z.literal("text"), z.object({})]).optional(),
   }),
   description: "Invokes an external service (LLM/AI integration)",
   allowedChildren: ["prompt", "instructions"] as AllowedChildrenType,
@@ -76,8 +79,8 @@ export const dataConfig: BaseElementDefinition = {
   propsSchema: z.object({
     id: z.string(),
     src: z.string().optional(),
-    expr: jsExpressionSchema.optional(),
-    value: jsExpressionSchema.optional(),
+    expr: elementExpressionCallbackSchema.optional(),
+    value: z.any().optional(),
     content: z.string().optional(),
     type: z
       .enum([

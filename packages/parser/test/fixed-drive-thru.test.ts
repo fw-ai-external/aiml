@@ -32,7 +32,7 @@ describe("Fixed AIML Parser - Drive-Thru Example", () => {
 
       // Check for specific error codes we want to handle specially
       const nonXmlSyntaxErrors = errors.filter(
-        (d) => !["AIML007", "ATTR001"].includes(d.code)
+        (d) => !["AIML007", "ATTR001"].includes(d.code ?? "")
       );
       expect(nonXmlSyntaxErrors.length).toBe(0);
     } catch (error) {

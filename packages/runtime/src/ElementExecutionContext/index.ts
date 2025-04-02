@@ -26,7 +26,7 @@ import { isErrorResult } from "@fireworks/shared";
  * Serialized execution context
  */
 export type ElementExecutionContextSerialized = Omit<
-  InstanceType<typeof ExecutionContext>,
+  InstanceType<typeof ElementExecutionContext>,
   | "serialize"
   | "builtinKeys"
   | "_scopedDataModel"
@@ -45,7 +45,7 @@ export type ElementExecutionContextSerialized = Omit<
 /**
  * Execution context for elements
  */
-export class ExecutionContext<
+export class ElementExecutionContext<
   PropValues extends {} = {},
   InputValue extends StepValueResult = StepValueResult,
 > {
@@ -91,7 +91,7 @@ export class ExecutionContext<
   };
 
   element?: BaseElement;
-  parentContext?: ExecutionContext<any, any>;
+  parentContext?: ElementExecutionContext<any, any>;
 
   // Required by StepExecutionContext
   runId: string;
@@ -126,7 +126,7 @@ export class ExecutionContext<
       id: string;
     };
     element?: BaseElement;
-    parentContext?: ExecutionContext<any, any>;
+    parentContext?: ElementExecutionContext<any, any>;
   }) {
     // TODO: validate input using input schema
     this.input = params.input;
@@ -203,7 +203,8 @@ export class ExecutionContext<
       if (value instanceof WeakRef) {
         return [key, value.deref()?.toJSON()];
       }
-      if (!ExecutionContext.builtinKeys.includes(key)) return [null, null];
+      if (!ElementExecutionContext.builtinKeys.includes(key))
+        return [null, null];
       return [key, value];
     });
 
@@ -233,8 +234,8 @@ export class ExecutionContext<
    */
   static hydrate(
     serialized: ElementExecutionContextSerialized
-  ): ExecutionContext<any, any> {
-    return new ExecutionContext<any, any>({
+  ): ElementExecutionContext<any, any> {
+    return new ElementExecutionContext<any, any>({
       input: new StepValue(serialized.input),
       datamodel: serialized.datamodel,
       requestInput: {
@@ -252,6 +253,3 @@ export class ExecutionContext<
     });
   }
 }
-
-// For backward compatibility
-export const ElementExecutionContext = ExecutionContext;

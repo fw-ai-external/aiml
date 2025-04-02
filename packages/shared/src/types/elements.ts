@@ -1,4 +1,9 @@
 import type { z } from "zod";
+import type { Secrets, StepValueResult } from "./values";
+import type { CoreAssistantMessage, CoreUserMessage, UserContent } from "ai";
+import type { ChatCompletionMessageToolCall } from "openai/resources/chat/completions";
+import type { CoreToolMessage } from "@mastra/core";
+
 /**
  * This file contains all element type definitions for the AIML system.
  * It serves as the single source of truth for element types, roles, and relationships.
@@ -317,4 +322,32 @@ export type ElementDefinition<
   allowedChildren?: AllowedChildrenType | ((props: Props) => string[]);
   description?: string;
   documentation?: string;
+};
+
+export type ElementExecutionContextSerialized = {
+  id: string;
+  props: Record<string, any>;
+  input: StepValueResult;
+  datamodel: Record<string, any>;
+  requestInput: {
+    userMessage: UserContent;
+    systemMessage?: string;
+    chatHistory: Array<
+      CoreUserMessage | CoreAssistantMessage | CoreToolMessage
+    >;
+    clientSideTools: ChatCompletionMessageToolCall.Function[];
+  };
+  machine: {
+    id: string;
+    secrets: Secrets;
+  };
+  state: {
+    id: string;
+    props: Record<string, any>;
+    input: StepValueResult;
+  };
+  run: {
+    id: string;
+  };
+  element?: SerializedBaseElement;
 };

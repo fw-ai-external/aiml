@@ -6,58 +6,152 @@ import * as acorn from "acorn";
 // Adjust this regex based on the exact character set you want to allow in simple strings.
 // This example allows letters, numbers, spaces, and common punctuation, but not backticks.
 const simpleStringRegex = /^[\w\s.,!?'"()\-+=\/\*:;]*$/;
-
-// Custom Zod schema for validating JavaScript expressions
-export const jsExpressionSchema = z
-  .string() // Start with string type
-  .optional() // Make it optional
-  // Use .superRefine() for complex validation involving ctx
+export const jsCodeStringSchema = z
+  .string()
+  .optional()
   .superRefine((val: string | undefined, ctx: RefinementCtx) => {
-    // If val is undefined (due to .optional()), it's valid.
     if (val === undefined) {
-      return; // Pass validation
+      return; // Optional case is valid
     }
 
-    // Handle JSX/MDX expression syntax
-    if (val.startsWith("{") && val.endsWith("}")) {
-      // Extract the expression inside curly braces
-      const expr = val.slice(1, -1);
-      try {
-        acorn.parse(expr, { ecmaVersion: "latest", sourceType: "script" });
-        // Parsing succeeded, no action needed
-        return;
-      } catch (e: unknown) {
-        let message = "Invalid JavaScript expression";
-        if (e instanceof Error) {
-          // Extract the message up to the first line break
-          message = e.message.split("\n")[0] || "Invalid syntax";
-        }
-        // Add the specific parse error as a custom issue
-        ctx.addIssue({
-          code: ZodIssueCode.custom,
-          message: message,
-        });
-        return;
-      }
+    // Always validate plain strings
+    if (simpleStringRegex.test(val)) {
+      return; // Simple strings are always valid
     }
 
-    // If not in curly braces, try parsing directly
+    // For strings with template-like syntax, check if they'd be valid inside backticks
     try {
-      acorn.parse(val, { ecmaVersion: "latest", sourceType: "script" });
-      // Parsing succeeded, no action needed
+      console.log("val", `\`${val}\``);
+      // Try parsing the input as if it were wrapped in backticks
+      acorn.parse(`\`${val}\``, {
+        ecmaVersion: "latest",
+        sourceType: "script",
+      });
+
+      // If we get here, it parsed successfully as a template literal
+      return; // Valid
     } catch (e: unknown) {
-      let message = "Invalid JavaScript expression";
+      // If parsing fails, it's not a valid template string
+      let message = "Invalid template string syntax";
       if (e instanceof Error) {
-        // Extract the message up to the first line break
         message = e.message.split("\n")[0] || "Invalid syntax";
       }
-      // Add the specific parse error as a custom issue
+
       ctx.addIssue({
         code: ZodIssueCode.custom,
         message: message,
       });
     }
   });
+
+export const elementExecutionContextSerializedSchema = z.object({
+  input: z.union([
+    z.string(),
+    z.object({} as any),
+    z.boolean(),
+    z.null(),
+    z.array(z.any()),
+  ]),
+  props: z.object({} as any),
+  datamodel: z.object({} as any),
+  requestInput: z.object({
+    userMessage: z.any(),
+    systemMessage: z.string().optional(),
+    chatHistory: z.array(
+      z.object({
+        role: z.enum([
+          "user",
+          "assistant",
+          "tool-call",
+          "tool-response",
+          "system",
+        ]),
+        content: z.union([
+          z.string(),
+          z.object({
+            type: z.union([z.literal("text"), z.literal("image")]),
+            text: z.string().optional(),
+            image: z.string().optional(),
+          }),
+        ]),
+      })
+    ),
+    clientSideTools: z.array(
+      z.object({
+        type: z.literal("function"),
+        function: z.object({
+          name: z.string(),
+          description: z.string(),
+          parameters: z.object({
+            type: z.literal("object"),
+            properties: z.record(z.string(), z.any()),
+            required: z.array(z.string()),
+          }),
+        }),
+      })
+    ),
+  }),
+  machine: z.object({
+    id: z.string(),
+    secrets: z.object({} as any),
+  }),
+  run: z.object({
+    id: z.string(),
+  }),
+  element: z.object({
+    id: z.string(),
+    type: z.string(),
+    props: z.object({} as any),
+    children: z.array(z.any()),
+  }),
+});
+
+export const elementExpressionCallbackSchema = z.union([
+  z
+    .function()
+    .args(elementExecutionContextSerializedSchema)
+    .returns(z.any())
+    .superRefine((val, ctx: RefinementCtx) => {
+      if (typeof val !== "function") {
+        ctx.addIssue({
+          code: ZodIssueCode.custom,
+          message: "Expected a function",
+        });
+      }
+
+      val.toString();
+    }),
+  jsCodeStringSchema,
+]);
+
+export const elementArrayExpressionCallbackSchema = z.union([
+  z
+    .function()
+    .args(elementExecutionContextSerializedSchema)
+    .returns(z.array(z.any()))
+    .superRefine((val, ctx: RefinementCtx) => {
+      if (typeof val !== "function") {
+        ctx.addIssue({
+          code: ZodIssueCode.custom,
+          message: "Expected a function",
+        });
+      }
+
+      return val.toString();
+    }),
+  jsCodeStringSchema,
+]);
+
+export const elementConditionCallbackSchema = z.union([
+  z
+    .function()
+    .args(elementExecutionContextSerializedSchema)
+    .returns(z.boolean())
+    .superRefine((val, ctx: RefinementCtx) => {
+      return val.toString();
+    }),
+  jsCodeStringSchema,
+]);
 
 export const jsTemplateStringSchema = z
   .string()

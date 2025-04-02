@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { AllowedChildrenType, BaseElementDefinition } from "../../types";
-import { jsExpressionSchema } from "../../utils/zod";
+import { elementExpressionCallbackSchema } from "../../utils/zod";
 
 /**
  * Action Elements
@@ -15,7 +15,7 @@ export const assignConfig: BaseElementDefinition = {
   propsSchema: z.object({
     id: z.string().optional(),
     location: z.string(),
-    expr: jsExpressionSchema,
+    expr: elementExpressionCallbackSchema,
   }),
   description: "Modifies the data model",
   allowedChildren: "none" as AllowedChildrenType,
@@ -32,9 +32,7 @@ export const logConfig: BaseElementDefinition = {
   propsSchema: z.object({
     id: z.string().optional(),
     label: z.string().optional(),
-    expr: jsExpressionSchema.refine((val) => val !== undefined, {
-      message: "Log 'expr' cannot be empty",
-    }),
+    expr: elementExpressionCallbackSchema,
   }),
   description: "Outputs messages to the console or tracing span",
   allowedChildren: "none" as AllowedChildrenType,
@@ -85,7 +83,7 @@ export const raiseConfig: BaseElementDefinition = {
   propsSchema: z.object({
     id: z.string().optional(),
     event: z.string().optional(),
-    eventexpr: jsExpressionSchema,
+    eventexpr: elementExpressionCallbackSchema,
   }),
   description: "Raises an internal event",
   allowedChildren: "none" as AllowedChildrenType,
@@ -102,13 +100,13 @@ export const sendConfig: BaseElementDefinition = {
   propsSchema: z.object({
     id: z.string().optional(),
     event: z.string().optional(),
-    eventexpr: jsExpressionSchema,
+    eventexpr: elementExpressionCallbackSchema,
     target: z.string().optional(),
-    targetexpr: jsExpressionSchema,
+    targetexpr: elementExpressionCallbackSchema,
     type: z.string().optional(),
-    typeexpr: jsExpressionSchema,
+    typeexpr: elementExpressionCallbackSchema,
     delay: z.string().optional(),
-    delayexpr: jsExpressionSchema,
+    delayexpr: elementExpressionCallbackSchema,
     namelist: z.string().optional(),
   }),
   description: "Sends an event to an external system",
