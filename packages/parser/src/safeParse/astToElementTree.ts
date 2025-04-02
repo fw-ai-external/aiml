@@ -70,11 +70,6 @@ export function processAttributes(attributes: any[]): Record<string, any> {
               expressionType === "CallExpression" ||
               expressionType === "TemplateLiteral"
             ) {
-              console.log(
-                `result[${attr.name}]`,
-                expressionType,
-                `(context) => { const ctx = context; return ${attr.value.value}}`
-              );
               // expression short hand
               result[attr.name] = eval(
                 `(context) => { const ctx = context; return ${attr.value.value}}`
@@ -83,32 +78,15 @@ export function processAttributes(attributes: any[]): Record<string, any> {
               expressionType === "ObjectExpression" ||
               expressionType === "ArrayExpression"
             ) {
-              console.log(
-                `obj result[${attr.name}]`,
-                expressionType,
-                `${attr.value.value}`
-              );
-              // template literal short hand
-              try {
-                result[attr.name] = eval(attr.value.value);
-              } catch (e) {
-                console.error(e);
-              }
+              // TODO: This is a hack to get the value of the expression
+              // TODO: We should use a proper parser for this
+              result[attr.name] = eval(`() => (${attr.value.value})`)();
             } else {
-              console.log(
-                `other result[${attr.name}]`,
-                expressionType,
-                attr.value.value
-              );
-              // Other expression types
-              result[attr.name] = eval(attr.value.value);
+              // TODO: This is a hack to get the value of the expression
+              // TODO: We should use a proper parser for this
+              result[attr.name] = eval(`() => (${attr.value.value})`)();
             }
           } else {
-            console.log(
-              `result other [${attr.name}]`,
-              attr.value.value,
-              attr.value.data.estree.body[0]
-            );
             // Fallback if no expression is found this is a string
             result[attr.name] = `\${${attr.value.value}}`;
           }
