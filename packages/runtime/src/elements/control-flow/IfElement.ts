@@ -1,22 +1,11 @@
 import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
 import type { ExecutionGraphElement } from "@fireworks/shared";
 import type { BaseElement } from "../BaseElement";
 import { createElementDefinition } from "../createElementFactory";
-
-const ifSchema = z.object({
-  id: z.string().optional(),
-  cond: z.string(),
-});
-
-type IfProps = z.infer<typeof ifSchema>;
+import { ifConfig } from "@fireworks/shared";
 
 export const If = createElementDefinition({
-  tag: "if",
-  propsSchema: ifSchema,
-  role: "state",
-  elementType: "if",
-  allowedChildren: ["elseif", "else"],
+  ...ifConfig,
   onExecutionGraphConstruction(buildContext): ExecutionGraphElement {
     // If we have a cache system:
     const cached = buildContext.getCachedGraphElement(

@@ -21,7 +21,6 @@ export const jsCodeStringSchema = z
 
     // For strings with template-like syntax, check if they'd be valid inside backticks
     try {
-      console.log("val", `\`${val}\``);
       // Try parsing the input as if it were wrapped in backticks
       acorn.parse(`\`${val}\``, {
         ecmaVersion: "latest",
@@ -153,39 +152,13 @@ export const elementConditionCallbackSchema = z.union([
   jsCodeStringSchema,
 ]);
 
-export const jsTemplateStringSchema = z
-  .string()
-  .optional()
-  .superRefine((val: string | undefined, ctx: RefinementCtx) => {
-    if (val === undefined) {
-      return; // Optional case is valid
-    }
-
-    // Always validate plain strings
-    if (simpleStringRegex.test(val)) {
-      return; // Simple strings are always valid
-    }
-
-    // For strings with template-like syntax, check if they'd be valid inside backticks
-    try {
-      // Try parsing the input as if it were wrapped in backticks
-      acorn.parse(`\`${val}\``, {
-        ecmaVersion: "latest",
-        sourceType: "script",
-      });
-
-      // If we get here, it parsed successfully as a template literal
-      return; // Valid
-    } catch (e: unknown) {
-      // If parsing fails, it's not a valid template string
-      let message = "Invalid template string syntax";
-      if (e instanceof Error) {
-        message = e.message.split("\n")[0] || "Invalid syntax";
-      }
-
-      ctx.addIssue({
-        code: ZodIssueCode.custom,
-        message: message,
-      });
-    }
-  });
+export const jsTemplateStringSchema = z.union([
+  z
+    .function()
+    .args(elementExecutionContextSerializedSchema)
+    .returns(z.string())
+    .superRefine((val, ctx: RefinementCtx) => {
+      return val.toString();
+    }),
+  jsCodeStringSchema,
+]);

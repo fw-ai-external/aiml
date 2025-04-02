@@ -12,9 +12,6 @@ import type { ExecutionGraphElement } from "@fireworks/shared";
 // Use the LLMProps type from element-config
 export const LLM = createElementDefinition({
   ...llmConfig,
-  elementType: "invoke",
-  role: "action",
-  tag: "llm" as const,
   allowedChildren: "text",
   onExecutionGraphConstruction(buildContext) {
     const llmNode: ExecutionGraphElement = {

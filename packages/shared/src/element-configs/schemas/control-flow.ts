@@ -20,7 +20,7 @@ export const ifConfig: BaseElementDefinition = {
     cond: elementConditionCallbackSchema,
   }),
   description: "Conditional execution based on a test condition",
-  allowedChildren: ["elseif", "else"] as AllowedChildrenType,
+  allowedChildren: "any" as AllowedChildrenType,
   documentation:
     "Conditional execution based on a test condition, can contain elseif and else blocks",
 };

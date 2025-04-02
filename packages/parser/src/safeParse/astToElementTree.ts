@@ -49,55 +49,71 @@ export function processAttributes(attributes: any[]): Record<string, any> {
         result[attr.name] = attr.value;
       } else if (attr.value?.type === "mdxJsxAttributeValueExpression") {
         // Use AST information from the expression if available
-        if (attr.value.data && attr.value.data.estree) {
+        if (attr.value.data?.estree) {
           const expression = attr.value.data.estree.body[0]?.expression;
 
           if (expression) {
             const expressionType = expression.type;
 
-            if (expressionType === "ArrayExpression") {
-              // Array expression: []
-              result[attr.name] = `\${array:${attr.value.value}}`;
-            } else if (expressionType === "ObjectExpression") {
-              // Object expression: {}
-              result[attr.name] = `\${object:${attr.value.value}}`;
-            } else if (
+            if (
               expressionType === "ArrowFunctionExpression" ||
               expressionType === "FunctionExpression"
             ) {
               // Function expression: () => {} or function() {}
-              result[attr.name] = `\${function:${attr.value.value}}`;
+              result[attr.name] = attr.value.value;
+            } else if (
+              expressionType === "LogicalExpression" ||
+              expressionType === "BinaryExpression" ||
+              expressionType === "UnaryExpression" ||
+              expressionType === "ConditionalExpression" ||
+              expressionType === "MemberExpression" ||
+              expressionType === "CallExpression" ||
+              expressionType === "TemplateLiteral"
+            ) {
+              console.log(
+                `result[${attr.name}]`,
+                expressionType,
+                `(context) => { const ctx = context; return ${attr.value.value}}`
+              );
+              // expression short hand
+              result[attr.name] = eval(
+                `(context) => { const ctx = context; return ${attr.value.value}}`
+              );
+            } else if (
+              expressionType === "ObjectExpression" ||
+              expressionType === "ArrayExpression"
+            ) {
+              console.log(
+                `obj result[${attr.name}]`,
+                expressionType,
+                `${attr.value.value}`
+              );
+              // template literal short hand
+              try {
+                result[attr.name] = eval(attr.value.value);
+              } catch (e) {
+                console.error(e);
+              }
             } else {
+              console.log(
+                `other result[${attr.name}]`,
+                expressionType,
+                attr.value.value
+              );
               // Other expression types
-              result[attr.name] = `\${${attr.value.value}}`;
+              result[attr.name] = eval(attr.value.value);
             }
           } else {
-            // Fallback if no expression is found
+            console.log(
+              `result other [${attr.name}]`,
+              attr.value.value,
+              attr.value.data.estree.body[0]
+            );
+            // Fallback if no expression is found this is a string
             result[attr.name] = `\${${attr.value.value}}`;
           }
         } else {
-          // Fallback to the old approach if estree data is not available
-          const expressionValue = attr.value.value.trim();
-
-          // Fallback checks for expressions without full AST info
-          if (
-            expressionValue.includes("=>") ||
-            /^\s*function\s*\(/.test(expressionValue)
-          ) {
-            result[attr.name] = `\${function:${expressionValue}}`;
-          } else if (
-            expressionValue.startsWith("[") &&
-            expressionValue.endsWith("]")
-          ) {
-            result[attr.name] = `\${array:${expressionValue}}`;
-          } else if (
-            expressionValue.startsWith("{") &&
-            expressionValue.endsWith("}")
-          ) {
-            result[attr.name] = `\${object:${expressionValue}}`;
-          } else {
-            result[attr.name] = `\${${expressionValue}}`;
-          }
+          result[attr.name] = attr.value.value;
         }
       }
     }
