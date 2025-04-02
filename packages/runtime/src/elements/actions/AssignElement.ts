@@ -1,5 +1,4 @@
 import { type AssignProps, assignConfig } from "@fireworks/shared";
-import { v4 as uuidv4 } from "uuid";
 import type { ElementExecutionContext } from "../../ElementExecutionContext";
 import type { BuildContext } from "../../graphBuilder/Context";
 import type { ExecutionReturnType } from "../../types";
@@ -54,8 +53,8 @@ export const Assign = createElementDefinition({
 
   onExecutionGraphConstruction(buildContext: BuildContext) {
     return {
-      id: buildContext.attributes.id,
-      key: buildContext.attributes.id ?? uuidv4(),
+      id: buildContext.elementKey,
+      key: buildContext.elementKey,
       type: "action",
       tag: "assign",
       attributes: {

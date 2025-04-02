@@ -13,9 +13,9 @@ export const assignConfig: BaseElementDefinition = {
   elementType: "assign",
   role: "action",
   propsSchema: z.object({
-    id: z.string().optional(),
     location: z.string(),
-    expr: elementExpressionCallbackSchema,
+    action: z.enum(["assign", "increment", "decrement", "append"]).optional(),
+    expr: elementExpressionCallbackSchema.optional(),
   }),
   description: "Modifies the data model",
   allowedChildren: "none" as AllowedChildrenType,
