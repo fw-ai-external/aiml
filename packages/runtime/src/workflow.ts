@@ -305,53 +305,20 @@ export class Workflow<
    * @returns A record of all context values
    */
   public getContextValues(): Record<string, any> {
-    try {
-      const result: Record<string, any> = {};
-
-      // Safely access workflow state if available
-      try {
-        // Since we're not sure about the exact signature or implementation of getState,
-        // let's use a safer approach using any to bypass type checking
-        // This isn't ideal, but it's a pragmatic solution given the constraints
-        const state = (this.workflow as any).getState?.(this.workflow as any);
-
-        if (state && typeof state === "object") {
-          // Handle both direct object and promise responses
-          const processState = (stateObj: any) => {
-            if (stateObj && typeof stateObj === "object" && stateObj.context) {
-              const context = stateObj.context;
-
-              // Extract datamodel
-              if (context.datamodel) {
-                result.datamodel = this.sanitizeForJSON(context.datamodel);
-              }
-
-              // Extract steps data
-              if (context.steps) {
-                result.steps = this.sanitizeForJSON(context.steps);
-              }
-            }
-          };
-
-          // Handle potential promise
-          if (state.then && typeof state.then === "function") {
-            // Just log that we found a promise but can't handle it synchronously
-            console.log(
-              "Workflow state is a promise. Cannot extract synchronously."
-            );
-          } else {
-            processState(state);
-          }
-        }
-      } catch (e) {
-        console.error("Error accessing workflow state:", e);
+    const fields = this.datamodel.getAllFieldDefinitions();
+    // for each field, get the value
+    const result: Record<string, any> = {};
+    const scopes = this.datamodel.getAllScopes();
+    for (const scope of scopes) {
+      for (const [fieldName, fieldDef] of fields) {
+        // Get the field value from all relevant scopes
+        result[fieldName] =
+          this.datamodel.getFieldValue(scope, fieldName) ||
+          fieldDef.defaultValue ||
+          null;
       }
-
-      return result;
-    } catch (error) {
-      console.error("Error getting context values:", error);
-      return {};
     }
+    return result;
   }
 
   /**

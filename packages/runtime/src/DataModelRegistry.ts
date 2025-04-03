@@ -151,13 +151,19 @@ export class DataModelRegistry {
     });
   }
 
+  public getAllScopes() {
+    return Array.from(this.dataModels.keys());
+  }
+
   /**
    * Get all field definitions relevant to a scope
    * @param scope Dot-notated scope key
    */
-  public getAllFieldDefinitions(scope: string): Map<string, FieldDefinition> {
+  public getAllFieldDefinitions(scope?: string): Map<string, FieldDefinition> {
     const result = new Map<string, FieldDefinition>();
-    const parentScopes = this.getParentScopes(scope);
+    const parentScopes = scope
+      ? this.getParentScopes(scope)
+      : this.getAllScopes();
 
     // Process from most specific to least specific (first definition wins)
     for (const parentScope of parentScopes) {

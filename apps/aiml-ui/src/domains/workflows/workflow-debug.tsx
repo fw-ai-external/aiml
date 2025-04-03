@@ -20,6 +20,7 @@ export function WorkflowDebug({
     astNodes,
     executionGraph,
     datamodel,
+    contextValues,
     updatePrompt,
     isUpdating,
   } = useWorkflow(workflowId);
@@ -66,27 +67,7 @@ export function WorkflowDebug({
                   : debugType === "elementTree"
                     ? elementTree
                     : debugType === "datamodel"
-                      ? (
-                          Object.keys(datamodel.scopedDataModels).reduce(
-                            (acc, scope) => ({
-                              ...acc,
-                              [scope]: Object.keys(
-                                datamodel.scopedDataModels[scope]
-                              ).reduce(
-                                (acc, field) => ({
-                                  ...acc,
-                                  [field]:
-                                    datamodel.fieldValues[field] ||
-                                    datamodel.scopedDataModels[scope][field]
-                                      .defaultValue ||
-                                    null,
-                                }),
-                                {}
-                              ),
-                            }),
-                            {}
-                          ) as any
-                        ).root
+                      ? contextValues || {}
                       : executionGraph
               }
             />

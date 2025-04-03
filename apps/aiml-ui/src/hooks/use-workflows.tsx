@@ -59,6 +59,7 @@ type WorkflowContextType = {
         stepGraph?: ExecutionGraphElement;
         elementTree?: SerializedBaseElement;
         executionGraph?: any;
+        contextValues: Record<string, any>;
       })
     | null;
   isLoading: boolean;
@@ -167,6 +168,7 @@ export const useWorkflow = (workflowId: string) => {
     elementTree: workflow?.elementTree,
     triggerSchema: workflow?.triggerSchema,
     executionGraph: workflow?.executionGraph,
+    contextValues: workflow?.contextValues,
     isLoading,
     isUpdating,
     updatePrompt,
