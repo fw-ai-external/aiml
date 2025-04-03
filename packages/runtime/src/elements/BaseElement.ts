@@ -237,30 +237,40 @@ export class BaseElement
     const datamodel: DataModelRegistry = context.context.getDatamodel();
     const scopedDatamodel = datamodel.getScopedDataModel(this.scope.join("."));
 
+    let executionContext = new ElementExecutionContext({
+      ...context,
+      input: context.context.input,
+      requestInput: context.context.workflowInput || {},
+      datamodel: scopedDatamodel,
+      state: {
+        id: this.id,
+        props: this.attributes,
+        input: context.context.input,
+      },
+      props: this.attributes,
+      machine: {
+        id: context.context.machine?.id,
+        secrets: {
+          system: {},
+          ...context?.context.triggerData?.secrets,
+        },
+      },
+      run: {
+        id: context.runId,
+      },
+    });
+
+    Object.entries(this.attributes).forEach(([key, value]) => {
+      if (typeof value === "string" && value.startsWith("::FUNCTION::")) {
+        executionContext.props[key] = eval(value.slice(12))(executionContext);
+      } else {
+        executionContext.props[key] = value;
+      }
+    });
+
     try {
       const executeResult = await this._execute(
-        new ElementExecutionContext({
-          ...context,
-          input: context.context.input,
-          requestInput: context.context.workflowInput || {},
-          datamodel: scopedDatamodel,
-          state: {
-            id: this.id,
-            props: this.attributes,
-            input: context.context.input,
-          },
-          props: this.attributes,
-          machine: {
-            id: context.context.machine?.id,
-            secrets: {
-              system: {},
-              ...context?.context.triggerData?.secrets,
-            },
-          },
-          run: {
-            id: context.runId,
-          },
-        }),
+        executionContext,
         childrenNodes
       ).catch((error) => {
         console.error("Error executing element:", error);

@@ -116,6 +116,9 @@ export const functionStringSchemaReturnType = (returnType: z.ZodType<any>) =>
         .function()
         .args(elementExecutionContextSerializedSchema.optional())
         .returns(returnType)
+        .transform((val) => {
+          return `::FUNCTION::${val.toString()}`;
+        })
     );
 // Create a schema specifically for JavaScript expressions
 export const jsExpressionStringSchema = z
