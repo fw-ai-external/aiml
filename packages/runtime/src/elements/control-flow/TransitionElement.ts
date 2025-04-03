@@ -1,22 +1,14 @@
 import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
-import type { ExecutionGraphElement } from "@fireworks/shared";
+import {
+  transitionConfig,
+  type ExecutionGraphElement,
+} from "@fireworks/shared";
 import type { BaseElement } from "../BaseElement";
 import { createElementDefinition } from "../createElementFactory";
 
-const transitionSchema = z.object({
-  id: z.string().optional(),
-  event: z.string().optional(),
-  cond: z.string().optional(),
-  target: z.string().optional(),
-});
-
-type TransitionProps = z.infer<typeof transitionSchema>;
-
 // Override the initFromAttributesAndNodes method to return a TransitionElement instance
 export const Transition = createElementDefinition({
-  tag: "transition",
-  propsSchema: transitionSchema,
+  ...transitionConfig,
   allowedChildren: "none" as const,
   role: "action",
   elementType: "transition",
@@ -27,17 +19,6 @@ export const Transition = createElementDefinition({
     );
     if (existing) {
       return existing;
-    }
-
-    // 2. Combine event + cond => when
-    const { event, cond, target } = buildContext.attributes;
-    let mergedWhen: string | undefined;
-    if (event && cond) {
-      mergedWhen = `event=='${event}' && (${cond})`;
-    } else if (event) {
-      mergedWhen = `event=='${event}'`;
-    } else if (cond) {
-      mergedWhen = `(${cond})`;
     }
 
     // 3. Build child actions (like <assign>, <log> inside <transition>)
@@ -55,9 +36,7 @@ export const Transition = createElementDefinition({
     }
 
     // 4. Create the transition node
-    const id =
-      buildContext.attributes.id ||
-      (event ? `transition_${event}` : `transition_${uuidv4()}`);
+    const id = buildContext.attributes.id || `transition_${uuidv4()}`;
     const key = buildContext.elementKey;
     const transitionNode: ExecutionGraphElement = {
       id,
@@ -65,7 +44,7 @@ export const Transition = createElementDefinition({
       type: "action",
       tag: "transition",
       scope: buildContext.scope,
-      when: mergedWhen,
+      when: buildContext.attributes.cond,
       attributes: {
         ...buildContext.attributes,
       },
@@ -73,28 +52,23 @@ export const Transition = createElementDefinition({
     };
 
     // 5. If 'target' is defined, link the target's ExecutionGraphElement
-    if (target) {
+    if (buildContext.attributes.target) {
       const maybeTargetElement: BaseElement | undefined =
         buildContext.findElementByKey(
-          target,
+          buildContext.attributes.target,
           buildContext.fullSpec ?? buildContext.spec
         );
 
-      // Log the result of the search
-      console.log(
-        `Search result for '${target}': ${maybeTargetElement ? "Found" : "Not found"}`
-      );
-
       if (!maybeTargetElement) {
         throw new Error(
-          `Transition ${id} has target ${target} which is not found in the workflow`
+          `==== Transition ${id} has target ${buildContext.attributes.target} which is not found in the workflow`
         );
       }
 
       const targetElement = maybeTargetElement;
       if (!targetElement.onExecutionGraphConstruction) {
         throw new Error(
-          `Transition ${id} has target ${target} which does not support execution graph construction`
+          `==== Transition ${id} has target ${buildContext.attributes.target} which does not support execution graph construction`
         );
       }
 
@@ -104,7 +78,7 @@ export const Transition = createElementDefinition({
 
       if (!targetEG) {
         throw new Error(
-          `Transition ${id} has target ${target} which is not found`
+          `==== Transition ${id} has target ${buildContext.attributes.target} which is not found`
         );
       }
       transitionNode.next = [...(transitionNode.next || []), targetEG];
