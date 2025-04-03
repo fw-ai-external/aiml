@@ -36,7 +36,7 @@ export class BaseElement
   public readonly schema: z.ZodType<any>;
   public readonly propsSchema: any;
   public readonly description?: string;
-  public readonly onExecutionGraphConstruction: (
+  public readonly _onExecutionGraphConstruction: (
     buildContext: BuildContext
   ) => ExecutionGraphElement;
   public readonly enter?: () => Promise<void>;
@@ -93,7 +93,7 @@ export class BaseElement
     }
     this.allowedChildren = config.allowedChildren;
     this.schema = config.schema;
-    this.onExecutionGraphConstruction =
+    this._onExecutionGraphConstruction =
       config.onExecutionGraphConstruction ?? defaultStepExecutionGraphMapper;
     this.enter = config.enter;
     this.exit = config.exit;
@@ -104,6 +104,71 @@ export class BaseElement
     this.columnStart = config.columnStart ?? 0;
     this.columnEnd = config.columnEnd ?? 0;
     this._execute = config.execute;
+  }
+
+  /**
+   * Implementation of executionGraphConstruction
+   * @param buildContext The build context
+   * @returns The execution graph element
+   */
+  public onExecutionGraphConstruction(
+    buildContext: BuildContext
+  ): ExecutionGraphElement {
+    // No cache hit - proceed with normal construction
+    const graphBuilder = buildContext.graphBuilder;
+
+    // Check for loops using the graph builder
+    const isLoop = graphBuilder.beginElementConstruction(this);
+
+    try {
+      if (isLoop) {
+        // Return a minimal graph element that points to the error state
+        return {
+          id: this.id,
+          key: buildContext.elementKey,
+          type: "state",
+          tag: this.tag,
+          attributes: this.attributes,
+          scope: this.scope,
+          next: [
+            {
+              id: "error",
+              key: "error",
+              type: "error",
+              tag: "error",
+              sourceElement: buildContext.elementKey,
+              attributes: {
+                id: "error",
+                sourceElement: buildContext.elementKey,
+                message: `Loop detected in element: ${buildContext.elementKey}`,
+              },
+              scope: ["root", "error"],
+            },
+          ],
+        };
+      }
+
+      // Check if we have a cached graph element
+      const cachedGraph = buildContext.graphBuilder.getCachedGraphElement(
+        this.key
+      );
+      if (cachedGraph) {
+        return cachedGraph;
+      }
+
+      // No loop - proceed with normal graph construction
+      const graphElement = this._onExecutionGraphConstruction(buildContext);
+
+      // Cache the result
+      buildContext.graphBuilder.setCachedGraphElement(this.key, graphElement);
+
+      return graphElement;
+    } finally {
+      // Only finish construction if we weren't in a loop
+      if (!isLoop && graphBuilder) {
+        graphBuilder.finishElementConstruction(this.key);
+      }
+    }
   }
 
   get isActive(): boolean {

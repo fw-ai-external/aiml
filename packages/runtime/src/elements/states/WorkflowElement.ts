@@ -40,12 +40,6 @@ export const Workflow = createElementDefinition({
       );
     }
 
-    // now cache the initial step as "initial" keyword too
-    buildContext.setCachedGraphElement(
-      ["initial", buildContext.elementKey].filter(Boolean),
-      initialStep!
-    );
-
     return {
       id: "Incoming Request",
       type: "user-input",

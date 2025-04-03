@@ -10,14 +10,6 @@ export const State = createElementDefinition({
   elementType: "state" as const,
   tag: "state" as const,
   onExecutionGraphConstruction(buildContext) {
-    const existing = buildContext.getCachedGraphElement(
-      buildContext.elementKey
-    );
-
-    if (existing) {
-      return existing;
-    }
-
     const id = buildContext.attributes.id || `state_${uuidv4()}`;
     const key = buildContext.elementKey;
 
@@ -111,12 +103,6 @@ export const State = createElementDefinition({
         }
       }
     }
-
-    // store it in the cache
-    buildContext.setCachedGraphElement(
-      [key, buildContext.attributes.id].filter(Boolean),
-      mainStateNode
-    );
 
     return mainStateNode;
   },

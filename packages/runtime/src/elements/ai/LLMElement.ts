@@ -24,10 +24,6 @@ export const LLM = createElementDefinition({
       next: [],
     };
 
-    buildContext.setCachedGraphElement(
-      [buildContext.elementKey, buildContext.attributes.id].filter(Boolean),
-      llmNode
-    );
     return llmNode;
   },
   async execute(ctx): Promise<ExecutionReturnType> {

@@ -87,7 +87,8 @@ export class Workflow<
         this.spec.attributes,
         {},
         this.spec,
-        this.spec
+        this.spec,
+        this.graphBuilder
       ),
       this.executionGraph,
       false,
@@ -363,7 +364,7 @@ export class Workflow<
     }
 
     try {
-      // Recreate the workflow
+      // Recreate the workflow instance
       this.workflow = new MastraWorkflow({
         name: "workflow",
         triggerSchema: z.object({
@@ -391,7 +392,8 @@ export class Workflow<
           this.spec.attributes,
           {},
           this.spec,
-          this.spec
+          this.spec,
+          this.graphBuilder
         ),
         this.executionGraph,
         false,
@@ -464,7 +466,12 @@ export class Workflow<
     const step = buildContext.findElementByKey(element.key, buildContext.spec);
 
     // Should never happen, so we add this here to catch issues/bugs
-    if (!step || element.key !== step.key || element.tag !== step.tag) {
+    if (
+      !step ||
+      ((element.key !== step.key || element.tag !== step.tag) &&
+        element.next?.[0]?.type !== "error" &&
+        element.type !== "error")
+    ) {
       throw new Error(
         `Step mismatch: ${element.key} !== ${step?.key} || ${element.tag} !== ${step?.tag}`
       );

@@ -16,14 +16,6 @@ export const Final = createElementDefinition({
   elementType: "final",
   allowedChildren: ["onentry", "onexit"],
   onExecutionGraphConstruction(buildContext) {
-    const existing = buildContext.getCachedGraphElement(
-      buildContext.elementKey
-    );
-
-    if (existing) {
-      return existing;
-    }
-
     // We might store any onentry blocks or <donedata> in children
     const finalEG: ExecutionGraphElement = {
       id: buildContext.attributes.id || `final_${uuidv4()}`,
@@ -39,15 +31,6 @@ export const Final = createElementDefinition({
     console.log(
       `Registering final state with ID: ${finalEG.id} and key: ${finalEG.key}`
     );
-
-    // Register with specific ID
-    buildContext.setCachedGraphElement(
-      [buildContext.elementKey, buildContext.attributes.id].filter(Boolean),
-      finalEG
-    );
-
-    // Also register with generic 'final' ID to help transitions that target 'final'
-    buildContext.setCachedGraphElement("final", finalEG);
 
     console.log("Final element registered successfully");
 

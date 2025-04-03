@@ -23,15 +23,7 @@ export const Parallel = createElementDefinition({
   ],
 
   onExecutionGraphConstruction(buildContext) {
-    // 1. Check cache to avoid building multiple times
-    const cached = buildContext.getCachedGraphElement(
-      buildContext.attributes.id
-    );
-    if (cached) {
-      return cached;
-    }
-
-    // 2. Create main parallel node
+    // Create main parallel node
     const parallelNode: ExecutionGraphElement = {
       id: buildContext.attributes.id + "_main",
       type: "state",
@@ -43,12 +35,6 @@ export const Parallel = createElementDefinition({
       },
       next: [],
     };
-
-    // store in cache
-    buildContext.setCachedGraphElement(
-      [buildContext.attributes.id, parallelNode.key].filter(Boolean),
-      parallelNode
-    );
 
     // We'll keep track of all finalIDs from each child
     const finalNodeKeys: string[] = [];

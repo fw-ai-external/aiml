@@ -18,11 +18,6 @@ export const Else = createElementDefinition({
   allowedChildren: "any",
 
   onExecutionGraphConstruction(buildContext): ExecutionGraphElement {
-    const cached = buildContext.getCachedGraphElement(
-      buildContext.attributes.id
-    );
-    if (cached) return cached;
-
     // In naive mode, tag="else", when="true"
     // The IfElement logic will combine short-circuit for doc order.
     const childActions: ExecutionGraphElement[] = buildContext.children
@@ -48,10 +43,6 @@ export const Else = createElementDefinition({
       next: childActions,
     };
 
-    buildContext.setCachedGraphElement(
-      [buildContext.attributes.id, node.key].filter(Boolean),
-      node
-    );
     return node;
   },
 });

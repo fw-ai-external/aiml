@@ -1,6 +1,7 @@
 import type { Workflow } from "@mastra/core/workflows";
 import type { BaseElement } from "../elements/BaseElement";
 import type { ExecutionGraphElement } from "@fireworks/shared";
+import type { GraphBuilder } from "./index";
 
 // Define missing types
 export interface StepConfig<
@@ -27,7 +28,7 @@ export class BuildContext {
     public readonly conditions: StepConfig<any, any, any, any>,
     public readonly spec: BaseElement,
     public readonly fullSpec: BaseElement | null,
-    public graphCache = new Map<string, ExecutionGraphElement>()
+    public readonly graphBuilder: GraphBuilder
   ) {
     this.children = children;
     this.scope = spec.scope as any;
@@ -38,7 +39,7 @@ export class BuildContext {
     withinNode?: BaseElement
   ): BaseElement | undefined {
     if ((withinNode ?? this.spec).key === targetKey) {
-      return withinNode;
+      return withinNode ?? this.spec;
     }
 
     for (const child of (withinNode ?? this.fullSpec ?? this.spec).children) {
@@ -58,22 +59,8 @@ export class BuildContext {
   public getCachedGraphElement(
     elementId: string
   ): ExecutionGraphElement | undefined {
-    console.log("elementId", elementId);
-    if (
-      this.graphCache.has(elementId) ||
-      elementId === this.elementKey ||
-      elementId === this.attributes.id
-    ) {
-      return this.graphCache.get(elementId);
-    }
-    const found = this.findElementByKey(elementId);
-    console.log("found", found?.key);
-    if (found) {
-      return found.onExecutionGraphConstruction(
-        this.createNewContextForChild(found)
-      );
-    }
-    return undefined;
+    // Delegate to graphBuilder
+    return this.graphBuilder.getCachedGraphElement(elementId);
   }
 
   /**
@@ -84,11 +71,8 @@ export class BuildContext {
     elementId: string | string[],
     ege: ExecutionGraphElement
   ): void {
-    if (Array.isArray(elementId)) {
-      elementId.forEach((id) => this.graphCache.set(id, ege));
-    } else {
-      this.graphCache.set(elementId, ege);
-    }
+    // Delegate to graphBuilder
+    this.graphBuilder.setCachedGraphElement(elementId, ege);
   }
 
   public createNewContextForChild(child: BaseElement): BuildContext {
@@ -101,7 +85,7 @@ export class BuildContext {
         this.conditions,
         child,
         this.fullSpec,
-        this.graphCache
+        this.graphBuilder
       );
     }
     throw new Error(

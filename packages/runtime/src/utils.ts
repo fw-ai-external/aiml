@@ -32,7 +32,7 @@ export const defaultStepExecutionGraphMapper = (
             buildContext.conditions,
             buildContext.spec,
             buildContext.fullSpec,
-            buildContext.graphCache
+            buildContext.graphBuilder
           ) as any
         );
       }
