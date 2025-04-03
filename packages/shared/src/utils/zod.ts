@@ -105,6 +105,39 @@ export const elementExecutionContextSerializedSchema = z.object({
   }),
 });
 
+// Create a schema specifically for JavaScript expressions
+export const jsExpressionStringSchema = z
+  .string()
+  .optional()
+  .superRefine((val: string | undefined, ctx: RefinementCtx) => {
+    if (val === undefined) {
+      return; // Optional case is valid
+    }
+
+    try {
+      // Try parsing the input as a complete JavaScript expression
+      // Wrap in parens and dummy assignment to force it to be evaluated as an expression
+      acorn.parse(`(${val});`, {
+        ecmaVersion: "latest",
+        sourceType: "script",
+      });
+
+      // If we get here, it parsed successfully as a JavaScript expression
+      return; // Valid
+    } catch (e: unknown) {
+      // If parsing fails, it's not a valid JavaScript expression
+      let message = "Invalid JavaScript expression";
+      if (e instanceof Error) {
+        message = e.message.split("\n")[0] || "Invalid syntax";
+      }
+
+      ctx.addIssue({
+        code: ZodIssueCode.custom,
+        message: message,
+      });
+    }
+  });
+
 export const elementExpressionCallbackSchema = z.union([
   z
     .function()
@@ -120,7 +153,7 @@ export const elementExpressionCallbackSchema = z.union([
 
       val.toString();
     }),
-  jsCodeStringSchema,
+  jsExpressionStringSchema, // Use the expression-specific schema instead of the general code string schema
 ]);
 
 export const elementArrayExpressionCallbackSchema = z.union([
@@ -149,7 +182,7 @@ export const elementConditionCallbackSchema = z.union([
     .superRefine((val, ctx: RefinementCtx) => {
       return val.toString();
     }),
-  jsCodeStringSchema,
+  jsExpressionStringSchema, // Use the expression-specific schema for conditions
 ]);
 
 export const jsTemplateStringSchema = z.union([

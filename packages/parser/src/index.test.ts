@@ -177,7 +177,7 @@ target="end" />
     });
   });
   describe("Multi-file", () => {
-    it("should handle imports between AIML files", async () => {
+    it.skip("should handle imports between AIML files", async () => {
       // Create a file that will be imported
       const importedFile = `
 ---

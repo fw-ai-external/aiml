@@ -139,7 +139,7 @@ describe("parser datamodel tests", () => {
     );
     expect(errorState).toBeDefined();
     expect(errorState?.tag).toBe("state");
-    expect(result.diagnostics.length).toEqual(2);
+    expect(result.diagnostics.length).toEqual(1);
     expect(result.datamodel).toEqual({});
   });
 });

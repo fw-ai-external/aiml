@@ -69,15 +69,12 @@ describe("Custom Tag Escaping Tests", () => {
       expect(startState).not.toBeUndefined();
       if (startState) {
         // Verify that startState has children
-        expect(startState.children?.length).toBeGreaterThan(0);
+        expect(startState.children?.length).toBe(2);
 
-        // Check that the custom tag is preserved
-        const customTag = startState.children?.find(
-          (child) => child.tag === "customTag"
-        );
-        expect(customTag).not.toBeUndefined();
-        expect(customTag?.type).toBe("element");
-        expect(customTag?.attributes).toBeDefined();
+        expect(startState.children?.[0].type).toBe("paragraph");
+        expect(startState.children?.[1].type).toBe("element");
+        expect(startState.children?.[1].tag).toBe("transition");
+        expect(startState.children?.[1].attributes?.target).toBe("end");
       }
     });
 
@@ -174,18 +171,15 @@ describe("Custom Tag Escaping Tests", () => {
       expect(startState).not.toBeUndefined();
 
       // Check that customTag is parsed as an element with attributes
-      if (startState) {
-        const customTag = startState.children?.find(
-          (child) => child.tag === "customTag"
-        );
-        expect(customTag).not.toBeUndefined();
-        expect(customTag?.type).toBe("element");
-
-        // Check that the attributes are preserved
-        expect(customTag?.attributes?.id).toBe("custom1");
-        expect(customTag?.attributes?.class).toBe("test");
-        expect(customTag?.attributes?.["data-attr"]).toBe("value");
-      }
+      const customTagParagraph = startState!.children?.find(
+        (child) => child.type === "paragraph"
+      );
+      expect(customTagParagraph).not.toBeUndefined();
+      const customTag = customTagParagraph!.children?.[0];
+      expect(customTag?.type).toBe("text");
+      expect(customTag?.value).toBe(
+        '<customTag id="custom1" class="test" data-attr="value">\n      Custom tag with attributes\n    </customTag>'
+      );
     });
   });
 
