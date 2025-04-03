@@ -55,6 +55,11 @@ export function validateAttributes(
     const result = propsSchema.safeParse(attributes);
 
     if (!result.success) {
+      console.log(
+        "result.error",
+        fromError(result.error).toString(),
+        attributes
+      );
       // Add each validation error to diagnostics
       diagnostics.add({
         message: `Invalid props for element <${nodeName}>: ${fromError(result.error).toString()}`,

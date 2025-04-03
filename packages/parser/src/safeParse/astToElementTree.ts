@@ -60,7 +60,7 @@ export function processAttributes(attributes: any[]): Record<string, any> {
               expressionType === "FunctionExpression"
             ) {
               // Function expression: () => {} or function() {}
-              result[attr.name] = attr.value.value;
+              result[attr.name] = `::FUNCTION::${attr.value.value}`;
             } else if (
               expressionType === "LogicalExpression" ||
               expressionType === "BinaryExpression" ||
@@ -71,9 +71,8 @@ export function processAttributes(attributes: any[]): Record<string, any> {
               expressionType === "TemplateLiteral"
             ) {
               // expression short hand
-              result[attr.name] = eval(
-                `(context) => { const ctx = context; return ${attr.value.value}}`
-              );
+              result[attr.name] =
+                `::FUNCTION::(context) => { const ctx = context; return ${attr.value.value}}`;
             } else if (
               expressionType === "ObjectExpression" ||
               expressionType === "ArrayExpression"

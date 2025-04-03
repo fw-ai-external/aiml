@@ -104,7 +104,19 @@ export const elementExecutionContextSerializedSchema = z.object({
     children: z.array(z.any()),
   }),
 });
-
+export const functionStringSchemaReturnType = (returnType: z.ZodType<any>) =>
+  z
+    .string()
+    .startsWith("::FUNCTION::")
+    .transform((val) => {
+      return eval(val.slice(12));
+    })
+    .pipe(
+      z
+        .function()
+        .args(elementExecutionContextSerializedSchema.optional())
+        .returns(returnType)
+    );
 // Create a schema specifically for JavaScript expressions
 export const jsExpressionStringSchema = z
   .string()
@@ -151,11 +163,27 @@ export const elementExpressionCallbackSchema = z.union([
         });
       }
 
-      val.toString();
+      return val.toString();
     }),
-  jsExpressionStringSchema, // Use the expression-specific schema instead of the general code string schema
-]);
+  z
+    .string()
+    .startsWith("::FUNCTION::")
+    .transform((val) => {
+      const fn = eval(val.slice(12));
+      return fn;
+    })
+    .superRefine((val, ctx: RefinementCtx) => {
+      if (typeof val !== "function") {
+        ctx.addIssue({
+          code: ZodIssueCode.custom,
+          message: "Expected a function",
+        });
+      }
 
+      return val.toString();
+    }),
+  functionStringSchemaReturnType(z.any()),
+]);
 export const elementArrayExpressionCallbackSchema = z.union([
   z
     .function()
@@ -171,6 +199,7 @@ export const elementArrayExpressionCallbackSchema = z.union([
 
       return val.toString();
     }),
+  functionStringSchemaReturnType(z.array(z.any())),
   jsCodeStringSchema,
 ]);
 
@@ -182,6 +211,7 @@ export const elementConditionCallbackSchema = z.union([
     .superRefine((val, ctx: RefinementCtx) => {
       return val.toString();
     }),
+  functionStringSchemaReturnType(z.boolean()),
   jsExpressionStringSchema, // Use the expression-specific schema for conditions
 ]);
 
@@ -193,5 +223,6 @@ export const jsTemplateStringSchema = z.union([
     .superRefine((val, ctx: RefinementCtx) => {
       return val.toString();
     }),
+  functionStringSchemaReturnType(z.string()),
   jsCodeStringSchema,
 ]);

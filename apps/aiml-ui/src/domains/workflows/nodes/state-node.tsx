@@ -46,7 +46,9 @@ const ActionItemComponent: React.FC<ActionItemComponentProps> = ({
           {action.attributes.label ||
             action.attributes.name ||
             action.id ||
-            action.attributes.instructions?.slice(0, 10) + "..."}
+            action.attributes.instructions?.slice(0, 10) ||
+            JSON.stringify(Object.keys(action.attributes))}
+          ...
         </span>
       </div>
       {action.status === "running" && (
