@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import { Workflow, hydreateElementTree } from "@fireworks/runtime";
+import type { Diagnostic } from "@fireworks/shared";
+import type { SerializedBaseElement } from "@fireworks/shared";
 
 export const maxDuration = 30;
 
@@ -8,7 +10,14 @@ export async function POST(req: Request) {
   console.log("workflowId", workflowId);
   console.log("messages", messages);
 
-  let persistedWorkflow;
+  let persistedWorkflow: {
+    ast: {
+      nodes: SerializedBaseElement[];
+      diagnostics: Set<Diagnostic>;
+    };
+    datamodel: any;
+    elementTree: SerializedBaseElement;
+  };
   try {
     const fileContent = fs.readFileSync(
       `./.workflows/${workflowId}.json`,
@@ -22,8 +31,14 @@ export async function POST(req: Request) {
     // Continue with empty workflow object
   }
 
-  const elementTree = hydreateElementTree(persistedWorkflow.ast.nodes);
-  const workflow = new Workflow(elementTree, persistedWorkflow.datamodel);
+  const elementTree = hydreateElementTree(
+    persistedWorkflow.ast.nodes,
+    persistedWorkflow.ast.diagnostics
+  );
+  const workflow = new Workflow(
+    elementTree.elementTree!,
+    persistedWorkflow.datamodel
+  );
 
   const result = workflow.runStream({
     userMessage: messages[messages.length - 1].content,
@@ -38,19 +53,6 @@ export async function POST(req: Request) {
       (m: any, i: number) => i !== messages.length - 1 && m.role !== "system"
     ),
   });
-
-  // const fireworks = createFireworks({
-  //   apiKey: process.env.FIREWORK_API_KEY,
-  //   fetch: (url, options) => {
-  //     console.log("fetching", url);
-  //     return fetch(url, options);
-  //   },
-  // });
-
-  // const result = streamText({
-  //   model: fireworks("accounts/fireworks/models/deepseek-r1"),
-  //   messages,
-  // });
 
   return new Response(await result.openaiChatStream());
 }
