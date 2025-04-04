@@ -72,7 +72,7 @@ export function processAttributes(attributes: any[]): Record<string, any> {
             ) {
               // expression short hand
               result[attr.name] =
-                `::FUNCTION::(context) => { const ctx = context; return ${attr.value.value}}`;
+                `::FUNCTION-EXPRESSION::(context) => { const ctx = context; return ${attr.value.value}}`;
             } else if (
               expressionType === "ObjectExpression" ||
               expressionType === "ArrayExpression"

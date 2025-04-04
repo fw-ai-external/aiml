@@ -107,19 +107,32 @@ export const elementExecutionContextSerializedSchema = z.object({
 export const functionStringSchemaReturnType = (returnType: z.ZodType<any>) =>
   z
     .string()
-    .startsWith("::FUNCTION::")
+    .startsWith("::FUNCTION")
     .transform((val) => {
-      return eval(val.slice(12));
+      if (val.startsWith("::FUNCTION-EXPRESSION::")) {
+        return {
+          fn: eval(val.slice(23)),
+          string: val,
+        };
+      }
+      return {
+        fn: eval(val.slice(12)),
+        string: val,
+      };
     })
     .pipe(
-      z
-        .function()
-        .args(elementExecutionContextSerializedSchema.optional())
-        .returns(returnType)
-        .transform((val) => {
-          return `::FUNCTION::${val.toString()}`;
-        })
-    );
+      z.object({
+        fn: z
+          .function()
+          .args(elementExecutionContextSerializedSchema.optional())
+          .returns(returnType),
+        string: z.string(),
+      })
+    )
+    .transform((val) => {
+      return val.string;
+    });
+
 // Create a schema specifically for JavaScript expressions
 export const jsExpressionStringSchema = z
   .string()
@@ -197,10 +210,10 @@ export const elementArrayExpressionCallbackSchema = z.union([
         ctx.addIssue({
           code: ZodIssueCode.custom,
           message: "Expected a function",
+          fatal: true,
         });
+        return z.NEVER;
       }
-
-      return val.toString();
     }),
   functionStringSchemaReturnType(z.array(z.any())),
   jsCodeStringSchema,

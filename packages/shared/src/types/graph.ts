@@ -1,11 +1,14 @@
 /**
  * ExecutionGraphElement - Represents a single node in the runtime execution graph.
  */
-export interface ExecutionGraphElement extends Record<string, any> {
+export interface ExecutionGraphElement<
+  Attributes extends Record<string, any> = Record<string, any>,
+> extends Record<string, any> {
   /**
    * Unique identifier provided by the user.
    */
   id: string;
+
   /**
    * Unique identifier for every element, even if an id is not provided by the user or supported by the element.
    */
@@ -36,7 +39,7 @@ export interface ExecutionGraphElement extends Record<string, any> {
    * Arbitrary set of key-value pairs storing original SCXML attributes
    * (id, event, cond, location, etc.), and any additional runtime config.
    */
-  attributes: Record<string, any>;
+  attributes: Attributes;
 
   /**
    * Optional expression that, if false, means we skip this node at runtime.

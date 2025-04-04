@@ -25,7 +25,9 @@ export const LLMActionDetails = ({
         </h3>
         <Textarea
           className="mt-2 text-gray-300"
-          value={action.attributes.instructions}
+          value={action.attributes.instructions
+            ?.slice(67, action.attributes.instructions.length - 2)
+            .trim()}
           readOnly
         />
       </div>
@@ -43,7 +45,9 @@ export const LLMActionDetails = ({
         </h3>
         <Textarea
           className="mt-2 text-gray-300"
-          value={action.attributes.prompt}
+          value={action.attributes.prompt
+            ?.slice(66, action.attributes.prompt.length - 1)
+            .trim()}
           readOnly
         />
       </div>

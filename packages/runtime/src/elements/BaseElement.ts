@@ -263,6 +263,11 @@ export class BaseElement
     Object.entries(this.attributes).forEach(([key, value]) => {
       if (typeof value === "string" && value.startsWith("::FUNCTION::")) {
         executionContext.props[key] = eval(value.slice(12))(executionContext);
+      } else if (
+        typeof value === "string" &&
+        value.startsWith("::FUNCTION-EXPRESSION::")
+      ) {
+        executionContext.props[key] = eval(value.slice(23))(executionContext);
       } else {
         executionContext.props[key] = value;
       }
