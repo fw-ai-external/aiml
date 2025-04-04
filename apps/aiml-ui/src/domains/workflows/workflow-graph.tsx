@@ -2,11 +2,12 @@ import { Background, BackgroundVariant, ReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import { contructNodesAndEdges } from "./utils";
-import { WorkflowDefaultNode } from "./workflow-default-node";
+import { WorkflowDefaultNode } from "./nodes/default";
 import { ChevronRight } from "lucide-react";
 import { StateNode } from "@/domains/workflows/nodes/state-node";
 import React from "react";
 import type { ExecutionGraphElement } from "@fireworks/shared";
+import { IncomingRequestNode } from "@/domains/workflows/nodes/IncomingRequest";
 
 export interface BreadcrumbItem {
   label: string;
@@ -35,6 +36,7 @@ function WorkflowGraph({
     () => ({
       "state-node": (props: any) => <StateNode {...props} />,
       "default-node": WorkflowDefaultNode,
+      "incoming-request-node": IncomingRequestNode,
     }),
     []
   );

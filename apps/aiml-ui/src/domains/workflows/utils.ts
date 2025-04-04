@@ -224,7 +224,7 @@ export const contructNodesAndEdges = ({
 function getNodeType(element: ExecutionGraphElement): string | null {
   if (element.type === "state") return "state-node";
   if (element.type === "error") return "default-node";
-  if (element.type === "user-input") return "default-node";
+  if (element.type === "user-input") return "incoming-request-node";
   if (element.type === "output") return "default-node";
 
   return null;

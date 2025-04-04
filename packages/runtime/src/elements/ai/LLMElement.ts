@@ -19,6 +19,7 @@ export const LLM = createElementDefinition({
       key: buildContext.elementKey,
       type: "action",
       tag: "llm",
+      subType: "model",
       attributes: buildContext.attributes,
       scope: buildContext.scope,
       next: [],

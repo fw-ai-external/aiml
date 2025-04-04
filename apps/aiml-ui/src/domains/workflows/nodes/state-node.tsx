@@ -1,10 +1,23 @@
 "use client";
 
 import React from "react";
-import { Handle, Position, type Node } from "@xyflow/react";
-import { Loader2, ChevronRight } from "lucide-react";
+// Import components without type imports
+import { Handle, Position } from "@xyflow/react";
+import {
+  Loader2,
+  ChevronRight,
+  Sparkles,
+  User,
+  FunctionSquare,
+  Code,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import ActionSheet from "../workflow-action-popover";
+import { Text } from "@/components/ui/text";
+import { cn } from "@/lib/utils";
+
+// Import only types
+import type { Node, NodeProps } from "@xyflow/react";
 import type { ExecutionGraphElement } from "@fireworks/shared";
 
 const StatusColors = {
@@ -32,7 +45,10 @@ const ActionItemComponent: React.FC<ActionItemComponentProps> = ({
 }) => {
   return (
     <div
-      className={`flex items-center justify-between cursor-pointer hover:bg-[#2c2e36] px-2 py-1 rounded transition-colors duration-200 ${isSelected ? "bg-[#2c2e36]" : ""}`}
+      className={cn(
+        "flex items-center justify-between cursor-pointer hover:bg-[#2c2e36] px-2 py-1 rounded transition-colors duration-200",
+        isSelected && "bg-[#2c2e36]"
+      )}
       onClick={() => onClick(action)}
     >
       <div className="flex items-center space-x-2">
@@ -41,7 +57,7 @@ const ActionItemComponent: React.FC<ActionItemComponentProps> = ({
             {orderNumber}
           </span>
         )}
-        <span className="text-gray-300 text-xs">
+        <Text size="sm" className="text-gray-300">
           {action.tag} -{" "}
           {action.attributes.label ||
             action.attributes.name ||
@@ -49,14 +65,16 @@ const ActionItemComponent: React.FC<ActionItemComponentProps> = ({
             action.attributes.instructions?.slice(67, 80).trim() ||
             JSON.stringify(Object.keys(action.attributes))}
           ...
-        </span>
+        </Text>
       </div>
       {action.status === "running" && (
         <div className="flex items-center space-x-2">
           {action.type === "action" &&
             !!action.subType &&
             action.subType !== "human-input" && (
-              <span className="text-xs text-gray-500">{action.duration}</span>
+              <Text size="sm" className="text-gray-500">
+                {action.duration}
+              </Text>
             )}
           <motion.div
             animate={{ rotate: 360 }}
@@ -67,13 +85,14 @@ const ActionItemComponent: React.FC<ActionItemComponentProps> = ({
             }}
           >
             <Loader2
-              className={`w-3 h-3 ${
+              className={cn(
+                "w-3 h-3",
                 action.type === "action" &&
-                !!action.subType &&
-                action.subType !== "human-input"
+                  !!action.subType &&
+                  action.subType !== "human-input"
                   ? "text-[#8a8d9b]"
                   : StatusColors[action.status || "pending"]
-              }`}
+              )}
             />
           </motion.div>
         </div>
@@ -88,7 +107,10 @@ export type StateNodeProps = Node<ExecutionGraphElement, "state-node">;
 //   onSubStepsClick: (nodeId: string, subSteps: SubStep[]) => void;
 // }
 
-export const StateNode: React.FC<StateNodeProps> = ({ data, selected }) => {
+export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
+  data,
+  selected,
+}) => {
   const [selectedAction, setSelectedAction] =
     React.useState<ExecutionGraphElement | null>(null);
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
@@ -121,62 +143,90 @@ export const StateNode: React.FC<StateNodeProps> = ({ data, selected }) => {
       : 0;
   };
 
-  return (
-    <div className="relative">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{
-          scale: 1,
-          opacity: 1,
-          boxShadow: data.isRunning
-            ? [
-                "0 0 10px 2px rgba(100, 100, 120, 0.2)",
-                "0 0 20px 6px rgba(100, 100, 120, 0.3)",
-                "0 0 15px 4px rgba(100, 100, 120, 0.2)",
-                "0 0 25px 8px rgba(100, 100, 120, 0.4)",
-                "0 0 12px 3px rgba(100, 100, 120, 0.2)",
-              ]
-            : selected
-              ? "0 0 0 2px rgba(100, 100, 120, 0.5)"
-              : "0 4 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-        }}
-        transition={{
-          duration: 0.3,
-          boxShadow: {
-            duration: 5,
-            repeat: Number.POSITIVE_INFINITY,
-            repeatType: "reverse",
-            ease: "easeInOut",
-          },
-        }}
-        className={`rounded-lg p-3 min-w-[280px] max-w-[350px] ${
-          data.isRunning ? "bg-[#1e1f25]" : "bg-[#23252b] ring-2 ring-[#2c2d35]"
-        } ${selected ? "ring-2 ring-[#3d3f4b]" : ""}`}
-      >
-        <Handle
-          type="target"
-          position={Position.Top}
-          className="w-3 h-3 bg-purple-500"
-        />
-        <div className="font-bold mb-2 text-lg text-gray-200 flex items-center justify-between">
-          {data.label}
-          {data.isRunning && (
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{
-                duration: 2,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "linear",
-              }}
-            >
-              <Loader2 className="w-4 h-4 text-purple-500" />
-            </motion.div>
-          )}
-        </div>
+  const primaryActionType =
+    actions.find((action) => action?.subType === "model")?.subType ||
+    actions
+      ?.filter((action) => action.subType)
+      .find((action) => action?.subType)?.subType ||
+    "code";
 
-        <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
-          {actions.length > 0 && (
-            <div>
+  const actionColor: Record<typeof primaryActionType, string> = {
+    model: "bg-[#7171B4]",
+    "human-input": "bg-[#211106]",
+    "tool-call": "bg-[#7171B4]",
+    code: "bg-[#7171B4]",
+  };
+
+  const actionIconMap: Record<typeof primaryActionType, React.ReactNode> = {
+    model: <Sparkles className="w-4 h-4 text-purple-500" />,
+    "human-input": <User className="w-4 h-4 text-blue-500" />,
+    "tool-call": <FunctionSquare className="w-4 h-4 text-green-500" />,
+    code: <Code className="w-4 h-4 text-green-500" />,
+  };
+
+  const ActionIcon = () => actionIconMap[primaryActionType];
+
+  return (
+    <motion.div
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{
+        scale: 1,
+        opacity: 1,
+        boxShadow: data.isRunning
+          ? [
+              "0 0 10px 2px rgba(100, 100, 120, 0.2)",
+              "0 0 20px 6px rgba(100, 100, 120, 0.3)",
+              "0 0 15px 4px rgba(100, 100, 120, 0.2)",
+              "0 0 25px 8px rgba(100, 100, 120, 0.4)",
+              "0 0 12px 3px rgba(100, 100, 120, 0.2)",
+            ]
+          : selected
+            ? "0 0 0 2px rgba(100, 100, 120, 0.5)"
+            : "0 4 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      }}
+      transition={{
+        duration: 0.3,
+        boxShadow: {
+          duration: 5,
+          repeat: Number.POSITIVE_INFINITY,
+          repeatType: "reverse",
+          ease: "easeInOut",
+        },
+      }}
+      className={cn("rounded-lg w-[274px]", actionColor[primaryActionType])}
+    >
+      <div className="p-1">
+        {/* Header */}
+        <div className="flex items-center justify-between p-2">
+          <div className="flex items-center gap-2">
+            <ActionIcon />
+            <Text size="sm" weight="medium" className="text-blue-400">
+              {data.label}
+            </Text>
+          </div>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{
+              duration: 2,
+              repeat: Number.POSITIVE_INFINITY,
+              ease: "linear",
+            }}
+          >
+            <Loader2 className="w-4 h-4 text-purple-500" />
+          </motion.div>
+        </div>
+        <div
+          className={cn("bg-[#0e0f11] border border-gray-600 rounded-lg p-2")}
+        >
+          <Handle
+            type="target"
+            position={Position.Top}
+            className="w-3 h-3 bg-purple-500"
+          />
+
+          {/* Actions */}
+          <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+            {actions.length > 0 && (
               <div className="space-y-1">
                 {actions.map((action, index) => (
                   <ActionItemComponent
@@ -188,74 +238,71 @@ export const StateNode: React.FC<StateNodeProps> = ({ data, selected }) => {
                   />
                 ))}
               </div>
+            )}
+          </div>
+
+          {/* Transitions */}
+          {transitions.length > 0 && (
+            <div className="mt-4 m-2">
+              <Text size="sm" weight="semibold" className="text-gray-400 mb-2">
+                Transitions
+              </Text>
+              <div className="space-y-2">
+                {transitions.map((transition) => (
+                  <div
+                    key={transition.id}
+                    className="flex items-center justify-end relative"
+                  >
+                    <Text size="sm" className="text-gray-500">
+                      {transition.attributes.when ||
+                        transition.attributes.on ||
+                        "On Success"}
+                    </Text>
+                    <div className="flex items-center space-x-2">
+                      {transition.running && (
+                        <div className="flex items-center space-x-1">
+                          <Loader2 className="w-3 h-3 text-[#8a8d9b] animate-spin" />
+                          <Text size="sm" className="text-[#8a8d9b]">
+                            Running sub-step
+                          </Text>
+                        </div>
+                      )}
+                      {transition.internal ? (
+                        <ChevronRight className="w-4 h-4 text-gray-500" />
+                      ) : (
+                        <Handle
+                          type="source"
+                          position={Position.Right}
+                          id={transition.id}
+                          className="w-3 h-3 bg-[#8a8d9b]"
+                          style={{
+                            right: -15,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* View all sub-steps link */}
+          {data.subSteps && data.subSteps.length > 0 && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => alert("Coming soon!")}
+                className="text-xs text-[#8a8d9b] hover:text-[#a0a3b1] transition-colors duration-200"
+              >
+                View all {data.subSteps.length} sub-steps
+              </button>
             </div>
           )}
         </div>
+      </div>
 
-        {/* Transitions (Source Handles) */}
-        {transitions.length > 0 && (
-          <div className="mt-4 m-2">
-            <h3 className="text-xs font-semibold text-gray-400 mb-2">
-              Transitions
-            </h3>
-            <div className="space-y-2">
-              {transitions.map((transition) => (
-                <div
-                  key={transition.id}
-                  className="flex items-center justify-end relative"
-                >
-                  <span className="text-xs text-gray-500">
-                    {transition.attributes.when ||
-                      transition.attributes.on ||
-                      "On Success"}
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    {transition.running && (
-                      <div className="flex items-center space-x-1">
-                        <Loader2 className="w-3 h-3 text-[#8a8d9b] animate-spin" />
-                        <span className="text-xs text-[#8a8d9b]">
-                          Running sub-step
-                        </span>
-                      </div>
-                    )}
-                    {transition.internal ? (
-                      <ChevronRight className="w-4 h-4 text-gray-500" />
-                    ) : (
-                      <Handle
-                        type="source"
-                        position={Position.Right}
-                        id={transition.id}
-                        className="w-3 h-3 bg-[#8a8d9b]"
-                        style={{
-                          right: -15,
-                          top: "50%",
-                          transform: "translateY(-50%)",
-                        }}
-                      />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* View all sub-steps link */}
-        {data.subSteps && data.subSteps.length > 0 && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={() =>
-                /**onSubStepsClick(data.id, data.subSteps || []) **/ alert(
-                  "Coming soon!"
-                )
-              }
-              className="text-xs text-[#8a8d9b] hover:text-[#a0a3b1] transition-colors duration-200"
-            >
-              View all {data.subSteps.length} sub-steps
-            </button>
-          </div>
-        )}
-      </motion.div>
       <ActionSheet
         action={selectedAction}
         open={isSheetOpen}
@@ -272,6 +319,6 @@ export const StateNode: React.FC<StateNodeProps> = ({ data, selected }) => {
             : undefined
         }
       />
-    </div>
+    </motion.div>
   );
 };
