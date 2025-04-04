@@ -260,7 +260,7 @@ export class BaseElement
       run: {
         id: context.runId,
       },
-      lastElement: {},
+      // lastElement: {}
     });
 
     try {
