@@ -40,6 +40,11 @@ export type ElementExecutionContextSerialized = Omit<
   element?: SerializedBaseElement;
   parentContext?: ElementExecutionContextSerialized;
   inputAsText: string;
+  lastElement?: {
+    id: string;
+    tag: string;
+    result: StepValueResult;
+  };
 };
 
 /**
@@ -127,6 +132,11 @@ export class ElementExecutionContext<
     };
     element?: BaseElement;
     parentContext?: ElementExecutionContext<any, any>;
+    lastElement?: {
+      id: string;
+      tag: string;
+      result: StepValue<InputValue>;
+    };
   }) {
     // TODO: validate input using input schema
     this.input = params.input;
@@ -250,6 +260,13 @@ export class ElementExecutionContext<
         ? hydreateElementTree([serialized.element], new Set()).elementTree
         : undefined,
       parentContext: serialized.parentContext,
+      lastElement: serialized.lastElement
+        ? {
+            id: serialized.lastElement.id,
+            tag: serialized.lastElement.tag,
+            result: new StepValue(serialized.lastElement.result),
+          }
+        : undefined,
     });
   }
 }

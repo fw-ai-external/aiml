@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Editor from "@codingame/monaco-editor-react";
 // @ts-expect-error no types on @codingame/monaco-editor-wrapper
 import { initialize } from "@codingame/monaco-editor-wrapper";
+import type { IStandaloneCodeEditor } from "@codingame/monaco-vscode-api/vscode/vs/editor/standalone/browser/standaloneCodeEditor";
 import { type Diagnostic, DiagnosticSeverity } from "@fireworks/shared";
 import { MarkerSeverity } from "monaco-editor";
 import { useRef } from "react";
@@ -38,6 +39,7 @@ export function CodeEditor({
   const [isReady, setIsReady] = useState(false);
   const [editorHeight, setEditorHeight] = useState<string>("100%");
   const editorRef = useRef<HTMLDivElement>(null);
+  const monacoRef = useRef<IStandaloneCodeEditor>(null);
 
   useEffect(() => {
     function updateHeight() {
@@ -60,7 +62,9 @@ export function CodeEditor({
 
   useEffect(() => {
     wait
-      ?.then(() => setIsReady(true))
+      ?.then(() => {
+        setIsReady(true);
+      })
       .catch((error) => {
         // This is for dev hot reloads
         setIsReady(true);
@@ -74,6 +78,7 @@ export function CodeEditor({
   return (
     <div ref={editorRef} className="h-[95%] w-full rounded-xl">
       <Editor
+        ref={monacoRef}
         height={editorHeight}
         options={{
           minimap: {

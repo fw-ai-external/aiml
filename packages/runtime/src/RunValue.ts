@@ -477,12 +477,12 @@ export class RunValue {
         (!this._finalOutput && !waitForValue) ||
         (!this._finalOutput?.valueReady && !this._finished)
       ) {
-        console.log(
-          "waiting for final output",
-          this._finalOutput,
-          waitForValue,
-          this._finished
-        );
+        // console.log(
+        //   "waiting for final output",
+        //   this._finalOutput,
+        //   waitForValue,
+        //   this._finished
+        // );
         await new Promise((r) => setTimeout(r, 10));
       }
 

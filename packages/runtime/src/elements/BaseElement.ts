@@ -222,6 +222,7 @@ export class BaseElement
     context: MastraActionContext<any>,
     childrenNodes: BaseElement[] = []
   ): Promise<ExecutionReturnType> => {
+    console.log("execute", this.tag, this.id);
     if (!this._execute) {
       // Default execution if no _execute is defined
       // The element can still store its data in the datamodel
@@ -236,6 +237,7 @@ export class BaseElement
 
     const datamodel: DataModelRegistry = context.context.getDatamodel();
     const scopedDatamodel = datamodel.getScopedDataModel(this.scope.join("."));
+    console.log("create executionContext", this.tag, this.id);
 
     let executionContext = new ElementExecutionContext({
       ...context,
@@ -258,20 +260,27 @@ export class BaseElement
       run: {
         id: context.runId,
       },
+      lastElement: {},
     });
 
-    Object.entries(this.attributes).forEach(([key, value]) => {
-      if (typeof value === "string" && value.startsWith("::FUNCTION::")) {
-        executionContext.props[key] = eval(value.slice(12))(executionContext);
-      } else if (
-        typeof value === "string" &&
-        value.startsWith("::FUNCTION-EXPRESSION::")
-      ) {
-        executionContext.props[key] = eval(value.slice(23))(executionContext);
-      } else {
-        executionContext.props[key] = value;
-      }
-    });
+    try {
+      Object.entries(this.attributes).forEach(([key, value]) => {
+        if (typeof value === "string" && value.startsWith("::FUNCTION::")) {
+          executionContext.props[key] = eval(value.slice(12))(executionContext);
+        } else if (
+          typeof value === "string" &&
+          value.startsWith("::FUNCTION-EXPRESSION::")
+        ) {
+          executionContext.props[key] = eval(
+            value.replace("::FUNCTION-EXPRESSION::", "")
+          )(executionContext);
+        } else {
+          executionContext.props[key] = value;
+        }
+      });
+    } catch (error: any) {
+      console.error("Error evaluating props:", error, error?.stack);
+    }
 
     try {
       const executeResult = await this._execute(

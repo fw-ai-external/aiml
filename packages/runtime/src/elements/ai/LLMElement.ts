@@ -41,6 +41,7 @@ export const LLM = createElementDefinition({
     );
 
     try {
+      console.log("execut 1", ctx.props.model, ctx.machine?.secrets);
       const { provider } = getProviderWithClient(
         ctx.props.model,
         ctx.machine?.secrets || { system: {}, user: {} },
@@ -57,6 +58,8 @@ export const LLM = createElementDefinition({
             : ctx.props.responseFormat,
         ctx.props.repetitionPenalty
       );
+
+      console.log("execute 2", provider, systemPrompt, prompt);
 
       // Validate and convert chat history
       const validatedChatHistory = ctx.props.includeChatHistory
@@ -83,6 +86,7 @@ export const LLM = createElementDefinition({
         return { result };
       }
 
+      console.log("streamText", provider, systemPrompt, prompt);
       const streamResult = streamText({
         model: provider,
         messages: [

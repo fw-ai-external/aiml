@@ -1,11 +1,18 @@
-import { Background, BackgroundVariant, ReactFlow } from "@xyflow/react";
+import {
+  Background,
+  BackgroundVariant,
+  type OnNodesChange,
+  ReactFlow,
+  applyNodeChanges,
+} from "@xyflow/react";
+
 import "@xyflow/react/dist/style.css";
 
 import { contructNodesAndEdges } from "./utils";
 import { WorkflowDefaultNode } from "./nodes/default";
 import { ChevronRight } from "lucide-react";
 import { StateNode } from "@/domains/workflows/nodes/state-node";
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import type { ExecutionGraphElement } from "@fireworks/shared";
 import { IncomingRequestNode } from "@/domains/workflows/nodes/IncomingRequest";
 
@@ -29,6 +36,17 @@ function WorkflowGraph({
     stepGraph,
     stepSubscriberGraph,
   });
+  const [nodes, setNodes] = useState(initialNodes);
+  const [edges, setEdges] = useState(initialEdges);
+
+  useEffect(() => {
+    if (nodes.length !== initialNodes.length) {
+      setNodes(initialNodes);
+    }
+    if (edges.length !== initialEdges.length) {
+      setEdges(initialEdges);
+    }
+  }, [nodes, edges, initialNodes, initialEdges]);
 
   const breadcrumbItems = [{ label: "Main Flow", onClick: () => {} }];
 
@@ -39,6 +57,11 @@ function WorkflowGraph({
       "incoming-request-node": IncomingRequestNode,
     }),
     []
+  );
+
+  const onNodesChange: OnNodesChange = useCallback(
+    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    [setNodes]
   );
 
   return (
@@ -62,10 +85,10 @@ function WorkflowGraph({
       </nav>
       <ReactFlow
         key={`workflow-${workflowId}`}
-        nodes={initialNodes}
-        edges={initialEdges}
+        nodes={nodes}
+        edges={edges}
         nodeTypes={nodeTypes}
-        // onNodesChange={onNodesChange}
+        onNodesChange={onNodesChange}
         fitView
         fitViewOptions={{
           maxZoom: 0.85,
