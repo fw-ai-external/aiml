@@ -125,10 +125,33 @@ export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
       (action) => action.type === "action" && action.tag !== "transition"
     ) || [];
 
-  const transitions =
-    data.next?.filter(
-      (action) => action.type === "action" && action.tag === "transition"
-    ) || [];
+  const transitions = React.useMemo(() => {
+    const directTransitions =
+      data.next?.filter(
+        (action) => action.type === "action" && action.tag === "transition"
+      ) || [];
+
+    // Find transitions nested within other actions in the same scope
+    const nestedTransitions =
+      data.next?.flatMap((action) =>
+        (
+          action.next?.filter(
+            (subAction) =>
+              subAction.type === "action" &&
+              subAction.tag === "transition" &&
+              subAction.scope?.includes(data.id)
+          ) || []
+        ).map((transition) => ({
+          ...transition,
+          // TODO we need access to the parent action to get the condition
+          label: "IF (something)",
+        }))
+      ) || [];
+
+    console.log("nestedTransitions", nestedTransitions);
+
+    return [...directTransitions, ...nestedTransitions];
+  }, [data.next, data.id]);
 
   const calculateSubStepsProgress = () => {
     const totalSteps = data.next?.length || 0;
@@ -256,10 +279,11 @@ export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
                     <Text size="sm" className="text-gray-500">
                       {transition.attributes.when ||
                         transition.attributes.on ||
+                        transition.label ||
                         "On Success"}
                     </Text>
                     <div className="flex items-center space-x-2">
-                      {transition.running && (
+                      {transition.status === "running" && (
                         <div className="flex items-center space-x-1">
                           <Loader2 className="w-3 h-3 text-[#8a8d9b] animate-spin" />
                           <Text size="sm" className="text-[#8a8d9b]">
@@ -267,7 +291,7 @@ export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
                           </Text>
                         </div>
                       )}
-                      {transition.internal ? (
+                      {(transition as any).internal ? (
                         <ChevronRight className="w-4 h-4 text-gray-500" />
                       ) : (
                         <Handle

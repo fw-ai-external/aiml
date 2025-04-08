@@ -4,17 +4,18 @@ The output of every LLM call laid out like this will be sent in <think> tags lik
 except for the final LLM call, which will have the output as the response
 */}
 
-<llm>
+<llm model="deepseek-r1">
     <prompt>
         You are a helpful assistant that can answer questions and help with tasks.
         Think step by step.
     </prompt>
 </llm>
 
-<llm>
+<llm model="qwen-2.5-32b">
     <instructions>
-        Anser the user's input of ${userInput.message}
-        {(ctx) => `You had been thinking this... ${ctx.lastElement.output}`}
+        Answer the user's input of ${userInput.message}
+        {({lastElement}) => `You had been thinking this... ${lastElement.output}`}
+        Now, 
     </instructions>
     <prompt>
         You are a helpful assistant that can answer questions and help with tasks.

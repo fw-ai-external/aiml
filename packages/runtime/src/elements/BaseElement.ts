@@ -14,6 +14,7 @@ import type { BuildContext } from "../graphBuilder/Context";
 import type { ExecutionReturnType, RuntimeElementDefinition } from "../types";
 import { defaultStepExecutionGraphMapper } from "../utils";
 import type { DataModelRegistry } from "../DataModelRegistry";
+import type { ElementSubType } from "@fireworks/shared";
 
 export class BaseElement
   implements Omit<SerializedElement, "parent" | "children">
@@ -30,6 +31,7 @@ export class BaseElement
   public readonly tag: string;
   public readonly role: ElementRole;
   public readonly elementType: ElementType;
+  public readonly subType: ElementSubType;
   public readonly attributes: Record<string, any>;
   public children: BaseElement[];
   public readonly allowedChildren: AllowedChildrenType;
@@ -70,6 +72,7 @@ export class BaseElement
         children?: BaseElement[];
         parent?: WeakRef<BaseElement>;
         scope?: ["root", ...string[]];
+        subType?: ElementSubType;
       }
   ) {
     this.id = config.id;
@@ -77,6 +80,7 @@ export class BaseElement
     this.tag = config.tag;
     this.role = config.role;
     this.elementType = config.elementType;
+    this.subType = config.subType ?? "error";
     this.attributes = config.attributes ?? {};
     this.children = config.children ?? [];
     this._parent = config.parent

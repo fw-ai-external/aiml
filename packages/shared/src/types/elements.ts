@@ -61,15 +61,19 @@ export type ElementType = (typeof aimlElements)[number];
 /**
  * Element roles define the general category of an element
  */
-export type ElementRole =
-  | "state"
-  | "action"
-  | "data-model"
+export type ElementRole = "state" | "action" | "data-model";
+
+export type ElementSubType =
+  | "model"
+  | "tool-call"
+  | "human-input"
+  | "code"
+  | "output"
   | "error"
   | "user-input"
-  | "output";
+  | "parallel";
 
-/**
+/*
  * Defines what types of children an element can have
  */
 export type AllowedChildrenType = string[] | "none" | "any" | "text";
@@ -93,16 +97,16 @@ export const elementRoleMap: Record<ElementType, ElementRole> = {
   else: "action",
   foreach: "action",
   script: "action",
-  llm: "output",
+  llm: "action",
   toolcall: "action",
   log: "action",
-  sendText: "output",
-  sendToolCalls: "output",
-  sendObject: "output",
-  onerror: "error",
+  sendText: "action",
+  sendToolCalls: "action",
+  sendObject: "action",
+  onerror: "action",
   onchunk: "action",
-  prompt: "user-input",
-  instructions: "user-input",
+  prompt: "action",
+  instructions: "action",
   cancel: "action",
   raise: "action",
   send: "action",

@@ -174,6 +174,7 @@ export const contructNodesAndEdges = ({
         label: element.when ? truncateCondition(element.when) : undefined,
       });
     }
+    console.log("edges", edges);
 
     // Process next elements sequentially
     if (element.next?.length) {

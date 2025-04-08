@@ -85,7 +85,7 @@ export function CodeEditor({
             enabled: false,
           },
           glyphMargin: false,
-          lineNumbers: "off",
+          lineNumbers: "on",
           showFoldingControls: "never",
           scrollBeyondLastLine: false,
         }}
