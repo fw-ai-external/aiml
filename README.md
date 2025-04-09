@@ -53,7 +53,7 @@ A comprehensive toolset for working with AIML based workflows, both familiar, ye
 
    ```bash
    git clone https://github.com/fw-ai/aiml.git
-   cd workflow
+   cd aiml
    ```
 
 2. Install dependencies:
@@ -84,7 +84,7 @@ A comprehensive toolset for working with AIML based workflows, both familiar, ye
 
 5. Get everything running (except the vscode plugin.... see below):
    ```bash
-   # CD to the toot of the project
+   # CD to the root of the project
    cd ../..
    bun run dev
    ```
