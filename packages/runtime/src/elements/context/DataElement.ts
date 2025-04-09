@@ -14,8 +14,5 @@ export type JSONSchema = ImportedJSONSchema;
 
 export const Data = createElementDefinition({
   ...dataConfig,
-  tag: "data" as const,
-  role: "state" as const,
-  elementType: "data" as const,
-  allowedChildren: "text" as const,
+  onExecutionGraphConstruction: (ctx) => {},
 });

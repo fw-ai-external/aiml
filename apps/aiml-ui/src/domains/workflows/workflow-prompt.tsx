@@ -64,7 +64,6 @@ export function WorkflowPrompt({ workflowId }: { workflowId: string }) {
                 value={prompt || ""}
                 diagnostics={astDiagnostics || []}
                 onChange={(value) => {
-                  console.log("value", value);
                   setPrompt(value || "");
                 }}
               />

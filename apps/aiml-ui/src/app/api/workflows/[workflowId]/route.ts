@@ -233,6 +233,7 @@ export async function POST(
       });
     }
 
+    console.log("getExecutionGraph", workflow?.getExecutionGraph());
     // Create a structure that excludes circular references for serialization
     const workflowData = {
       ...body,

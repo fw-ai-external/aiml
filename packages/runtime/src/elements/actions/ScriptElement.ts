@@ -6,10 +6,7 @@ import { createElementDefinition } from "../createElementFactory";
 
 export const Script = createElementDefinition({
   ...scriptConfig,
-  tag: "script" as const,
-  role: "action" as const,
-  elementType: "script" as const,
-  allowedChildren: "text" as const,
+
   async execute(ctx, children): Promise<ExecutionReturnType> {
     const { src } = ctx.props;
     const content = children[0]?.toString();

@@ -3,10 +3,6 @@ import { createElementDefinition } from "../createElementFactory";
 
 export const Cancel = createElementDefinition({
   ...cancelConfig,
-  tag: "cancel" as const,
-  role: "action" as const,
-  elementType: "cancel" as const,
-  allowedChildren: "none" as const,
   async execute(ctx) {
     const { sendid, sendidexpr } = ctx.props;
 

@@ -1,12 +1,15 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { ExecutionGraphElement, LLMProps } from "@fireworks/shared";
-
+import type { SerializedBaseElement } from "@fireworks/shared";
 export const LLMActionDetails = ({
   action,
   extraInfo,
 }: {
-  action: ExecutionGraphElement<LLMProps>;
+  action: SerializedBaseElement & {
+    status: string;
+    duration: number;
+    label?: string;
+  };
   extraInfo: any;
 }) => {
   return (
@@ -15,7 +18,7 @@ export const LLMActionDetails = ({
         <h3 className="text-lg font-semibold text-white">Model</h3>
         <Input
           className="mt-2 text-gray-300"
-          value={action.attributes.model}
+          value={action.attributes?.model?.toString()}
           readOnly
         />
       </div>
@@ -25,13 +28,14 @@ export const LLMActionDetails = ({
         </h3>
         <Textarea
           className="mt-2 text-gray-300"
-          value={action.attributes.instructions
-            ?.slice(67, action.attributes.instructions.length - 2)
+          value={action.attributes?.instructions
+            ?.toString()
+            .slice(67, action.attributes?.instructions?.toString().length - 2)
             .trim()}
           readOnly
         />
       </div>
-      {action.attributes.includeChatHistory && (
+      {action.attributes?.includeChatHistory && (
         <div>
           <h3 className="text-lg font-semibold text-white">Messages</h3>
           <p className="mt-2 text-gray-300">
@@ -45,8 +49,9 @@ export const LLMActionDetails = ({
         </h3>
         <Textarea
           className="mt-2 text-gray-300"
-          value={action.attributes.prompt
-            ?.slice(66, action.attributes.prompt.length - 1)
+          value={action.attributes?.prompt
+            ?.toString()
+            .slice(66, action.attributes?.prompt?.toString().length - 1)
             .trim()}
           readOnly
         />
@@ -55,8 +60,10 @@ export const LLMActionDetails = ({
       <div>
         <h3 className="text-lg font-semibold text-white">Tool Choices</h3>
         <p className="mt-2 text-gray-300 capitalize">
-          {action.attributes.tools
-            ? action.attributes.tools.map((tool: any) => tool.name).join(", ")
+          {action.attributes?.tools
+            ? (action.attributes?.tools as unknown as any[])
+                ?.map((tool: any) => tool.name)
+                .join(", ")
             : "None"}
         </p>
       </div>

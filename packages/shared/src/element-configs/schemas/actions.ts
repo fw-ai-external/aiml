@@ -10,8 +10,7 @@ import { elementExpressionCallbackSchema } from "../../utils/zod";
 // Assign Element - Modifies the data model
 export const assignConfig: BaseElementDefinition = {
   tag: "assign",
-  elementType: "assign",
-  role: "action",
+  type: "action",
   propsSchema: z.object({
     location: z.string(),
     action: z.enum(["assign", "increment", "decrement", "append"]).optional(),
@@ -27,8 +26,7 @@ export type AssignProps = z.infer<typeof assignConfig.propsSchema>;
 // Log Element - Outputs messages
 export const logConfig: BaseElementDefinition = {
   tag: "log",
-  elementType: "log",
-  role: "action",
+  type: "action",
   propsSchema: z.object({
     id: z.string().optional(),
     label: z.string().optional(),
@@ -44,8 +42,8 @@ export type LogProps = z.infer<typeof logConfig.propsSchema>;
 // Script Element - Executes JavaScript code
 export const scriptConfig: BaseElementDefinition = {
   tag: "script",
-  elementType: "script",
-  role: "action",
+  type: "action",
+  subType: "code",
   propsSchema: z.object({
     id: z.string().optional(),
     src: z.string().optional(),
@@ -60,8 +58,7 @@ export type ScriptProps = z.infer<typeof scriptConfig.propsSchema>;
 // Cancel Element - Cancels a delayed event
 export const cancelConfig: BaseElementDefinition = {
   tag: "cancel",
-  elementType: "cancel",
-  role: "action",
+  type: "action",
   propsSchema: z.object({
     id: z.string().optional(),
     sendid: z.string().optional(),
@@ -78,8 +75,7 @@ export type CancelProps = z.infer<typeof cancelConfig.propsSchema>;
 // Raise Element - Raises an internal event
 export const raiseConfig: BaseElementDefinition = {
   tag: "raise",
-  elementType: "raise",
-  role: "action",
+  type: "action",
   propsSchema: z.object({
     id: z.string().optional(),
     event: z.string().optional(),
@@ -95,8 +91,8 @@ export type RaiseProps = z.infer<typeof raiseConfig.propsSchema>;
 // Send Element - Sends an event to an external system
 export const sendConfig: BaseElementDefinition = {
   tag: "send",
-  elementType: "send",
-  role: "action",
+  type: "action",
+  subType: "tool-call",
   propsSchema: z.object({
     id: z.string().optional(),
     event: z.string().optional(),

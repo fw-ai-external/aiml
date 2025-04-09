@@ -13,6 +13,7 @@ import {
   stepValueChunkToOpenAIChatCompletionChunk,
   stepValueResultToOpenAIChatCompletion,
 } from "./responses/openai.chat";
+import type { ExecutionGraphStep } from "@fireworks/shared";
 
 export type RunStepStream = ReplayableAsyncIterableStream<StepValueChunk>;
 
@@ -26,17 +27,29 @@ function maybeRunStepValue(value?: StepValue): StepValue | null {
   if (!value) return null;
   return isStepValue(value) ? value : new StepValue(value);
 }
+export interface RunStep extends ExecutionGraphStep {
+  /**
+   * The duration of the node in milliseconds.
+   */
+  duration?: number;
 
-// each stp is a new step in the execution or the transition to another state
-// effectivly forming a tree of execution
-export type RunStep = {
-  id: string;
-  path: string[]; // the parent elements with a role of state
-  elementType: ElementType; // from the workflow graph
-  status: string;
-  input?: StepValue | null; // aka the triggerData
+  /**
+   * The status of the node.
+   */
+  status?:
+    | "pending"
+    | "running"
+    | "completed"
+    | "failed"
+    | "skipped"
+    | "streaming"
+    | "waitingForStream";
+
+  input: StepValue | null;
+
+  datamodel: Record<string, any>;
   output?: StepValue | null;
-};
+}
 
 export class RunValue {
   public uuid: string;
@@ -65,20 +78,12 @@ export class RunValue {
   }
 
   public addActiveStep(step: RunStep) {
-    this._runSteps.push({
-      id: step.id,
-      elementType: step.elementType,
-      path: step.path,
-      input: step.input
-        ? (maybeRunStepValue(step.input) as StepValue)
-        : undefined,
-      status: step.status,
-    });
+    this._runSteps.push(step);
 
     if (step.output) {
       const output = maybeRunStepValue(step.output);
       if (output) {
-        if (step.elementType === "final") {
+        if (step.subType === "output" || step.subType === "error") {
           this._finalOutput = output;
         }
         this._generatedValues.push(output);
@@ -91,7 +96,7 @@ export class RunValue {
     if (thisStep) {
       thisStep.output = maybeRunStepValue(output);
       if (thisStep.output) {
-        if (thisStep.elementType === "final") {
+        if (thisStep.subType === "output" || thisStep.subType === "error") {
           this._finalOutput = thisStep.output;
         } else {
           this._generatedValues.push(thisStep.output);
@@ -106,7 +111,7 @@ export class RunValue {
   markStepAsFinished(id: string, output?: StepValue) {
     const thisStep = this._runSteps.find((s) => s.id === id);
     if (thisStep) {
-      thisStep.status = "finished";
+      thisStep.status = "completed";
       if (output) {
         this.setStepOutput(id, output);
       }

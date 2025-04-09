@@ -1,7 +1,3 @@
-// Initialize runtime services first to ensure they're available
-import * as di from "./di";
-di.initializeRuntime();
-
 // Export all runtime functionality
 export * from "./graphBuilder";
 export * from "./ElementExecutionContext";

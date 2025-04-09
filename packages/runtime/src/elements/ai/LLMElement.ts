@@ -7,26 +7,11 @@ import type { ExecutionReturnType } from "../../types";
 import { parseTemplateLiteral } from "../../utils/strings";
 import { createElementDefinition } from "../createElementFactory";
 import { getProviderWithClient } from "./utils";
-import type { ExecutionGraphElement } from "@fireworks/shared";
 
 // Use the LLMProps type from element-config
 export const LLM = createElementDefinition({
   ...llmConfig,
   allowedChildren: "text",
-  onExecutionGraphConstruction(buildContext) {
-    const llmNode: ExecutionGraphElement = {
-      id: buildContext.attributes.id,
-      key: buildContext.elementKey,
-      type: "action",
-      tag: "llm",
-      subType: "model",
-      attributes: buildContext.attributes,
-      scope: buildContext.scope,
-      next: [],
-    };
-
-    return llmNode;
-  },
   async execute(ctx): Promise<ExecutionReturnType> {
     const { prompt: promptTemplate, instructions: systemTemplate } = ctx.props;
     const serializedCtx = await ctx.serialize();

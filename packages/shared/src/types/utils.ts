@@ -1,8 +1,7 @@
-import type { ElementType } from './elements';
-import { aimlElements } from './elements';
+import { aimlElements } from "./elements";
 
 export function isAIMLElement(nodeName: string): boolean {
-  return aimlElements.includes(nodeName as ElementType);
+  return aimlElements.includes(nodeName as (typeof aimlElements)[number]);
 }
 
 export type Unpack<T> = {

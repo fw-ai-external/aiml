@@ -9,8 +9,8 @@ import type { AllowedChildrenType, BaseElementDefinition } from "../../types";
 // State Element - Standard state in SCXML
 export const stateConfig: BaseElementDefinition = {
   tag: "state",
-  elementType: "state",
-  role: "state",
+  type: "state",
+  subType: "other",
   propsSchema: z.object({
     id: z.string().optional(),
     initial: z.string().optional(),
@@ -37,8 +37,8 @@ export type StateProps = z.infer<typeof stateConfig.propsSchema>;
 // Parallel Element - Parallel state composition
 export const parallelConfig: BaseElementDefinition = {
   tag: "parallel",
-  elementType: "parallel",
-  role: "state",
+  type: "state",
+  subType: "parallel",
   propsSchema: z.object({
     id: z.string().optional(),
   }),
@@ -61,8 +61,8 @@ export type ParallelProps = z.infer<typeof parallelConfig.propsSchema>;
 // Final Element - Terminal state
 export const finalConfig: BaseElementDefinition = {
   tag: "final",
-  elementType: "final",
-  role: "output",
+  type: "state",
+  subType: "output",
   propsSchema: z.object({
     id: z.string().optional(),
   }),

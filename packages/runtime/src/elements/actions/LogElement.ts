@@ -4,22 +4,6 @@ import { createElementDefinition } from "../createElementFactory";
 
 export const Log = createElementDefinition({
   ...logConfig,
-  tag: "log" as const,
-  role: "action" as const,
-  elementType: "log" as const,
-  allowedChildren: "none" as const,
-  onExecutionGraphConstruction(buildContext) {
-    return {
-      id: buildContext.attributes.id,
-      key: buildContext.elementKey,
-      type: "action",
-      tag: "log",
-      attributes: {
-        ...buildContext.attributes, // { expr, label, etc. }
-      },
-      scope: buildContext.scope,
-    };
-  },
   async execute(ctx) {
     const { label, expr } = ctx.props;
 

@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { ElementDefinition, ElementType } from "../types";
+import type { aimlElements, ElementDefinition } from "../types";
 
 import {
   assignConfig,
@@ -44,7 +44,10 @@ import {
 } from "./schemas/specialized";
 import { finalConfig, parallelConfig, stateConfig } from "./schemas/states";
 
-export const allElementConfigs: Record<ElementType, ElementDefinition> = {
+export const allElementConfigs: Record<
+  (typeof aimlElements)[number],
+  ElementDefinition
+> = {
   workflow: workflowConfig,
   state: stateConfig,
   parallel: parallelConfig,
@@ -91,7 +94,7 @@ import { registerAllElementConfigs } from "./nodeDefinitions";
 registerAllElementConfigs(allElementConfigs);
 
 export const allStateElementConfigs = Object.values(allElementConfigs).filter(
-  (config) => config.role === "state"
+  (config) => config.type === "state"
 );
 
 export * from "./schemas/states";

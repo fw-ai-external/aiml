@@ -13,8 +13,7 @@ import {
 // If Element - Conditional execution
 export const ifConfig: BaseElementDefinition = {
   tag: "if",
-  elementType: "if",
-  role: "action",
+  type: "branch",
   propsSchema: z.object({
     id: z.string().optional(),
     cond: elementConditionCallbackSchema,
@@ -30,8 +29,7 @@ export type IfProps = z.infer<typeof ifConfig.propsSchema>;
 // ElseIf Element - Alternative conditional branch
 export const elseIfConfig: BaseElementDefinition = {
   tag: "elseif",
-  elementType: "elseif",
-  role: "action",
+  type: "branch",
   propsSchema: z.object({
     id: z.string().optional(),
     cond: elementConditionCallbackSchema,
@@ -46,8 +44,7 @@ export type ElseIfProps = z.infer<typeof elseIfConfig.propsSchema>;
 // Else Element - Default execution branch
 export const elseConfig: BaseElementDefinition = {
   tag: "else",
-  elementType: "else",
-  role: "action",
+  type: "branch",
   propsSchema: z.object({
     id: z.string().optional(),
   }),
@@ -61,8 +58,7 @@ export type ElseProps = z.infer<typeof elseConfig.propsSchema>;
 // ForEach Element - Iteration construct
 export const foreachConfig: BaseElementDefinition = {
   tag: "foreach",
-  elementType: "foreach",
-  role: "action",
+  type: "branch",
   propsSchema: z.object({
     id: z.string().optional(),
     items: elementArrayExpressionCallbackSchema,
@@ -79,12 +75,12 @@ export type ForEachProps = z.infer<typeof foreachConfig.propsSchema>;
 // Transition Element - Defines state transitions
 export const transitionConfig: BaseElementDefinition = {
   tag: "transition",
-  elementType: "transition",
-  role: "action",
+  type: "action",
+  subType: "transition",
   propsSchema: z.object({
     id: z.string().optional(),
     event: z.string().optional(),
-    cond: elementConditionCallbackSchema.optional(),
+    condition: elementConditionCallbackSchema.optional(),
     target: z.string().optional(),
     type: z.enum(["internal", "external"]).optional(),
   }),
@@ -99,8 +95,7 @@ export type TransitionProps = z.infer<typeof transitionConfig.propsSchema>;
 // OnEntry Element - Actions when entering a state
 export const onEntryConfig: BaseElementDefinition = {
   tag: "onentry",
-  elementType: "onentry",
-  role: "action",
+  type: "action",
   propsSchema: z.object({
     id: z.string().optional(),
   }),
@@ -114,8 +109,7 @@ export type OnEntryProps = z.infer<typeof onEntryConfig.propsSchema>;
 // OnExit Element - Actions when exiting a state
 export const onExitConfig: BaseElementDefinition = {
   tag: "onexit",
-  elementType: "onexit",
-  role: "action",
+  type: "action",
   propsSchema: z.object({
     id: z.string().optional(),
   }),

@@ -73,9 +73,10 @@ export default function WorkflowGraphPage(props: {
 }) {
   const params = use(props.params);
   const {
-    stepGraph,
+    executionGraph,
     stepSubscriberGraph,
     isLoading: isWorkflowLoading,
+    elementTree,
   } = useWorkflow(params.workflowId);
   const runtime = useLocalRuntime(
     AIMLOpenAIChatRuntime({
@@ -87,14 +88,15 @@ export default function WorkflowGraphPage(props: {
     <AssistantRuntimeProvider runtime={runtime}>
       <ResizablePanelGroup direction="horizontal">
         <ResizablePanel defaultSize={70}>
-          {!stepGraph && isWorkflowLoading ? (
+          {!executionGraph && isWorkflowLoading ? (
             <div className="p-4">
               <Skeleton className="h-[600px]" />
             </div>
           ) : (
             <WorkflowGraph
               stepSubscriberGraph={stepSubscriberGraph}
-              stepGraph={stepGraph}
+              executionGraph={executionGraph}
+              elementTree={elementTree}
               workflowId={params.workflowId}
             />
           )}

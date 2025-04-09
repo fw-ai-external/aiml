@@ -1,6 +1,5 @@
-import { type AssignProps, assignConfig } from "@fireworks/shared";
+import { type StepValueResult, assignConfig } from "@fireworks/shared";
 import type { ElementExecutionContext } from "../../ElementExecutionContext";
-import type { BuildContext } from "../../graphBuilder/Context";
 import type { ExecutionReturnType } from "../../types";
 import { createElementDefinition } from "../createElementFactory";
 
@@ -8,7 +7,12 @@ import { createElementDefinition } from "../createElementFactory";
  * Resolves the value to assign from either an expression or input
  */
 async function resolveAssignValue(
-  ctx: InstanceType<typeof ElementExecutionContext<AssignProps>>,
+  ctx: ElementExecutionContext<
+    {
+      [x: string]: any;
+    },
+    StepValueResult
+  >,
   expr?: string
 ): Promise<any> {
   // If expr is provided, evaluate it
@@ -28,6 +32,7 @@ async function resolveAssignValue(
       throw error;
     }
   }
+  console.log("resolveAssignValue", ctx);
 
   // Otherwise use the input value
   const inputValue = await ctx.input.value();
@@ -46,29 +51,11 @@ async function resolveAssignValue(
 
 export const Assign = createElementDefinition({
   ...assignConfig,
-  tag: "assign" as const,
-  role: "action" as const,
-  elementType: "assign" as const,
-  allowedChildren: "none" as const,
-
-  onExecutionGraphConstruction(buildContext: BuildContext) {
-    return {
-      id: buildContext.elementKey,
-      key: buildContext.elementKey,
-      type: "action",
-      tag: "assign",
-      attributes: {
-        ...buildContext.attributes, // location, expr, etc.
-      },
-      scope: buildContext.scope,
-    };
-  },
-
   async execute(ctx): Promise<ExecutionReturnType> {
     const { location, expr } = ctx.props;
 
     // Get the value to assign - either from expression or input
-    const value = await resolveAssignValue(ctx as any, expr);
+    const value = await resolveAssignValue(ctx, expr);
 
     try {
       // Validate the value and check if it can be assigned

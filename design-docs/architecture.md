@@ -82,7 +82,7 @@ The types package defines all the types used throughout the codebase. It include
 - **SerializedElement**: The interface for serialized elements (renamed from IBaseElement).
 - **ElementType**: The type of an element (e.g., "state", "action", etc.).
 - **ElementRole**: The role of an element (e.g., "state", "action", etc.).
-- **ExecutionGraphElement**: The interface for elements in the execution graph.
+- **ExecutionGraphStep**: The interface for elements in the execution graph.
 - **BuildContext**: The context for building execution graphs.
 - **ElementExecutionContext**: The context for executing elements.
 

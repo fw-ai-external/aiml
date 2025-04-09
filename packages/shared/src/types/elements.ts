@@ -3,6 +3,12 @@ import type { Secrets, StepValueResult } from "./values";
 import type { CoreAssistantMessage, CoreUserMessage, UserContent } from "ai";
 import type { ChatCompletionMessageToolCall } from "openai/resources/chat/completions";
 import type { CoreToolMessage } from "@mastra/core";
+import type {
+  ActionStep,
+  BranchingStep,
+  ParamElement,
+  StateStep,
+} from "./graph";
 
 /**
  * This file contains all element type definitions for the AIML system.
@@ -54,24 +60,19 @@ export const aimlElements = [
 ] as const;
 
 /**
- * Type representing all valid element types
- */
-export type ElementType = (typeof aimlElements)[number];
-
-/**
  * Element roles define the general category of an element
  */
-export type ElementRole = "state" | "action" | "data-model";
+export type ElementType =
+  | StateStep["type"]
+  | ActionStep["type"]
+  | ParamElement["type"]
+  | BranchingStep["type"];
 
 export type ElementSubType =
-  | "model"
-  | "tool-call"
-  | "human-input"
-  | "code"
-  | "output"
-  | "error"
-  | "user-input"
-  | "parallel";
+  | StateStep["subType"]
+  | ActionStep["subType"]
+  | ParamElement["subType"]
+  | BranchingStep["subType"];
 
 /*
  * Defines what types of children an element can have
@@ -81,7 +82,10 @@ export type AllowedChildrenType = string[] | "none" | "any" | "text";
 /**
  * Maps element types to their roles
  */
-export const elementRoleMap: Record<ElementType, ElementRole> = {
+export const elementRoleMap: Record<
+  (typeof aimlElements)[number],
+  ElementType
+> = {
   workflow: "state",
   state: "state",
   parallel: "state",
@@ -146,11 +150,12 @@ export type ASTNodeType =
  * Renamed from AIMLNode to SerializedBaseElement for better semantic clarity
  */
 export interface SerializedBaseElement {
-  type: ASTNodeType;
+  astSourceType: ASTNodeType;
   id?: string;
   key: string;
   tag?: string;
-  role?: ElementRole;
+  type?: ElementType;
+  subType?: ElementSubType;
   elementType?: ElementType;
   attributes?: Attributes;
   children?: SerializedBaseElement[];
@@ -227,23 +232,6 @@ export interface ParagraphNode extends SerializedBaseElement {
 }
 
 /**
- * Base interface for all AIML elements
- * Renamed from IBaseElement to SerializedElement for consistency
- */
-export interface SerializedElement extends SerializedBaseElement {
-  type: "element";
-  readonly id: string;
-  readonly key: string;
-  readonly tag: string;
-  readonly role: ElementRole;
-  readonly elementType: ElementType;
-  readonly attributes: Attributes;
-  readonly children: SerializedBaseElement[];
-  readonly allowedChildren: AllowedChildrenType;
-  readonly comments?: CommentNode[];
-}
-
-/**
  * More flexible node type for FireAgent
  */
 export interface FireAgentNode extends Partial<SerializedBaseElement> {
@@ -272,15 +260,18 @@ export interface BaseElementDefinition {
   /**
    * The actual tag name used in the config/tsx
    */
-  tag: ElementType;
-  /**
-   * The type of the element, should match the tag name
-   */
-  elementType: ElementType;
+  tag: (typeof aimlElements)[number];
+
   /**
    * The role of the element
    */
-  role: ElementRole;
+  type: ElementType;
+
+  /**
+   * The sub-type of the element
+   */
+  subType?: ElementSubType;
+
   /**
    * The allowed children for this element as an array of tags or a function that returns an array of tags
    */
@@ -317,11 +308,11 @@ export type ElementDefinition<
   PropSchema extends z.ZodObject<any> = z.ZodObject<any>,
   Props extends z.infer<PropSchema> = z.infer<PropSchema>,
   Result = any,
-  Tag extends ElementType = ElementType,
+  Tag extends (typeof aimlElements)[number] = (typeof aimlElements)[number],
 > = {
   tag: Tag;
-  role: ElementRole;
-  elementType: Tag;
+  type: ElementType;
+  subType?: ElementSubType;
   propsSchema: PropSchema;
   allowedChildren?: AllowedChildrenType | ((props: Props) => string[]);
   description?: string;

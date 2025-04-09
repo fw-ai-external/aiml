@@ -6,18 +6,13 @@
  * improve maintainability.
  */
 
-import type {
-  ElementRole,
-  ElementType,
-  SerializedBaseElement,
-} from "@fireworks/shared";
+import type { aimlElements, SerializedBaseElement } from "@fireworks/shared";
 import { v4 as uuidv4 } from "uuid";
 import type { z } from "zod";
-import type { BuildContext } from "../graphBuilder/Context";
 import type { RuntimeElementDefinition } from "../types";
 import { BaseElement } from "./BaseElement";
-import type { ExecutionGraphElement } from "@fireworks/shared";
 import { fromError } from "zod-validation-error";
+import { defaultStepExecutionGraphMapper } from "../utils";
 
 /**
  * Element definition type
@@ -39,21 +34,21 @@ export const createElementDefinition = <
 ) => {
   const {
     tag,
-    role,
-    elementType,
     propsSchema,
     description,
-    documentation,
     allowedChildren = "none",
     execute,
-    enter,
-    exit,
     onExecutionGraphConstruction,
+    type,
+    subType,
+    documentation,
   } = config;
 
   const factory = {
     tag,
-
+    documentation,
+    type,
+    subType,
     validateProps: (props: Props) => {
       const result = propsSchema.safeParse(props);
       if (!result.success) {
@@ -100,24 +95,28 @@ export const createElementDefinition = <
       const childElements: BaseElement[] = nodes.every(
         (n) => n instanceof BaseElement
       )
-        ? nodes
-        : // TODO this is wrong, we need a real init loop
-          (nodes as BaseElement[]);
+        ? (nodes as BaseElement[])
+        : // Map over nodes to properly convert them to BaseElements
+          nodes.map((node) => {
+            // If already a BaseElement, return as is
+            if (node instanceof BaseElement) return node;
+            // Otherwise, we need to create a BaseElement from the serialized node
+            // This is a simplified approach - a real implementation would need proper element creation logic
+            return factory.initFromSerialized(node, parent);
+          });
 
       const element = new BaseElement({
         id: props.id || uuidv4(),
         key: props.id || uuidv4(),
         tag,
-        role,
-        elementType,
+        type,
+        subType: subType || "tool-call",
         scope,
         attributes: validatedProps,
         children: childElements,
         parent,
         onExecutionGraphConstruction:
-          onExecutionGraphConstruction ||
-          createDefaultExecutionGraphConstruction(tag, role),
-        type: "element",
+          onExecutionGraphConstruction || defaultStepExecutionGraphMapper,
         lineStart: nodes[0]?.lineStart ?? 0,
         lineEnd: nodes[nodes.length - 1]?.lineEnd ?? 0,
         columnStart: nodes[0]?.columnStart ?? 0,
@@ -126,7 +125,7 @@ export const createElementDefinition = <
           typeof allowedChildren === "function"
             ? allowedChildren({} as Props)
             : allowedChildren,
-        schema: propsSchema,
+        propsSchema: propsSchema,
         execute: execute as any,
         description,
       });
@@ -138,34 +137,50 @@ export const createElementDefinition = <
       serialized: SerializedBaseElement,
       parent?: WeakRef<BaseElement>
     ): BaseElement => {
-      if (serialized.type !== "element") {
+      if (serialized.astSourceType !== "element") {
         throw new Error(
-          `Cannot create element from non-element node: ${serialized.type}`
+          `Cannot create element from non-element node: ${serialized.astSourceType}`
         );
       }
 
+      if (!serialized.type || !serialized.subType) {
+        throw new Error(
+          `Cannot create element from serialized node: ${serialized.astSourceType}`
+        );
+      }
+
+      // Convert nodes to BaseElement instances if needed
+      const childElements: BaseElement[] = serialized.children?.every(
+        (n) => n instanceof BaseElement
+      )
+        ? (serialized.children as BaseElement[])
+        : // Map over nodes to properly convert them to BaseElements
+          (serialized.children?.map((node) => {
+            // If already a BaseElement, return as is
+            if (node instanceof BaseElement) return node;
+            // Otherwise, we need to create a BaseElement from the serialized node
+            // This is a simplified approach - a real implementation would need proper element creation logic
+            return factory.initFromSerialized(node, parent);
+          }) ?? []);
+
       return new BaseElement({
+        ...serialized,
+        children: childElements,
         id: serialized.id || uuidv4(),
-        key: serialized.key,
-        tag: serialized.tag as ElementType,
-        role: serialized.role as ElementRole,
-        elementType: serialized.elementType as ElementType,
+        key: serialized.id || uuidv4(),
         attributes: serialized.attributes || {},
-        children: [],
-        parent,
-        onExecutionGraphConstruction:
-          onExecutionGraphConstruction ||
-          createDefaultExecutionGraphConstruction(tag, role),
-        type: "element",
-        lineStart: serialized.lineStart,
-        lineEnd: serialized.lineEnd,
-        columnStart: serialized.columnStart,
-        columnEnd: serialized.columnEnd,
+        type: serialized.type || type || "action",
+        subType: serialized.subType || subType || "tool-call",
+        tag: serialized.tag! as (typeof aimlElements)[number],
         allowedChildren:
           typeof allowedChildren === "function"
             ? allowedChildren({} as Props)
             : allowedChildren,
-        schema: propsSchema,
+        parent,
+        scope: (serialized.scope || ["root"]) as ["root", ...string[]],
+        onExecutionGraphConstruction:
+          onExecutionGraphConstruction || defaultStepExecutionGraphMapper,
+        propsSchema: propsSchema,
         execute: execute as any,
         description,
       });
@@ -174,41 +189,3 @@ export const createElementDefinition = <
 
   return factory;
 };
-
-/**
- * Creates a default execution graph construction function
- */
-function createDefaultExecutionGraphConstruction(
-  tag: ElementType,
-  role: ElementRole
-) {
-  return (buildContext: BuildContext): ExecutionGraphElement => {
-    // If we already built this node, return the cached version.
-    const existing = buildContext.getCachedGraphElement(
-      buildContext.attributes.id
-    );
-    if (existing) {
-      return existing;
-    }
-
-    const defaultExecutionGraphConfig: ExecutionGraphElement = {
-      id: buildContext.attributes.id || `${tag}_${uuidv4()}`,
-      type: role,
-      key: buildContext.elementKey,
-      tag: tag,
-      attributes: buildContext.attributes,
-      scope: buildContext.scope,
-    };
-
-    // store it in the cache
-    buildContext.setCachedGraphElement(
-      [
-        buildContext.attributes.id || defaultExecutionGraphConfig.id,
-        defaultExecutionGraphConfig.key,
-      ].filter(Boolean),
-      defaultExecutionGraphConfig
-    );
-
-    return defaultExecutionGraphConfig;
-  };
-}

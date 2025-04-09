@@ -7,12 +7,18 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Cpu } from "lucide-react";
-import type { ExecutionGraphElement } from "@fireworks/shared";
+import type { SerializedBaseElement } from "@fireworks/shared";
 import { DefaultActionDetails } from "@/domains/workflows/actions/default";
 import { LLMActionDetails } from "@/domains/workflows/actions/llm";
 
 interface ActionSheetProps {
-  action: ExecutionGraphElement | null;
+  action:
+    | (SerializedBaseElement & {
+        status: string;
+        duration: number;
+        label?: string;
+      })
+    | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   extraInfo?: Record<string, any>;

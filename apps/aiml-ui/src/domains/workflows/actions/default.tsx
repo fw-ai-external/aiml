@@ -1,10 +1,14 @@
-import type { ExecutionGraphElement } from "@fireworks/shared";
+import type { SerializedBaseElement } from "@fireworks/shared";
 
 export const DefaultActionDetails = ({
   action,
   extraInfo,
 }: {
-  action: ExecutionGraphElement;
+  action: SerializedBaseElement & {
+    status: string;
+    duration: number;
+    label?: string;
+  };
   extraInfo: any;
 }) => {
   return (

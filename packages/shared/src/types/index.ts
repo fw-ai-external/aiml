@@ -1,13 +1,6 @@
 // Import everything explicitly from each module to avoid ambiguity
 import { type Unpack, isAIMLElement } from "./utils";
 
-import type { z } from "zod";
-import type {
-  AllowedChildrenType,
-  ElementRole,
-  ElementType,
-  SerializedElement,
-} from "./elements";
 import { HTTPErrorCode } from "./errorCodes";
 import {
   type APIStreamEvent,
@@ -30,8 +23,6 @@ export {
 export * from "./diagnostics";
 
 export type {
-  // From utils
-  ElementType,
   Unpack,
   // From values
   ErrorResult,
@@ -59,11 +50,9 @@ export * from "./graph";
 
 // Re-export types from elements.ts to maintain backward compatibility
 export type {
-  ElementType as ElementsElementType,
-  ElementRole,
+  ElementType,
   AllowedChildrenType,
   SerializedBaseElement,
-  SerializedElement,
   Attributes,
   ASTNodeType,
   CommentNode,
@@ -77,27 +66,3 @@ export type {
 } from "./elements";
 
 export { elementRoleMap } from "./elements";
-
-/**
- * Configuration for a base element
- */
-export interface SerializedElementConfig {
-  id: string;
-  key: string;
-  tag: string;
-  role: ElementRole;
-  elementType: ElementType;
-  attributes?: Record<string, any>;
-  children?: SerializedElement[];
-  parent?: SerializedElement;
-  propsSchema?: any;
-  description?: string;
-  documentation?: string;
-  allowedChildren: AllowedChildrenType;
-  schema: z.ZodType<any>;
-  type: "element";
-  lineStart: number;
-  lineEnd: number;
-  columnStart: number;
-  columnEnd: number;
-}

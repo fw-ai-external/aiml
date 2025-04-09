@@ -3,10 +3,7 @@ import { createElementDefinition } from "../createElementFactory";
 
 export const Raise = createElementDefinition({
   ...raiseConfig,
-  tag: "raise" as const,
-  role: "action" as const,
-  elementType: "raise" as const,
-  allowedChildren: "none" as const,
+
   async execute(ctx) {
     const { event } = ctx.props;
 

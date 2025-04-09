@@ -80,7 +80,7 @@ flowchart TD
 1. **BaseElement** (packages/shared/src/BaseElement.ts)
 
    - Base class for all AIML elements
-   - Implements SerializedElement interface
+   - Implements SerializedBaseElementinterface
    - Handles execution, state management, and graph construction
 
 2. **createElementFactory** (packages/shared/src/createElementFactory.ts)
@@ -104,7 +104,7 @@ flowchart TD
    - Manages element relationships and dependencies
    - Uses dependency injection for runtime dependencies
 
-2. **ExecutionGraphElement** (packages/types/src/runtime.ts)
+2. **ExecutionGraphStep** (packages/types/src/runtime.ts)
 
    - Declarative JSON structure representing runtime execution
    - Defines execution order, conditions, and relationships

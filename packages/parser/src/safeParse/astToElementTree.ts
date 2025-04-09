@@ -79,11 +79,11 @@ export function processAttributes(attributes: any[]): Record<string, any> {
             ) {
               // TODO: This is a hack to get the value of the expression
               // TODO: We should use a proper parser for this
-              result[attr.name] = eval(`() => (${attr.value.value})`)();
+              result[attr.name] = new Function(`() => (${attr.value.value})`)();
             } else {
               // TODO: This is a hack to get the value of the expression
               // TODO: We should use a proper parser for this
-              result[attr.name] = eval(`() => (${attr.value.value})`)();
+              result[attr.name] = new Function(`() => (${attr.value.value})`)();
             }
           } else {
             // Fallback if no expression is found this is a string
@@ -110,20 +110,20 @@ export function convertParagraphToLlmNode(
 
   if (paragraphNode.children) {
     for (const child of paragraphNode.children) {
-      if (child.type === "text") {
+      if (child.astSourceType === "text") {
         promptText += (child as TextNode).value;
-      } else if (child.type === "expression") {
+      } else if (child.astSourceType === "expression") {
         promptText += `\${${(child as ExpressionNode).value}}`;
       }
     }
   }
 
   return {
-    type: "element",
+    astSourceType: "element",
     key: generateKey(),
     tag: "llm",
-    role: "action",
-    elementType: "llm",
+    type: "action",
+    subType: "model",
     scope,
     attributes: {
       prompt: "${input}",
@@ -310,15 +310,17 @@ export function astToElementTree(
       allElementConfigs[
         node.name.toLowerCase() as keyof typeof allElementConfigs
       ];
-    // Handle elements
-    const isState =
-      ["state", "user-input", "output"].includes(nodeConfig.role) &&
-      nodeConfig.tag !== "workflow";
+
     let stateId: string | undefined;
 
-    if (isState) {
+    if (nodeConfig.type === "state") {
       stateId = processAttributes(node.attributes).id;
-      if (!stateId) {
+      if (
+        !stateId &&
+        nodeConfig.subType !== "user-input" &&
+        nodeConfig.subType !== "output" &&
+        nodeConfig.subType !== "error"
+      ) {
         stateId = `anonymous_state_${generateKey()}`;
         diagnostics.add({
           message: `State element missing ID - generated: ${stateId}`,
@@ -330,6 +332,9 @@ export function astToElementTree(
             end: { line: lineEnd, column: columnEnd },
           },
         });
+      } else if (!stateId) {
+        stateId =
+          nodeConfig.subType === "user-input" ? "request" : nodeConfig.tag;
       }
       context.currentStates.push(stateId);
     }
@@ -419,15 +424,15 @@ export function astToElementTree(
     }
 
     return {
-      type: "element",
+      astSourceType: "element",
       key: generateKey(),
       tag: config.tag,
       scope,
-      role: config.role,
-      elementType: config.elementType,
+      type: config.type || "action",
+      subType: config.subType,
       attributes: {
         ...processedAttributes,
-        ...(isState && stateId ? { id: stateId } : {}),
+        ...(config.type === "state" && stateId ? { id: stateId } : {}),
       },
       children,
       lineStart,
@@ -451,10 +456,10 @@ export function astToElementTree(
             ? ["root", ...context.currentStates]
             : ["root"];
 
-        if (child.type === "text") {
+        if (child.astSourceType === "text") {
           // Add text node
           children.push({
-            type: "text",
+            astSourceType: "text",
             key: generateKey(),
             scope,
             value: child.value,
@@ -463,10 +468,10 @@ export function astToElementTree(
             columnStart: getPosition(child, "start", "column"),
             columnEnd: getPosition(child, "end", "column"),
           });
-        } else if (child.type === "mdxTextExpression") {
+        } else if (child.astSourceType === "mdxTextExpression") {
           // Process JSX expressions in text (like {someVar})
           children.push({
-            type: "expression",
+            astSourceType: "expression",
             key: generateKey(),
             scope,
             value: child.value,
@@ -475,7 +480,7 @@ export function astToElementTree(
             columnStart: getPosition(child, "start", "column"),
             columnEnd: getPosition(child, "end", "column"),
           });
-        } else if (child.type === "mdxJsxTextElement") {
+        } else if (child.astSourceType === "mdxJsxTextElement") {
           // Nested JSX in paragraph
           const transformed = astToElementTree(
             child,
@@ -497,7 +502,7 @@ export function astToElementTree(
 
     // Create paragraph node
     return {
-      type: "paragraph",
+      astSourceType: "paragraph",
       key: generateKey(),
       scope,
       children,
@@ -526,7 +531,7 @@ export function astToElementTree(
             const value = match[2].replace(/^['"]|['"]$/g, ""); // Remove quotes
 
             fields.push({
-              type: "headerField",
+              astSourceType: "headerField",
               key: generateKey(),
               scope: ["root"],
               id,
@@ -560,7 +565,7 @@ export function astToElementTree(
     }
 
     return {
-      type: "header",
+      astSourceType: "header",
       key: generateKey(),
       scope: ["root"],
       children: fields,
@@ -578,7 +583,7 @@ export function astToElementTree(
 
       if (source) {
         return {
-          type: "import",
+          astSourceType: "import",
           key: generateKey(),
           scope: ["root"],
           filePath: source,
@@ -602,12 +607,12 @@ export function astToElementTree(
         : ["root"];
 
     return {
-      type: "paragraph",
+      astSourceType: "paragraph",
       key: generateKey(),
       scope,
       children: [
         {
-          type: "text",
+          astSourceType: "text",
           key: generateKey(),
           scope,
           value: text || "",
@@ -630,7 +635,7 @@ export function astToElementTree(
         : ["root"];
 
     return {
-      type: "text",
+      astSourceType: "text",
       key: generateKey(),
       scope,
       value: node.value,
@@ -648,12 +653,12 @@ export function astToElementTree(
         : ["root"];
 
     return {
-      type: "paragraph",
+      astSourceType: "paragraph",
       key: generateKey(),
       scope,
       children: [
         {
-          type: "text",
+          astSourceType: "text",
           key: generateKey(),
           scope,
           value: text || "",
@@ -681,12 +686,12 @@ export function astToElementTree(
 
     // If it's a standalone text node, wrap it in a paragraph
     return {
-      type: "paragraph",
+      astSourceType: "paragraph",
       key: generateKey(),
       scope,
       children: [
         {
-          type: "text",
+          astSourceType: "text",
           key: generateKey(),
           scope,
           value: node.value,
@@ -710,12 +715,12 @@ export function astToElementTree(
         : ["root"];
 
     return {
-      type: "paragraph",
+      astSourceType: "paragraph",
       key: generateKey(),
       scope,
       children: [
         {
-          type: "text",
+          astSourceType: "text",
           key: generateKey(),
           scope,
           value: text,
@@ -738,7 +743,7 @@ export function astToElementTree(
         : ["root"];
 
     return {
-      type: "text",
+      astSourceType: "text",
       key: generateKey(),
       scope,
       value: `\`${node.value || ""}\``,
@@ -755,7 +760,7 @@ export function astToElementTree(
         : ["root"];
 
     return {
-      type: "text",
+      astSourceType: "text",
       key: generateKey(),
       scope,
       value: "---",
@@ -772,7 +777,7 @@ export function astToElementTree(
         : ["root"];
 
     return {
-      type: "expression",
+      astSourceType: "expression",
       key: generateKey(),
       scope,
       value: node.value,
@@ -790,12 +795,12 @@ export function astToElementTree(
         : ["root"];
 
     return {
-      type: "paragraph",
+      astSourceType: "paragraph",
       key: generateKey(),
       scope,
       children: [
         {
-          type: "text",
+          astSourceType: "text",
           key: generateKey(),
           scope,
           value: text || "",
@@ -843,7 +848,10 @@ export function mergeParagraphs(nodes: SerializedBaseElement[]): void {
 
   for (let i = 0; i < nodes.length - 1; i++) {
     // Check if current and next nodes are both paragraphs
-    if (nodes[i]?.type === "paragraph" && nodes[i + 1]?.type === "paragraph") {
+    if (
+      nodes[i]?.astSourceType === "paragraph" &&
+      nodes[i + 1]?.astSourceType === "paragraph"
+    ) {
       const currentNode = nodes[i];
       const nextNode = nodes[i + 1];
 

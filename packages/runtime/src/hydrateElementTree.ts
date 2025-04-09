@@ -2,7 +2,6 @@ import {
   DiagnosticSeverity,
   type Diagnostic,
   type SerializedBaseElement,
-  type SerializedElement,
 } from "@fireworks/shared";
 import * as allElements from "./elements";
 import type { BaseElement } from "./elements/BaseElement";
@@ -27,13 +26,13 @@ export function hydreateElementTree(
     throw new Error("No nodes provided to hydrate");
   }
 
-  if (rootNode.type !== "element" || rootNode.elementType !== "workflow") {
+  if (rootNode.astSourceType !== "element" || rootNode.tag !== "workflow") {
     throw new Error("Root node must be a workflow element");
   }
 
   // Create the root element
   const rootElement = hydrateElement(
-    rootNode as SerializedElement,
+    rootNode as SerializedBaseElement,
     undefined,
     diagnostics
   );
@@ -45,15 +44,17 @@ export function hydreateElementTree(
 }
 
 /**
- * Hydrate a SerializedElement into a BaseElement
+ * Hydrate a SerializedBaseElementinto a BaseElement
  */
 function hydrateElement(
-  node: SerializedElement,
+  node: SerializedBaseElement,
   parentElement: BaseElement | undefined,
   diagnostics: Set<Diagnostic>
 ): { element?: BaseElement; diagnostics: Set<Diagnostic> } {
-  if (node.type !== "element") {
-    throw new Error(`Cannot hydrate non-element node of type ${node.type}`);
+  if (node.astSourceType !== "element") {
+    throw new Error(
+      `Cannot hydrate non-element node of type ${node.astSourceType}`
+    );
   }
 
   // Get the constructor for this element type
@@ -108,10 +109,10 @@ function hydrateElement(
   // Process children
   if (node.children && node.children.length > 0) {
     for (const child of node.children) {
-      if (child.type === "element") {
+      if (child.astSourceType === "element") {
         // Recursively hydrate child elements
         const childElement = hydrateElement(
-          child as SerializedElement,
+          child as SerializedBaseElement,
           element,
           diagnostics
         );

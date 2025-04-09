@@ -17,7 +17,6 @@ import {
 // LLM Element - AI/Language Model Integration
 export const llmConfig: BaseElementDefinition = {
   tag: "llm",
-  elementType: "llm",
   propsSchema: z.object({
     id: z.string().optional(),
     model: z.string(),
@@ -35,7 +34,8 @@ export const llmConfig: BaseElementDefinition = {
   }),
   description: "Invokes an external service (LLM/AI integration)",
   allowedChildren: ["prompt", "instructions"] as AllowedChildrenType,
-  role: "action",
+  type: "action",
+  subType: "model",
   documentation: "Invokes an external service (LLM/AI integration)",
 };
 
@@ -44,13 +44,12 @@ export type LLMProps = z.infer<typeof llmConfig.propsSchema>;
 // Prompt Element - Prompt for LLM
 export const promptConfig: BaseElementDefinition = {
   tag: "prompt",
-  elementType: "prompt",
   propsSchema: z.object({
     id: z.string().optional(),
   }),
   description: "Defines the prompt text for an LLM",
   allowedChildren: "text" as AllowedChildrenType,
-  role: "user-input",
+  type: "param",
   documentation: "Defines the prompt text for an LLM",
 };
 
@@ -59,13 +58,12 @@ export type PromptProps = z.infer<typeof promptConfig.propsSchema>;
 // Instructions Element - Instructions for LLM
 export const instructionsConfig: BaseElementDefinition = {
   tag: "instructions",
-  elementType: "instructions",
   propsSchema: z.object({
     id: z.string().optional(),
   }),
   description: "Defines the instructions for an LLM",
   allowedChildren: "text" as AllowedChildrenType,
-  role: "user-input",
+  type: "param",
   documentation: "Defines the instructions for an LLM",
 };
 
@@ -74,8 +72,8 @@ export type InstructionsProps = z.infer<typeof instructionsConfig.propsSchema>;
 // Data Element - Data model variable
 export const dataConfig: BaseElementDefinition = {
   tag: "data",
-  elementType: "data",
-  role: "data-model",
+  type: "param",
+  subType: "datamodel",
   propsSchema: z.object({
     id: z.string(),
     src: z.string().optional(),
@@ -106,8 +104,8 @@ export type DataProps = z.infer<typeof dataConfig.propsSchema>;
 // DataModel Element - Container for data declarations
 export const dataModelConfig: BaseElementDefinition = {
   tag: "datamodel",
-  elementType: "datamodel",
-  role: "data-model",
+  type: "param",
+  subType: "datamodel",
   description: "Container for data model declarations",
   propsSchema: z.object({
     id: z.string().optional(),
@@ -121,8 +119,8 @@ export type DataModelProps = z.infer<typeof dataModelConfig.propsSchema>;
 // Workflow Element - Root workflow element
 export const workflowConfig: BaseElementDefinition = {
   tag: "workflow",
-  elementType: "workflow",
-  role: "state",
+  type: "state",
+  subType: "user-input",
   propsSchema: z.object({
     id: z.string().optional(),
     initial: z.string().optional(),
@@ -146,13 +144,12 @@ export type WorkflowProps = z.infer<typeof workflowConfig.propsSchema>;
 // SendText Element - Sends text response
 export const sendTextConfig: BaseElementDefinition = {
   tag: "sendText",
-  elementType: "sendText",
   propsSchema: z.object({
     id: z.string().optional(),
   }),
   description: "Sends text response to the user",
   allowedChildren: "text" as AllowedChildrenType,
-  role: "output",
+  type: "action",
   documentation: "Sends text response to the user",
 };
 
@@ -161,13 +158,12 @@ export type SendTextProps = z.infer<typeof sendTextConfig.propsSchema>;
 // SendToolCalls Element - Sends tool calls
 export const sendToolCallsConfig: BaseElementDefinition = {
   tag: "sendToolCalls",
-  elementType: "sendToolCalls",
   propsSchema: z.object({
     id: z.string().optional(),
   }),
   description: "Sends tool calls to the user",
   allowedChildren: "text" as AllowedChildrenType,
-  role: "output",
+  type: "action",
   documentation: "Sends tool calls to the user",
 };
 
@@ -178,13 +174,12 @@ export type SendToolCallsProps = z.infer<
 // SendObject Element - Sends object response
 export const sendObjectConfig: BaseElementDefinition = {
   tag: "sendObject",
-  elementType: "sendObject",
   propsSchema: z.object({
     id: z.string().optional(),
   }),
   description: "Sends object response to the user",
   allowedChildren: "text" as AllowedChildrenType,
-  role: "output",
+  type: "action",
   documentation: "Sends object response to the user",
 };
 
@@ -193,7 +188,6 @@ export type SendObjectProps = z.infer<typeof sendObjectConfig.propsSchema>;
 // ToolCall Element - Tool call integration
 export const toolCallConfig: BaseElementDefinition = {
   tag: "toolcall",
-  elementType: "toolcall",
   propsSchema: z.object({
     id: z.string().optional(),
     name: z.string(),
@@ -201,7 +195,7 @@ export const toolCallConfig: BaseElementDefinition = {
   }),
   description: "Invokes a tool",
   allowedChildren: "text" as AllowedChildrenType,
-  role: "action",
+  type: "action",
   documentation: "Invokes a tool",
 };
 
@@ -210,13 +204,12 @@ export type ToolCallProps = z.infer<typeof toolCallConfig.propsSchema>;
 // OnError Element - Error handling
 export const onErrorConfig: BaseElementDefinition = {
   tag: "onerror",
-  elementType: "onerror",
   propsSchema: z.object({
     id: z.string().optional(),
   }),
   description: "Handles errors",
   allowedChildren: "any" as AllowedChildrenType,
-  role: "error",
+  type: "action",
   documentation: "Handles errors",
 };
 
@@ -225,13 +218,12 @@ export type OnErrorProps = z.infer<typeof onErrorConfig.propsSchema>;
 // OnChunk Element - Chunk handling
 export const onChunkConfig: BaseElementDefinition = {
   tag: "onchunk",
-  elementType: "onchunk",
   propsSchema: z.object({
     id: z.string().optional(),
   }),
   description: "Handles chunks of data",
   allowedChildren: "any" as AllowedChildrenType,
-  role: "action",
+  type: "action",
   documentation: "Handles chunks of data",
 };
 

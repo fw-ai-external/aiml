@@ -126,7 +126,6 @@ export function CodeEditor({
         programmingLanguage="mdx"
         value={value}
         onChange={(value) => {
-          console.log("value", value);
           onChange(value);
         }}
       />

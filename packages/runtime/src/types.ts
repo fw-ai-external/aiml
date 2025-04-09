@@ -1,7 +1,4 @@
-import type {
-  ElementDefinition,
-  ExecutionGraphElement,
-} from "@fireworks/shared";
+import type { ElementDefinition } from "@fireworks/shared";
 import type { ObjectStreamPart, TextStreamPart } from "ai";
 import type { z } from "zod";
 import type { ElementExecutionContext } from "./ElementExecutionContext";
@@ -59,7 +56,5 @@ export type RuntimeElementDefinition<
   ) => Promise<any>;
   enter?: () => Promise<void>;
   exit?: () => Promise<void>;
-  onExecutionGraphConstruction?: (
-    buildContext: BuildContext
-  ) => ExecutionGraphElement;
+  onExecutionGraphConstruction?: (buildContext: BuildContext) => void;
 };

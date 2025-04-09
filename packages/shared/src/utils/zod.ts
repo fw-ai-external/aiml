@@ -111,12 +111,12 @@ export const functionStringSchemaReturnType = (returnType: z.ZodType<any>) =>
     .transform((val) => {
       if (val.startsWith("::FUNCTION-EXPRESSION::")) {
         return {
-          fn: eval(val.slice(23)),
+          fn: new Function(val.slice(23)),
           string: val,
         };
       }
       return {
-        fn: eval(val.slice(12)),
+        fn: new Function(val.slice(12)),
         string: val,
       };
     })
@@ -185,7 +185,7 @@ export const elementExpressionCallbackSchema = z.union([
     .string()
     .startsWith("::FUNCTION::")
     .transform((val) => {
-      const fn = eval(val.slice(12));
+      const fn = new Function(val.slice(12));
       return fn;
     })
     .superRefine((val, ctx: RefinementCtx) => {

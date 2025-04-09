@@ -1,4 +1,7 @@
-import type { ElementRole, SerializedBaseElement } from "@fireworks/shared";
+import {
+  allElementConfigs,
+  type SerializedBaseElement,
+} from "@fireworks/shared";
 import {
   type JsxAttributeLike,
   type JsxElement,
@@ -6,7 +9,6 @@ import {
   Node,
 } from "ts-morph";
 import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
 
 export class ElementBuilder {
   /**
@@ -21,19 +23,21 @@ export class ElementBuilder {
       ? element.getTagNameNode().getText()
       : element.getOpeningElement().getTagNameNode().getText();
 
-    const role = this.determineRole(tagName);
-
+    const config =
+      allElementConfigs[
+        tagName.toLowerCase() as keyof typeof allElementConfigs
+      ];
     // Generate a UUID if no id is provided
     const id = attributes.id || uuidv4();
 
     return {
-      type: "element",
+      astSourceType: "element",
       id,
       key: `element-${id}`,
       scope: ["root"],
-      tag: tagName,
-      role,
-      elementType: tagName.toLowerCase() as any,
+      tag: tagName.toLowerCase(),
+      type: config.type,
+      subType: config.subType,
       attributes,
       children,
       lineStart: element.getStartLineNumber(),
@@ -78,48 +82,5 @@ export class ElementBuilder {
     });
 
     return result;
-  }
-
-  /**
-   * Determines the role of an element based on its tag name
-   */
-  static determineRole(tagName: string): ElementRole {
-    const lowerTagName = tagName.toLowerCase();
-    if (lowerTagName.includes("action")) {
-      return "action";
-    } else if (lowerTagName.includes("input")) {
-      return "user-input";
-    } else if (lowerTagName.includes("error")) {
-      return "error";
-    } else if (lowerTagName.includes("output")) {
-      return "output";
-    }
-    return "state";
-  }
-
-  /**
-   * Creates a stub schema for testing purposes
-   */
-  private static createStubSchema(
-    tagName: string,
-    attributes: Record<string, string>
-  ): z.ZodType<any> {
-    // Initialize with a base schema
-    let baseSchema = z.object({
-      id: z.string(),
-      tag: z.string(),
-    });
-
-    // Add all attributes from the element to the schema
-    Object.keys(attributes).forEach((attrName) => {
-      // This is a workaround since we can't dynamically extend the schema
-      // We're creating a new object that includes the previous schema + new property
-      baseSchema = z.object({
-        ...baseSchema.shape,
-        [attrName]: z.string().optional(),
-      });
-    });
-
-    return baseSchema;
   }
 }

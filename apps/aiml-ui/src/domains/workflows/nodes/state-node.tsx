@@ -18,7 +18,10 @@ import { cn } from "@/lib/utils";
 
 // Import only types
 import type { Node, NodeProps } from "@xyflow/react";
-import type { ExecutionGraphElement } from "@fireworks/shared";
+import type {
+  ExecutionGraphStep,
+  SerializedBaseElement,
+} from "@fireworks/shared";
 
 const StatusColors = {
   pending: "text-yellow-500",
@@ -31,8 +34,17 @@ const StatusColors = {
 };
 
 interface ActionItemComponentProps {
-  action: ExecutionGraphElement;
-  onClick: (action: ExecutionGraphElement) => void;
+  action: SerializedBaseElement & {
+    status: string;
+    duration: number;
+  };
+  onClick: (
+    action: SerializedBaseElement & {
+      status: string;
+      duration: number;
+      label?: string;
+    }
+  ) => void;
   isSelected: boolean;
   orderNumber?: number;
 }
@@ -59,11 +71,11 @@ const ActionItemComponent: React.FC<ActionItemComponentProps> = ({
         )}
         <Text size="sm" className="text-gray-300">
           {action.tag} -{" "}
-          {action.attributes.label ||
-            action.attributes.name ||
+          {action.attributes?.label ||
+            action.attributes?.name ||
             action.id ||
-            action.attributes.instructions?.slice(67, 80).trim() ||
-            JSON.stringify(Object.keys(action.attributes))}
+            action.attributes?.instructions?.toString()?.slice(67, 80).trim() ||
+            JSON.stringify(Object.keys(action.attributes || {}))}
           ...
         </Text>
       </div>
@@ -101,9 +113,20 @@ const ActionItemComponent: React.FC<ActionItemComponentProps> = ({
   );
 };
 
-export type StateNodeProps = Node<ExecutionGraphElement, "state-node">;
+export type StateNodeProps = Node<
+  ExecutionGraphStep & {
+    children: Array<
+      SerializedBaseElement & {
+        status: string;
+        duration: number;
+        label?: string;
+      }
+    >;
+  },
+  "state-node"
+>;
 
-// interface StateNodeProps extends NodeProps<ExecutionGraphElement> {
+// interface StateNodeProps extends NodeProps<ExecutionGraphStep> {
 //   onSubStepsClick: (nodeId: string, subSteps: SubStep[]) => void;
 // }
 
@@ -111,34 +134,48 @@ export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
   data,
   selected,
 }) => {
-  const [selectedAction, setSelectedAction] =
-    React.useState<ExecutionGraphElement | null>(null);
+  const [selectedAction, setSelectedAction] = React.useState<
+    | (SerializedBaseElement & {
+        status: string;
+        duration: number;
+        label?: string;
+      })
+    | null
+  >(null);
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
 
-  const handleActionClick = (action: ExecutionGraphElement) => {
+  const handleActionClick = (
+    action: SerializedBaseElement & {
+      status: string;
+      duration: number;
+      label?: string;
+    }
+  ) => {
     setSelectedAction(action);
     setIsSheetOpen(true);
   };
 
   const actions =
-    data.next?.filter(
-      (action) => action.type === "action" && action.tag !== "transition"
+    data.children?.filter(
+      (action) => action.type === "action" && action.subType !== "transition"
     ) || [];
+
+  console.log("actions", actions);
 
   const transitions = React.useMemo(() => {
     const directTransitions =
-      data.next?.filter(
-        (action) => action.type === "action" && action.tag === "transition"
+      data.children?.filter(
+        (action) => action.type === "action" && action.subType === "transition"
       ) || [];
 
     // Find transitions nested within other actions in the same scope
     const nestedTransitions =
-      data.next?.flatMap((action) =>
+      data.children?.flatMap((action) =>
         (
-          action.next?.filter(
+          action.children?.filter(
             (subAction) =>
               subAction.type === "action" &&
-              subAction.tag === "transition" &&
+              subAction.subType === "transition" &&
               subAction.scope?.includes(data.id)
           ) || []
         ).map((transition) => ({
@@ -153,18 +190,19 @@ export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
     return [...directTransitions, ...nestedTransitions];
   }, [data.next, data.id]);
 
-  const calculateSubStepsProgress = () => {
-    const totalSteps = data.next?.length || 0;
-    const completedSteps =
-      data.next?.filter((step) => step && step.status === "completed").length ||
-      0;
-    const runningSteps =
-      data.next?.filter((step) => step && step.status === "running").length ||
-      0;
-    return totalSteps > 0
-      ? ((completedSteps + runningSteps * 0.5) / totalSteps) * 100
-      : 0;
-  };
+  // const calculateSubStepsProgress = () => {
+  //   const totalSteps = data.next?.length || 0;
+  //   const completedSteps =
+  //     data.children?.filter((step) => step && step.status === "completed")
+  //       .length || 0;
+  //   const runningSteps =
+  //     data.children?.filter((step) => step && step.status === "running")
+  //       .length || 0;
+  //   0;
+  //   return totalSteps > 0
+  //     ? ((completedSteps + runningSteps * 0.5) / totalSteps) * 100
+  //     : 0;
+  // };
 
   const primaryActionType =
     actions.find((action) => action?.subType === "model")?.subType ||
@@ -178,6 +216,15 @@ export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
     "human-input": "bg-[#211106]",
     "tool-call": "bg-[#7171B4]",
     code: "bg-[#7171B4]",
+    output: "bg-[#7171B4]",
+    error: "bg-[#7171B4]",
+    parallel: "bg-[#7171B4]",
+    transition: "bg-[#7171B4]",
+    "user-input": "bg-[#7171B4]",
+    other: "bg-[#7171B4]",
+    datamodel: "bg-[#7171B4]",
+    prop: "bg-[#7171B4]",
+    conditional: "bg-[#7171B4]",
   };
 
   const actionIconMap: Record<typeof primaryActionType, React.ReactNode> = {
@@ -185,6 +232,15 @@ export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
     "human-input": <User className="w-4 h-4 text-blue-500" />,
     "tool-call": <FunctionSquare className="w-4 h-4 text-green-500" />,
     code: <Code className="w-4 h-4 text-green-500" />,
+    other: <Code className="w-4 h-4 text-green-500" />,
+    datamodel: <Code className="w-4 h-4 text-green-500" />,
+    prop: <Code className="w-4 h-4 text-green-500" />,
+    conditional: <Code className="w-4 h-4 text-green-500" />,
+    "user-input": <User className="w-4 h-4 text-blue-500" />,
+    parallel: <Code className="w-4 h-4 text-green-500" />,
+    transition: <Code className="w-4 h-4 text-green-500" />,
+    output: <Code className="w-4 h-4 text-green-500" />,
+    error: <Code className="w-4 h-4 text-green-500" />,
   };
 
   const ActionIcon = () => actionIconMap[primaryActionType];
@@ -277,13 +333,13 @@ export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
                     className="flex items-center justify-end relative"
                   >
                     <Text size="sm" className="text-gray-500">
-                      {transition.attributes.when ||
-                        transition.attributes.on ||
-                        transition.label ||
+                      {transition.attributes?.when ||
+                        transition.attributes?.on ||
+                        transition?.label ||
                         "On Success"}
                     </Text>
                     <div className="flex items-center space-x-2">
-                      {transition.status === "running" && (
+                      {(transition as any).status === "running" && (
                         <div className="flex items-center space-x-1">
                           <Loader2 className="w-3 h-3 text-[#8a8d9b] animate-spin" />
                           <Text size="sm" className="text-[#8a8d9b]">
@@ -334,11 +390,11 @@ export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
         extraInfo={
           selectedAction?.type === "action" && selectedAction.tag === "llm"
             ? {
-                modelName: selectedAction.attributes.modelName,
-                inputTokens: selectedAction.attributes.inputTokens,
-                outputTokens: selectedAction.attributes.outputTokens,
-                latency: selectedAction.attributes.latency,
-                temperature: selectedAction.attributes.temperature,
+                modelName: selectedAction.attributes?.modelName,
+                inputTokens: selectedAction.attributes?.inputTokens,
+                outputTokens: selectedAction.attributes?.outputTokens,
+                latency: selectedAction.attributes?.latency,
+                temperature: selectedAction.attributes?.temperature,
               }
             : undefined
         }

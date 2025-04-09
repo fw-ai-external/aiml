@@ -2,7 +2,11 @@ import Dagre from "@dagrejs/dagre";
 import type { StepCondition } from "@mastra/core/workflows";
 import type { Edge, Node } from "@xyflow/react";
 import { MarkerType } from "@xyflow/react";
-import type { ExecutionGraphElement } from "@fireworks/shared";
+import type {
+  RunStep,
+  SerializedBaseElement,
+  WorkflowGraph,
+} from "@fireworks/shared";
 
 export type Condition = {
   ref: {
@@ -16,10 +20,6 @@ export type Condition = {
   query: Record<string, any>;
   conj?: "and" | "or";
 };
-
-export const pathAlphabet = "abcdefghijklmnopqrstuvwxyz"
-  .toUpperCase()
-  .split("");
 
 export function extractConditions(group?: StepCondition<any, any>) {
   let result: Condition[] = [];
@@ -107,12 +107,15 @@ const defaultEdgeOptions = {
 };
 
 export const contructNodesAndEdges = ({
-  stepGraph,
+  executionGraph,
+  elementTree,
+  stepSubscriberGraph,
 }: {
-  stepGraph: ExecutionGraphElement;
-  stepSubscriberGraph?: any;
+  executionGraph: WorkflowGraph;
+  elementTree?: SerializedBaseElement;
+  stepSubscriberGraph: any;
 }) => {
-  if (!stepGraph) {
+  if (!executionGraph) {
     return { nodes: [], edges: [] };
   }
 
@@ -120,26 +123,27 @@ export const contructNodesAndEdges = ({
   let edges: Edge[] = [];
   const processedNodeIds = new Set<string>();
 
-  // Process an ExecutionGraphElement and its children recursively
+  // Process an ExecutionGraphStep and its children recursively
   const processGraphElement = (
-    element: ExecutionGraphElement,
+    step: RunStep,
     parentId?: string,
     depth = 0,
     horizontalIndex = 0
   ): string => {
     // Avoid processing the same node twice
-    if (processedNodeIds.has(element.id)) {
+    if (processedNodeIds.has(step.key)) {
       // If we've already processed this node, just return the ID for edge creation
-      return element.id;
+      return step.key;
     }
 
-    processedNodeIds.add(element.id);
+    processedNodeIds.add(step.key);
 
     // Create node for this element
-    const nodeId = element.id;
-    const nodeType = getNodeType(element);
-    if (nodeType) {
-      const nodeLabel = getNodeLabel(element);
+    const nodeId = step.id;
+    const nodeType = getNodeType(step);
+
+    if (nodeType && step.type === "state") {
+      const nodeLabel = getNodeLabel(step);
 
       // Base position - will be optimized by dagre later
       const position = {
@@ -154,63 +158,56 @@ export const contructNodesAndEdges = ({
         type: nodeType,
         data: {
           label: nodeLabel,
-          ...element,
-          withoutTopHandle: !parentId,
+          ...step,
+          numKids: 1,
+          children:
+            findElementByKey(elementTree!, step.key)?.children?.map((child) => {
+              return {
+                ...child,
+                status: step.status,
+                duration: step.duration,
+                label: undefined, // TODO: add label
+              };
+            }) ?? [],
+          withoutTopHandle: step.subType === "user-input",
           withoutBottomHandle:
-            !element.next?.length && !element.parallel?.length,
+            step.subType === "error" || step.subType === "output",
         },
       };
 
       nodes.push(node);
     }
-    // Create edge from parent to this node if there is a parent
-    if (parentId) {
-      edges.push({
-        id: `e${parentId}-${nodeId}`,
-        source: parentId,
-        target: nodeId,
-        ...defaultEdgeOptions,
-        // If there's a condition, add it to the edge label
-        label: element.when ? truncateCondition(element.when) : undefined,
-      });
-    }
-    console.log("edges", edges);
-
-    // Process next elements sequentially
-    if (element.next?.length) {
-      let currentParentId =
-        element.type === "action"
-          ? element.scope[element.scope.length - 1]
-          : nodeId;
-
-      element.next.forEach((nextElement, i) => {
-        const nextId = processGraphElement(
-          nextElement,
-          currentParentId,
-          depth + 1,
-          horizontalIndex + i
-        );
-        currentParentId = nextId;
-      });
-    }
 
     // Process parallel elements
-    if (element.parallel?.length) {
-      element.parallel.forEach((parallelElement) => {
-        processGraphElement(
-          parallelElement,
-          nodeId,
-          depth + 1,
-          horizontalIndex
-        );
+    if (step.runParallel) {
+      step.steps.forEach((branch) => {
+        branch.forEach((parallelStep) => {
+          processGraphElement(parallelStep, nodeId, depth + 1, horizontalIndex);
+        });
       });
     }
 
     return nodeId;
   };
 
-  // Start processing from the root element
-  processGraphElement(stepGraph);
+  // Process the execution graph and add transition-to-state edges
+  for (let i = 0; i < executionGraph.length; i++) {
+    const currentStep = executionGraph[i];
+    processGraphElement(currentStep);
+
+    // Check if current step is a transition and next step is a state
+    if (executionGraph[i + 1]?.type === "state") {
+      const nextStep = executionGraph[i + 1];
+      console.log(currentStep.scope[currentStep.scope.length - 1], nextStep.id);
+      edges.push({
+        id: `e${currentStep.scope[currentStep.scope.length - 1]}-${nextStep.id}`,
+        source: currentStep.scope[currentStep.scope.length - 1],
+        target: nextStep.id,
+        ...defaultEdgeOptions,
+        label: nextStep.when ? truncateCondition(nextStep.when) : undefined,
+      });
+    }
+  }
 
   // Apply layout using Dagre
   const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
@@ -221,24 +218,40 @@ export const contructNodesAndEdges = ({
   return { nodes: layoutedNodes, edges: layoutedEdges };
 };
 
-// Helper to determine node type based on ExecutionGraphElement
-function getNodeType(element: ExecutionGraphElement): string | null {
-  if (element.type === "state") return "state-node";
-  if (element.type === "error") return "default-node";
-  if (element.type === "user-input") return "incoming-request-node";
-  if (element.type === "output") return "default-node";
+// Helper to determine node type based on ExecutionGraphStep
+function getNodeType(step: RunStep): string | null {
+  if (step.subType === "error") return "default-node";
+  if (step.subType === "user-input") return "incoming-request-node";
+  if (step.subType === "output") return "default-node";
+  if (step.type === "state") return "state-node";
+  if (step.subType === "transition") return "transition-node";
 
   return null;
 }
 
-// Helper to determine label based on ExecutionGraphElement
-function getNodeLabel(element: ExecutionGraphElement): string {
-  if (element.attributes?.name) return element.attributes.name;
-  if (element.attributes?.label) return element.attributes.label;
-  return element.id;
+// Helper to determine label based on ExecutionGraphStep
+function getNodeLabel(step: RunStep): string {
+  if (step.attributes?.name) return step.attributes.name;
+  if (step.attributes?.label) return step.attributes.label;
+  return step.id;
 }
 
 // Helper to truncate conditions for edge labels
 function truncateCondition(condition: string): string {
   return condition.length > 20 ? `${condition.substring(0, 20)}...` : condition;
+}
+function findElementByKey(
+  elementTree: SerializedBaseElement,
+  key: string
+): SerializedBaseElement | undefined {
+  if (!elementTree) return undefined;
+  if (elementTree.key === key) return elementTree;
+  if (elementTree.children) {
+    for (const child of elementTree.children) {
+      const found = findElementByKey(child, key);
+      if (found) return found;
+    }
+  }
+
+  return undefined;
 }

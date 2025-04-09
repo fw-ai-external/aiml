@@ -12,14 +12,12 @@ import {
 import { z } from "zod";
 import { RunValue } from "./RunValue";
 import { StepValue } from "./StepValue";
-import { ServiceIdentifiers, container } from "./di";
 import { BaseElement } from "./elements/BaseElement";
-import type { GraphBuilder } from "./graphBuilder";
-import { BuildContext } from "./graphBuilder/Context";
-import type { ExecutionGraphElement } from "@fireworks/shared";
+import type { WorkflowGraph } from "@fireworks/shared";
 import type { DataModel, FieldValues } from "@fireworks/shared";
 import { DataModelRegistry } from "./DataModelRegistry";
-
+import { WorkflowGraphBuilder } from "./graphBuilder";
+import { v4 as uuidv4 } from "uuid";
 export type RuntimeOptions = {
   onTransition?: (state: WorkflowRunState) => void;
   onError?: (error: Error) => void;
@@ -34,11 +32,11 @@ export class Workflow<
   InputType extends z.infer<InputSchema>,
 > {
   private debug: string = "";
-  private graphBuilder: GraphBuilder;
+  private graphBuilder: WorkflowGraphBuilder;
   private workflow: MastraWorkflow;
   private activeStates: Set<string> = new Set();
   private value: RunValue | null = null;
-  private executionGraph: ExecutionGraphElement;
+  private executionGraph: WorkflowGraph;
   public datamodel: DataModelRegistry;
 
   // TODO this is a temp solution. Workflows should be able to define their own input
@@ -62,11 +60,9 @@ export class Workflow<
     private options?: RuntimeOptions
   ) {
     this.datamodel = DataModelRegistry.rehydrateFromDump(datamodel);
-    this.graphBuilder = container.get<GraphBuilder>(
-      ServiceIdentifiers.GRAPH_BUILDER
-    );
+    this.graphBuilder = new WorkflowGraphBuilder();
     // Build the execution graph
-    this.executionGraph = this.graphBuilder.buildGraph(this.spec);
+    this.executionGraph = this.graphBuilder.build(this.spec);
 
     this.workflow = new MastraWorkflow({
       name: "workflow",
@@ -79,21 +75,7 @@ export class Workflow<
     //   })
     // );
 
-    this.addGraphElementToWorkflow(
-      new BuildContext(
-        this.workflow,
-        this.spec.key,
-        this.spec.children,
-        this.spec.attributes,
-        {},
-        this.spec,
-        this.spec,
-        this.graphBuilder
-      ),
-      this.executionGraph,
-      false,
-      true
-    );
+    this.initMastraWorkflow(this.executionGraph);
     console.log("[DEBUG] mastra workflow 'code':\n", this.debug);
     this.workflow.commit();
   }
@@ -124,15 +106,15 @@ export class Workflow<
     );
 
     for (const stateId of newActiveStates) {
-      const element = this.findElementById(stateId);
+      const element = this.findElementByIdOrKey(stateId);
       // const input = state?.context.steps?.[stateId].payload;
       if (element) {
         this.value?.addActiveStep({
-          elementType: element.elementType,
-          id: element.id,
-          path: [],
-          status: "active",
-          // TODO add input
+          ...element,
+          status: "running",
+          input: null,
+          datamodel: {},
+          id: element.id ?? uuidv4(),
         });
       }
     }
@@ -143,10 +125,10 @@ export class Workflow<
         failedStates.includes(stateId) ||
         state.context.steps[stateId]?.status === "success"
       ) {
-        const element = this.findElementById(stateId);
+        const element = this.findElementByIdOrKey(stateId);
         if (element) {
           this.value?.markStepAsFinished(
-            element.id,
+            element.id ?? uuidv4(),
             (state as any).context.steps[stateId].output?.result
           );
           // await (element as BaseElement).deactivate?.();
@@ -163,17 +145,17 @@ export class Workflow<
     this.options?.onTransition?.(state);
   }
 
-  private findElementById(
-    id: string,
+  private findElementByIdOrKey(
+    idOrKey: string,
     element: BaseElement = this.spec
   ): BaseElement | undefined {
-    if (element.id === id) {
+    if (element.key === idOrKey || element.id === idOrKey) {
       return element;
     }
 
     for (const child of element.children) {
       if (child instanceof BaseElement) {
-        const found = this.findElementById(id, child);
+        const found = this.findElementByIdOrKey(idOrKey, child);
         if (found) {
           return found;
         }
@@ -351,21 +333,7 @@ export class Workflow<
       this.activeStates = new Set();
 
       // Rebuild the graph
-      this.addGraphElementToWorkflow(
-        new BuildContext(
-          this.workflow,
-          this.spec.key,
-          this.spec.children,
-          this.spec.attributes,
-          {},
-          this.spec,
-          this.spec,
-          this.graphBuilder
-        ),
-        this.executionGraph,
-        false,
-        true
-      );
+      this.initMastraWorkflow(this.executionGraph);
 
       // Commit the changes
       this.workflow.commit();
@@ -413,100 +381,147 @@ export class Workflow<
     }
   }
 
-  private addGraphElementToWorkflow(
-    buildContext: BuildContext,
-    element: ExecutionGraphElement,
-    parallel: boolean = false,
-    root: boolean = false,
-    parentId?: string
-  ) {
-    if (element.runAfter) {
-      this.debug = `${this.debug}.runAfter([${element.runAfter.join(",")}])`;
-      this.workflow.after(
-        element.runAfter.map((key: string) =>
-          buildContext.findElementByKey(key)
-        ) as any
-      ) as any;
-    }
-    // Add the current element to the workflow
-
-    const step = buildContext.findElementByKey(element.key, buildContext.spec);
-
-    // Should never happen, so we add this here to catch issues/bugs
-    if (
-      !step ||
-      ((element.key !== step.key || element.tag !== step.tag) &&
-        element.next?.[0]?.type !== "error" &&
-        element.type !== "error")
-    ) {
-      throw new Error(
-        `Step mismatch: ${element.key} !== ${step?.key} || ${element.tag} !== ${step?.tag}`
-      );
-    }
-
-    if (parallel || root) {
-      this.debug = root
-        ? `mastraWorkflow.step(${step.tag})`
-        : `${this.debug}.step(${step.tag})`;
-
-      this.workflow.step(step, {
-        variables: {
-          input: root
-            ? { step: "trigger", path: "input" as any }
-            : { step: { id: parentId! } as any, path: "result" as any },
-          getDatamodel: { step: "trigger", path: "getDatamodel" as any },
-        },
-        // create a function that evaluates the when expression
-        // this serves as a guard for the step
-        // TODO use Step context here
-        // when: async ({ context }: { context: Record<string, any> }) =>
-        //   element.when ? eval(element.when) : true,
-      });
-    } else {
-      this.debug = `${this.debug}.then(Step: ${step.tag} Id:${step.id} ParentId:${parentId!})`;
-      this.workflow.then(step, {
-        variables: {
-          input: { step: { id: parentId! }, path: "result" },
-          getDatamodel: { step: "trigger" as any, path: "getDatamodel" as any },
-        },
-        // create a function that evaluates the when expression
-        // this serves as a guard for the step
-        // TODO use Step context here
-        // when: async ({ context }: { context: Record<string, any> }) =>
-        //   element.when ? eval(element.when) : true,
-      });
-    }
-
-    // Recursively add all child elements
-    if (element.next) {
-      let lastChildId: string = step.id;
-      for (const child of element.next) {
-        this.addGraphElementToWorkflow(
-          buildContext,
-          child,
-          false,
-          false,
-          lastChildId
+  private initMastraWorkflow(graph: WorkflowGraph) {
+    let lastStepId: string | undefined;
+    for (const step of graph) {
+      const element = this.findElementByIdOrKey(step.key);
+      if (!element) {
+        console.log(JSON.stringify(this.spec, null, 2));
+        throw new Error(
+          `Invalid graph, no element found for key: ${step.key} - ${JSON.stringify(
+            step,
+            null,
+            2
+          )}`
         );
-        const childElement = buildContext.findElementByKey(child.key);
-        if (!childElement) {
-          throw new Error(
-            `childElement is undefined ${JSON.stringify(child, null, 2)}`
-          );
+      }
+
+      if (step.tag === "workflow") {
+        this.workflow.step(element, {
+          variables: {
+            input: element
+              ? { step: "trigger", path: "input" as any }
+              : { step: { id: lastStepId! } as any, path: "result" as any },
+            getDatamodel: { step: "trigger", path: "getDatamodel" as any },
+          },
+        });
+      } else if (step.runParallel && "steps" in step && step.steps.length > 0) {
+        step.steps.forEach((thread) => {
+          // each thread is a parallel step, and gets the same initial input
+          this.workflow.step(element, {
+            variables: {
+              input: {
+                step: { id: lastStepId! } as any,
+                path: "result" as any,
+              },
+              getDatamodel: { step: "trigger", path: "getDatamodel" as any },
+            },
+          });
+          this.initMastraWorkflow(thread.slice(1));
+        });
+      } else {
+        if (step.if) {
+          this.workflow.if(async (args) => {
+            // TODO use actual evaluation
+            return step.if
+              ? new Function(step.if)(
+                  this.datamodel.getScopedDataModel(step.scope.join("."))
+                )
+              : true;
+          });
+        } else if (step.else) {
+          this.workflow.else();
+        } else if (step.when) {
+          this.workflow.then(element, {
+            when: async (args) => {
+              // TODO use actual evaluation
+              return step.when
+                ? new Function(step.when)(
+                    this.datamodel.getScopedDataModel(step.scope.join("."))
+                  )
+                : true;
+            },
+          });
+        } else if (step.while) {
+          this.workflow.while(async (args) => {
+            // TODO use actual evaluation
+            return step.while
+              ? new Function(step.while)(
+                  this.datamodel.getScopedDataModel(step.scope.join("."))
+                )
+              : true;
+          }, element);
+        } else {
+          this.workflow.then(element, {
+            variables: {
+              input: {
+                step: { id: lastStepId! } as any,
+                path: "result" as any,
+              },
+              getDatamodel: { step: "trigger", path: "getDatamodel" as any },
+            },
+          });
         }
-        lastChildId = childElement.id;
       }
+
+      lastStepId = step.id;
     }
-    if (element.parallel) {
-      for (const child of element.parallel) {
-        this.addGraphElementToWorkflow(
-          buildContext,
-          child,
-          true,
-          false,
-          step.id
-        );
-      }
-    }
+    //   if (element.runAfter) {
+    //     this.debug = `${this.debug}.runAfter([${element.runAfter.join(",")}])`;
+    //     this.workflow.after(
+    //       element.runAfter.map((key: string) =>
+    //         buildContext.findElementByKey(key)
+    //       ) as any
+    //     ) as any;
+    //   }
+    //   // Add the current element to the workflow
+
+    //   const step = buildContext.findElementByKey(element.key, buildContext.spec);
+
+    //   // Should never happen, so we add this here to catch issues/bugs
+    //   if (
+    //     !step ||
+    //     ((element.key !== step.key || element.tag !== step.tag) &&
+    //       element.next?.[0]?.type !== "error" &&
+    //       element.subType !== "error")
+    //   ) {
+    //     throw new Error(
+    //       `Step mismatch: ${element.key} !== ${step?.key} || ${element.tag} !== ${step?.tag}`
+    //     );
+    //   }
+
+    //   if (parallel || root) {
+    //     this.debug = root
+    //       ? `mastraWorkflow.step(${step.tag})`
+    //       : `${this.debug}.step(${step.tag})`;
+
+    //     this.workflow.step(step, {
+    //       variables: {
+    //         input: root
+    //           ? { step: "trigger", path: "input" as any }
+    //           : { step: { id: parentId! } as any, path: "result" as any },
+    //         getDatamodel: { step: "trigger", path: "getDatamodel" as any },
+    //       },
+    //       // create a function that evaluates the when expression
+    //       // this serves as a guard for the step
+    //       // TODO use Step context here
+    //       // when: async ({ context }: { context: Record<string, any> }) =>
+    //       //   element.when ? eval(element.when) : true,
+    //     });
+    //   } else {
+    //     this.debug = `${this.debug}.then(Step: ${step.tag} Id:${step.id} ParentId:${parentId!})`;
+    //     this.workflow.then(step, {
+    //       variables: {
+    //         input: { step: { id: parentId! }, path: "result" },
+    //         getDatamodel: { step: "trigger" as any, path: "getDatamodel" as any },
+    //       },
+    //       // create a function that evaluates the when expression
+    //       // this serves as a guard for the step
+    //       // TODO use Step context here
+    //       // when: async ({ context }: { context: Record<string, any> }) =>
+    //       //   element.when ? eval(element.when) : true,
+    //     });
+    //   }
+    // }
   }
 }

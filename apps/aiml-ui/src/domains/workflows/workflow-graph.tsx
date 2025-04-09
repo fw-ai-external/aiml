@@ -13,7 +13,7 @@ import { WorkflowDefaultNode } from "./nodes/default";
 import { ChevronRight } from "lucide-react";
 import { StateNode } from "@/domains/workflows/nodes/state-node";
 import React, { useCallback, useEffect, useState } from "react";
-import type { ExecutionGraphElement } from "@fireworks/shared";
+import type { SerializedBaseElement, WorkflowGraph } from "@fireworks/shared";
 import { IncomingRequestNode } from "@/domains/workflows/nodes/IncomingRequest";
 
 export interface BreadcrumbItem {
@@ -23,18 +23,21 @@ export interface BreadcrumbItem {
 
 function WorkflowGraph({
   stepSubscriberGraph,
-  stepGraph,
+  executionGraph,
   workflowId,
+  elementTree,
   parentStateId,
 }: {
   stepSubscriberGraph: any;
-  stepGraph: ExecutionGraphElement;
+  executionGraph: WorkflowGraph;
   workflowId: string;
+  elementTree?: SerializedBaseElement;
   parentStateId?: string;
 }) {
   const { nodes: initialNodes, edges: initialEdges } = contructNodesAndEdges({
-    stepGraph,
+    executionGraph,
     stepSubscriberGraph,
+    elementTree,
   });
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);

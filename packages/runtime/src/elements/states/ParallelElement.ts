@@ -1,103 +1,32 @@
-import { z } from "zod";
-import type { ExecutionGraphElement } from "@fireworks/shared";
-import type { BaseElement } from "../BaseElement";
+import { parallelConfig } from "@fireworks/shared";
+import { BaseElement } from "../BaseElement";
 import { createElementDefinition } from "../createElementFactory";
 
-const parallelSchema = z.object({
-  id: z.string(),
-});
-
 export const Parallel = createElementDefinition({
-  tag: "parallel",
-  propsSchema: parallelSchema,
-  role: "state",
-  elementType: "parallel",
-  allowedChildren: [
-    "onentry",
-    "onexit",
-    "transition",
-    "state",
-    "parallel",
-    "history",
-    "datamodel",
-  ],
-
+  ...parallelConfig,
   onExecutionGraphConstruction(buildContext) {
-    // Create main parallel node
-    const parallelNode: ExecutionGraphElement = {
-      id: buildContext.attributes.id + "_main",
-      type: "state",
-      key: buildContext.elementKey,
-      tag: "parallel",
-      scope: buildContext.scope,
-      attributes: {
-        ...buildContext.attributes,
-      },
-      next: [],
-    };
+    buildContext.graphBuilder.thenParallel();
 
-    // We'll keep track of all finalIDs from each child
-    const finalNodeKeys: string[] = [];
-
-    // 3. For each child, build the graph
-    //    The child might be <state>, <parallel>, etc.
-    //    We'll gather their final node IDs along the way
     for (const child of buildContext.children) {
-      // build child
-      const childEG =
-        "tag" in child
-          ? (child as BaseElement).onExecutionGraphConstruction?.(buildContext)
-          : null;
-      if (!childEG) continue;
+      if (!(child instanceof BaseElement)) {
+        console.log("child is not a BaseElement", child);
+        // TODO: handle as value in parser
+        continue;
+      }
 
-      // we attach childEG to parallelNode.children
-      // so they run in parallel
-      parallelNode.next!.push(childEG);
-
-      // find final nodes in that child's sub-graph
-      // we might do a helper function "collectFinalNodes"
-      const childFinals = collectFinalNodes(childEG);
-      finalNodeKeys.push(...childFinals);
+      if (child.type === "state") {
+        child.onExecutionGraphConstruction(
+          buildContext.createNewContextForChild(child)
+        );
+      }
     }
 
-    // 4. Create "parallelDone" node that depends on all child final node IDs
-    if (finalNodeKeys.length > 0) {
-      const parallelDone: ExecutionGraphElement = {
-        id: buildContext.attributes.id + "_done",
-        type: "state",
-        key: buildContext.elementKey,
-        tag: "parallelDone",
-        scope: buildContext.scope,
-        attributes: {
-          // store SCXML data if needed
-          parentParallel: buildContext.attributes.id,
-        },
-        runAfter: [...finalNodeKeys],
-      };
-      // attach as a child (or sibling) so it's part of the same structure
-      parallelNode.next!.push(parallelDone);
+    for (const child of buildContext.children) {
+      if (child.subType === "transition") {
+        child.onExecutionGraphConstruction(
+          buildContext.createNewContextForChild(child)
+        );
+      }
     }
-
-    // 5. Return the main parallel node
-    return parallelNode;
   },
 });
-
-/**
- * Recursively traverse an ExecutionGraphElement sub-tree,
- * collecting IDs of final nodes (tag="final").
- * (Or we can do tag="state" with some final property,
- * depends on how you're building final states).
- */
-function collectFinalNodes(node: ExecutionGraphElement): string[] {
-  const result: string[] = [];
-  if (node.tag === "final") {
-    result.push(node.key);
-  }
-  if (node.next) {
-    for (const c of node.next) {
-      result.push(...collectFinalNodes(c));
-    }
-  }
-  return result;
-}

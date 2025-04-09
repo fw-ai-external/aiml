@@ -4,10 +4,7 @@ import { createElementDefinition } from "../createElementFactory";
 
 export const Send = createElementDefinition({
   ...sendConfig,
-  tag: "send" as const,
-  role: "action" as const,
-  elementType: "send" as const,
-  allowedChildren: "none" as const,
+
   async execute(ctx) {
     const {
       event,

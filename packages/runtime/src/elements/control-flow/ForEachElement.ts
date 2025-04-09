@@ -3,10 +3,6 @@ import { createElementDefinition } from "../createElementFactory";
 
 export const ForEach = createElementDefinition({
   ...foreachConfig,
-  tag: "foreach",
-  role: "action",
-  elementType: "foreach",
-  allowedChildren: "any",
   onExecutionGraphConstruction: (buildContext) => {
     return {
       id: buildContext.attributes.id,

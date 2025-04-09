@@ -1,6 +1,6 @@
 "use client";
 import type {
-  ExecutionGraphElement,
+  ExecutionGraphStep,
   SerializedBaseElement,
 } from "@fireworks/shared";
 import type { Workflow } from "@mastra/core/workflows";
@@ -56,7 +56,7 @@ type WorkflowContextType = {
           diagnostics: any[];
         };
         datamodel: any;
-        stepGraph?: ExecutionGraphElement;
+        stepGraph?: ExecutionGraphStep;
         elementTree?: SerializedBaseElement;
         executionGraph?: any;
         contextValues: Record<string, any>;
@@ -163,7 +163,6 @@ export const useWorkflow = (workflowId: string) => {
     astNodes: workflow?.ast?.nodes,
     datamodel: workflow?.datamodel,
     astDiagnostics: workflow?.ast?.diagnostics,
-    stepGraph: workflow?.executionGraph,
     stepSubscriberGraph: workflow?.stepSubscriberGraph,
     elementTree: workflow?.elementTree,
     triggerSchema: workflow?.triggerSchema,
