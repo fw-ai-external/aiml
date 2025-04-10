@@ -25,7 +25,7 @@ import type {
 
 const StatusColors = {
   pending: "text-yellow-500",
-  running: "text-blue-500",
+  running: "text-[#501ac5]",
   streaming: "text-purple-500",
   completed: "text-green-500",
   failed: "text-red-500",
@@ -229,14 +229,14 @@ export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
 
   const actionIconMap: Record<typeof primaryActionType, React.ReactNode> = {
     model: <Sparkles className="w-4 h-4 text-purple-500" />,
-    "human-input": <User className="w-4 h-4 text-blue-500" />,
+    "human-input": <User className="w-4 h-4 text-[#501ac5]" />,
     "tool-call": <FunctionSquare className="w-4 h-4 text-green-500" />,
     code: <Code className="w-4 h-4 text-green-500" />,
     other: <Code className="w-4 h-4 text-green-500" />,
     datamodel: <Code className="w-4 h-4 text-green-500" />,
     prop: <Code className="w-4 h-4 text-green-500" />,
     conditional: <Code className="w-4 h-4 text-green-500" />,
-    "user-input": <User className="w-4 h-4 text-blue-500" />,
+    "user-input": <User className="w-4 h-4 text-[#501ac5]" />,
     parallel: <Code className="w-4 h-4 text-green-500" />,
     transition: <Code className="w-4 h-4 text-green-500" />,
     output: <Code className="w-4 h-4 text-green-500" />,

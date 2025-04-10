@@ -272,8 +272,8 @@ export function astToElementTree(
     const lineEnd = getPosition(node, "end", "line");
     const columnEnd = getPosition(node, "end", "column");
     const scope =
-      context.currentStates.length > 1 ? context.currentStates : ["root"];
-
+      context.currentStates.length > 0 ? context.currentStates : ["root"];
+    console.warn("00scope---", scope);
     // Process attributes
     const processedAttributes = processAttributes(node.attributes);
 
@@ -310,9 +310,16 @@ export function astToElementTree(
       ];
 
     let stateId: string | undefined;
-
-    if (nodeConfig.type === "state") {
+    if (nodeConfig.type === "state" && nodeConfig.tag !== "workflow") {
       stateId = processAttributes(node.attributes).id;
+      // Pop off the current state ID once we're leaving a state
+      if (
+        nodeConfig.type === "state" &&
+        nodeConfig.tag !== "workflow" &&
+        stateId
+      ) {
+        context.currentStates.pop();
+      }
       if (
         !stateId &&
         nodeConfig.subType !== "user-input" &&
@@ -330,10 +337,9 @@ export function astToElementTree(
             end: { line: lineEnd, column: columnEnd },
           },
         });
-      } else if (!stateId) {
-        stateId =
-          nodeConfig.subType === "user-input" ? "request" : nodeConfig.tag;
       }
+
+      console.warn("12scope---", context.currentStates);
       context.currentStates.push(stateId);
     }
 
@@ -395,7 +401,7 @@ export function astToElementTree(
                     },
       };
       const scopeKey =
-        context.currentStates.length > 1
+        context.currentStates.length > 0
           ? `${context.currentStates.join(".")}`
           : "root";
 
@@ -450,7 +456,7 @@ export function astToElementTree(
     if (node.children && node.children.length > 0) {
       for (const child of node.children) {
         const scope =
-          context.currentStates.length > 1 ? context.currentStates : ["root"];
+          context.currentStates.length > 0 ? context.currentStates : ["root"];
 
         if (child.astSourceType === "text") {
           // Add text node
@@ -492,7 +498,7 @@ export function astToElementTree(
     }
 
     const scope =
-      context.currentStates.length > 1 ? context.currentStates : ["root"];
+      context.currentStates.length > 0 ? context.currentStates : ["root"];
 
     // Create paragraph node
     return {
@@ -596,7 +602,7 @@ export function astToElementTree(
     // Process headings - could convert to a special element or text
     const text = extractTextFromNode(node);
     const scope =
-      context.currentStates.length > 1 ? context.currentStates : ["root"];
+      context.currentStates.length > 0 ? context.currentStates : ["root"];
 
     return {
       astSourceType: "paragraph",
@@ -622,7 +628,7 @@ export function astToElementTree(
   } else if (node.type === "html") {
     // Raw HTML - convert to text
     const scope =
-      context.currentStates.length > 1 ? context.currentStates : ["root"];
+      context.currentStates.length > 0 ? context.currentStates : ["root"];
 
     return {
       astSourceType: "text",
@@ -638,7 +644,7 @@ export function astToElementTree(
     // Convert lists to text paragraphs
     const text = extractTextFromNode(node);
     const scope =
-      context.currentStates.length > 1 ? context.currentStates : ["root"];
+      context.currentStates.length > 0 ? context.currentStates : ["root"];
 
     return {
       astSourceType: "paragraph",
@@ -668,8 +674,9 @@ export function astToElementTree(
     }
 
     const scope =
-      context.currentStates.length > 1 ? context.currentStates : ["root"];
+      context.currentStates.length > 0 ? context.currentStates : ["root"];
 
+    console.warn("pscope---", scope);
     // If it's a standalone text node, wrap it in a paragraph
     return {
       astSourceType: "paragraph",
@@ -696,7 +703,7 @@ export function astToElementTree(
     // Code blocks - convert to text
     const text = `\`\`\`${node.lang || ""}\n${node.value || ""}\n\`\`\``;
     const scope =
-      context.currentStates.length > 1 ? context.currentStates : ["root"];
+      context.currentStates.length > 0 ? context.currentStates : ["root"];
 
     return {
       astSourceType: "paragraph",
@@ -722,7 +729,7 @@ export function astToElementTree(
   } else if (node.type === "inlineCode") {
     // Inline code - convert to text
     const scope =
-      context.currentStates.length > 1 ? context.currentStates : ["root"];
+      context.currentStates.length > 0 ? context.currentStates : ["root"];
 
     return {
       astSourceType: "text",
@@ -737,7 +744,7 @@ export function astToElementTree(
   } else if (node.type === "thematicBreak") {
     // Horizontal rule - convert to text
     const scope =
-      context.currentStates.length > 1 ? context.currentStates : ["root"];
+      context.currentStates.length > 0 ? context.currentStates : ["root"];
 
     return {
       astSourceType: "text",
@@ -752,7 +759,7 @@ export function astToElementTree(
   } else if (node.type === "mdxFlowExpression") {
     // MDX expression outside JSX - create an expression node
     const scope =
-      context.currentStates.length > 1 ? context.currentStates : ["root"];
+      context.currentStates.length > 0 ? context.currentStates : ["root"];
 
     return {
       astSourceType: "expression",
@@ -768,7 +775,7 @@ export function astToElementTree(
     // Convert blockquotes to text
     const text = extractTextFromNode(node);
     const scope =
-      context.currentStates.length > 1 ? context.currentStates : ["root"];
+      context.currentStates.length > 0 ? context.currentStates : ["root"];
 
     return {
       astSourceType: "paragraph",
