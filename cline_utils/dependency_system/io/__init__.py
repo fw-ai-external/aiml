@@ -1,3 +1,0 @@
-"""
-IO package initialization.
-"""

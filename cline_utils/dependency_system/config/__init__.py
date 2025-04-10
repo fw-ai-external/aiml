@@ -1,3 +1,0 @@
-"""
-Configuration package initialization.
-"""
