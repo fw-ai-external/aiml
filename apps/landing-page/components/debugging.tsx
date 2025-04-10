@@ -91,6 +91,34 @@ export default function Debugging() {
                   </div>
                   <span className="text-gray-600">
                     <strong className="text-gray-900">
+                      UI Graphs for visualizing your flow and it's execution
+                    </strong>{" "}
+                    – Complex and recursive flows can be hard to reason about as
+                    they grow, this is true of any agentic framework. But with
+                    AIML, you can nativly visualize your flow and it's execution
+                    in a UI based graph to hone in on what's happening.
+                  </span>
+                </li>
+                <li className="flex gap-3 items-start">
+                  <div className="h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M10 3L4.5 8.5L2 6"
+                        stroke="#047857"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <span className="text-gray-600">
+                    <strong className="text-gray-900">
                       Time travel debugging
                     </strong>{" "}
                     – Step through your agent's execution history to pinpoint
