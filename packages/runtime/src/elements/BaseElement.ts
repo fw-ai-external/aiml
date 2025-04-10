@@ -70,7 +70,8 @@ export class BaseElement
         propsSchema?: z.ZodType<any>;
       }
   ) {
-    this.id = config.id;
+    // ID is the key of the step used by mastra to identify the step
+    this.id = config.key;
     this.key = config.key;
     this.tag = config.tag;
     this.type = config.type;
@@ -122,11 +123,6 @@ export class BaseElement
     graphBuilder.enterElementContext(this);
 
     try {
-      console.log(
-        "_onExecutionGraphConstruction",
-        this.tag,
-        (graphBuilder as any).currentConstructionPath.get(this.key)
-      );
       // No loop - proceed with normal graph construction
       this._onExecutionGraphConstruction(ctx);
     } finally {
@@ -161,11 +157,12 @@ export class BaseElement
     context: MastraActionContext<any>,
     childrenNodes: BaseElement[] = []
   ): Promise<ExecutionReturnType> => {
-    console.log("execute", this.tag, this.id);
     if (!this._execute) {
       // Default execution if no _execute is defined
       // The element can still store its data in the datamodel
-
+      if (!context.context.input) {
+        throw new Error("No input in contex for " + this.tag + " " + this.id);
+      }
       return {
         result: context.context.input,
       };
@@ -173,8 +170,10 @@ export class BaseElement
     const datamodel: DataModelRegistry =
       context.context.triggerData.getDatamodel();
     const scopedDatamodel = datamodel.getScopedDataModel(this.scope.join("."));
-    console.log("create executionContext2", this.tag, this.id, context);
-
+    if (!context.context.input) {
+      console.log("no input in contextcontext for ", context);
+      throw new Error("No input in context for " + this.tag + " " + this.id);
+    }
     let executionContext = new ElementExecutionContext({
       ...context,
       input: context.context.input,
@@ -226,20 +225,17 @@ export class BaseElement
         childrenNodes
       ).catch((error) => {
         console.error("Error executing element:", error);
-        console.error("Error executing element:", error);
         // Return an error object that will be handled by the runtime
         return {
           result: context.context.input,
-          exception: error instanceof Error ? error : new Error(String(error)),
+          exception: error instanceof Error ? error.message : String(error),
         } as ExecutionReturnType;
       });
 
       if (!executeResult?.result) {
         return {
           result: context.context.input,
-          exception: new Error(
-            "No result in element " + this.tag + " " + this.id
-          ),
+          exception: "No result in element " + this.tag + " " + this.id,
         } as ExecutionReturnType;
       }
 
@@ -248,9 +244,7 @@ export class BaseElement
       console.error("Error executing element:", error);
       return {
         result: context.context.input,
-        exception: new Error(
-          "Error executing element " + this.tag + " " + this.id
-        ),
+        exception: "Error executing element " + this.tag + " " + this.id,
       } as ExecutionReturnType;
     }
   };

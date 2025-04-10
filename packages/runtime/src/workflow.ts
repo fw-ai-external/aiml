@@ -464,7 +464,7 @@ export class Workflow<
         }
       }
 
-      lastStepId = step.id;
+      lastStepId = step.key;
     }
     //   if (element.runAfter) {
     //     this.debug = `${this.debug}.runAfter([${element.runAfter.join(",")}])`;

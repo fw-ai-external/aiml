@@ -36,7 +36,7 @@ export type StepValueChunk =
 export interface ExecutionReturnType {
   result: StepValue;
   contextUpdate?: Record<string, any>;
-  exception?: Error;
+  exception?: string;
 }
 export type RuntimeElementDefinition<
   PropsSchema extends z.ZodObject<any> = z.ZodObject<

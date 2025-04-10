@@ -252,6 +252,7 @@ export class DataModelRegistry {
     const fieldScope = this.getScopeForField(scope, fieldName);
 
     if (!fieldScope) {
+      console.warn(this.dataModels);
       throw new Error(`Field '${fieldName}' not found in any parent scope`);
     }
 

@@ -24,86 +24,74 @@ export const Send = createElementDefinition({
       );
     }
 
-    try {
-      // Create a function that evaluates expressions in the context of the datamodel
-      const evaluateExpression = (expression: string) => {
-        const fn = new Function(
-          ...Object.keys(ctx.datamodel),
-          `return ${expression}`
-        );
-        return fn(...Object.values(ctx.datamodel));
-      };
+    // Create a function that evaluates expressions in the context of the datamodel
+    const evaluateExpression = (expression: string) => {
+      const fn = new Function(
+        ...Object.keys(ctx.datamodel),
+        `return ${expression}`
+      );
+      return fn(...Object.values(ctx.datamodel));
+    };
 
-      // Evaluate expressions if provided
-      const eventName = eventexpr
-        ? String(evaluateExpression(eventexpr))
-        : event;
-      const targetName = targetexpr
-        ? String(evaluateExpression(targetexpr))
-        : target;
-      const delayMs = delayexpr
-        ? Number(evaluateExpression(delayexpr))
-        : delay
-          ? parseInt(delay, 10)
-          : 0;
+    // Evaluate expressions if provided
+    const eventName = eventexpr ? String(evaluateExpression(eventexpr)) : event;
+    const targetName = targetexpr
+      ? String(evaluateExpression(targetexpr))
+      : target;
+    const delayMs = delayexpr
+      ? Number(evaluateExpression(delayexpr))
+      : delay
+        ? parseInt(delay, 10)
+        : 0;
 
-      // Create event data from namelist or data attributes
-      const eventData: Record<string, unknown> = {};
+    // Create event data from namelist or data attributes
+    const eventData: Record<string, unknown> = {};
 
-      if (namelist) {
-        const names = namelist.split(" ");
-        for (const name of names) {
-          eventData[name] = ctx.datamodel.get(name);
-        }
+    if (namelist) {
+      const names = namelist.split(" ");
+      for (const name of names) {
+        eventData[name] = ctx.datamodel.get(name);
       }
+    }
 
-      // Handle different target types
-      switch (type) {
-        case "http":
-          // Implement HTTP request sending
-          if (targetName) {
-            const response = await fetch(targetName, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                event: eventName,
-                data: eventData,
-              }),
-            });
+    // Handle different target types
+    switch (type) {
+      case "http":
+        // Implement HTTP request sending
+        if (targetName) {
+          const response = await fetch(targetName, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              event: eventName,
+              data: eventData,
+            }),
+          });
 
-            if (!response.ok) {
-              return {
-                result: ctx.input,
-                exception: new Error(
-                  `HTTP send failed: ${response.statusText} ${await response.text()}`
-                ),
-              };
-            }
-
+          if (!response.ok) {
             return {
-              result: new StepValue({
-                type: "object",
-                object: await response.json(),
-              }),
+              result: ctx.input,
+              exception: `HTTP send failed: ${response.statusText} ${await response.text()}`,
             };
           }
-          break;
 
-        default:
-          throw new Error(`Unsupported send type: ${type}`);
-      }
+          return {
+            result: new StepValue({
+              type: "object",
+              object: await response.json(),
+            }),
+          };
+        }
+        break;
 
-      return {
-        result: ctx.input,
-      };
-    } catch (error) {
-      console.error(`Error in send element (${event || eventexpr}):`, error);
-      return {
-        result: ctx.input,
-        exception: error instanceof Error ? error : new Error(String(error)),
-      };
+      default:
+        throw new Error(`Unsupported send type: ${type}`);
     }
+
+    return {
+      result: ctx.input,
+    };
   },
 });

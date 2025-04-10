@@ -57,17 +57,10 @@ export const Assign = createElementDefinition({
     // Get the value to assign - either from expression or input
     const value = await resolveAssignValue(ctx, expr);
 
-    try {
-      // Validate the value and check if it can be assigned
-      ctx.datamodel.set(location, value);
-      return {
-        result: ctx.input,
-      };
-    } catch (error) {
-      return {
-        result: ctx.input,
-        exception: error instanceof Error ? error : new Error(String(error)),
-      };
-    }
+    // Validate the value and check if it can be assigned
+    ctx.datamodel.set(location, value);
+    return {
+      result: ctx.input,
+    };
   },
 });

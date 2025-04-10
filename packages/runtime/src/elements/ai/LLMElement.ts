@@ -25,81 +25,69 @@ export const LLM = createElementDefinition({
       serializedCtx
     );
 
-    try {
-      console.log("execut 1", ctx.props.model, ctx.machine?.secrets);
-      const { provider } = getProviderWithClient(
-        ctx.props.model,
-        ctx.machine?.secrets || { system: {}, user: {} },
-        ctx.props.grammar
+    console.log("execut 1", ctx.props.model, ctx.machine?.secrets);
+    const { provider } = getProviderWithClient(
+      ctx.props.model,
+      ctx.machine?.secrets || { system: {}, user: {} },
+      ctx.props.grammar
+        ? {
+            type: "grammar",
+            grammar: ctx.props.grammar,
+          }
+        : ctx.props.responseFormat?.type === "gbnf"
           ? {
-              type: "grammar",
-              grammar: ctx.props.grammar,
+              type: "gbnf",
+              grammar: "", // gbnf,
             }
-          : ctx.props.responseFormat?.type === "gbnf"
-            ? {
-                type: "gbnf",
-                grammar: "", // gbnf,
-              }
-            : ctx.props.responseFormat,
-        ctx.props.repetitionPenalty
-      );
+          : ctx.props.responseFormat,
+      ctx.props.repetitionPenalty
+    );
 
-      console.log("execute 2", provider, systemPrompt, prompt);
+    // Validate and convert chat history
+    const validatedChatHistory = ctx.props.includeChatHistory
+      ? ctx.requestInput.chatHistory.map((msg) => {
+          if (typeof msg.content !== "string") {
+            throw new Error(
+              "Chat history messages must contain only string content"
+            );
+          }
+          return {
+            role: msg.role,
+            content: msg.content,
+          } as { role: "user" | "assistant"; content: string };
+        })
+      : [];
 
-      // Validate and convert chat history
-      const validatedChatHistory = ctx.props.includeChatHistory
-        ? ctx.requestInput.chatHistory.map((msg) => {
-            if (typeof msg.content !== "string") {
-              throw new Error(
-                "Chat history messages must contain only string content"
-              );
-            }
-            return {
-              role: msg.role,
-              content: msg.content,
-            } as { role: "user" | "assistant"; content: string };
-          })
-        : [];
-
-      // For testing purposes, we'll check if we're in a test environment
-      // by checking if the model is "test-model"
-      if (ctx.props.model === "test-model") {
-        const result = new StepValue({
-          type: "text",
-          text: "Mock LLM response",
-        });
-        return { result };
-      }
-
-      console.log("streamText", provider, systemPrompt, prompt);
-      const streamResult = streamText({
-        model: provider,
-        messages: [
-          ...(systemPrompt
-            ? [{ role: "system" as const, content: systemPrompt }]
-            : []),
-          ...validatedChatHistory,
-          { role: "user" as const, content: prompt! },
-        ],
-        temperature: ctx.props.temperature,
-        stopSequences: ctx.props.stopSequences,
-        topP: ctx.props.topP,
-        // toolChoice: ctx.attributes.toolChoice,
-        // tools: parsedTools,
-        maxRetries: 1,
+    // For testing purposes, we'll check if we're in a test environment
+    // by checking if the model is "test-model"
+    if (ctx.props.model === "test-model") {
+      const result = new StepValue({
+        type: "text",
+        text: "Mock LLM response",
       });
-      const result = new StepValue(
-        new ReplayableAsyncIterableStream<StepValueChunk>(
-          streamResult.fullStream
-        )
-      );
-
       return { result };
-    } catch (error) {
-      return {
-        result: ctx.input,
-        exception: error instanceof Error ? error : new Error(String(error)),
-      };
     }
+
+    const streamResult = streamText({
+      model: provider,
+      messages: [
+        ...(systemPrompt
+          ? [{ role: "system" as const, content: systemPrompt }]
+          : []),
+        ...validatedChatHistory,
+        { role: "user" as const, content: prompt! },
+      ],
+      temperature: ctx.props.temperature,
+      stopSequences: ctx.props.stopSequences,
+      topP: ctx.props.topP,
+      // toolChoice: ctx.attributes.toolChoice,
+      // tools: parsedTools,
+      maxRetries: 1,
+    });
+    const result = new StepValue(
+      new ReplayableAsyncIterableStream<StepValueChunk>(streamResult.fullStream)
+    );
+
+    return { result };
   },
 });
