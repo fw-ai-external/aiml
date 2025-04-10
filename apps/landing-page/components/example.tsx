@@ -24,7 +24,7 @@ export default function Example() {
   }, []);
 
   // Helper function to determine the fill color for each box
-  const getBoxStyles = (index) => {
+  const getBoxStyles = (index: number) => {
     if (activeBoxIndex === -1) {
       // Reset state - all boxes are grey
       return {
