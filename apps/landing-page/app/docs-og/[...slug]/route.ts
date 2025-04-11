@@ -5,7 +5,7 @@ export const GET = metadataImage.createAPI((page) => {
   return generateOGImage({
     title: page.data.title,
     description: page.data.description,
-    site: "My App",
+    site: "AIML - Agentic Prompting Docs",
   });
 });
 
