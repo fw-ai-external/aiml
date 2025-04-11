@@ -1,0 +1,40 @@
+/**
+ * Tailwind v3 Compatibility Layer
+ * 
+ * This file provides backward compatibility for default styles that changed in Tailwind v4.
+ * Include this file in your main layout or import it in globals.css.
+ */
+
+@layer base {
+  /* Preserve v3 default border color (gray-200) */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  /* Preserve v3 default placeholder color (gray-400) */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+
+  /* Make buttons use pointer cursor by default as in v3 */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* Keep dialogs centered by default */
+  dialog {
+    margin: auto;
+  }
+}
+
+@theme {
+  /* Default ring width and color from v3 */
+  --default-ring-width: 3px;
+  --default-ring-color: var(--color-blue-500);
+}

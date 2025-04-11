@@ -346,7 +346,7 @@ Then we get the actual response as a second llm call to a smaller, cheaper, fast
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-84">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">Simple control flow</h3>
               <p className="text-sm text-gray-600">
