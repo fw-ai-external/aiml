@@ -5,7 +5,118 @@ description: Learn what AIML is and how it works
 
 # AIML (AI Markup Language)
 
-AIML is a declarative language for building AI/LLM Agents.
+AIML is a declarative language for building AI/LLM Agents, built on top of MDX. It supports a modernized version of the open source SCXML (State Chart XML) standard, but modernized for AI.
+AIML provides easy ways to create simple chained action agents, all the way up to a powerful way to create sophisticated agents with complex conversation flows and code execution, tool integration, and state management. 
 
-It is a markup language that allows you to describe the structure and behavior of your AI agents in a way that is easy to understand and modify.
+## What does AIML look like?
+As an Markdown based language, AIML prompts have ZERO learning curve... thats right, none! No SDKs to install, no classes to import, no complex syntax to learn.
+Just send the contents of your AIML file to any LLM via an AIML proxy server and you're off to the races!
+
+Start to need more complex agents? You can progressively enhance your AIML prompts with just the elements you need as you need them!
+
+Here's a simple example of an AIML agent:
+
+```mdx
+You are a helpful Weather Agent!
+
+Respond to the users questions about the weather, but dont talk about anything else!
+```
+
+Simple right? Just like a normal prompt! But where normally to get the weather you would have to deal with setting up tool calls, and responses... or learning a complex agentic framework... you can now just use AIML!
+
+With AIML you can simply add a tool call step using MDX syntax, and then add a response step...
+
+```mdx
+You are a helpful Weather Agent!
+
+When the user asks about the weather, lookup information before responding.
+
+<if cond={({lastElement}) => lastElement.outputType == 'tool-call'}>
+  <toolcall tool="getWeather" params={
+    location: ({lastElement}) => lastElement.output.location
+  }>
+    <script lang="python">
+      import requests
+      import json
+
+      response = requests.get(f"https://api.openweathermap.org/data/2.5/weather?q={location}&appid=YOUR_API_KEY")
+      return response.json()
+    </script>
+  </toolcall>
+</if>
+
+{({lastElement}) => lastElement.output.weather ? `Response to the user's query based on the following real time weather data: ${lastElement.output.weather}` : `I cant respond to your question, you can only answer questions about the weather today in a specific location.`}
+
+The user's query was: {({userInput}) => userInput.message} 
+```
+
+The above would be interpreted by the AIML proxy as this 3 step agent flow, with the script being executed within the runtime's sandboxed environment:
+
+<Mermaid
+  chart={`
+stateDiagram-v2
+    LLM: Initial LLM call
+    state TOOL {
+        Py: Run Python Code to call API
+        [*] --> Py
+        Py --> [*]
+    }
+    TOOL: Tool call
+    LLM2: Final LLM call
+
+    [*] --> LLM
+    LLM --> LLM2: Else
+    LLM --> TOOL: If the LLM call outputs a tool call
+    TOOL --> LLM2
+    LLM2 --> [*]
+`} />
+
+This is just a basic example, but you can see how you can use AIML to create more complex agents with tool calling, and even code execution!
+
+Check out the following examples to see more complex AIML agents in action:
+
+- [Chain of Thought Agent](/docs/examples/chain-of-thought)
+- [Character Persona Agent](/docs/examples/character-persona)
+- [Code Reviewer Workflow](/docs/examples/code-reviewer)
+- [Investment Advisor Agent](/docs/examples/investment-advisor)
+- [Medical Diagnosis Agent](/docs/examples/medical-diagnosis)
+
+## Document Order Execution
+
+AIML prompts are executed sequentially from top to bottom, making it intuitive to build complex prompt pipelines. Each text section, and element (along with it's children) is processed in order, allowing you to create sophisticated workflows while maintaining readability.
+
+## Circular Logic
+
+To create circular logic, AIML supports `<state>` elements. States, along with `<transition>` elements allow you to create loops, or to create more complex conditional logic by tying one or more states together.
+
+```mdx
+<state name="Step1">
+  <transition target="Step2" />
+</state>
+
+<state name="Step2">
+  <transition cond={({lastElement}) => lastElement.outputType == 'tool-call'} target="Step3" />
+  <transition target="respond" />
+</state>
+
+<state name="Step3">
+  <transition target="respond" />
+</state>
+
+<final name="respond" />
+```
+
+This will create a conditional loop that can be visualized as a flow chart like this:
+
+<Mermaid
+  chart={`
+stateDiagram-v2
+    Step1 --> Step2
+    Step2 --> Step3: If step 1 output is a tool call
+    Step2 --> respond: Else
+    Step3 --> respond
+`} />
+
+
+
 
