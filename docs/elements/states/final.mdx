@@ -1,0 +1,208 @@
+---
+title: Final Element
+description: Element for terminal states in the state machine
+---
+
+# Final Element
+
+The `<final>` element represents a terminal state:
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+<DynamicCodeBlock lang="jsx"  code={`<final id="complete">
+  <onentry>
+    <llm>
+      <prompt>Process completed</prompt>
+    </llm>
+  </onentry>
+  <donedata>
+    <content>
+      {({state}) => ({
+        result: state.output,
+        timestamp: new Date()
+      })}
+    </content>
+  </donedata>
+</final>`} />
+
+<TypeTable
+  type={{
+    id: {
+      description: 'Unique identifier',
+      type: 'string',
+      optional: true
+    }
+  }}
+/>
+
+## Allowed Children
+
+- `onentry`: Entry actions
+- `donedata`: Completion data
+
+## Examples
+
+### Basic Final State
+
+<DynamicCodeBlock lang="jsx"  code={`<final id="done">
+  <onentry>
+    <log expr="Process complete" />
+  </onentry>
+</final>`} />
+
+### Final State with Data
+
+<DynamicCodeBlock lang="jsx"  code={`<final id="complete">
+  <onentry>
+    <assign 
+      location="state.completionTime" 
+      expr={new Date().toISOString()} 
+    />
+  </onentry>
+  <donedata>
+    <content>
+      {({state}) => ({
+        status: "complete",
+        result: state.output,
+        duration: calculateDuration(state.startTime),
+        timestamp: state.completionTime
+      })}
+    </content>
+  </donedata>
+</final>`} />
+
+### Error Final State
+
+<DynamicCodeBlock lang="jsx"  code={`<final id="error">
+  <onentry>
+    <log expr={({error}) => 
+      \`Process failed: \${error.message}\`
+    } />
+    <raise event="processError" />
+  </onentry>
+  <donedata>
+    <content>
+      {({state, error}) => ({
+        status: "error",
+        error: error.message,
+        context: state.context
+      })}
+    </content>
+  </donedata>
+</final>`} />
+
+## Usage Notes
+
+- Marks completion of a region or machine
+- Can include final processing
+- Can return completion data
+- Cannot have transitions
+
+## Best Practices
+
+1. **State Design**
+   - Use meaningful final state IDs
+   - Include completion data
+   - Handle cleanup properly
+   - Document completion conditions
+
+2. **Data Management**
+   - Return relevant results
+   - Clean up state data
+   - Format output properly
+   - Include completion metadata
+
+3. **Error Handling**
+   - Include error information
+   - Log completion status
+   - Clean up resources
+   - Notify interested parties
+
+4. **Documentation**
+   - Document completion states
+   - Explain return data
+   - Note cleanup requirements
+   - Specify success criteria
+
+## Common Patterns
+
+### Success Completion
+
+<DynamicCodeBlock lang="jsx"  code={`<final id="success">
+  <onentry>
+    <log expr="Process completed successfully" />
+    <script>
+      notifyCompletion({
+        status: "success",
+        result: state.result
+      });
+    </script>
+  </onentry>
+  <donedata>
+    <content>
+      {({state}) => ({
+        status: "success",
+        result: state.result,
+        metadata: {
+          duration: state.duration,
+          timestamp: new Date()
+        }
+      })}
+    </content>
+  </donedata>
+</final>`} />
+
+### Error Completion
+
+<DynamicCodeBlock lang="jsx"  code={`<final id="failure">
+  <onentry>
+    <log expr={({error}) => 
+      \`Process failed: \${error.message}\`
+    } />
+    <script>
+      notifyError({
+        error: error,
+        context: state.context
+      });
+    </script>
+  </onentry>
+  <donedata>
+    <content>
+      {({state, error}) => ({
+        status: "error",
+        error: {
+          message: error.message,
+          code: error.code,
+          stack: error.stack
+        },
+        context: state.context
+      })}
+    </content>
+  </donedata>
+</final>`} />
+
+### Cleanup Final State
+
+<DynamicCodeBlock lang="jsx"  code={`<final id="cleanup">
+  <onentry>
+    <script>
+      releaseResources();
+      clearCache();
+      resetState();
+    </script>
+    <log expr="Cleanup complete" />
+  </onentry>
+  <donedata>
+    <content>
+      {({state}) => ({
+        status: "cleaned",
+        resources: {
+          released: state.releasedResources,
+          cached: state.cachedData
+        },
+        timestamp: new Date()
+      })}
+    </content>
+  </donedata>
+</final>`} />

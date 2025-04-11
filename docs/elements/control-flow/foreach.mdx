@@ -1,0 +1,149 @@
+---
+title: ForEach Element
+description: Element for iterating over arrays
+---
+
+# ForEach Element
+
+The `<foreach>` element enables iteration over arrays:
+
+<DynamicCodeBlock lang="jsx" code={`<foreach 
+  items={({state}) => state.items}
+  var="item"
+  index="idx"
+>
+  <llm>
+    <prompt>
+      {({item, idx}) => \`Processing item \${idx}: \${item}\`}
+    </prompt>
+  </llm>
+</foreach>`} />
+
+## Props
+
+- `id` (optional): Unique identifier for the foreach element
+- `items` (required): Array to iterate over
+- `var` (required): Variable name for current item
+- `index` (optional): Variable name for current index
+
+## Examples
+
+### Basic Iteration
+
+<DynamicCodeBlock lang="jsx" code={`<foreach items={({state}) => state.tasks} var="task">
+  <llm>
+    <prompt>
+      {({task}) => \`Completing task: \${task.name}\`}
+    </prompt>
+  </llm>
+</foreach>`} />
+
+### Using Index
+
+<DynamicCodeBlock lang="jsx" code={`<foreach 
+  items={({state}) => state.queue} 
+  var="item" 
+  index="position"
+>
+  <log expr={({item, position}) => 
+    \`Processing item \${position + 1}: \${item}\`
+  } />
+</foreach>`} />
+
+### Complex Processing
+
+<DynamicCodeBlock lang="jsx" code={`<foreach items={({state}) => state.records} var="record">
+  <if condition={({record}) => record.isValid}>
+    <script>
+      processRecord(record);
+    </script>
+  </if>
+  <else>
+    <raise event="recordError" />
+    <log expr={({record}) => 
+      \`Invalid record: \${JSON.stringify(record)}\`
+    } />
+  </else>
+</foreach>`} />
+
+## Usage Notes
+
+- Iterates over array elements sequentially
+- Current item available via specified var name
+- Optional index tracking
+- Can contain any executable content
+
+## Best Practices
+
+1. **Array Handling**
+   - Validate array before iteration
+   - Handle empty arrays appropriately
+   - Consider array size limits
+   - Clean up after processing
+
+2. **Variable Naming**
+   - Use descriptive variable names
+   - Avoid name conflicts
+   - Document variable usage
+   - Consider scope implications
+
+3. **Performance**
+   - Handle large arrays carefully
+   - Consider batch processing
+   - Monitor memory usage
+   - Optimize inner operations
+
+4. **Error Handling**
+   - Handle item processing errors
+   - Continue on non-fatal errors
+   - Log processing issues
+   - Maintain state consistency
+
+## Common Patterns
+
+### Data Processing
+
+<DynamicCodeBlock lang="jsx" code={`<foreach items={({state}) => state.data} var="item">
+  <script>
+    const processed = transform(item);
+    _dataModel.setValue("state.results", 
+      [...state.results, processed]
+    );
+  </script>
+</foreach>`} />
+
+### Batch Operations
+
+<DynamicCodeBlock lang="jsx" code={`<foreach items={({state}) => state.batch} var="record" index="i">
+  <send 
+    type="http"
+    target="https://api.example.com/process"
+    event="processRecord"
+  >
+    <content>
+      {({record}) => ({
+        id: record.id,
+        data: record.data
+      })}
+    </content>
+  </send>
+  
+  <if condition={({i}) => (i + 1) % 10 === 0}>
+    <log expr="Batch checkpoint reached" />
+  </if>
+</foreach>`} />
+
+### Validation Chain
+
+<DynamicCodeBlock lang="jsx" code={`<foreach items={({state}) => state.inputs} var="input">
+  <if condition={({input}) => !input.value}>
+    <raise event="validationError" />
+    <assign 
+      location="state.errors" 
+      expr={({state, input}) => [
+        ...state.errors,
+        \`Missing value for \${input.name}\`
+      ]}
+    />
+  </if>
+</foreach>`} />

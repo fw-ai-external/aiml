@@ -1,0 +1,63 @@
+---
+title: Log Element
+description: Element for outputting debug messages
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# Log Element
+
+The `<log>` element outputs messages for debugging and tracing:
+
+<DynamicCodeBlock lang="jsx" code={`<log
+  label="Debug"
+  expr={({state}) => \`Current count: \${state.count}\`}
+/>`} />
+
+<TypeTable
+  type={{
+    id: {
+      description: 'Unique identifier',
+      type: 'string',
+      optional: true
+    },
+    label: {
+      description: 'Label for the log message',
+      type: 'string',
+      optional: true
+    },
+    expr: {
+      description: 'Expression to evaluate for the log message',
+      type: 'Expression',
+      required: true
+    }
+  }}
+/>
+
+## Examples
+
+### Basic Logging
+
+<DynamicCodeBlock lang="jsx" code={`<log expr="Starting process..." />`} />
+
+### State Debugging
+
+<DynamicCodeBlock lang="jsx" code={`<log 
+  label="State Debug"
+  expr={({state}) => JSON.stringify(state, null, 2)}
+/>`} />
+
+### Error Logging
+
+<DynamicCodeBlock lang="jsx" code={`<log
+  label="Error"
+  expr={({error}) => \`Error occurred: \${error.message}\`}
+/>`} />
+
+## Usage Notes
+
+- Use descriptive labels for better log organization
+- Include relevant context in log messages
+- Consider log levels for different types of information
+- Use structured logging for complex data

@@ -1,0 +1,176 @@
+---
+title: Transition Element
+description: Element for defining state transitions
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# Transition Element
+
+The `<transition>` element defines state transitions:
+
+<DynamicCodeBlock lang="jsx" code={`<transition 
+  event="success"
+  target="nextState"
+  type="external"
+>
+  <onEntry>
+    <llm>
+      <prompt>Entering new state</prompt>
+    </llm>
+  </onEntry>
+</transition>`} />
+
+## Props
+
+- `id` (optional): Unique identifier for the transition element
+- `event` (optional): Event that triggers the transition
+- `condition` (optional): Additional condition for transition
+- `target` (optional): Target state
+- `type` (optional): Transition type ("internal" or "external")
+
+## Examples
+
+### Basic Transition
+
+<DynamicCodeBlock lang="jsx" code={`<state id="start">
+  <transition target="processing" />
+</state>`} />
+
+### Event-Based Transition
+
+<DynamicCodeBlock lang="jsx" code={`<state id="waiting">
+  <transition 
+    event="dataReceived"
+    target="processing"
+  />
+  <transition 
+    event="timeout"
+    target="error"
+  />
+</state>`} />
+
+### Conditional Transition
+
+<DynamicCodeBlock lang="jsx" code={`<state id="validating">
+  <transition 
+    target="success"
+    condition={({state}) => state.isValid}
+  />
+  <transition 
+    target="failure"
+    condition={({state}) => !state.isValid}
+  />
+</state>`} />
+
+## Usage Notes
+
+- Defines movement between states
+- Can be triggered by events
+- Can include conditions
+- Can execute actions during transition
+
+## Best Practices
+
+1. **Transition Design**
+   - Use clear target states
+   - Handle all possible events
+   - Include appropriate conditions
+   - Document transition logic
+
+2. **Event Handling**
+   - Use descriptive event names
+   - Handle timeout events
+   - Consider error events
+   - Clean up after transitions
+
+3. **State Management**
+   - Maintain state consistency
+   - Handle entry/exit actions
+   - Consider parallel states
+   - Track transition history
+
+4. **Error Handling**
+   - Handle invalid transitions
+   - Provide error states
+   - Log transition failures
+   - Implement recovery paths
+
+## Common Patterns
+
+### Sequential Flow
+
+<DynamicCodeBlock lang="jsx" code={`<state id="step1">
+  <transition 
+    event="complete"
+    target="step2"
+  />
+</state>
+
+<state id="step2">
+  <transition 
+    event="complete"
+    target="step3"
+  />
+</state>`} />
+
+### Error Recovery
+
+<DynamicCodeBlock lang="jsx" code={`<state id="processing">
+  <transition 
+    event="error"
+    target="errorHandler"
+  >
+    <log expr={({error}) => \`Error: \${error.message}\`} />
+    <raise event="errorLogged" />
+  </transition>
+</state>`} />
+
+### Conditional Branching
+
+<DynamicCodeBlock lang="jsx" code={`<state id="decision">
+  <transition 
+    target="pathA"
+    condition={({state}) => state.value > 100}
+  />
+  <transition 
+    target="pathB"
+    condition={({state}) => state.value <= 100}
+  />
+</state>`} />
+
+## Advanced Features
+
+### Internal vs External Transitions
+
+<DynamicCodeBlock lang="jsx" code={`<!-- External transition (default) -->
+<transition 
+  event="update"
+  target="processing"
+  type="external"
+/>
+
+<!-- Internal transition -->
+<transition 
+  event="update"
+  target="processing"
+  type="internal"
+/>`} />
+
+### Multiple Targets
+
+<DynamicCodeBlock lang="jsx" code={`<transition event="split">
+  <target>path1</target>
+  <target>path2</target>
+</transition>`} />
+
+### Transition Actions
+
+<DynamicCodeBlock lang="jsx" code={`<transition event="process">
+  <assign location="state.status" expr={() => "processing"} />
+  <log expr="Starting process" />
+  <script>
+    initializeProcess();
+  </script>
+</transition>`} />

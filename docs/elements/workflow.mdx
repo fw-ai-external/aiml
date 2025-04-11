@@ -1,0 +1,94 @@
+---
+title: Workflow
+description: The base element for all workflows
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# Workflow
+
+The `<workflow>` element is the root container for a state machine:
+
+<DynamicCodeBlock lang="jsx" code={`<workflow name="myWorkflow" initial="start" version="1.0">
+  <state id="start">
+    <transition target="processing" />
+  </state>
+  
+  <state id="processing">
+    <transition target="final" />
+  </state>
+  
+  <final id="final" />
+</workflow>`} />
+
+<TypeTable
+  type={{
+    name: {
+      description: 'Workflow name',
+      type: 'string',
+      optional: true
+    },
+    initial: {
+      description: 'Initial state',
+      type: 'string',
+      optional: true
+    },
+    version: {
+      description: 'Version number',
+      type: 'string',
+      optional: true
+    }
+  }}
+/>
+
+### Allowed Children
+
+- `state`: States
+- `parallel`: Parallel states
+- `final`: Final states
+- `datamodel`: Data model declarations
+- `initial`: Initial transition
+
+## Initial Element
+
+The `<initial>` element represents the default initial state:
+
+<DynamicCodeBlock lang="jsx" code={`<workflow>
+  <initial>
+    <transition target="firstState" />
+  </initial>
+  
+  <state id="firstState">
+    <!-- ... -->
+  </state>
+</workflow>`} />
+
+## History Element
+
+The `<history>` element represents a history pseudo-state:
+
+<DynamicCodeBlock lang="jsx" code={`<state id="parent">
+  <history id="hist" type="deep">
+    <transition target="default" />
+  </history>
+  
+  <state id="s1" />
+  <state id="s2" />
+  <state id="default" />
+</state>`} />
+
+<TypeTable
+  type={{
+    id: {
+      description: 'Unique identifier',
+      type: 'string',
+      optional: true
+    },
+    type: {
+      description: 'History type ("shallow" or "deep")',
+      type: 'string',
+      optional: true
+    }
+  }}
+/>

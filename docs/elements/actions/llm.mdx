@@ -1,0 +1,243 @@
+---
+title: LLM Element
+description: Element for AI/Language Model integration
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# LLM Element
+
+The `<llm>` element enables AI/Language Model integration:
+
+<DynamicCodeBlock lang="jsx" code={`<llm 
+  model="account/fireworks/model/deepseek-v3"
+  temperature={0.7}
+  includeChatHistory={true}
+>
+  <instructions>
+    Process the input according to these instructions.
+  </instructions>
+  <prompt>
+    {({userInput}) => userInput.message}
+  </prompt>
+</llm>`} />
+
+<TypeTable
+  type={{
+    id: {
+      description: 'Unique identifier',
+      type: 'string',
+      optional: true
+    },
+    model: {
+      description: 'Language model identifier',
+      type: 'string',
+      required: true
+    },
+    temperature: {
+      description: 'Response randomness (0-2)',
+      type: 'number',
+      optional: true
+    },
+    includeChatHistory: {
+      description: 'Include chat history',
+      type: 'boolean',
+      optional: true
+    },
+    stopSequences: {
+      description: 'Array of stop sequences',
+      type: 'string[]',
+      optional: true
+    },
+    topP: {
+      description: 'Top-p sampling parameter (0-1)',
+      type: 'number',
+      optional: true
+    },
+    toolChoice: {
+      description: 'Tool selection strategy',
+      type: 'string',
+      optional: true
+    },
+    tools: {
+      description: 'Available tools array',
+      type: 'object[]',
+      optional: true
+    },
+    grammar: {
+      description: 'Response grammar constraints',
+      type: 'object',
+      optional: true
+    },
+    repetitionPenalty: {
+      description: 'Repetition penalty',
+      type: 'number',
+      optional: true
+    },
+    responseFormat: {
+      description: 'Expected response format',
+      type: 'object | string',
+      optional: true
+    }
+  }}
+/>
+
+## Allowed Children
+
+- `prompt`: The prompt text
+- `instructions`: System instructions
+
+## Examples
+
+### Basic Usage
+
+<DynamicCodeBlock lang="jsx" code={`<llm model="account/fireworks/model/deepseek-v3">
+  <prompt>
+    Summarize the following text: {({userInput}) => userInput.text}
+  </prompt>
+</llm>`} />
+
+### With Instructions
+
+<DynamicCodeBlock lang="jsx" code={`<llm 
+  model="account/fireworks/model/deepseek-v3"
+  temperature={0.5}
+>
+  <instructions>
+    You are a helpful assistant that provides concise answers.
+    Always be polite and professional.
+  </instructions>
+  <prompt>
+    {({userInput}) => userInput.question}
+  </prompt>
+</llm>`} />
+
+### Advanced Configuration
+
+<DynamicCodeBlock lang="jsx" code={`<llm
+  model="account/fireworks/model/deepseek-v3"
+  temperature={0.8}
+  topP={0.9}
+  includeChatHistory={true}
+  stopSequences={["END", "STOP"]}
+  repetitionPenalty={1.2}
+  responseFormat="text"
+>
+  <instructions>
+    {({state}) => \`
+      Current context: \${state.context}
+      Previous interactions: \${state.history}
+      Respond based on this context.
+    \`}
+  </instructions>
+  <prompt>
+    {({userInput, state}) => \`
+      User query: \${userInput.message}
+      Current state: \${state.status}
+    \`}
+  </prompt>
+</llm>`} />
+
+## Usage Notes
+
+- Model selection affects capabilities
+- Temperature controls randomness
+- Instructions guide model behavior
+- Prompts can be dynamic
+- Can include context and history
+
+## Best Practices
+
+1. **Model Selection**
+   - Choose appropriate model
+   - Consider model capabilities
+   - Balance cost and performance
+   - Test model behavior
+
+2. **Prompt Engineering**
+   - Write clear prompts
+   - Include relevant context
+   - Use consistent format
+   - Handle edge cases
+
+3. **Parameter Tuning**
+   - Adjust temperature for task
+   - Set appropriate top-p
+   - Configure stop sequences
+   - Test different settings
+
+4. **Error Handling**
+   - Handle model errors
+   - Provide fallbacks
+   - Log issues
+   - Monitor performance
+
+## Common Patterns
+
+### Conversational Agent
+
+<DynamicCodeBlock lang="jsx" code={`<llm
+  model="account/fireworks/model/deepseek-v3"
+  includeChatHistory={true}
+>
+  <instructions>
+    You are a helpful assistant. Be concise and friendly.
+    Previous conversation: {({state}) => state.chatHistory}
+  </instructions>
+  <prompt>
+    User: {({userInput}) => userInput.message}
+    Assistant:
+  </prompt>
+</llm>`} />
+
+### Data Processing
+
+<DynamicCodeBlock lang="jsx" code={`<llm
+  model="account/fireworks/model/deepseek-v3"
+  temperature={0.2}
+  responseFormat={{
+    type: "json",
+    schema: {
+      type: "object",
+      properties: {
+        category: { type: "string" },
+        sentiment: { type: "string" },
+        keywords: { type: "array" }
+      }
+    }
+  }}
+>
+  <instructions>
+    Analyze the text and return a JSON object with:
+    - category (topic category)
+    - sentiment (positive/negative/neutral)
+    - keywords (array of important terms)
+  </instructions>
+  <prompt>
+    {({userInput}) => userInput.text}
+  </prompt>
+</llm>`} />
+
+### Tool Usage
+
+<DynamicCodeBlock lang="jsx" code={`<llm
+  model="account/fireworks/model/deepseek-v3"
+  tools={[
+    {
+      name: "search",
+      description: "Search for information",
+      parameters: {
+        query: "string"
+      }
+    }
+  ]}
+  toolChoice="auto"
+>
+  <instructions>
+    Use the search tool when you need to find information.
+  </instructions>
+  <prompt>
+    {({userInput}) => userInput.question}
+  </prompt>
+</llm>`} />

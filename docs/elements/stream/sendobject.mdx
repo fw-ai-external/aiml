@@ -1,0 +1,250 @@
+---
+title: SendObject Element
+description: Element for sending object responses
+---
+
+# SendObject Element
+
+The `<sendObject>` element sends object responses:
+
+```mdx
+<sendObject>
+  {({state}) => ({
+    count: state.count,
+    timestamp: new Date()
+  })}
+</sendObject>
+```
+
+## Props
+
+- `id` (optional): Unique identifier
+
+## Examples
+
+### Basic Object
+
+```mdx
+<sendObject>
+  {() => ({
+    status: "success",
+    code: 200,
+    message: "Operation completed"
+  })}
+</sendObject>
+```
+
+### State Data
+
+```mdx
+<sendObject>
+  {({state}) => ({
+    user: {
+      id: state.userId,
+      name: state.userName,
+      role: state.userRole
+    },
+    session: {
+      id: state.sessionId,
+      startTime: state.sessionStart,
+      lastActivity: state.lastActivity
+    }
+  })}
+</sendObject>
+```
+
+### Complex Response
+
+```mdx
+<sendObject>
+  {({state, error}) => ({
+    status: error ? "error" : "success",
+    data: {
+      results: state.results,
+      metadata: {
+        total: state.total,
+        page: state.page,
+        pageSize: state.pageSize
+      }
+    },
+    error: error ? {
+      code: error.code,
+      message: error.message,
+      details: error.details
+    } : null,
+    timestamp: new Date().toISOString()
+  })}
+</sendObject>
+```
+
+## Usage Notes
+
+- Sends structured data
+- Supports nested objects
+- Can include computed values
+- Handles complex data types
+
+## Best Practices
+
+1. **Object Structure**
+   - Use clear properties
+   - Maintain consistency
+   - Document schema
+   - Handle nulls
+
+2. **Data Handling**
+   - Validate data
+   - Format values
+   - Handle missing data
+   - Check types
+
+3. **Error Handling**
+   - Include error info
+   - Provide context
+   - Handle edge cases
+   - Log issues
+
+4. **Performance**
+   - Optimize object size
+   - Cache when possible
+   - Minimize computation
+   - Monitor memory
+
+## Common Patterns
+
+1. **API Response**
+```mdx
+<sendObject>
+  {({state}) => ({
+    success: true,
+    data: state.responseData,
+    metadata: {
+      requestId: state.requestId,
+      timestamp: new Date().toISOString(),
+      processingTime: state.processingTime
+    },
+    pagination: {
+      page: state.page,
+      totalPages: state.totalPages,
+      hasMore: state.hasMore
+    }
+  })}
+</sendObject>
+```
+
+2. **Status Report**
+```mdx
+<sendObject>
+  {({state}) => ({
+    system: {
+      status: state.systemStatus,
+      uptime: state.uptime,
+      version: state.version
+    },
+    resources: {
+      cpu: state.cpuUsage,
+      memory: state.memoryUsage,
+      storage: state.storageUsage
+    },
+    metrics: {
+      requests: state.requestCount,
+      errors: state.errorCount,
+      latency: state.averageLatency
+    }
+  })}
+</sendObject>
+```
+
+3. **Data Export**
+```mdx
+<sendObject>
+  {({state}) => ({
+    export: {
+      id: state.exportId,
+      format: state.exportFormat,
+      timestamp: new Date().toISOString()
+    },
+    content: {
+      data: state.exportData,
+      schema: state.dataSchema,
+      validation: state.validationResults
+    },
+    metadata: {
+      source: state.dataSource,
+      filters: state.appliedFilters,
+      transformations: state.appliedTransforms
+    }
+  })}
+</sendObject>
+```
+
+## Advanced Usage
+
+### Conditional Objects
+
+```mdx
+<sendObject>
+  {({state}) => {
+    const baseObject = {
+      id: state.id,
+      type: state.type,
+      timestamp: new Date()
+    };
+
+    if (state.includeDetails) {
+      return {
+        ...baseObject,
+        details: {
+          description: state.description,
+          category: state.category,
+          tags: state.tags
+        }
+      };
+    }
+
+    return baseObject;
+  }}
+</sendObject>
+```
+
+### Computed Properties
+
+```mdx
+<sendObject>
+  {({state}) => ({
+    data: state.data,
+    computed: {
+      total: calculateTotal(state.data),
+      average: calculateAverage(state.data),
+      summary: generateSummary(state.data)
+    },
+    analysis: {
+      trends: analyzeTrends(state.data),
+      patterns: findPatterns(state.data),
+      insights: generateInsights(state.data)
+    }
+  })}
+</sendObject>
+```
+
+### Dynamic Schema
+
+```mdx
+<sendObject>
+  {({state}) => {
+    const schema = loadSchema(state.schemaType);
+    const validator = createValidator(schema);
+    const data = transformData(state.data, schema);
+    
+    return {
+      schema: schema,
+      validation: validator(data),
+      data: data,
+      metadata: {
+        schemaVersion: schema.version,
+        dataVersion: data.version,
+        compatibility: checkCompatibility(schema, data)
+      }
+    };
+  }}
+</sendObject>

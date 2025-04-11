@@ -1,0 +1,88 @@
+---
+title: Script Element
+description: Element for executing JavaScript code
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# Script Element
+
+The `<script>` element executes JavaScript code:
+
+<DynamicCodeBlock lang="jsx" code={`<script>
+  // JavaScript code here
+  console.log("Executing script...");
+</script>`} />
+
+<TypeTable
+  type={{
+    id: {
+      description: 'Unique identifier',
+      type: 'string',
+      optional: true
+    },
+    src: {
+      description: 'External script source',
+      type: 'string',
+      optional: true
+    }
+  }}
+/>
+
+## Examples
+
+### Inline Script
+
+<DynamicCodeBlock lang="jsx" code={`<script>
+  // Perform calculations
+  const result = calculateTotal(items);
+  console.log(\`Total: \${result}\`);
+</script>`} />
+
+### External Script
+
+<DynamicCodeBlock lang="jsx" code={`<script src="/scripts/utils.js" />`} />
+
+### State Manipulation
+
+<DynamicCodeBlock lang="jsx" code={`<script>
+  // Update state based on calculations
+  const newValue = performComplexCalculation();
+  _dataModel.setValue("state.result", newValue);
+</script>`} />
+
+## Usage Notes
+
+- Use scripts for complex logic that's difficult to express with other elements
+- Keep scripts focused and modular
+- Consider moving complex logic to external files
+- Be cautious with global state modifications
+- Use appropriate error handling
+- Document script functionality clearly
+
+## Best Practices
+
+1. **Code Organization**
+   - Keep scripts small and focused
+   - Use meaningful variable names
+   - Comment complex logic
+   - Follow consistent coding style
+
+2. **State Management**
+   - Use _dataModel for state access
+   - Validate state changes
+   - Handle edge cases
+   - Clean up after operations
+
+3. **Error Handling**
+   - Use try/catch blocks
+   - Log errors appropriately
+   - Provide fallback behavior
+   - Handle async operations properly
+
+4. **Performance**
+   - Optimize expensive operations
+   - Cache results when appropriate
+   - Minimize DOM manipulations
+   - Consider async/await for heavy operations

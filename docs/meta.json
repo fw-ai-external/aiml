@@ -1,0 +1,17 @@
+{
+  "title": "AIML",
+  "description": "The agentic runtime language",
+  "icon": "Building2",
+  "root": true,
+  "pages": [
+    "---Introduction---",
+    "index",
+    "getting-started",
+    "aiml-syntax",
+    "editor-plugins",
+    "---Elements---",
+    "...elements",
+    "---Examples---",
+    "...examples"
+  ]
+}

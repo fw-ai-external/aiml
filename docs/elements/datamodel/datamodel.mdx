@@ -1,0 +1,261 @@
+---
+title: DataModel Element
+description: Element for grouping data declarations
+---
+
+# DataModel Element
+
+The `<datamodel>` element groups data declarations:
+
+```mdx
+<datamodel>
+  <data id="count" type="NUMBER" value={0} />
+  <data id="items" type="JSON" value={[]} />
+</datamodel>
+```
+
+## Props
+
+- `id` (optional): Unique identifier
+
+## Allowed Children
+
+- `data`: Data declarations
+
+## Examples
+
+### Basic Data Model
+
+```mdx
+<datamodel>
+  <data id="username" type="STRING" />
+  <data id="age" type="NUMBER" value={0} />
+  <data id="isActive" type="BOOLEAN" value={false} />
+</datamodel>
+```
+
+### Form State
+
+```mdx
+<datamodel>
+  <data 
+    id="formData"
+    type="JSON"
+    value={{
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: ""
+    }}
+  />
+  
+  <data 
+    id="validation"
+    type="JSON"
+    value={{
+      errors: {},
+      touched: {},
+      isValid: false
+    }}
+  />
+  
+  <data 
+    id="ui"
+    type="JSON"
+    value={{
+      isSubmitting: false,
+      submitCount: 0,
+      activeField: null
+    }}
+  />
+</datamodel>
+```
+
+### Application State
+
+```mdx
+<datamodel>
+  <data 
+    id="auth"
+    type="JSON"
+    value={{
+      isAuthenticated: false,
+      user: null,
+      token: null
+    }}
+  />
+  
+  <data 
+    id="settings"
+    type="JSON"
+    readonly={true}
+    value={{
+      theme: "light",
+      language: "en",
+      notifications: true
+    }}
+  />
+  
+  <data 
+    id="cache"
+    type="JSON"
+    value={{
+      lastUpdate: null,
+      data: {}
+    }}
+  />
+</datamodel>
+```
+
+## Usage Notes
+
+- Groups related data declarations
+- Provides data model structure
+- Can contain multiple data elements
+- Helps organize state management
+
+## Best Practices
+
+1. **Organization**
+   - Group related data
+   - Use clear structure
+   - Document relationships
+   - Consider scope
+
+2. **Data Management**
+   - Initialize all data
+   - Handle dependencies
+   - Manage updates
+   - Clean up properly
+
+3. **Type Safety**
+   - Use appropriate types
+   - Validate data
+   - Handle conversions
+   - Check constraints
+
+4. **Performance**
+   - Minimize data size
+   - Cache when needed
+   - Clean stale data
+   - Monitor usage
+
+## Common Patterns
+
+1. **User Session**
+```mdx
+<datamodel>
+  <data 
+    id="session"
+    type="JSON"
+    value={{
+      user: null,
+      permissions: [],
+      lastActivity: null,
+      isActive: false
+    }}
+  />
+  
+  <data 
+    id="sessionMetrics"
+    type="JSON"
+    value={{
+      loginTime: null,
+      activityCount: 0,
+      pageViews: 0
+    }}
+  />
+</datamodel>
+```
+
+2. **Application Context**
+```mdx
+<datamodel>
+  <data 
+    id="context"
+    type="JSON"
+    value={{
+      environment: "production",
+      version: "1.0.0",
+      features: {
+        darkMode: true,
+        beta: false
+      }
+    }}
+  />
+  
+  <data 
+    id="runtime"
+    type="JSON"
+    value={{
+      startTime: null,
+      errors: [],
+      warnings: []
+    }}
+  />
+</datamodel>
+```
+
+3. **Resource Management**
+```mdx
+<datamodel>
+  <data 
+    id="resources"
+    type="JSON"
+    value={{
+      connections: {},
+      cache: {},
+      queues: []
+    }}
+  />
+  
+  <data 
+    id="monitoring"
+    type="JSON"
+    value={{
+      metrics: {},
+      alerts: [],
+      status: "healthy"
+    }}
+  />
+</datamodel>
+```
+
+## Advanced Usage
+
+### Nested Data Models
+
+```mdx
+<state id="application">
+  <datamodel>
+    <data id="global" type="JSON" value={{}} />
+    
+    <state id="module1">
+      <datamodel>
+        <data id="local" type="JSON" value={{}} />
+      </datamodel>
+    </state>
+    
+    <state id="module2">
+      <datamodel>
+        <data id="local" type="JSON" value={{}} />
+      </datamodel>
+    </state>
+  </datamodel>
+</state>
+```
+
+### Dynamic Data Models
+
+```mdx
+<datamodel>
+  <data 
+    id="dynamic"
+    type="JSON"
+    expr={({context}) => ({
+      config: loadConfig(context.env),
+      state: initializeState(context.params),
+      computed: calculateValues(context.data)
+    })}
+  />
+</datamodel>

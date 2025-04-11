@@ -1,0 +1,245 @@
+---
+title: Runtime Library API
+description: Technical reference for the AIML parser and runtime
+---
+
+# AIML API Reference
+
+This section provides technical documentation for integrating AIML into your projects.
+
+## Installation
+
+```bash
+# Install core packages
+npm install @aiml/parser @aiml/runtime
+
+# Optional: Install IDE support
+npm install -D @aiml/language-server
+```
+
+## Parser
+
+The AIML parser converts AIML files into an executable format:
+
+```typescript
+import { parse } from '@aiml/parser';
+
+const aimlContent = `
+---
+model: account/fireworks/model/deepseek-v3
+---
+
+<llm>
+    <prompt>Hello</prompt>
+</llm>
+`;
+
+const ast = parse(aimlContent);
+```
+
+### Parser Options
+
+```typescript
+interface ParserOptions {
+    // Whether to validate the AIML syntax
+    validate?: boolean;
+    // Custom element definitions
+    elements?: Record<string, ElementDefinition>;
+    // Source file path (for error messages)
+    sourcePath?: string;
+}
+```
+
+### AST Structure
+
+The parser generates an Abstract Syntax Tree (AST) representing your AIML document:
+
+```typescript
+interface AimlAst {
+    // Frontmatter settings
+    settings: {
+        model?: string;
+        [key: string]: any;
+    };
+    // System prompt text
+    systemPrompt?: string;
+    // Root element
+    root: AimlElement;
+}
+
+interface AimlElement {
+    tag: string;
+    attributes: Record<string, any>;
+    children: Array<AimlElement | string>;
+    location: SourceLocation;
+}
+```
+
+## Runtime
+
+The runtime executes parsed AIML documents:
+
+```typescript
+import { createRuntime } from '@aiml/runtime';
+
+// Create a runtime instance
+const runtime = createRuntime({
+    // LLM provider configuration
+    providers: {
+        fireworks: {
+            apiKey: process.env.FIREWORKS_API_KEY
+        }
+    },
+    // Optional: Custom elements
+    elements: {
+        myCustomElement: {
+            // Element definition
+        }
+    }
+});
+
+// Execute an AIML document
+const result = await runtime.execute(ast, {
+    input: "User's message",
+    context: {
+        // Additional context
+    }
+});
+```
+
+### Runtime Options
+
+```typescript
+interface RuntimeOptions {
+    // LLM provider configurations
+    providers: {
+        [provider: string]: {
+            apiKey: string;
+            [option: string]: any;
+        };
+    };
+    // Custom element definitions
+    elements?: Record<string, ElementDefinition>;
+    // Global context available to all elements
+    globalContext?: Record<string, any>;
+    // Error handling configuration
+    errorHandling?: {
+        // Maximum retries for failed LLM calls
+        maxRetries?: number;
+        // Retry delay in milliseconds
+        retryDelay?: number;
+    };
+}
+```
+
+### Custom Elements
+
+Create custom elements to extend AIML's capabilities:
+
+```typescript
+import { createElementDefinition } from '@aiml/runtime';
+
+const MyCustomElement = createElementDefinition({
+    // Element name
+    tag: 'myCustomElement',
+    
+    // Allowed child elements
+    allowedChildren: ['llm', 'state'],
+    
+    // Props schema (using Zod)
+    propsSchema: z.object({
+        customOption: z.string()
+    }),
+    
+    // Execution logic
+    async execute(context) {
+        // Implementation
+        return {
+            result: 'Output'
+        };
+    }
+});
+```
+
+### Error Handling
+
+The runtime provides comprehensive error handling:
+
+```typescript
+try {
+    const result = await runtime.execute(ast, input);
+} catch (error) {
+    if (error instanceof AimlRuntimeError) {
+        // Handle AIML-specific errors
+        console.error(error.code, error.message);
+    } else {
+        // Handle other errors
+        console.error(error);
+    }
+}
+```
+
+### Streaming Support
+
+Handle streaming responses from LLMs:
+
+```typescript
+const stream = await runtime.executeStream(ast, {
+    input: "User's message"
+});
+
+for await (const chunk of stream) {
+    // Handle each chunk of the response
+    console.log(chunk.text);
+}
+```
+
+## Language Server
+
+The AIML Language Server provides IDE features like syntax highlighting and autocompletion:
+
+```typescript
+import { createLanguageServer } from '@aiml/language-server';
+
+const server = createLanguageServer({
+    // Custom element definitions for autocompletion
+    elements: customElements,
+    
+    // Validation settings
+    validation: {
+        validateAttributes: true,
+        validateChildren: true
+    }
+});
+
+// Start the server
+server.listen();
+```
+
+## Best Practices
+
+1. **Error Handling**
+   - Always wrap runtime execution in try/catch
+   - Provide fallback behavior for errors
+   - Use appropriate error types for different scenarios
+
+2. **Performance**
+   - Reuse runtime instances when possible
+   - Consider streaming for long responses
+   - Cache parsed ASTs for frequently used files
+
+3. **Security**
+   - Never expose API keys in client-side code
+   - Validate and sanitize user input
+   - Use appropriate model access controls
+
+4. **Development**
+   - Use TypeScript for better type safety
+   - Enable IDE support for better development experience
+   - Follow the examples in the documentation
+
+## Next Steps
+
+- Explore [Advanced Features](../advanced/index)
+- See [Examples](../examples/index)
+- Learn about [Custom Elements](./docs/custom-elements)

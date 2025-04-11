@@ -1,0 +1,178 @@
+---
+title: Send Element
+description: Element for sending events to external systems
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# Send Element
+
+The `<send>` element sends an event to an external system:
+
+<DynamicCodeBlock lang="jsx" code={`<send 
+  event="notification"
+  target="external-service"
+  type="http"
+/>`} />
+
+<TypeTable
+  type={{
+    id: {
+      description: 'Unique identifier',
+      type: 'string',
+      optional: true
+    },
+    event: {
+      description: 'Event name to send',
+      type: 'string',
+      optional: true
+    },
+    eventexpr: {
+      description: 'Expression evaluating to the event name',
+      type: 'Expression',
+      optional: true
+    },
+    target: {
+      description: 'Target system',
+      type: 'string',
+      optional: true
+    },
+    targetexpr: {
+      description: 'Expression evaluating to the target',
+      type: 'Expression',
+      optional: true
+    },
+    type: {
+      description: 'Event type',
+      type: 'string',
+      optional: true
+    },
+    typeexpr: {
+      description: 'Expression evaluating to the type',
+      type: 'Expression',
+      optional: true
+    },
+    delay: {
+      description: 'Delay before sending',
+      type: 'string',
+      optional: true
+    },
+    delayexpr: {
+      description: 'Expression evaluating to the delay',
+      type: 'Expression',
+      optional: true
+    },
+    namelist: {
+      description: 'List of data model locations to include',
+      type: 'string',
+      optional: true
+    }
+  }}
+/>
+
+## Examples
+
+### HTTP Request
+
+<DynamicCodeBlock lang="jsx" code={`<send
+  type="http"
+  target="https://api.example.com/endpoint"
+  event="postData"
+  namelist="state.userData"
+/>`} />
+
+### Delayed Event
+
+<DynamicCodeBlock lang="jsx" code={`<send
+  event="reminder"
+  delay="5s"
+  id="reminderEvent"
+/>`} />
+
+### Dynamic Target
+
+<DynamicCodeBlock lang="jsx" code={`<send
+  event="notification"
+  targetexpr={({state}) => state.serviceEndpoint}
+  type="websocket"
+/>`} />
+
+## Usage Notes
+
+- Use for external system communication
+- Can be delayed with the delay attribute
+- Supports various protocols via type
+- Can include data model values
+
+## Best Practices
+
+1. **Event Configuration**
+   - Use appropriate event types
+   - Set reasonable delays
+   - Include necessary data
+   - Handle timeouts
+
+2. **Target Management**
+   - Validate target endpoints
+   - Use secure protocols
+   - Handle connection failures
+   - Monitor response times
+
+3. **Data Handling**
+   - Validate data before sending
+   - Format data appropriately
+   - Handle sensitive information
+   - Clean up after sending
+
+4. **Error Handling**
+   - Handle network errors
+   - Provide timeout handling
+   - Log send failures
+   - Implement retries
+
+## Common Patterns
+
+### API Integration
+
+<DynamicCodeBlock lang="jsx" code={`<send
+  type="http"
+  target="https://api.example.com"
+  event="getData"
+>
+  <content>
+    {({state}) => ({
+      query: state.searchParams
+    })}
+  </content>
+</send>`} />
+
+### Scheduled Notification
+
+<DynamicCodeBlock lang="jsx" code={`<send
+  event="reminder"
+  delay="1h"
+  id="hourlyReminder"
+  type="notification"
+>
+  <content>
+    {({state}) => ({
+      message: state.reminderText
+    })}
+  </content>
+</send>`} />
+
+### WebSocket Message
+
+<DynamicCodeBlock lang="jsx" code={`<send
+  type="websocket"
+  target="wss://realtime.example.com"
+  event="update"
+>
+  <content>
+    {({state}) => ({
+      type: "status",
+      data: state.status
+    })}
+  </content>
+</send>`} />

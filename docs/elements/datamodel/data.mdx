@@ -1,0 +1,219 @@
+---
+title: Data Element
+description: Element for declaring data model variables
+---
+
+# Data Element
+
+The `<data>` element declares a data model variable:
+
+```mdx
+<data 
+  id="counter"
+  type="NUMBER"
+  value={0}
+  readonly={false}
+/>
+```
+
+## Props
+
+- `id` (required): Variable identifier
+- `src` (optional): Data source URL
+- `expr` (optional): Expression for value
+- `value` (optional): Initial value
+- `content` (optional): Content string
+- `type` (optional): Data type (STRING, NUMBER, BOOLEAN, JSON)
+- `readonly` (optional): Read-only flag
+- `fromRequest` (optional): Load from request
+- `defaultValue` (optional): Default value
+- `schema` (optional): JSON schema for validation
+
+## Examples
+
+### Basic Variable
+
+```mdx
+<data id="name" type="STRING" value="John" />
+```
+
+### JSON Data
+
+```mdx
+<data 
+  id="user"
+  type="JSON"
+  value={{
+    name: "John",
+    age: 30,
+    roles: ["admin", "user"]
+  }}
+/>
+```
+
+### Dynamic Value
+
+```mdx
+<data 
+  id="timestamp"
+  type="STRING"
+  expr={new Date().toISOString()}
+/>
+```
+
+## Usage Notes
+
+- Declares variables in data model
+- Can specify type and validation
+- Can be initialized with values
+- Can be read-only or mutable
+
+## Best Practices
+
+1. **Variable Design**
+   - Use clear identifiers
+   - Choose appropriate types
+   - Set initial values
+   - Document purpose
+
+2. **Type Safety**
+   - Validate data types
+   - Use schemas for JSON
+   - Handle type conversions
+   - Check constraints
+
+3. **Value Management**
+   - Initialize properly
+   - Handle updates
+   - Validate changes
+   - Clean up when done
+
+4. **Error Handling**
+   - Validate input
+   - Handle missing data
+   - Provide defaults
+   - Log issues
+
+## Common Patterns
+
+1. **Form Data**
+```mdx
+<datamodel>
+  <data 
+    id="formData" 
+    type="JSON"
+    value={{
+      username: "",
+      email: "",
+      preferences: {}
+    }}
+  />
+  <data 
+    id="validation"
+    type="JSON"
+    value={{
+      errors: [],
+      isValid: false
+    }}
+  />
+</datamodel>
+```
+
+2. **Configuration**
+```mdx
+<datamodel>
+  <data 
+    id="config"
+    type="JSON"
+    readonly={true}
+    value={{
+      apiEndpoint: "https://api.example.com",
+      timeout: 5000,
+      retries: 3
+    }}
+  />
+</datamodel>
+```
+
+3. **State Tracking**
+```mdx
+<datamodel>
+  <data 
+    id="processState"
+    type="JSON"
+    value={{
+      status: "idle",
+      progress: 0,
+      lastUpdate: null,
+      errors: []
+    }}
+  />
+  <data 
+    id="metrics"
+    type="JSON"
+    value={{
+      startTime: null,
+      duration: 0,
+      steps: []
+    }}
+  />
+</datamodel>
+```
+
+## Advanced Usage
+
+### JSON Schema Validation
+
+```mdx
+<data 
+  id="user"
+  type="JSON"
+  schema={{
+    type: "object",
+    required: ["name", "email"],
+    properties: {
+      name: { type: "string", minLength: 2 },
+      email: { type: "string", format: "email" },
+      age: { type: "number", minimum: 0 },
+      roles: {
+        type: "array",
+        items: { type: "string" }
+      }
+    }
+  }}
+  value={{
+    name: "John Doe",
+    email: "john@example.com",
+    age: 30,
+    roles: ["user"]
+  }}
+/>
+```
+
+### Dynamic Loading
+
+```mdx
+<data 
+  id="userProfile"
+  type="JSON"
+  fromRequest={true}
+  defaultValue={{
+    isLoading: true,
+    data: null,
+    error: null
+  }}
+/>
+```
+
+### Computed Values
+
+```mdx
+<data 
+  id="computed"
+  type="JSON"
+  expr={({state}) => ({
+    total: calculateTotal(state.items),
+    average: calculateAverage(state.items),
+    summary: generateSummary(state.items)
+  })}
+/>

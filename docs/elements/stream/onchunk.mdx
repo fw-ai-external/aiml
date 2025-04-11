@@ -1,0 +1,252 @@
+---
+title: OnChunk Element
+description: Element for handling data chunks
+---
+
+# OnChunk Element
+
+The `<onchunk>` element handles data chunks:
+
+```mdx
+<onchunk>
+  <llm>
+    <prompt>Processing chunk: {({chunk}) => chunk.data}</prompt>
+  </llm>
+</onchunk>
+```
+
+## Props
+
+- `id` (optional): Unique identifier
+
+## Examples
+
+### Basic Chunk Processing
+
+```mdx
+<onchunk>
+  <log expr={({chunk}) => `Processing chunk: ${chunk.data}`} />
+  <script>
+    processChunk(chunk);
+  </script>
+</onchunk>
+```
+
+### Stream Processing
+
+```mdx
+<onchunk>
+  <if condition={({chunk}) => chunk.type === "data"}>
+    <script>
+      accumulateData(chunk.data);
+      updateProgress(chunk.progress);
+    </script>
+  </if>
+  <elseif condition={({chunk}) => chunk.type === "metadata"}>
+    <script>
+      updateMetadata(chunk.metadata);
+    </script>
+  </elseif>
+</onchunk>
+```
+
+### Real-time Analysis
+
+```mdx
+<onchunk>
+  <script>
+    const analysis = analyzeChunk(chunk);
+    if (analysis.needsAction) {
+      triggerAction(analysis.action);
+    }
+  </script>
+  <log expr={({analysis}) => `
+    Chunk Analysis:
+    Size: ${analysis.size}
+    Type: ${analysis.type}
+    Action: ${analysis.action}
+  `} />
+</onchunk>
+```
+
+## Usage Notes
+
+- Handles streaming data
+- Processes chunks sequentially
+- Can analyze in real-time
+- Supports async processing
+
+## Best Practices
+
+1. **Chunk Processing**
+   - Handle chunk types
+   - Validate chunk data
+   - Process efficiently
+   - Maintain order
+
+2. **State Management**
+   - Track progress
+   - Accumulate data
+   - Handle boundaries
+   - Manage memory
+
+3. **Error Handling**
+   - Handle corrupt chunks
+   - Manage timeouts
+   - Recover from errors
+   - Log issues
+
+4. **Performance**
+   - Process quickly
+   - Avoid blocking
+   - Buffer appropriately
+   - Monitor throughput
+
+## Common Patterns
+
+1. **Data Accumulation**
+```mdx
+<onchunk>
+  <script>
+    const buffer = getBuffer();
+    buffer.append(chunk.data);
+    
+    if (buffer.isComplete()) {
+      processCompleteData(buffer.getData());
+      buffer.clear();
+    }
+  </script>
+  
+  <log expr={({buffer}) => `
+    Buffer Status:
+    Size: ${buffer.size}
+    Complete: ${buffer.isComplete()}
+  `} />
+</onchunk>
+```
+
+2. **Stream Analysis**
+```mdx
+<onchunk>
+  <datamodel>
+    <data 
+      id="metrics"
+      type="JSON"
+      value={{
+        chunks: 0,
+        totalSize: 0,
+        patterns: {}
+      }}
+    />
+  </datamodel>
+  
+  <script>
+    updateMetrics(chunk);
+    analyzePatterns(chunk);
+    detectAnomalies(chunk);
+  </script>
+  
+  <if condition={({metrics}) => metrics.anomalies.length > 0}>
+    <raise event="anomalyDetected" />
+  </if>
+</onchunk>
+```
+
+3. **Progress Tracking**
+```mdx
+<onchunk>
+  <assign 
+    location="state.progress"
+    expr={({chunk, state}) => ({
+      processed: state.progress.processed + 1,
+      total: chunk.total,
+      percentage: ((state.progress.processed + 1) / chunk.total) * 100
+    })}
+  />
+  
+  <if condition={({state}) => state.progress.percentage % 10 === 0}>
+    <log expr={({state}) => `
+      Progress Update:
+      ${state.progress.percentage}% complete
+      (${state.progress.processed}/${state.progress.total})
+    `} />
+  </if>
+</onchunk>
+```
+
+## Advanced Usage
+
+### Chunk Transformation
+
+```mdx
+<onchunk>
+  <script>
+    const transformed = transformChunk(chunk, {
+      format: state.outputFormat,
+      encoding: state.encoding,
+      compression: state.compression
+    });
+    
+    processTransformedChunk(transformed);
+  </script>
+  
+  <if condition={({transformed}) => transformed.needsValidation}>
+    <script>
+      validateChunk(transformed);
+    </script>
+  </if>
+</onchunk>
+```
+
+### Parallel Processing
+
+```mdx
+<parallel id="chunkProcessing">
+  <onchunk>
+    <state id="analysis">
+      <script>
+        analyzeChunkContent(chunk);
+      </script>
+    </state>
+    
+    <state id="storage">
+      <script>
+        storeChunkData(chunk);
+      </script>
+    </state>
+    
+    <state id="monitoring">
+      <script>
+        updateMetrics(chunk);
+      </script>
+    </state>
+  </onchunk>
+</parallel>
+```
+
+### Adaptive Processing
+
+```mdx
+<onchunk>
+  <script>
+    const strategy = selectProcessingStrategy(chunk, {
+      size: chunk.size,
+      type: chunk.type,
+      complexity: analyzeComplexity(chunk),
+      systemLoad: getSystemLoad()
+    });
+    
+    applyProcessingStrategy(chunk, strategy);
+  </script>
+  
+  <log expr={({strategy}) => `
+    Selected Strategy:
+    Type: ${strategy.type}
+    Priority: ${strategy.priority}
+    Resources: ${strategy.resources}
+  `} />
+  
+  <if condition={({strategy}) => strategy.needsScaling}>
+    <raise event="scaleResources" />
+  </if>
+</onchunk>

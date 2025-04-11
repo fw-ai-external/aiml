@@ -1,0 +1,96 @@
+---
+title: Action Elements
+description: Elements for executing actions and modifying state
+---
+
+# Action Elements
+
+Action elements are used to perform operations and modify state within your workflow.
+
+## Available Elements
+
+### [Assign](./assign)
+The `<assign>` element modifies data model values. Use it to update state, increment counters, or append to arrays.
+
+### [Log](./log)
+The `<log>` element outputs messages for debugging and tracing. Essential for development and troubleshooting.
+
+### [Script](./script)
+The `<script>` element executes JavaScript code. Useful for complex logic and computations.
+
+### [Cancel](./cancel)
+The `<cancel>` element cancels delayed events. Important for cleanup and workflow control.
+
+### [Raise](./raise)
+The `<raise>` element raises internal events. Key for state machine communication.
+
+### [Send](./send)
+The `<send>` element sends events to external systems. Essential for integration with other services.
+
+## Common Use Cases
+
+1. **State Management**
+   ```mdx
+   <assign location="state.count" action="increment" />
+   ```
+
+2. **Debugging**
+   ```mdx
+   <log label="Debug" expr={({state}) => `Current state: ${state.status}`} />
+   ```
+
+3. **Complex Logic**
+   ```mdx
+   <script>
+     const result = performCalculation(state.data);
+     _dataModel.setValue('state.result', result);
+   </script>
+   ```
+
+4. **Event Control**
+   ```mdx
+   <cancel sendid="reminder" />
+   <raise event="processComplete" />
+   ```
+
+5. **External Communication**
+   ```mdx
+   <send 
+     type="http"
+     target="https://api.example.com"
+     event="updateData"
+   />
+   ```
+
+## Best Practices
+
+1. **State Modifications**
+   - Use assign for simple state updates
+   - Use script for complex calculations
+   - Validate data before modifications
+   - Keep state changes atomic
+
+2. **Event Handling**
+   - Use raise for internal events
+   - Use send for external communication
+   - Cancel delayed events when appropriate
+   - Handle errors gracefully
+
+3. **Debugging**
+   - Use log elements strategically
+   - Include relevant context in logs
+   - Consider log levels
+   - Clean up debug logs in production
+
+4. **Code Organization**
+   - Keep scripts focused and modular
+   - Document complex operations
+   - Use meaningful identifiers
+   - Follow consistent patterns
+
+## See Also
+
+- [Control Flow Elements](../control-flow)
+- [State Elements](../states)
+- [SCXML Elements](../scxml)
+- [Best Practices](../best-practices)

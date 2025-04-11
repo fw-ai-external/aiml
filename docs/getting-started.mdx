@@ -1,0 +1,135 @@
+---
+title: Getting Started
+description: Learn how to create your first AI agent using AIML
+---
+
+# Getting Started with AIML
+
+This guide will help you create your first AI agent using AIML.
+
+## Installation
+
+1. Install the AIML VS Code extension for syntax highlighting and language support:
+   - Open VS Code
+   - Go to Extensions (Ctrl+Shift+X)
+   - Search for "AIML"
+   - Install the AIML extension
+
+2. Create a new directory for your project:
+```bash
+mkdir my-aiml-project
+cd my-aiml-project
+```
+
+3. Create a new file with the `.aiml` extension:
+```bash
+touch agent.aiml
+```
+
+## Basic Structure
+
+Every AIML file consists of:
+
+1. A frontmatter section defining default settings
+2. The agent's system prompt
+3. One or more element blocks defining the agent's behavior
+
+Here's a minimal example:
+
+```mdx
+---
+model: account/fireworks/model/deepseek-v3
+---
+
+You are a helpful assistant that provides concise, accurate responses.
+
+<llm>
+    <prompt>
+        {({userInput}) => userInput.message}
+    </prompt>
+</llm>
+```
+
+## Key Concepts
+
+### Frontmatter
+
+The frontmatter section at the top of the file (between `---` markers) defines default settings:
+
+```mdx
+---
+model: account/fireworks/model/deepseek-v3
+---
+```
+
+### System Prompt
+
+The text immediately following the frontmatter serves as the system prompt for your agent:
+
+```mdx
+You are a helpful assistant that provides concise, accurate responses.
+```
+
+### Elements
+
+Elements are XML/JSX-style tags that define your agent's behavior:
+
+```mdx
+<llm>
+    <instructions>
+        Process the user's input carefully and provide a helpful response.
+    </instructions>
+    <prompt>
+        {({userInput}) => userInput.message}
+    </prompt>
+</llm>
+```
+
+### Comments
+
+Use JSX-style comments to add notes that won't be sent to the LLM:
+
+```mdx
+{/* This comment won't be included in the LLM context */}
+```
+
+## Creating Your First Agent
+
+Let's create a simple agent that thinks about a response before answering:
+
+```mdx
+---
+model: account/fireworks/model/deepseek-v3
+---
+
+You are a helpful assistant that thinks carefully before responding.
+
+{/* First, think about how to respond */}
+<llm>
+    <instructions>
+        Think carefully about how to respond to the user's request.
+        Consider different approaches and their implications.
+    </instructions>
+    <prompt>
+        {({userInput}) => userInput.message}
+    </prompt>
+</llm>
+
+{/* Then provide the actual response */}
+<llm model="account/fireworks/model/qwen-2.5-32b">
+    <instructions>
+        {({lastElement}) => `Based on the previous analysis (${lastElement.output}), 
+        provide a clear and helpful response to the user.`}
+    </instructions>
+    <prompt>
+        {({userInput}) => userInput.message}
+    </prompt>
+</llm>
+```
+
+## Next Steps
+
+- Learn more about [Language Syntax](./docs/syntax/index)
+- Explore available [Core Elements](./docs/elements/index)
+- Check out more [Examples](./docs/examples/index)
+- Dive into [Advanced Features](./docs/advanced/index)

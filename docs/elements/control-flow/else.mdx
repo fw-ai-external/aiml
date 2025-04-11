@@ -1,0 +1,133 @@
+---
+title: Else Element
+description: Element for default execution path
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# Else Element
+
+The `<else>` element provides a default execution path when no other conditions match:
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.count > 10}>
+  <llm>
+    <prompt>Count is greater than 10</prompt>
+  </llm>
+</if>
+<elseif condition={({state}) => state.count > 5}>
+  <llm>
+    <prompt>Count is greater than 5</prompt>
+  </llm>
+</elseif>
+<else>
+  <llm>
+    <prompt>Count is 5 or less</prompt>
+  </llm>
+</else>`} />
+
+## Props
+
+- `id` (optional): Unique identifier for the else element
+
+## Examples
+
+### Basic Default Case
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.isValid}>
+  <assign location="state.status" expr="valid" />
+</if>
+<else>
+  <assign location="state.status" expr="invalid" />
+</else>`} />
+
+### Error Handling
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.data !== null}>
+  <script>processData(state.data);</script>
+</if>
+<else>
+  <raise event="dataError" />
+  <log expr="Data is null" />
+</else>`} />
+
+### Complex Flow
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.userRole === "admin"}>
+  <assign location="state.access" expr="full" />
+</if>
+<elseif condition={({state}) => state.userRole === "editor"}>
+  <assign location="state.access" expr="write" />
+</elseif>
+<else>
+  <assign location="state.access" expr="read" />
+  <raise event="limitedAccess" />
+</else>`} />
+
+## Usage Notes
+
+- Must follow an `<if>` element or `<elseif>` element
+- Represents the final branch in a conditional chain
+- Executes when no previous conditions match
+- Can contain any executable content
+
+## Best Practices
+
+1. **Default Behavior**
+   - Provide meaningful default actions
+   - Handle edge cases appropriately
+   - Consider error conditions
+   - Document default behavior
+
+2. **Code Organization**
+   - Keep default logic simple
+   - Use clear, descriptive actions
+   - Group related operations
+   - Maintain readability
+
+3. **Error Handling**
+   - Log unexpected conditions
+   - Provide appropriate feedback
+   - Handle errors gracefully
+   - Clean up resources
+
+4. **Maintenance**
+   - Review default cases regularly
+   - Update documentation
+   - Test default paths
+   - Consider edge cases
+
+## Common Patterns
+
+### Default Assignment
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.value > 0}>
+  <assign location="state.status" expr="positive" />
+</if>
+<else>
+  <assign location="state.status" expr="non-positive" />
+</else>`} />
+
+### Error Recovery
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.isValid}>
+  <transition target="processData" />
+</if>
+<else>
+  <log expr="Invalid state detected" />
+  <raise event="validationError" />
+  <transition target="errorHandler" />
+</else>`} />
+
+### Default Response
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.hasCustomResponse}>
+  <llm>
+    <prompt>{({state}) => state.customResponse}</prompt>
+  </llm>
+</if>
+<else>
+  <llm>
+    <prompt>I'm sorry, I don't have a specific response for that.</prompt>
+  </llm>
+</else>`} />

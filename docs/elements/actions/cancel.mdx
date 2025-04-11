@@ -1,0 +1,87 @@
+---
+title: Cancel Element
+description: Element for canceling delayed events
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# Cancel Element
+
+The `<cancel>` element cancels a delayed event:
+
+<DynamicCodeBlock lang="jsx" code={`<cancel sendid="delayed-event" />`} />
+
+<TypeTable
+  type={{
+    id: {
+      description: 'Unique identifier',
+      type: 'string',
+      optional: true
+    },
+    sendid: {
+      description: 'ID of the delayed event to cancel',
+      type: 'string',
+      optional: true
+    },
+    sendidexpr: {
+      description: 'Expression evaluating to the send ID',
+      type: 'Expression',
+      optional: true
+    }
+  }}
+/>
+
+## Examples
+
+### Basic Cancellation
+
+<DynamicCodeBlock lang="jsx" code={`<cancel sendid="reminder" />`} />
+
+### Dynamic Cancellation
+
+<DynamicCodeBlock lang="jsx" code={`<cancel 
+  sendidexpr={({state}) => state.pendingEventId} 
+/>`} />
+
+### Multiple Event Cancellation
+
+<DynamicCodeBlock lang="jsx" code={`<state id="cleanup">
+  <onentry>
+    <cancel sendid="reminder1" />
+    <cancel sendid="reminder2" />
+    <cancel sendid="reminder3" />
+  </onentry>
+</state>`} />
+
+## Usage Notes
+
+- Use when you need to prevent a delayed event from occurring
+- Commonly used in cleanup operations
+- Useful for canceling timeouts and reminders
+- Can be used with dynamic event IDs
+
+## Best Practices
+
+1. **Event Management**
+   - Keep track of event IDs systematically
+   - Use meaningful event IDs
+   - Clean up pending events when appropriate
+   - Handle cases where the event might already be executed
+
+2. **Error Handling**
+   - Handle cases where the event ID doesn't exist
+   - Provide appropriate feedback for cancellation failures
+   - Log cancellation operations for debugging
+
+3. **State Coordination**
+   - Coordinate with send elements
+   - Consider the timing of cancellations
+   - Handle race conditions
+   - Clean up related state data
+
+4. **Documentation**
+   - Document which events can be canceled
+   - Explain cancellation conditions
+   - Note any side effects
+   - Include timing considerations

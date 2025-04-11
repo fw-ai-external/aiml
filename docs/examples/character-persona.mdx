@@ -1,0 +1,55 @@
+---
+title: Character Persona Generator
+description: Create detailed character personas for games or stories
+---
+
+# Character Persona Generator
+
+Create detailed character personas for games or stories:
+
+```mdx
+---
+model: account/fireworks/model/deepseek-v3
+---
+
+You are a creative writing assistant specializing in character development.
+
+<state initial={{
+    stage: "traits",
+    character: {}
+}}>
+    {/* Generate personality traits */}
+    <when condition={({state}) => state.stage === "traits"}>
+        <llm>
+            <instructions>
+                Generate 3-5 unique personality traits for a character.
+                Return them as a JSON array.
+            </instructions>
+            <prompt>
+                {({userInput}) => userInput.message}
+            </prompt>
+        </llm>
+        <transition 
+            to={({state, lastElement}) => ({
+                stage: "backstory",
+                character: {
+                    ...state.character,
+                    traits: JSON.parse(lastElement.output)
+                }
+            })}
+        />
+    </when>
+
+    {/* Create backstory */}
+    <when condition={({state}) => state.stage === "backstory"}>
+        <llm>
+            <instructions>
+                {({state}) => 
+                    `Using these traits: ${JSON.stringify(state.character.traits)}
+                     Create a compelling backstory.`
+                }
+            </instructions>
+            <prompt>Develop the character's history</prompt>
+        </llm>
+    </when>
+</state>

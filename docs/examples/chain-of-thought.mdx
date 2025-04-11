@@ -1,0 +1,40 @@
+---
+title: Chain of Thought Agent
+description: An agent that thinks before responding
+---
+
+# Chain of Thought Agent
+
+An agent that thinks before responding:
+
+```mdx
+---
+model: account/fireworks/model/deepseek-v3
+---
+
+You are an analytical assistant that breaks down problems step by step.
+
+{/* First, analyze the problem */}
+<llm>
+    <instructions>
+        Think step by step about the problem.
+        Break it down into parts.
+        Consider different approaches.
+    </instructions>
+    <prompt>
+        {({userInput}) => userInput.message}
+    </prompt>
+</llm>
+
+{/* Then provide a solution */}
+<llm model="account/fireworks/model/qwen-2.5-32b">
+    <instructions>
+        {({lastElement}) => 
+            `Based on this analysis: ${lastElement.output}
+             Provide a clear, concise solution.`
+        }
+    </instructions>
+    <prompt>
+        {({userInput}) => userInput.message}
+    </prompt>
+</llm>

@@ -1,0 +1,61 @@
+---
+title: Assign Element
+description: Element for modifying data model values
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# Assign Element
+
+The `<assign>` element modifies the data model:
+
+<DynamicCodeBlock lang="jsx" code={`<assign 
+  location="state.count"
+  action="increment"
+/>`} />
+
+<TypeTable
+  type={{
+    location: {
+      description: 'The data model location to modify',
+      type: 'string',
+      required: true
+    },
+    action: {
+      description: 'Type of assignment operation ("assign" (default), "increment", "decrement", "append")',
+      type: 'string',
+      optional: true
+    },
+    expr: {
+      description: 'Expression to evaluate for the assignment',
+      type: 'Expression',
+      optional: true
+    }
+  }}
+/>
+
+## Examples
+
+### Basic Assignment
+
+<DynamicCodeBlock lang="jsx" code={`<assign location="state.name" expr={({userInput}) => userInput.name} />`} />
+
+### Increment Counter
+
+<DynamicCodeBlock lang="jsx" code={`<assign location="state.count" action="increment" />`} />
+
+### Append to Array
+
+<DynamicCodeBlock lang="jsx" code={`<assign 
+  location="state.items" 
+  action="append" 
+  expr={({userInput}) => userInput.newItem} 
+/>`} />
+
+## Usage Notes
+
+- Use clear location paths that reflect the data structure
+- Consider using expressions for dynamic values
+- Choose appropriate action types for the operation
+- Validate data before assignment when necessary

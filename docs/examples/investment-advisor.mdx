@@ -1,0 +1,55 @@
+---
+title: Investment Advisor
+description: An investment analysis assistant helping evaluate investment opportunities
+---
+
+# Investment Advisor
+
+An investment analysis assistant:
+
+```mdx
+---
+model: account/fireworks/model/deepseek-v3
+---
+
+You are an investment analysis assistant helping evaluate investment opportunities.
+
+<state initial={{
+    stage: "risk_assessment",
+    analysis: {}
+}}>
+    {/* Assess risk tolerance */}
+    <llm>
+        <instructions>
+            Analyze the investment scenario and assess risk level.
+            Consider market conditions and investor profile.
+            Return a risk rating from 1-10.
+        </instructions>
+        <prompt>
+            {({userInput}) => userInput.message}
+        </prompt>
+    </llm>
+
+    {/* Store risk assessment */}
+    <transition 
+        to={({state, lastElement}) => ({
+            stage: "recommendations",
+            analysis: {
+                ...state.analysis,
+                riskLevel: parseInt(lastElement.output)
+            }
+        })}
+    />
+
+    {/* Provide recommendations */}
+    <llm>
+        <instructions>
+            {({state}) => 
+                `Given a risk level of ${state.analysis.riskLevel}/10,
+                 provide investment recommendations.
+                 Include asset allocation and specific considerations.`
+            }
+        </instructions>
+        <prompt>Generate investment advice</prompt>
+    </llm>
+</state>

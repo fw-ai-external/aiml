@@ -1,0 +1,200 @@
+---
+title: Parallel Element
+description: Element for concurrent state execution
+---
+
+# Parallel Element
+
+The `<parallel>` element enables concurrent execution of multiple states:
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+<DynamicCodeBlock lang="jsx"  code={`<parallel id="concurrent">
+  <state id="process1">
+    <transition target="done1" />
+  </state>
+  
+  <state id="process2">
+    <transition target="done2" />
+  </state>
+</parallel>`} />
+
+<TypeTable
+  type={{
+    id: {
+      description: 'Unique identifier',
+      type: 'string',
+      optional: true
+    }
+  }}
+/>
+
+## Allowed Children
+
+- `onentry`: Entry actions
+- `onexit`: Exit actions
+- `transition`: State transitions
+- `state`: Child states
+- `history`: History pseudo-states
+- `datamodel`: Data model declarations
+- `invoke`: Service invocations
+
+## Examples
+
+### Basic Parallel Processing
+
+<DynamicCodeBlock lang="jsx"  code={`<parallel id="dataProcessing">
+  <state id="validateData">
+    <transition 
+      event="valid" 
+      target="validationComplete" 
+    />
+  </state>
+  
+  <state id="transformData">
+    <transition 
+      event="transformed" 
+      target="transformationComplete" 
+    />
+  </state>
+</parallel>`} />
+
+### Resource Management
+
+<DynamicCodeBlock lang="jsx"  code={`<parallel id="resourceManager">
+  <datamodel>
+    <data id="resources" type="JSON" value={[]} />
+    <data id="errors" type="JSON" value={[]} />
+  </datamodel>
+  
+  <state id="monitor">
+    <onexit>
+      <script>stopMonitoring();</script>
+    </onexit>
+  </state>
+  
+  <state id="cleanup">
+    <onexit>
+      <script>releaseResources();</script>
+    </onexit>
+  </state>
+</parallel>`} />
+
+### Service Orchestration
+
+<DynamicCodeBlock lang="jsx"  code={`<parallel id="services">
+  <state id="api1">
+    <invoke 
+      type="http"
+      src="https://api1.example.com"
+    />
+  </state>
+  
+  <state id="api2">
+    <invoke 
+      type="http"
+      src="https://api2.example.com"
+    />
+  </state>
+  
+  <state id="coordinator">
+    <transition 
+      event="api1.done api2.done"
+      target="complete"
+    />
+  </state>
+</parallel>`} />
+
+## Usage Notes
+
+- All child states execute concurrently
+- Useful for independent processes
+- Can share data through parent scope
+- Transitions can span parallel regions
+
+## Best Practices
+
+1. **State Independence**
+   - Keep states autonomous
+   - Minimize state dependencies
+   - Handle shared resources
+   - Manage concurrency
+
+2. **Resource Management**
+   - Track resource usage
+   - Clean up properly
+   - Handle resource conflicts
+   - Monitor resource state
+
+3. **Error Handling**
+   - Handle partial failures
+   - Provide recovery paths
+   - Coordinate error states
+   - Log error conditions
+
+4. **Performance**
+   - Balance parallel load
+   - Monitor execution
+   - Handle timeouts
+   - Consider resource limits
+
+## Common Patterns
+
+### Data Pipeline
+
+<DynamicCodeBlock lang="jsx"  code={`<parallel id="pipeline">
+  <state id="input">
+    <invoke type="service" src="inputProcessor" />
+  </state>
+  
+  <state id="transform">
+    <invoke type="service" src="transformer" />
+  </state>
+  
+  <state id="output">
+    <invoke type="service" src="outputHandler" />
+  </state>
+  
+  <state id="monitor">
+    <invoke type="service" src="pipelineMonitor" />
+  </state>
+</parallel>`} />
+
+### Service Coordination
+
+<DynamicCodeBlock lang="jsx"  code={`<parallel id="services">
+  <state id="authentication">
+    <invoke type="service" src="authService" />
+    <transition event="token" target="authenticated" />
+  </state>
+  
+  <state id="userProfile">
+    <invoke type="service" src="profileService" />
+    <transition event="profile" target="profileLoaded" />
+  </state>
+  
+  <state id="preferences">
+    <invoke type="service" src="preferencesService" />
+    <transition event="preferences" target="preferencesLoaded" />
+  </state>
+</parallel>`} />
+
+### Resource Management
+
+<DynamicCodeBlock lang="jsx"  code={`<parallel id="resourceManager">
+  <state id="allocation">
+    <invoke type="service" src="resourceAllocator" />
+    <transition event="lowResources" target="scaleUp" />
+  </state>
+  
+  <state id="monitoring">
+    <invoke type="service" src="resourceMonitor" />
+    <transition event="threshold" target="alert" />
+  </state>
+  
+  <state id="cleanup">
+    <invoke type="service" src="resourceCleaner" />
+    <transition event="cleaned" target="reset" />
+  </state>
+</parallel>`} />

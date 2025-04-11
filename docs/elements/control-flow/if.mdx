@@ -1,0 +1,128 @@
+---
+title: If Element
+description: Element for conditional execution
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# If Element
+
+The `<if>` element enables conditional execution based on a test condition:
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.count > 0}>
+  <llm>
+    <prompt>Processing positive count</prompt>
+  </llm>
+</if>`} />
+
+<TypeTable
+  type={{
+    id: {
+      description: 'Unique identifier',
+      type: 'string',
+      optional: true
+    },
+    condition: {
+      description: 'Test condition for execution',
+      type: 'Expression',
+      required: true
+    }
+  }}
+/>
+
+## Examples
+
+### Basic Condition
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.isReady}>
+  <llm>
+    <prompt>System is ready</prompt>
+  </llm>
+</if>`} />
+
+### Multiple Conditions
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.count > 10}>
+  <llm>
+    <prompt>Count is greater than 10</prompt>
+  </llm>
+</if>
+<elseif condition={({state}) => state.count > 5}>
+  <llm>
+    <prompt>Count is greater than 5</prompt>
+  </llm>
+</elseif>
+<else>
+  <llm>
+    <prompt>Count is 5 or less</prompt>
+  </llm>
+</else>`} />
+
+### Complex Conditions
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => 
+  state.isAuthenticated && 
+  state.hasPermission && 
+  !state.isLocked
+}>
+  <llm>
+    <prompt>Access granted</prompt>
+  </llm>
+</if>`} />
+
+## Usage Notes
+
+- Use for branching logic in workflows
+- Can be combined with elseif and else elements
+- Condition must evaluate to a boolean
+- Can contain any executable content
+
+## Best Practices
+
+1. **Condition Design**
+   - Keep conditions simple and clear
+   - Use meaningful variable names
+   - Break complex conditions into parts
+   - Document complex logic
+
+2. **Error Handling**
+   - Handle edge cases
+   - Provide fallback behavior
+   - Validate condition inputs
+   - Log important decisions
+
+3. **Code Organization**
+   - Group related conditions
+   - Use consistent formatting
+   - Consider extracting complex logic
+   - Maintain readability
+
+4. **Performance**
+   - Optimize condition evaluation
+   - Cache repeated calculations
+   - Consider condition order
+   - Avoid unnecessary checks
+
+## Common Patterns
+
+### State Validation
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.isValid}>
+  <transition target="nextState" />
+</if>`} />
+
+### Error Checking
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({error}) => error !== null}>
+  <raise event="error" />
+</if>`} />
+
+### Permission Control
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.hasPermission}>
+  <assign location="state.access" expr={\`granted\`} />
+<else>
+  <raise event="accessDenied" />
+</else>
+</if>`} />

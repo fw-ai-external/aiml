@@ -1,0 +1,71 @@
+---
+title: Medical Diagnosis Assistant
+description: A medical diagnosis helper for educational purposes
+---
+
+# Medical Diagnosis Assistant
+
+A medical diagnosis helper (for educational purposes):
+
+```mdx
+---
+model: account/fireworks/model/deepseek-v3
+---
+
+You are a medical diagnosis assistant helping medical professionals analyze symptoms.
+
+<state initial={{
+    stage: "symptoms",
+    data: {
+        symptoms: [],
+        emergencyLevel: "unknown",
+        possibleCauses: []
+    }
+}}>
+    {/* Check for emergency symptoms */}
+    <llm>
+        <instructions>
+            Analyze the symptoms for emergency indicators.
+            Return "emergency", "urgent", or "routine".
+        </instructions>
+        <prompt>
+            {({userInput}) => userInput.message}
+        </prompt>
+    </llm>
+
+    {/* Update emergency level */}
+    <transition 
+        to={({state, lastElement}) => ({
+            ...state,
+            data: {
+                ...state.data,
+                emergencyLevel: lastElement.output
+            }
+        })}
+    />
+
+    {/* If emergency, provide immediate guidance */}
+    <if condition={({state}) => 
+        state.data.emergencyLevel === "emergency"
+    }>
+        <llm>
+            <instructions>
+                Provide immediate emergency guidance.
+                Focus on critical next steps.
+            </instructions>
+            <prompt>Emergency guidance needed</prompt>
+        </llm>
+    </if>
+    <else>
+        {/* Regular diagnosis process */}
+        <llm>
+            <instructions>
+                Analyze symptoms and suggest possible causes.
+                Include confidence levels for each cause.
+            </instructions>
+            <prompt>
+                {({userInput}) => userInput.message}
+            </prompt>
+        </llm>
+    </else>
+</state>

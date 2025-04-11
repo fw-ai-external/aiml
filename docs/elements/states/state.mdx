@@ -1,0 +1,230 @@
+---
+title: State Element
+description: Element for defining standard states in the state machine
+---
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# State Element
+
+The `<state>` element represents a standard state in the state machine:
+
+
+
+<DynamicCodeBlock lang="jsx"  code={`<state id="processing" initial="step1">
+  <onentry>
+    <llm>
+      <prompt>Entering processing state</prompt>
+    </llm>
+  </onentry>
+  
+  <state id="step1">
+    <transition target="step2" />
+  </state>
+  
+  <state id="step2">
+    <transition target="final" />
+  </state>
+  
+  <onexit>
+    <llm>
+      <prompt>Exiting processing state</prompt>
+    </llm>
+  </onexit>
+</state>`} />
+
+<TypeTable
+  type={{
+    id: {
+      description: 'Unique identifier',
+      type: 'string',
+      optional: true
+    },
+    initial: {
+      description: 'Initial substate for compound states',
+      type: 'string',
+      optional: true
+    }
+  }}
+/>
+
+## Allowed Children
+
+- `onentry`: Entry actions
+- `onexit`: Exit actions
+- `transition`: State transitions
+- `state`: Child states
+- `parallel`: Parallel states
+- `final`: Final states
+- `history`: History pseudo-states
+- `datamodel`: Data model declarations
+- `invoke`: Service invocations
+- `data`: Data declarations
+
+## Examples
+
+### Simple State
+
+<DynamicCodeBlock lang="jsx"  code={`<state id="idle">
+  <transition event="start" target="active" />
+</state>`} />
+
+### Compound State
+
+<DynamicCodeBlock lang="jsx"  code={`<state id="processing" initial="validate">
+  <state id="validate">
+    <transition 
+      event="valid" 
+      target="compute" 
+    />
+    <transition 
+      event="invalid" 
+      target="error" 
+    />
+  </state>
+  
+  <state id="compute">
+    <transition 
+      event="complete" 
+      target="done" 
+    />
+  </state>
+  
+  <state id="error">
+    <transition 
+      event="retry" 
+      target="validate" 
+    />
+  </state>
+</state>`} />
+
+### State with Data Model
+
+<DynamicCodeBlock lang="jsx"  code={`<state id="form">
+  <datamodel>
+    <data id="formData" type="JSON" />
+    <data id="errors" type="JSON" value={[]} />
+    <data id="isValid" type="BOOLEAN" value={false} />
+  </datamodel>
+  
+  <onentry>
+    <assign location="state.formData" expr={{}} />
+  </onentry>
+  
+  <transition 
+    event="submit"
+    condition={({state}) => state.isValid}
+    target="success"
+  />
+</state>`} />
+
+## Usage Notes
+
+- Can be simple or compound (containing other states)
+- Can define entry/exit actions
+- Can include transitions
+- Can contain data model
+- Can invoke external services
+
+## Best Practices
+
+1. **State Design**
+   - Use meaningful state names
+   - Keep states focused
+   - Document state purpose
+   - Consider state hierarchy
+
+2. **Data Management**
+   - Initialize state data
+   - Clean up on exit
+   - Validate state changes
+   - Handle data persistence
+
+3. **Transition Logic**
+   - Define clear paths
+   - Handle all events
+   - Include error transitions
+   - Document conditions
+
+4. **Service Integration**
+   - Manage service lifecycle
+   - Handle service errors
+   - Clean up resources
+   - Monitor service state
+
+## Common Patterns
+
+### Data Processing State
+
+<DynamicCodeBlock lang="jsx"  code={`<state id="processData">
+  <datamodel>
+    <data id="input" type="JSON" />
+    <data id="output" type="JSON" value={{}} />
+    <data id="error" type="STRING" />
+  </datamodel>
+  
+  <onentry>
+    <script>
+      try {
+        const result = processInput(state.input);
+        _dataModel.setValue("state.output", result);
+      } catch (err) {
+        _dataModel.setValue("state.error", err.message);
+        raise({ type: "error" });
+      }
+    </script>
+  </onentry>
+  
+  <transition event="error" target="errorState" />
+  <transition event="complete" target="successState" />
+</state>`} />
+
+### Form State
+
+<DynamicCodeBlock lang="jsx"  code={`<state id="userForm">
+  <datamodel>
+    <data id="fields" type="JSON" value={{}} />
+    <data id="validation" type="JSON" value={{}} />
+  </datamodel>
+  
+  <onentry>
+    <assign location="state.fields" expr={{
+      name: "",
+      email: "",
+      age: null
+    }} />
+  </onentry>
+  
+  <transition 
+    event="field.change"
+    target="userForm"
+  >
+    <assign 
+      location="state.fields"
+      expr={({event}) => ({
+        ...state.fields,
+        [event.field]: event.value
+      })}
+    />
+  </transition>
+</state>`} />
+
+### Service State
+
+<DynamicCodeBlock lang="jsx"  code={`<state id="apiConnection">
+  <invoke 
+    id="api"
+    type="http"
+    src="https://api.example.com"
+  >
+    <finalize>
+      <assign 
+        location="state.response" 
+        expr={({event}) => event.data}
+      />
+    </finalize>
+  </invoke>
+  
+  <transition event="error" target="errorState" />
+  <transition event="done" target="successState" />
+</state>`} />

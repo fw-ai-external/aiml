@@ -1,0 +1,253 @@
+---
+title: ToolCall Element
+description: Element for invoking tools
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# ToolCall Element
+
+The `<toolcall>` element invokes tools:
+
+<DynamicCodeBlock lang="jsx" code={`<toolcall
+  name="calculate"
+  description="Performs calculation"
+>
+  {({state}) => ({
+    operation: "add",
+    value: state.count
+  })}
+</toolcall>`} />
+
+<TypeTable
+  type={{
+    id: {
+      description: 'Unique identifier',
+      type: 'string',
+      optional: true
+    },
+    name: {
+      description: 'Tool name',
+      type: 'string',
+      required: true
+    },
+    description: {
+      description: 'Tool description',
+      type: 'string',
+      optional: true
+    }
+  }}
+/>
+
+## Examples
+
+### Basic Tool Call
+
+<DynamicCodeBlock lang="jsx" code={`<toolcall name="fetchData">
+  {() => ({
+    url: "https://api.example.com/data",
+    method: "GET"
+  })}
+</toolcall>`} />
+
+### Tool with Description
+
+<DynamicCodeBlock lang="jsx" code={`<toolcall 
+  name="processImage"
+  description="Processes an image using AI algorithms"
+>
+  {({state}) => ({
+    image: state.imageData,
+    options: {
+      resize: true,
+      format: "jpeg",
+      quality: 0.8
+    }
+  })}
+</toolcall>`} />
+
+### Complex Tool Call
+
+<DynamicCodeBlock lang="jsx" code={`<toolcall 
+  name="analyzeData"
+  description="Performs complex data analysis"
+>
+  {({state}) => ({
+    data: state.inputData,
+    parameters: {
+      algorithm: state.selectedAlgorithm,
+      threshold: state.threshold,
+      iterations: state.maxIterations
+    },
+    options: {
+      validateInput: true,
+      cacheResults: true,
+      returnFormat: "json"
+    }
+  })}
+</toolcall>`} />
+
+## Usage Notes
+
+- Invokes external tools
+- Can pass parameters
+- Supports async operations
+- Handles tool responses
+
+## Best Practices
+
+1. **Tool Design**
+   - Use descriptive names
+   - Document parameters
+   - Define clear purpose
+   - Handle errors
+
+2. **Parameter Handling**
+   - Validate inputs
+   - Format data properly
+   - Handle defaults
+   - Check types
+
+3. **Error Management**
+   - Handle failures
+   - Provide context
+   - Log issues
+   - Implement retries
+
+4. **Performance**
+   - Optimize calls
+   - Cache results
+   - Monitor execution
+   - Handle timeouts
+
+## Common Patterns
+
+### API Integration
+
+<DynamicCodeBlock lang="jsx" code={`<toolcall 
+  name="apiRequest"
+  description="Makes an HTTP request to an API"
+>
+  {({state}) => ({
+    request: {
+      url: state.endpoint,
+      method: state.method,
+      headers: state.headers,
+      body: state.requestBody
+    },
+    options: {
+      timeout: 5000,
+      retries: 3,
+      validateStatus: true
+    }
+  })}
+</toolcall>`} />
+
+### Data Processing
+
+<DynamicCodeBlock lang="jsx" code={`<toolcall 
+  name="dataTransform"
+  description="Transforms data using specified rules"
+>
+  {({state}) => ({
+    input: state.sourceData,
+    transformations: [
+      { type: "filter", condition: state.filterCondition },
+      { type: "map", function: state.mapFunction },
+      { type: "reduce", accumulator: state.reducer }
+    ],
+    validation: {
+      schema: state.outputSchema,
+      strict: true
+    }
+  })}
+</toolcall>`} />
+
+### Resource Management
+
+<DynamicCodeBlock lang="jsx" code={`<toolcall 
+  name="resourceManager"
+  description="Manages system resources"
+>
+  {({state}) => ({
+    operation: state.operationType,
+    resources: state.targetResources,
+    configuration: {
+      allocation: state.allocationStrategy,
+      limits: state.resourceLimits,
+      priority: state.operationPriority
+    },
+    monitoring: {
+      metrics: state.metricsToTrack,
+      alerts: state.alertThresholds
+    }
+  })}
+</toolcall>`} />
+
+## Advanced Usage
+
+### Conditional Tool Selection
+
+<DynamicCodeBlock lang="jsx" code={`<toolcall 
+  name={({state}) => 
+    state.dataType === "image" ? "imageProcessor" : "textProcessor"
+  }
+  description="Processes content based on type"
+>
+  {({state}) => ({
+    content: state.data,
+    options: state.processingOptions,
+    format: state.outputFormat
+  })}
+</toolcall>`} />
+
+### Tool Chain
+
+<DynamicCodeBlock lang="jsx" code={`<state id="processingChain">
+  <toolcall name="validateInput">
+    {({state}) => ({
+      data: state.input,
+      schema: state.schema
+    })}
+  </toolcall>
+  
+  <toolcall name="transform">
+    {({state}) => ({
+      data: state.validatedData,
+      rules: state.transformRules
+    })}
+  </toolcall>
+  
+  <toolcall name="analyze">
+    {({state}) => ({
+      data: state.transformedData,
+      metrics: state.analysisMetrics
+    })}
+  </toolcall>
+</state>`} />
+
+### Tool Configuration
+
+<DynamicCodeBlock lang="jsx" code={`<toolcall 
+  name="configuredTool"
+  description="Tool with advanced configuration"
+>
+  {({state}) => ({
+    input: state.toolInput,
+    config: {
+      mode: state.operationMode,
+      parameters: state.toolParameters,
+      environment: state.executionEnvironment
+    },
+    hooks: {
+      onStart: () => logOperation("start"),
+      onComplete: (result) => processResult(result),
+      onError: (error) => handleError(error)
+    },
+    validation: {
+      preValidation: state.inputValidators,
+      postValidation: state.outputValidators
+    }
+  })}
+</toolcall>`} />

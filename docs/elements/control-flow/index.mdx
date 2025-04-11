@@ -1,0 +1,100 @@
+---
+title: Control Flow Elements
+description: Elements for managing execution flow and conditional logic
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# Control Flow Elements
+
+Control flow elements allow you to manage the execution flow and implement conditional logic in your workflows.
+
+## Available Elements
+
+### [If](./if)
+The `<if>` element enables conditional execution based on test conditions. Essential for branching logic.
+
+### [ElseIf](./elseif)
+The `<elseif>` element provides alternative conditions in an if/else chain.
+
+### [Else](./else)
+The `<else>` element provides a default execution path when no other conditions match.
+
+### [ForEach](./foreach)
+The `<foreach>` element enables iteration over arrays, processing collections of items.
+
+### [Transition](./transition)
+The `<transition>` element defines state transitions, controlling workflow progression.
+
+### [OnEntry](./onentry)
+The `<onentry>` element defines actions to execute when entering a state.
+
+### [OnExit](./onexit)
+The `<onexit>` element defines actions to execute when exiting a state.
+
+## Common Use Cases
+
+### Conditional Logic
+
+<DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.isValid}>
+  <transition target="success" />
+</if>
+<else>
+  <transition target="error" />
+</else>`} />
+
+### Data Processing
+
+<DynamicCodeBlock lang="jsx" code={`<foreach items={({state}) => state.data} var="item">
+  <llm>
+    <prompt>
+      {({item}) => \`Processing: \${item}\`}
+    </prompt>
+  </llm>
+</foreach>`} />
+
+### State Management
+
+<DynamicCodeBlock lang="jsx" code={`<state id="processing">
+  <onentry>
+    <assign location="state.status" expr="active" />
+  </onentry>
+  <transition target="complete" />
+  <onexit>
+    <assign location="state.status" expr="done" />
+  </onexit>
+</state>`} />
+
+## Best Practices
+
+1. **Flow Control**
+   - Use clear conditions
+   - Handle all cases
+   - Document complex flows
+   - Consider error paths
+
+2. **State Transitions**
+   - Define clear paths
+   - Handle entry/exit
+   - Manage resources
+   - Track state changes
+
+3. **Iteration**
+   - Validate collections
+   - Handle empty cases
+   - Process efficiently
+   - Monitor progress
+
+4. **Error Handling**
+   - Provide fallbacks
+   - Log issues
+   - Clean up resources
+   - Maintain consistency
+
+## See Also
+
+- [State Elements](../states)
+- [Action Elements](../actions)
+- [SCXML Elements](../scxml)
+- [Best Practices](../best-practices)

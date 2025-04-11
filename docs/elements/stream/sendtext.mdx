@@ -1,0 +1,213 @@
+---
+title: SendText Element
+description: Element for sending text responses
+---
+
+# SendText Element
+
+The `<sendText>` element sends text responses:
+
+```mdx
+<sendText>
+  {({state}) => `Current count: ${state.count}`}
+</sendText>
+```
+
+## Props
+
+- `id` (optional): Unique identifier
+
+## Examples
+
+### Basic Response
+
+```mdx
+<sendText>
+  Hello, welcome to the application!
+</sendText>
+```
+
+### Dynamic Response
+
+```mdx
+<sendText>
+  {({state}) => `
+    User: ${state.user.name}
+    Status: ${state.status}
+    Last Updated: ${state.lastUpdate}
+  `}
+</sendText>
+```
+
+### Conditional Text
+
+```mdx
+<sendText>
+  {({state}) => {
+    if (state.error) {
+      return `Error: ${state.error.message}`;
+    }
+    if (state.loading) {
+      return 'Loading...';
+    }
+    return `Data loaded: ${state.data.summary}`;
+  }}
+</sendText>
+```
+
+## Usage Notes
+
+- Sends text responses to user
+- Can include dynamic content
+- Supports expressions
+- Can format text
+
+## Best Practices
+
+1. **Content Structure**
+   - Keep text clear
+   - Use proper formatting
+   - Include relevant context
+   - Consider localization
+
+2. **Dynamic Content**
+   - Validate data
+   - Handle missing values
+   - Format consistently
+   - Update appropriately
+
+3. **Error Handling**
+   - Handle edge cases
+   - Provide clear messages
+   - Include error context
+   - Log issues
+
+4. **Performance**
+   - Minimize computations
+   - Cache when possible
+   - Update efficiently
+   - Monitor response time
+
+## Common Patterns
+
+1. **Status Updates**
+```mdx
+<sendText>
+  {({state}) => {
+    const status = state.status;
+    const progress = state.progress;
+    
+    return `
+      Status: ${status}
+      Progress: ${progress}%
+      ${progress === 100 ? 'Complete!' : 'Processing...'}
+    `;
+  }}
+</sendText>
+```
+
+2. **Form Feedback**
+```mdx
+<sendText>
+  {({state}) => {
+    const { errors, touched, isValid } = state.validation;
+    
+    if (!touched) {
+      return 'Please fill out the form.';
+    }
+    
+    if (!isValid) {
+      return `Please correct the following errors:
+        ${Object.entries(errors)
+          .map(([field, error]) => `${field}: ${error}`)
+          .join('\n')}`;
+    }
+    
+    return 'Form is valid!';
+  }}
+</sendText>
+```
+
+3. **Data Summary**
+```mdx
+<sendText>
+  {({state}) => {
+    const { items, total, currency } = state.cart;
+    
+    return `
+      Cart Summary:
+      ${items.map(item => 
+        `- ${item.name}: ${currency}${item.price}`
+      ).join('\n')}
+      
+      Total: ${currency}${total}
+    `;
+  }}
+</sendText>
+```
+
+## Advanced Usage
+
+### Formatted Output
+
+```mdx
+<sendText>
+  {({state}) => {
+    const data = state.report;
+    return `
+      Monthly Report
+      ${'-'.repeat(20)}
+      
+      Revenue: ${formatCurrency(data.revenue)}
+      Expenses: ${formatCurrency(data.expenses)}
+      Profit: ${formatCurrency(data.profit)}
+      
+      Growth: ${formatPercentage(data.growth)}
+      Status: ${formatStatus(data.status)}
+      
+      Generated: ${formatDate(new Date())}
+    `;
+  }}
+</sendText>
+```
+
+### Interactive Messages
+
+```mdx
+<sendText>
+  {({state}) => {
+    const { user, options } = state;
+    return `
+      Hi ${user.name}!
+      
+      Available commands:
+      ${options.map((opt, i) => 
+        `${i + 1}. ${opt.label}`
+      ).join('\n')}
+      
+      Type a number to select an option.
+    `;
+  }}
+</sendText>
+```
+
+### Multi-part Messages
+
+```mdx
+<state id="messageSequence">
+  <sendText>
+    {({state}) => state.intro}
+  </sendText>
+  
+  <transition event="continue">
+    <sendText>
+      {({state}) => state.details}
+    </sendText>
+  </transition>
+  
+  <transition event="complete">
+    <sendText>
+      {({state}) => state.summary}
+    </sendText>
+  </transition>
+</state>

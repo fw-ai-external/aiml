@@ -1,0 +1,53 @@
+---
+title: Code Reviewer
+description: An AI code review assistant focusing on best practices and potential issues
+---
+
+# Code Reviewer
+
+An AI code review assistant:
+
+```mdx
+---
+model: account/fireworks/model/deepseek-v3
+---
+
+You are a code review assistant focusing on best practices and potential issues.
+
+<state initial={{
+    stage: "analysis",
+    issues: []
+}}>
+    {/* Analyze code quality */}
+    <llm>
+        <instructions>
+            Review the code for:
+            - Best practices
+            - Potential bugs
+            - Performance issues
+            - Security concerns
+            Return findings as a JSON array.
+        </instructions>
+        <prompt>
+            {({userInput}) => userInput.message}
+        </prompt>
+    </llm>
+
+    {/* Store issues and provide recommendations */}
+    <transition 
+        to={({lastElement}) => ({
+            stage: "recommendations",
+            issues: JSON.parse(lastElement.output)
+        })}
+    />
+
+    <llm>
+        <instructions>
+            {({state}) => 
+                `Based on these issues: ${JSON.stringify(state.issues)}
+                 Provide specific recommendations for improvement.`
+            }
+        </instructions>
+        <prompt>Generate recommendations</prompt>
+    </llm>
+</state>

@@ -1,0 +1,124 @@
+---
+title: Raise Element
+description: Element for raising internal events
+---
+
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# Raise Element
+
+The `<raise>` element raises an internal event:
+
+<DynamicCodeBlock lang="jsx" code={`<raise event="success" />`} />
+
+<TypeTable
+  type={{
+    id: {
+      description: 'Unique identifier',
+      type: 'string',
+      optional: true
+    },
+    event: {
+      description: 'Event name to raise',
+      type: 'string',
+      optional: true
+    },
+    eventexpr: {
+      description: 'Expression evaluating to the event name',
+      type: 'Expression',
+      optional: true
+    }
+  }}
+/>
+
+## Examples
+
+### Basic Event Raising
+
+<DynamicCodeBlock lang="jsx" code={`<raise event="complete" />`} />
+
+### Dynamic Event
+
+<DynamicCodeBlock lang="jsx" code={`<raise 
+  eventexpr={({state}) => state.nextEvent} 
+/>`} />
+
+### State Transition
+
+<DynamicCodeBlock lang="jsx" code={`<state id="processing">
+  <onentry>
+    <script>
+      processData();
+    </script>
+    <raise event="processingComplete" />
+  </onentry>
+  <transition event="processingComplete" target="done" />
+</state>`} />
+
+## Usage Notes
+
+- Use for internal state machine communication
+- Events are processed immediately
+- Can trigger state transitions
+- Useful for workflow control
+
+## Best Practices
+
+1. **Event Naming**
+   - Use clear, descriptive event names
+   - Follow consistent naming conventions
+   - Document event purposes
+   - Consider using namespaces for organization
+
+2. **Event Flow**
+   - Plan event sequences carefully
+   - Avoid circular event chains
+   - Consider event priority
+   - Document event flow
+
+3. **State Management**
+   - Coordinate with state transitions
+   - Handle all possible event outcomes
+   - Clean up after event processing
+   - Consider event history
+
+4. **Error Handling**
+   - Handle unexpected events
+   - Provide error events
+   - Log event processing
+   - Include fallback behavior
+
+## Common Patterns
+
+### Completion Notification
+
+<DynamicCodeBlock lang="jsx" code={`<state id="task">
+  <onentry>
+    <script>performTask();</script>
+    <raise event="taskComplete" />
+  </onentry>
+</state>`} />
+
+### Error Signaling
+
+<DynamicCodeBlock lang="jsx" code={`<state id="errorHandler">
+  <onentry>
+    <raise event="systemError" />
+  </onentry>
+</state>`} />
+
+### State Coordination
+
+<DynamicCodeBlock lang="jsx" code={`<parallel id="coordination">
+  <state id="process1">
+    <onentry>
+      <raise event="process1Ready" />
+    </onentry>
+  </state>
+  <state id="process2">
+    <onentry>
+      <raise event="process2Ready" />
+    </onentry>
+  </state>
+</parallel>`} />

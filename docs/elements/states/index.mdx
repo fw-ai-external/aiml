@@ -1,0 +1,120 @@
+---
+title: State Elements
+description: Elements for defining states and state machine structure
+---
+import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
+
+# State Elements
+
+State elements define the structure and behavior of your state machine.
+
+## Available Elements
+
+### [State](./state)
+The `<state>` element represents a standard state in the state machine. It can be simple or compound, containing other states.
+
+### [Parallel](./parallel)
+The `<parallel>` element enables concurrent execution of multiple states, useful for independent processes.
+
+### [Final](./final)
+The `<final>` element represents a terminal state, marking the completion of a region or machine.
+
+## Common Use Cases
+
+### Basic State Machine
+
+<DynamicCodeBlock lang="mdx" code={`<state id="process">
+  <state id="start">
+    <transition target="working" />
+  </state>
+  
+  <state id="working">
+    <transition target="done" />
+  </state>
+  
+  <final id="done" />
+</state>`} />
+
+### Parallel Processing
+
+<DynamicCodeBlock lang="mdx" code={`<parallel id="dataHandling">
+  <state id="validation">
+    <transition event="valid" target="validated" />
+  </state>
+  
+  <state id="transformation">
+    <transition event="transformed" target="complete" />
+  </state>
+</parallel>`} />
+
+### Process Completion
+
+<DynamicCodeBlock lang="mdx" code={`<final id="complete">
+  <donedata>
+    <content>
+      {({state}) => ({
+        result: state.output,
+        timestamp: new Date()
+      })}
+    </content>
+  </donedata>
+</final>`} />
+
+## Best Practices
+
+1. **State Design**
+   - Use meaningful state names
+   - Keep states focused
+   - Document state purpose
+   - Consider state hierarchy
+
+2. **Parallel Processing**
+   - Keep states independent
+   - Handle shared resources
+   - Manage concurrency
+   - Coordinate completion
+
+3. **Final States**
+   - Include completion data
+   - Clean up resources
+   - Log completion
+   - Handle errors
+
+4. **State Management**
+   - Initialize properly
+   - Track state changes
+   - Handle transitions
+   - Maintain consistency
+
+## Key Concepts
+
+1. **State Hierarchy**
+   - Simple states
+   - Compound states
+   - Parallel states
+   - Final states
+
+2. **State Lifecycle**
+   - Entry actions
+   - Exit actions
+   - Transitions
+   - Completion
+
+3. **Data Management**
+   - State data
+   - Shared data
+   - Data persistence
+   - Data cleanup
+
+4. **Error Handling**
+   - Error states
+   - Recovery paths
+   - Resource cleanup
+   - Error reporting
+
+## See Also
+
+- [Control Flow Elements](../control-flow)
+- [Action Elements](../actions)
+- [SCXML Elements](../scxml)
+- [Best Practices](../best-practices)

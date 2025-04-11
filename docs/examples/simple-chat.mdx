@@ -1,0 +1,21 @@
+---
+title: Simple Chat Agent
+description: A basic chat agent that responds to user input
+---
+
+# Simple Chat Agent
+
+A basic chat agent that responds to user input:
+
+```mdx
+---
+model: account/fireworks/model/deepseek-v3
+---
+
+You are a friendly and helpful assistant.
+
+<llm>
+    <prompt>
+        {({userInput}) => userInput.message}
+    </prompt>
+</llm>

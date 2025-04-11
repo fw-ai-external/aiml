@@ -1,0 +1,176 @@
+---
+title: AIML Syntax
+description: Learn about the core syntax features of AIML
+---
+
+# AIML Syntax
+
+AIML combines markdown with XML/JSX-style elements to create a powerful yet familiar syntax for building AI agents.
+
+## File Structure
+
+An AIML file consists of these main components:
+
+```mdx
+---
+model: account/fireworks/model/deepseek-v3
+otherSettings: value
+---
+
+{/* Comments can appear anywhere */}
+
+System prompt text goes here, defining the agent's base behavior.
+
+<element attribute="value">
+    <child>Content</child>
+</element>
+```
+
+## Frontmatter
+
+The frontmatter section defines file-level settings:
+
+```mdx
+---
+model: account/fireworks/model/deepseek-v3
+temperature: 0.7
+maxTokens: 1000
+---
+```
+
+Common settings include:
+- `model`: Default LLM model to use
+- `temperature`: Sampling temperature for responses
+- `maxTokens`: Maximum tokens in responses
+- `topP`: Top-p sampling parameter
+- `topK`: Top-k sampling parameter
+
+## System Prompt
+
+The system prompt defines the base behavior and context for your agent:
+
+```mdx
+You are a helpful assistant that specializes in explaining complex topics
+in simple terms. Always provide examples to illustrate your explanations.
+```
+
+## Comments
+
+Comments use JSX-style syntax and are completely ignored by the LLM:
+
+```mdx
+{/* Single-line comment */}
+
+{/* 
+  Multi-line
+  comment
+*/}
+```
+
+## Elements
+
+Elements are XML/JSX-style tags that define specific behaviors:
+
+### Basic Element Structure
+
+```mdx
+<elementName attribute="value">
+    <childElement>Content</childElement>
+</elementName>
+```
+
+### Dynamic Attributes
+
+Attributes can be dynamic using JavaScript expressions:
+
+```mdx
+<llm model={getModelForTask(context.task)}>
+    <prompt>
+        {({userInput}) => processInput(userInput)}
+    </prompt>
+</llm>
+```
+
+### Context Access
+
+Elements can access context using destructured parameters:
+
+```mdx
+<llm>
+    <instructions>
+        {({lastElement, userInput}) => 
+            `Previous output: ${lastElement.output}
+             Current input: ${userInput.message}`
+        }
+    </instructions>
+</llm>
+```
+
+### Nested Elements
+
+Elements can be nested to create complex behaviors:
+
+```mdx
+<state>
+    <llm>
+        <when condition={({state}) => state.needsClarity}>
+            <prompt>Please clarify your request.</prompt>
+        </when>
+        <otherwise>
+            <prompt>Processing your request...</prompt>
+        </otherwise>
+    </llm>
+</state>
+```
+
+## State Management
+
+AIML provides built-in state management:
+
+```mdx
+<state initial={{step: 1}}>
+    <llm>
+        <instructions>
+            {({state}) => `You are on step ${state.step}`}
+        </instructions>
+    </llm>
+</state>
+```
+
+## Control Flow
+
+Control flow elements help manage the execution flow:
+
+```mdx
+<when condition={({state}) => state.isReady}>
+    <llm>
+        <prompt>Ready to proceed</prompt>
+    </llm>
+</when>
+<otherwise>
+    <llm>
+        <prompt>Please wait...</prompt>
+    </llm>
+</otherwise>
+```
+
+## Error Handling
+
+Use try/catch elements for error handling:
+
+```mdx
+<try>
+    <llm>
+        <prompt>Attempting operation...</prompt>
+    </llm>
+    <catch>
+        <prompt>An error occurred: {error.message}</prompt>
+    </catch>
+</try>
+```
+
+## Next Steps
+
+- Learn about [Core Elements](../elements/index)
+- Explore [State Management](../advanced/state-management)
+- See [Examples](../examples/index)
