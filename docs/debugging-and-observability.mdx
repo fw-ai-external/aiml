@@ -1,0 +1,88 @@
+---
+title: Debugging and Observability
+---
+import { Banner } from 'fumadocs-ui/components/banner';
+
+
+Monitor and debug your AI agentic workflows with built-in observability features
+AIML provides built-in observability features to help you monitor and debug your AI agents. By enabling logging, you can track agent interactions, performance metrics, and costs in real-time through the developer dashboard.
+
+​
+## Getting Started
+
+To observability is enabled by default for all agents. 
+
+### Using IDE Plugins
+<Banner className="bg-blue-500 text-white rounded-lg">Coming soon: AIML IDE plugins for VS Code, Cursor, Vim, Emacs and more!</Banner>
+
+### Using the developer UI
+
+To start the developer UI locally:
+
+1. Navigate to the aiml-ui directory:
+```bash
+cd apps/aiml-ui
+```
+
+2. Copy the example environment file and add your Firework API key:
+```bash
+cp .env.example .env
+```
+Edit `.env` and add your Firework API key.
+
+3. Install dependencies and start the development server:
+```bash
+npm install
+npm run dev
+```
+
+The developer UI will be available at `http://localhost:3000`.
+
+## Features
+
+### Logs
+The developer UI provides comprehensive logging capabilities:
+- Real-time log streaming for all agent interactions
+- Log filtering by severity (INFO, WARN, ERROR)
+- Search and filter logs by timestamp, agent ID, or content
+- Log context expansion to see full interaction details
+- Export logs for offline analysis
+
+### Traces
+Trace and analyze agent execution paths:
+- Detailed execution traces showing each step
+- Timing information for performance analysis
+- Input/output data at each step
+- Error traces with full stack information
+- Trace visualization with flame graphs
+
+### Dashboards
+Monitor your agents with real-time dashboards:
+- Agent performance metrics
+- Token usage and cost tracking
+- Response time distributions
+- Error rate monitoring
+- Custom metric visualization
+
+### Workflow Visualization
+Watch your agentic workflows in action:
+- Interactive workflow graph visualization
+- Real-time state updates
+- Step-by-step execution playback
+- Visual debugging tools
+- State inspection at any point
+- Branch and parallel execution visualization
+
+
+## What’s Being recorded
+
+When observability is enabled, AIML automatically tracks:
+
+- Agent interactions and their outcomes
+- Model usage and token consumption
+- Cost metrics per interaction
+- Response times and latency
+- Evaluation steps and reasoning
+- Step executions and their results
+- Errors and failure cases
+​
