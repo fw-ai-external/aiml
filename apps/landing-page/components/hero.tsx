@@ -19,13 +19,11 @@ export default function Hero() {
             </div>
           }
 
-          <div className="space-y-4 max-w-3xl">
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-              Build Agents & Workflows
+          <div className="space-y-4">
+            <h1 className="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-3xl lg:text-4xl xl:text-6xl">
+              Build production-ready agents & AI workflows with nothing but
+              prompting
             </h1>
-            <h2 className="text-5xl md:text-6xl font-bold tracking-tight">
-              With Just Prompts
-            </h2>
           </div>
 
           <p className="text-lg text-gray-600 max-w-2xl">

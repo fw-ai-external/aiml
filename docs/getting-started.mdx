@@ -2,53 +2,37 @@
 title: Getting Started
 description: Learn how to create your first AI agent using AIML
 ---
-
+import { Banner } from 'fumadocs-ui/components/banner';
+ 
 # Getting Started with AIML
 
-This guide will help you create your first AI agent using AIML.
+This guide will help you create your first AI agent using the AIML language.
 
-## Installation
-
-1. Install the AIML VS Code extension for syntax highlighting and language support:
-   - Open VS Code
-   - Go to Extensions (Ctrl+Shift+X)
-   - Search for "AIML"
-   - Install the AIML extension
-
-2. Create a new directory for your project:
-```bash
-mkdir my-aiml-project
-cd my-aiml-project
-```
-
-3. Create a new file with the `.aiml` extension:
-```bash
-touch agent.aiml
-```
+<Banner className="bg-blue-500 text-white rounded-lg">Coming soon: AIML Language support for VS Code, Cursor, Vim, Emacs and more!</Banner>
 
 ## Basic Structure
 
-Every AIML file consists of:
-
-1. A frontmatter section defining default settings
-2. The agent's system prompt
-3. One or more element blocks defining the agent's behavior
+At the end of the day, an AIML file is just a markdown (MDX to be precise) file with a more forgiving syntax parser and some intrinsic XML/JSX elements.
 
 Here's a minimal example:
 
 ```mdx
 ---
+name: my-agent
 model: account/fireworks/model/deepseek-v3
 ---
 
-You are a helpful assistant that provides concise, accurate responses.
+You are a helpful assistant that provides concise, accurate responses. Always begin your responses with "Agent:"
 
-<llm>
-    <prompt>
-        {({userInput}) => userInput.message}
-    </prompt>
-</llm>
+<if condition={({lastElement}) => !lastElement.output.startsWith("Agent:")}>
+    <script language="javascript">
+        return `Agent: ${lastElement.output}`;
+    </script>
+</if>
 ```
+Here if the model doesn't start with "Agent:" we add it to the output using a script element.
+
+AIML will handle conversion to/from streams making easy things easy and hard things possible!
 
 ## Key Concepts
 
@@ -102,18 +86,9 @@ Let's create a simple agent that thinks about a response before answering:
 model: account/fireworks/model/deepseek-v3
 ---
 
+{/* This is a system prompt and acts as the first step in the workflow */}
 You are a helpful assistant that thinks carefully before responding.
 
-{/* First, think about how to respond */}
-<llm>
-    <instructions>
-        Think carefully about how to respond to the user's request.
-        Consider different approaches and their implications.
-    </instructions>
-    <prompt>
-        {({userInput}) => userInput.message}
-    </prompt>
-</llm>
 
 {/* Then provide the actual response */}
 <llm model="account/fireworks/model/qwen-2.5-32b">

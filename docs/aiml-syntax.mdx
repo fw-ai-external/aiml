@@ -2,6 +2,7 @@
 title: AIML Syntax
 description: Learn about the core syntax features of AIML
 ---
+import { TypeTable } from "fumadocs-ui/components/type-table";
 
 # AIML Syntax
 
@@ -32,31 +33,74 @@ The frontmatter section defines file-level settings:
 
 ```mdx
 ---
+name: my-agent
+
+# (optional) Default model settings for llm calls
 model: account/fireworks/model/deepseek-v3
 temperature: 0.7
 maxTokens: 1000
 ---
 ```
 
-Common settings include:
-- `model`: Default LLM model to use
-- `temperature`: Sampling temperature for responses
-- `maxTokens`: Maximum tokens in responses
-- `topP`: Top-p sampling parameter
-- `topK`: Top-k sampling parameter
+<TypeTable
+  type={{
+    
+      name: {
+        type: "string",
+        description: "Name of the agent",
+        required: true,
+      },
+      model: {
+        type: "string",
+        description: "Default LLM model to use",
+        required: false,
+        default: "account/fireworks/model/deepseek-v3",
+      },
+      temperature: {
+        type: "number",
+        description: "Sampling temperature for responses",
+        required: false,
+        default: 0.7,
+      },
+      maxTokens: {
+        type: "number",
+        description: "Maximum tokens in responses",
+        required: false,
+        default: 1000,
+      },
+      topP: {
+        type: "number",
+        description: "Top-p sampling parameter",
+        required: false,
+        default: 0.9,
+      },
+      topK: {
+        type: "number",
+        description: "Top-k sampling parameter",
+        required: false,
+        default: 100
+      
+    },
+  }}
+/>
 
-## System Prompt
+## System Prompts
 
-The system prompt defines the base behavior and context for your agent:
+Top level text is interpreted as a system prompt and a step in the workflow.
 
 ```mdx
-You are a helpful assistant that specializes in explaining complex topics
-in simple terms. Always provide examples to illustrate your explanations.
+So this would be a system prompt and a step in the workflow.
+
+<if condition={true}>
+    this is a second step in the workflow.
+</if>
+
+And this is a third step in the workflow.
 ```
 
 ## Comments
 
-Comments use JSX-style syntax and are completely ignored by the LLM:
+Comments use JSX-style syntax and are completely ignored but provide annotations for the developer within traces, in the editor and in the UI:
 
 ```mdx
 {/* Single-line comment */}
@@ -84,25 +128,29 @@ Elements are XML/JSX-style tags that define specific behaviors:
 Attributes can be dynamic using JavaScript expressions:
 
 ```mdx
-<llm model={getModelForTask(context.task)}>
+<llm model={(state) => getModelForState(state)}>
     <prompt>
         {({userInput}) => processInput(userInput)}
     </prompt>
 </llm>
 ```
 
-### Context Access
+### Dynamic Attributes / Context Access
 
-Elements can access context using destructured parameters:
+Anywhere in the file, you can access the context of the current step, input variables, output from the previous step, and the state of the workflow using function syntax:
 
 ```mdx
-<llm>
-    <instructions>
-        {({lastElement, userInput}) => 
-            `Previous output: ${lastElement.output}
-             Current input: ${userInput.message}`
-        }
-    </instructions>
+Within a system prompt step we can have access to {({lastElement, userInput}) => 
+    `Previous output: ${lastElement.output}
+        Current input: ${userInput.message}`
+}
+```
+
+Attributes likewise can be dynamic using the same syntax:
+
+```mdx
+<llm model={(state) => state.datamodel.model}>
+    ...
 </llm>
 ```
 
@@ -113,12 +161,13 @@ Elements can be nested to create complex behaviors:
 ```mdx
 <state>
     <llm>
-        <when condition={({state}) => state.needsClarity}>
+        <if condition={({state}) => state.needsClarity}>
             <prompt>Please clarify your request.</prompt>
-        </when>
-        <otherwise>
-            <prompt>Processing your request...</prompt>
-        </otherwise>
+             <else>
+                <prompt>Processing your request...</prompt>
+            </else>
+        </if>
+       
     </llm>
 </state>
 ```
@@ -142,32 +191,19 @@ AIML provides built-in state management:
 Control flow elements help manage the execution flow:
 
 ```mdx
-<when condition={({state}) => state.isReady}>
+<if condition={({state}) => state.isReady}>
     <llm>
         <prompt>Ready to proceed</prompt>
     </llm>
-</when>
-<otherwise>
-    <llm>
-        <prompt>Please wait...</prompt>
-    </llm>
-</otherwise>
+    <else>
+        <llm>
+            <prompt>Please wait...</prompt>
+        </llm>
+    </else>
+</if>
+
 ```
 
-## Error Handling
-
-Use try/catch elements for error handling:
-
-```mdx
-<try>
-    <llm>
-        <prompt>Attempting operation...</prompt>
-    </llm>
-    <catch>
-        <prompt>An error occurred: {error.message}</prompt>
-    </catch>
-</try>
-```
 
 ## Next Steps
 

@@ -14,9 +14,7 @@ export default function Header() {
       <div className="container flex h-16 items-center justify-between py-4">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold">
-              AI
-            </div>
+            <img src="/mark.svg" alt="AIML Logo" className="w-8 h-8" />
             <span className="font-bold text-xl">AIML</span>
           </Link>
         </div>

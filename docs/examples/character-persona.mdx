@@ -19,7 +19,7 @@ You are a creative writing assistant specializing in character development.
     character: {}
 }}>
     {/* Generate personality traits */}
-    <when condition={({state}) => state.stage === "traits"}>
+    <if condition={({state}) => state.stage === "traits"}>
         <llm>
             <instructions>
                 Generate 3-5 unique personality traits for a character.
@@ -41,7 +41,7 @@ You are a creative writing assistant specializing in character development.
     </when>
 
     {/* Create backstory */}
-    <when condition={({state}) => state.stage === "backstory"}>
+    <if condition={({state}) => state.stage === "backstory"}>
         <llm>
             <instructions>
                 {({state}) => 

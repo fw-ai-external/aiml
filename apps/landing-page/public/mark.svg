@@ -1,0 +1,18 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Define gradient based on the green #00bc7d -->
+  <defs>
+    <linearGradient id="tagGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00bc7d" />
+      <stop offset="30%" stop-color="#00d2a0" />
+      <stop offset="60%" stop-color="#00bc7d" />
+      <stop offset="80%" stop-color="#009c68" />
+      <stop offset="100%" stop-color="#00bc7d" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Single unified path with improved proportions -->
+  <path d="M73,35 Q68,35 65,40 L35,95 Q31,100 35,105 L65,160 Q68,165 73,165 L55,165 Q45,165 40,160 L10,105 Q6,100 10,95 L40,40 Q45,35 55,35 Z
+           M127,35 Q132,35 135,40 L165,95 Q169,100 165,105 L135,160 Q132,165 127,165 L145,165 Q155,165 160,160 L190,105 Q194,100 190,95 L160,40 Q155,35 145,35 Z
+           M127,35 Q120,35 118,38 L75,162 Q73,165 77,165 L95,165 Q100,165 102,162 L145,38 Q147,35 138,35 Z" 
+        fill="url(#tagGradient)" stroke="none" />
+</svg>
