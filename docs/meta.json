@@ -10,6 +10,8 @@
     "aiml-syntax",
     "debugging-and-observability",
     "editor-plugins",
+    "---Intgrations & MCP---",
+    "...mcp",
     "---Elements---",
     "...elements",
     "---Examples---",
