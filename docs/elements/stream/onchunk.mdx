@@ -8,16 +8,24 @@ description: Element for handling data chunks
 The `<onchunk>` element handles data chunks:
 
 ```mdx
-<onchunk>
-  <llm>
-    <prompt>Processing chunk: {({chunk}) => chunk.data}</prompt>
-  </llm>
+<llm id="chunked-llm">
+  <prompt>Processing chunk: {({chunk}) => chunk.data}</prompt>
+</llm>
+<onchunk for="chunked-llm">
+  <log expr={({chunk}) => `Processing chunk: ${chunk.data}`} />
 </onchunk>
 ```
 
 ## Props
 
-- `id` (optional): Unique identifier
+<TypeTable type={{
+    for: {
+      type: "string",
+      description: "The unique identifier of the LLM element to process chunks for",
+      required: false,
+      default: "(the output of the previous element)"
+    }
+  }} />
 
 ## Examples
 

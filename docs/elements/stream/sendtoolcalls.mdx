@@ -2,60 +2,61 @@
 title: SendToolCalls Element
 description: Element for sending tool calls
 ---
+import { TypeTable } from 'fumadocs-ui/components/type-table';
 
 # SendToolCalls Element
 
-The `<sendToolCalls>` element sends tool calls:
+The `<sendToolCalls>` element injects tool calls into the response stream:
 
 ```mdx
-<sendToolCalls>
-  {({state}) => ({
+<sendToolCalls value={({state}) => ({
     name: "calculate",
     args: { value: state.count }
-  })}
-</sendToolCalls>
+  })} />
 ```
 
 ## Props
 
-- `id` (optional): Unique identifier
+<TypeTable type={{
+    value: {
+      type: "object",
+      description: "Tool call to inject into the response stream",
+      required: false,
+      default: "(the output of the previous element)"
+    }
+  }} />
 
 ## Examples
 
 ### Basic Tool Call
 
 ```mdx
-<sendToolCalls>
-  {() => ({
+<sendToolCalls value={() => ({
     name: "fetchData",
     args: {
       endpoint: "/api/data",
       method: "GET"
     }
-  })}
-</sendToolCalls>
+  })} />
 ```
 
 ### Dynamic Tool Call
 
 ```mdx
-<sendToolCalls>
-  {({state}) => ({
+<sendToolCalls value={({state}) => ({
     name: "processData",
     args: {
       data: state.inputData,
       options: state.processingOptions,
       format: state.outputFormat
     }
-  })}
-</sendToolCalls>
+  })} />
 ```
 
 ### Multiple Tool Calls
 
 ```mdx
-<sendToolCalls>
-  {({state}) => [
+<sendToolCalls value={({state}) => [
     {
       name: "validateInput",
       args: { data: state.input }
@@ -71,8 +72,7 @@ The `<sendToolCalls>` element sends tool calls:
       name: "saveOutput",
       args: { result: state.transformed }
     }
-  ]}
-</sendToolCalls>
+  ]} />
 ```
 
 ## Usage Notes
@@ -81,171 +81,3 @@ The `<sendToolCalls>` element sends tool calls:
 - Can include arguments
 - Supports dynamic values
 - Can send multiple calls
-
-## Best Practices
-
-1. **Tool Design**
-   - Use clear tool names
-   - Define argument schema
-   - Document requirements
-   - Handle errors
-
-2. **Argument Handling**
-   - Validate arguments
-   - Format data properly
-   - Handle missing values
-   - Check types
-
-3. **Error Management**
-   - Handle tool failures
-   - Provide error context
-   - Log issues
-   - Implement retries
-
-4. **Performance**
-   - Optimize tool calls
-   - Batch when possible
-   - Cache results
-   - Monitor execution
-
-## Common Patterns
-
-1. **API Integration**
-```mdx
-<sendToolCalls>
-  {({state}) => ({
-    name: "apiRequest",
-    args: {
-      url: state.endpoint,
-      method: state.method,
-      headers: {
-        Authorization: `Bearer ${state.token}`,
-        'Content-Type': 'application/json'
-      },
-      body: state.requestData
-    }
-  })}
-</sendToolCalls>
-```
-
-2. **Data Processing**
-```mdx
-<sendToolCalls>
-  {({state}) => ({
-    name: "dataProcessor",
-    args: {
-      input: state.data,
-      operations: [
-        { type: 'filter', criteria: state.filterCriteria },
-        { type: 'sort', field: state.sortField },
-        { type: 'transform', template: state.template }
-      ],
-      output: {
-        format: state.outputFormat,
-        compression: state.compression
-      }
-    }
-  })}
-</sendToolCalls>
-```
-
-3. **Resource Management**
-```mdx
-<sendToolCalls>
-  {({state}) => ({
-    name: "resourceManager",
-    args: {
-      operation: state.operation,
-      resources: state.selectedResources,
-      options: {
-        force: state.force,
-        async: state.async,
-        timeout: state.timeout
-      },
-      metadata: {
-        user: state.user,
-        timestamp: new Date().toISOString()
-      }
-    }
-  })}
-</sendToolCalls>
-```
-
-## Advanced Usage
-
-### Conditional Tool Calls
-
-```mdx
-<sendToolCalls>
-  {({state}) => {
-    if (state.needsValidation) {
-      return {
-        name: "validate",
-        args: { data: state.input }
-      };
-    }
-    
-    if (state.needsProcessing) {
-      return {
-        name: "process",
-        args: { data: state.validated }
-      };
-    }
-    
-    return {
-      name: "store",
-      args: { data: state.processed }
-    };
-  }}
-</sendToolCalls>
-```
-
-### Tool Chain
-
-```mdx
-<sendToolCalls>
-  {({state}) => [
-    {
-      name: "loadData",
-      args: { source: state.dataSource }
-    },
-    {
-      name: "validateData",
-      args: { schema: state.schema }
-    },
-    {
-      name: "transformData",
-      args: { transforms: state.transforms }
-    },
-    {
-      name: "saveData",
-      args: { destination: state.destination }
-    }
-  ]}
-</sendToolCalls>
-```
-
-### Tool Configuration
-
-```mdx
-<sendToolCalls>
-  {({state}) => ({
-    name: state.selectedTool,
-    args: {
-      ...state.toolConfig,
-      options: {
-        retry: {
-          attempts: 3,
-          backoff: 'exponential'
-        },
-        timeout: 5000,
-        validation: true
-      },
-      context: {
-        session: state.sessionId,
-        user: state.userId,
-        environment: state.env
-      }
-    }
-  })}
-</sendToolCalls>

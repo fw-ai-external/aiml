@@ -16,20 +16,18 @@ The `<if>` element enables conditional execution based on a test condition:
   </llm>
 </if>`} />
 
-<TypeTable
-  type={{
+<TypeTable type={{
     id: {
-      description: 'Unique identifier',
-      type: 'string',
-      optional: true
+      description: "Unique identifier",
+      type: "string",
+      required: false
     },
     condition: {
-      description: 'Test condition for execution',
-      type: 'Expression',
+      type: "Expression",
+      description: "Test condition for execution",
       required: true
     }
-  }}
-/>
+  }} />
 
 ## Examples
 

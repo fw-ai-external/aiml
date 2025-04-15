@@ -42,47 +42,44 @@ maxTokens: 1000
 ---
 ```
 
-<TypeTable
-  type={{
-    
-      name: {
-        type: "string",
-        description: "Name of the agent",
-        required: true,
-      },
-      model: {
-        type: "string",
-        description: "Default LLM model to use",
-        required: false,
-        default: "account/fireworks/model/deepseek-v3",
-      },
-      temperature: {
-        type: "number",
-        description: "Sampling temperature for responses",
-        required: false,
-        default: 0.7,
-      },
-      maxTokens: {
-        type: "number",
-        description: "Maximum tokens in responses",
-        required: false,
-        default: 1000,
-      },
-      topP: {
-        type: "number",
-        description: "Top-p sampling parameter",
-        required: false,
-        default: 0.9,
-      },
-      topK: {
-        type: "number",
-        description: "Top-k sampling parameter",
-        required: false,
-        default: 100
-      
+<TypeTable type={{
+    name: {
+      type: "string",
+      description: "Name of the agent",
+      required: true
     },
-  }}
-/>
+    model: {
+      type: "string",
+      description: "Default LLM model to use",
+      required: false,
+      default: "account/fireworks/model/deepseek-v3"
+    },
+    temperature: {
+      type: "number",
+      description: "Sampling temperature for responses",
+      required: false,
+      default: 0.7
+    },
+    maxTokens: {
+      type: "number",
+      description: "Maximum tokens in responses",
+      required: false,
+      default: 1000
+    },
+    topP: {
+      name: "topP",
+      type: "number",
+      description: "Top-p sampling parameter",
+      required: false,
+      default: 0.9
+    },
+    topK: {
+      type: "number",
+      description: "Top-k sampling parameter",
+      required: false,
+      default: 100
+    }
+  }} />
 
 ## System Prompts
 

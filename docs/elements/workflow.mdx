@@ -22,25 +22,23 @@ The `<workflow>` element is the root container for a state machine:
   <final id="final" />
 </workflow>`} />
 
-<TypeTable
-  type={{
+<TypeTable type={{
     name: {
-      description: 'Workflow name',
-      type: 'string',
-      optional: true
+      description: "Workflow name",
+      type: "string",
+      required: false
     },
     initial: {
-      description: 'Initial state',
-      type: 'string',
-      optional: true
+      description: "Initial state",
+      type: "string",
+      required: false
     },
     version: {
-      description: 'Version number',
-      type: 'string',
-      optional: true
+      description: "Version number",
+      type: "string",
+      required: false
     }
-  }}
-/>
+  }} />
 
 ### Allowed Children
 
@@ -78,17 +76,15 @@ The `<history>` element represents a history pseudo-state:
   <state id="default" />
 </state>`} />
 
-<TypeTable
-  type={{
+<TypeTable type={{
     id: {
-      description: 'Unique identifier',
-      type: 'string',
-      optional: true
+      description: "Unique identifier",
+      type: "string",
+      required: false
     },
     type: {
-      description: 'History type ("shallow" or "deep")',
-      type: 'string',
-      optional: true
+      description: "History type (\"shallow\" or \"deep\")",
+      type: "string",
+      required: false
     }
-  }}
-/>
+  }} />

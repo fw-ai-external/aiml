@@ -22,10 +22,27 @@ The `<foreach>` element enables iteration over arrays:
 
 ## Props
 
-- `id` (optional): Unique identifier for the foreach element
-- `items` (required): Array to iterate over
-- `var` (required): Variable name for current item
-- `index` (optional): Variable name for current index
+<TypeTable type={{
+    id: {
+      type: "string",
+      description: "Unique identifier for the foreach element"
+    },
+    items: {
+      type: "array",
+      description: "Array to iterate over",
+      required: true
+    },
+    var: {
+      type: "string",
+      description: "Variable name for current item",
+      required: true
+    },
+    index: {
+      type: "string",
+      description: "Variable name for current index",
+      required: true
+    }
+  }} />
 
 ## Examples
 

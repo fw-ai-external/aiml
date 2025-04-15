@@ -2,20 +2,27 @@
 title: SendText Element
 description: Element for sending text responses
 ---
+import { TypeTable } from 'fumadocs-ui/components/type-table';
 
 # SendText Element
 
-The `<sendText>` element sends text responses:
+The `<sendText>` element injects text into the response stream:
+
 
 ```mdx
-<sendText>
-  {({state}) => `Current count: ${state.count}`}
-</sendText>
+<sendText value={({state}) => `Current count: ${state.count}`} />
 ```
 
 ## Props
 
-- `id` (optional): Unique identifier
+<TypeTable type={{
+    value: {
+      type: "string",
+      description: "Text to send",
+      required: false,
+      default: "(the output of the previous element)"
+    }
+  }} />
 
 ## Examples
 

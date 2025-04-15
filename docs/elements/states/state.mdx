@@ -33,20 +33,18 @@ The `<state>` element represents a standard state in the state machine:
   </onexit>
 </state>`} />
 
-<TypeTable
-  type={{
+<TypeTable type={{
     id: {
-      description: 'Unique identifier',
-      type: 'string',
-      optional: true
+      type: "string",
+      description: "Unique identifier",
+      required: false
     },
     initial: {
-      description: 'Initial substate for compound states',
-      type: 'string',
-      optional: true
+      type: "string",
+      description: "Initial substate for compound states",
+      required: false
     }
-  }}
-/>
+  }} />
 
 ## Allowed Children
 

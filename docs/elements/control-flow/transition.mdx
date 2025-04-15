@@ -24,11 +24,32 @@ The `<transition>` element defines state transitions:
 
 ## Props
 
-- `id` (optional): Unique identifier for the transition element
-- `event` (optional): Event that triggers the transition
-- `condition` (optional): Additional condition for transition
-- `target` (optional): Target state
-- `type` (optional): Transition type ("internal" or "external")
+<TypeTable type={{
+    id: {
+      type: "string",
+      description: "Unique identifier for the transition element"
+    },
+    event: {
+      name: "event",
+      type: "string",
+      description: "Event that triggers the transition"
+    },
+    condition: {
+      name: "condition",
+      type: "Expression",
+      description: "Additional condition for transition"
+    },
+    target: {
+      name: "target",
+      type: "string",
+      description: "Target state"
+    },
+    type: {
+      name: "type",
+      type: '"internal" | "external"',
+      description: "Transition type"
+    }
+  }} />
 
 ## Examples
 

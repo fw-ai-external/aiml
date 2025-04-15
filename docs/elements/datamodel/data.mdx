@@ -18,16 +18,68 @@ The `<data>` element declares a data model variable:
 
 ## Props
 
-- `id` (required): Variable identifier
-- `src` (optional): Data source URL
-- `expr` (optional): Expression for value
-- `value` (optional): Initial value
-- `content` (optional): Content string
-- `type` (optional): Data type (STRING, NUMBER, BOOLEAN, JSON)
-- `readonly` (optional): Read-only flag
-- `fromRequest` (optional): Load from request
-- `defaultValue` (optional): Default value
-- `schema` (optional): JSON schema for validation
+<TypeTable type={{
+    id: {
+      type: "string",
+      description: "Variable identifier",
+      required: true
+    },
+    src: {
+      type: "string",
+      description: "Data source URL"
+    },
+    expr: {
+      type: "Expression",
+      description: "Expression for value"
+    },
+    value: {
+      type: "any",
+      description: "Initial value"
+    },
+    content: {
+      type: "string",
+      description: "Content string"
+    },
+    src: {
+      type: "string",
+      description: "Data source URL"
+    },
+    expr: {
+      type: "Expression",
+      description: "Expression for value"
+    },
+    value: {
+      type: "any",
+      description: "Initial value"
+    },
+    content: {
+      type: "string",
+      description: "Content string"
+    },
+    type: {
+      name: "type",
+      type: '"STRING" | "NUMBER" | "BOOLEAN" | "JSON"',
+      description: "Data type"
+    },
+    readonly: {
+      name: "readonly",
+      type: "boolean",
+      description: "Read-only flag"
+    },
+    fromRequest: {
+      name: "fromRequest",
+      type: "boolean",
+      description: "Load from request"
+    },
+    defaultValue: {
+      type: "any",
+      description: "Default value"
+    },
+    schema: {
+      type: "object",
+      description: "JSON schema for validation"
+    }
+  }} />
 
 ## Examples
 

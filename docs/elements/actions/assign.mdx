@@ -15,25 +15,23 @@ The `<assign>` element modifies the data model:
   action="increment"
 />`} />
 
-<TypeTable
-  type={{
+<TypeTable type={{
     location: {
-      description: 'The data model location to modify',
-      type: 'string',
+      description: "The data model location to modify",
+      type: "string",
       required: true
     },
     action: {
-      description: 'Type of assignment operation ("assign" (default), "increment", "decrement", "append")',
-      type: 'string',
-      optional: true
+      description: "Type of assignment operation (\"assign\" (default), \"increment\", \"decrement\", \"append\")",
+      type: "string",
+      required: false
     },
     expr: {
-      description: 'Expression to evaluate for the assignment',
-      type: 'Expression',
-      optional: true
+      description: "Expression to evaluate for the assignment",
+      type: "Expression",
+      required: false
     }
-  }}
-/>
+  }} />
 
 ## Examples
 
