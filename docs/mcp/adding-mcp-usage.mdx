@@ -4,6 +4,7 @@ title: Using MCP Integrations
 
 import { Banner } from 'fumadocs-ui/components/banner';
 import { Card, Cards } from 'fumadocs-ui/components/card';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
  
 <Banner className="bg-blue-500 text-white rounded-lg">Coming soon: This feature is not yet available. Please check back soon.</Banner>
 
@@ -49,10 +50,12 @@ For LLM elements, MCP tools can be added by referencing the tool ID in the `tool
 
 For script elements, MCP tools are available through the `ctx.tools` object within the script's execution context. You can access a specific tool using its ID as the key (e.g., `ctx.tools['weather']`) and call its exposed methods.
 
-```mdx {2,5,9}
+<Tabs items={['Javascript', 'Python']}>
+<Tab value="Javascript">
+```mdx
 <script>
     // Access the weather tool methods
-    const forecast = await tools['weather'].getForecast("New York");
+    const forecast = await tools.weather.getForecast("New York");
     
     // Access the translator tool methods (assuming a 'translator' tool is defined)
     // const translation = await ctx.tools['translator'].translate("Hello world", "es");
@@ -63,6 +66,25 @@ For script elements, MCP tools are available through the `ctx.tools` object with
     };
 </script>
 ```
+</Tab>
+<Tab value="Python">
+```mdx
+<script language="python"> 
+    # Access the weather tool methods
+    # Assuming 'tools' is an accessible object/dict and methods are async
+    forecast = await tools['weather'].getForecast("New York") 
+    
+    # Access the translator tool methods (assuming a 'translator' tool is defined)
+    # translation = await ctx.tools['translator'].translate("Hello world", "es")
+    
+    return {
+        "weatherData": forecast,
+        # "translatedText": translation
+    }
+</script>
+```
+</Tab>
+</Tabs>
 
 ## Common Patterns
 
@@ -81,7 +103,11 @@ For script elements, MCP tools are available through the `ctx.tools` object with
         value={null}
       />
     </datamodel>
-
+    ```
+    
+    <Tabs items={['Javascript', 'Python']}>
+    <Tab value="Javascript">
+    ```mdx
     <script>
       {async ({ctx, state}) => {
         const customerId = state.params.id; // Assuming ID comes from context
@@ -89,6 +115,19 @@ For script elements, MCP tools are available through the `ctx.tools` object with
       }}
     </script>
     ```
+    </Tab>
+    <Tab value="Python">
+    ```mdx
+    <script lang="python">
+      # Assuming ctx and state are passed as dicts, and state is mutable
+      async def run(ctx, state): 
+          customer_id = state['params']['id'] # Nested dict access
+          state['customer'] = await ctx['tools']['crm'].getCustomer(customer_id)
+          # No explicit return needed if modifying state directly
+    </script>
+    ```
+    </Tab>
+    </Tabs>
 
 2.  **LLM with Multiple Tools**: Providing an LLM with access to several tools for more complex tasks.
     ```mdx
@@ -147,10 +186,12 @@ You can dynamically determine which tools are available to an LLM based on the a
 
 When calling tool methods within scripts, implement standard error handling to manage potential issues with the external service.
 
+<Tabs items={['Javascript', 'Python']}>
+<Tab value="Javascript">
 ```mdx {3,5-8}
 <script>
     try {
-        state.weatherData = await tools['weather'].getForecast(state.location);
+        state.weatherData = await tools.weather.getForecast(state.location);
     } catch (error) {
         console.error("Weather tool failed:", error);
         state.errors = {
@@ -160,4 +201,23 @@ When calling tool methods within scripts, implement standard error handling to m
     }
 </script>
 ```
+</Tab>
+<Tab value="Python">
+```mdx
+<script lang="python">
+  import sys # For stderr
+
+  # Assuming state is a mutable dict and tools provides async methods
+  try:
+      state['weatherData'] = await tools.weather.getForecast(state['location']) 
+  except Exception as error:
+      print(f"Weather tool failed: {error}", file=sys.stderr)
+      # Ensure 'errors' key exists before updating
+      if 'errors' not in state:
+          state['errors'] = {}
+      state['errors']['weather'] = f"Failed to fetch weather: {error}"
+</script>
+```
+</Tab>
+</Tabs>
 
