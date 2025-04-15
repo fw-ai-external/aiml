@@ -20,7 +20,7 @@ const processor = remark()
 
 export async function GET() {
   // all scanned content
-  const files = await fg(["./content/docs/**/*.mdx"]);
+  const files = await fg(["../../docs/**/*.mdx"]);
 
   const scan = files.map(async (file) => {
     const fileContent = await fs.readFile(file);
@@ -30,7 +30,7 @@ export async function GET() {
       path: file,
       value: content,
     });
-    return `file: ${file}
+    return `file: ${file.replace("../../", "./")}
 meta: ${JSON.stringify(data, null, 2)}
         
 ${processed}`;
