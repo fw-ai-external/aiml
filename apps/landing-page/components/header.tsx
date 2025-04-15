@@ -30,7 +30,8 @@ export default function Header() {
               Docs
             </Link>
             <Link
-              href="#"
+              href="https://discord.gg/fireworks"
+              target="_blank"
               className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-emerald-500 transition-colors"
             >
               <Discord className="h-4 w-4" />
@@ -42,7 +43,11 @@ export default function Header() {
             className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full transition-colors"
             asChild
           >
-            <Link href="#" className="flex items-center gap-2">
+            <Link
+              href="https://github.com/fw-ai-external/aiml"
+              target="_blank"
+              className="flex items-center gap-2"
+            >
               <Github className="h-4 w-4" />
               View on Github
             </Link>

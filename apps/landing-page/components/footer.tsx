@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Github, Twitter } from "lucide-react";
+import { Github } from "lucide-react";
+import Discord from "./icons/discord";
 
 export default function Footer() {
   return (
@@ -77,7 +78,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="#"
+                  href="https://github.com/fw-ai-external/aiml/blob/main/LICENSE.md"
                   className="text-sm text-gray-600 hover:text-emerald-500"
                 >
                   License
@@ -92,13 +93,21 @@ export default function Footer() {
             © {new Date().getFullYear()} Fireworks AI. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <Link href="#" className="text-gray-600 hover:text-emerald-500">
+            <Link
+              href="https://github.com/fw-ai-external/aiml"
+              target="_blank"
+              className="text-gray-600 hover:text-emerald-500"
+            >
               <Github className="h-5 w-5" />
               <span className="sr-only">GitHub</span>
             </Link>
-            <Link href="#" className="text-gray-600 hover:text-emerald-500">
-              <Twitter className="h-5 w-5" />
-              <span className="sr-only">Twitter</span>
+            <Link
+              href="https://discord.gg/fireworks"
+              target="_blank"
+              className="text-gray-600 hover:text-emerald-500"
+            >
+              <Discord className="h-5 w-5" />
+              <span className="sr-only">Discord</span>
             </Link>
           </div>
         </div>
