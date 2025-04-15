@@ -38,7 +38,7 @@ You are a creative writing assistant specializing in character development.
                 }
             })}
         />
-    </when>
+    </if>
 
     {/* Create backstory */}
     <if condition={({state}) => state.stage === "backstory"}>
@@ -51,5 +51,5 @@ You are a creative writing assistant specializing in character development.
             </instructions>
             <prompt>Develop the character's history</prompt>
         </llm>
-    </when>
+    </if>
 </state>
