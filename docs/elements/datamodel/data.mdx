@@ -24,10 +24,6 @@ The `<data>` element declares a data model variable:
       description: "Variable identifier",
       required: true
     },
-    src: {
-      type: "string",
-      description: "Data source URL"
-    },
     expr: {
       type: "Expression",
       description: "Expression for value"
@@ -35,30 +31,10 @@ The `<data>` element declares a data model variable:
     value: {
       type: "any",
       description: "Initial value"
-    },
-    content: {
-      type: "string",
-      description: "Content string"
-    },
-    src: {
-      type: "string",
-      description: "Data source URL"
-    },
-    expr: {
-      type: "Expression",
-      description: "Expression for value"
-    },
-    value: {
-      type: "any",
-      description: "Initial value"
-    },
-    content: {
-      type: "string",
-      description: "Content string"
-    },
+    },    
     type: {
       name: "type",
-      type: '"STRING" | "NUMBER" | "BOOLEAN" | "JSON"',
+      type: '"STRING" | "NUMBER" | "BOOLEAN" | "JSON" | "MCP"',
       description: "Data type"
     },
     readonly: {

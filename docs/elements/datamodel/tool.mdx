@@ -1,0 +1,90 @@
+---
+title: Tool Element
+description: Element for defining MCP integrations
+---
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+# Tool Element
+
+The `<tool>` element defines an MCP (Multi-provider Context) integration, typically representing an external service or API. It makes the capabilities of this service available to `<script>` and `<llm>` elements within the application.
+```mdx
+<tool 
+  type="mcp"
+  id="weather"
+  url="https://mcp.composio.dev/weathermap/<your secure url>"
+/>
+```
+
+## Props
+
+<TypeTable type={{
+    type: {
+      type: '"mcp" | "function"',
+      description: "Specifies the type as an MCP tool.",
+      required: true
+    },
+    id: {
+      type: "string",
+      description: "Unique identifier for this tool instance. Used to access the tool in scripts (`ctx.tools[id]`) and LLMs (`tools={[id]}`).",
+      required: true
+    },
+    url: {
+      type: "string",
+      description: "The URL endpoint of the external MCP server. Only required if type is `mcp`.",
+      required: false
+    },
+    function: {
+      type: "function",
+      description: "The function to call when the tool is invoked. Only required if type is `function`.",
+      required: false
+    },
+    args: {
+      type: "object",
+      description: "The JSONSchema of the arguments to pass to the function when the tool is invoked. Only required if type is `function`.",
+      required: false
+    }
+  }} />
+
+## Examples
+
+### Basic MCP Tool
+
+Defines a single tool for accessing a weather API.
+
+```mdx
+<tool 
+  type="mcp" 
+  id="weather" 
+  url="https://mcp.composio.dev/weathermap/<your secure url>"
+/>
+```
+
+### Multiple MCP Tools
+
+Multiple tools can be defined within a `<datamodel>` to integrate with various services.
+
+```mdx
+<datamodel>
+  <tool 
+    type="mcp"
+    id="weather"
+    url="https://mcp.composio.dev/weathermap/<your secure url>"
+  />
+  
+  <tool 
+    type="mcp"
+    id="translator"
+    url="https://api.translate.example.com"
+  />
+
+  <data id="currentLocation" type="STRING" value="London" />
+</datamodel>
+```
+
+## Usage Notes
+
+- `<tool>` elements are defined within a `<datamodel>` element.
+- They act as pointers to external MCP-compliant services.
+- The `id` is crucial for referencing the tool elsewhere in the application.
+- The `url` must point to a valid MCP server endpoint.
+- See the [Using MCP Integrations guide](/docs/mcp/adding-mcp-usage) for details on how to use these tools in scripts and LLMs. 

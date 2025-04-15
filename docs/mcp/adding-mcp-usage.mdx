@@ -1,8 +1,163 @@
 ---
-title: Adding MCP Elements / Integrations
+title: Using MCP Integrations
 ---
 
 import { Banner } from 'fumadocs-ui/components/banner';
- 
+import { Card, Cards } from 'fumadocs-ui/components/card';
 
-<Banner className="bg-blue-500 text-white rounded-lg">Coming soon: MCP Element / Integration documentation</Banner>
+# Using MCP Integrations
+
+Multi-provider Context (MCP) integrations allow your Mastra application to interact with external services, APIs, or custom logic hosted elsewhere. These integrations are defined using the [`<tool>` element](/docs/elements/datamodel/tool) within your `<datamodel>`. 
+
+Once defined, MCP tools bridge the gap between your application's data model and its dynamic components:
+
+- **For `<script>` elements:** Exposed methods of the tool become directly callable.
+- **For `<llm>` elements:** The tool's capabilities can be made available to the language model.
+
+This allows you to encapsulate complex external interactions and make them easily accessible within your application flow.
+
+<Cards>
+  <Card
+    href="/docs/elements/datamodel/tool"
+    title="<tool> Element Reference"
+    description="View the detailed specification for the <tool> element, including props and basic syntax."
+  />
+</Cards>
+
+## Integration with LLM Elements
+
+For LLM elements, MCP tools can be added by referencing the tool ID in the `tools` prop. This allows the LLM to invoke the capabilities provided by the external service.
+
+```mdx {7}
+<datamodel>
+  <tool 
+    type="mcp"
+    id="weather"
+    url="https://mcp.composio.dev/weathermap/<your secure url>"
+  />
+</datamodel>
+
+<llm 
+  id="weatherAssistant"
+  tools={["weather"]}
+>
+  Provide weather information for the specified location.
+</llm>
+```
+
+## Integration with Script Elements
+
+For script elements, MCP tools are available through the `ctx.tools` object within the script's execution context. You can access a specific tool using its ID as the key (e.g., `ctx.tools['weather']`) and call its exposed methods.
+
+```mdx {2,5,9}
+<script>
+    // Access the weather tool methods
+    const forecast = await tools['weather'].getForecast("New York");
+    
+    // Access the translator tool methods (assuming a 'translator' tool is defined)
+    // const translation = await ctx.tools['translator'].translate("Hello world", "es");
+    
+    return {
+      weatherData: forecast,
+      // translatedText: translation
+    };
+</script>
+```
+
+## Common Patterns
+
+1.  **API Integration**: Using a tool to fetch data from an external API and store it in the datamodel.
+    ```mdx
+    <datamodel>
+      <tool 
+        type="mcp"
+        id="crm"
+        url="https://api.crm.example.com"
+      />
+      
+      <data 
+        id="customer"
+        type="JSON"
+        value={null}
+      />
+    </datamodel>
+
+    <script>
+      {async ({ctx, state}) => {
+        const customerId = state.params.id; // Assuming ID comes from context
+        state.customer = await ctx.tools['crm'].getCustomer(customerId);
+      }}
+    </script>
+    ```
+
+2.  **LLM with Multiple Tools**: Providing an LLM with access to several tools for more complex tasks.
+    ```mdx
+    <datamodel>
+      <tool 
+        type="mcp"
+        id="search"
+        url="https://api.search.example.com"
+      />
+      
+      <tool 
+        type="mcp"
+        id="database"
+        url="https://api.db.example.com"
+      />
+    </datamodel>
+
+    <llm
+      id="researchAssistant"
+      tools={["search", "database"]}
+    >
+      Research the topic and provide information from both search results and our database.
+    </llm>
+    ```
+
+## Advanced Usage
+
+### Conditional Tool Loading for LLMs
+
+You can dynamically determine which tools are available to an LLM based on the application state or user preferences.
+
+```mdx {14}
+<datamodel>
+  <data 
+    id="userPreferences"
+    type="JSON"
+    value={{
+      enabledTools: ["weather", "news"]
+    }}
+  />
+  
+  <tool type="mcp" id="weather" url="https://mcp.composio.dev/weathermap/<your secure url>" />
+  <tool type="mcp" id="news" url="https://mcp.news.example.com/<your secure url>" />
+  <tool type="mcp" id="calendar" url="https://mcp.calendar.example.com/<your secure url>" /> 
+</datamodel>
+
+<llm
+  id="assistant"
+  tools={({state}) => state.userPreferences.enabledTools}
+>
+  I can help you with various information based on your preferences.
+</llm>
+```
+
+### Error Handling in Scripts
+
+When calling tool methods within scripts, implement standard error handling to manage potential issues with the external service.
+
+```mdx {3,5-8}
+<script>
+    try {
+        state.weatherData = await tools['weather'].getForecast(state.location);
+    } catch (error) {
+        console.error("Weather tool failed:", error);
+        state.errors = {
+        ...state.errors,
+        weather: `Failed to fetch weather: ${error.message}`
+        };
+    }
+</script>
+```
+
