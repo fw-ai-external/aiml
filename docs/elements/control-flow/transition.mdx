@@ -14,13 +14,7 @@ The `<transition>` element defines state transitions:
   event="success"
   target="nextState"
   type="external"
->
-  <onEntry>
-    <llm>
-      <prompt>Entering new state</prompt>
-    </llm>
-  </onEntry>
-</transition>`} />
+/>`} />
 
 ## Props
 
@@ -118,7 +112,7 @@ The `<transition>` element defines state transitions:
     target="errorHandler"
   >
     <log expr={({error}) => \`Error: \${error.message}\`} />
-    <raise event="errorLogged" />
+    <assign location="state.errorStatus" expr="logged" />
   </transition>
 </state>`} />
 

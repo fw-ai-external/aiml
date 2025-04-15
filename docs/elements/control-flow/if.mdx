@@ -87,7 +87,8 @@ The `<if>` element enables conditional execution based on a test condition:
 ### Error Checking
 
 <DynamicCodeBlock lang="jsx" code={`<if condition={({error}) => error !== null}>
-  <raise event="error" />
+  <assign location="state.status" expr="error" />
+  <log expr={({error}) => \`Error occurred: \${error.message}\`} />
 </if>`} />
 
 ### Permission Control
@@ -95,6 +96,7 @@ The `<if>` element enables conditional execution based on a test condition:
 <DynamicCodeBlock lang="jsx" code={`<if condition={({state}) => state.hasPermission}>
   <assign location="state.access" expr={\`granted\`} />
 <else>
-  <raise event="accessDenied" />
+  <assign location="state.access" expr={\`denied\`} />
+  <log expr="Access denied due to insufficient permissions" />
 </else>
 </if>`} />

@@ -21,12 +21,6 @@ The `<script>` element executes JavaScript code. Useful for complex logic and co
 ### [Cancel](./cancel)
 The `<cancel>` element cancels delayed events. Important for cleanup and workflow control.
 
-### [Raise](./raise)
-The `<raise>` element raises internal events. Key for state machine communication.
-
-### [Send](./send)
-The `<send>` element sends events to external systems. Essential for integration with other services.
-
 ## Common Use Cases
 
 1. **State Management**
@@ -50,16 +44,6 @@ The `<send>` element sends events to external systems. Essential for integration
 4. **Event Control**
    ```mdx
    <cancel sendid="reminder" />
-   <raise event="processComplete" />
-   ```
-
-5. **External Communication**
-   ```mdx
-   <send 
-     type="http"
-     target="https://api.example.com"
-     event="updateData"
-   />
    ```
 
 ## Best Practices
@@ -71,8 +55,6 @@ The `<send>` element sends events to external systems. Essential for integration
    - Keep state changes atomic
 
 2. **Event Handling**
-   - Use raise for internal events
-   - Use send for external communication
    - Cancel delayed events when appropriate
    - Handle errors gracefully
 

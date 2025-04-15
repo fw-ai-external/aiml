@@ -30,8 +30,6 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 
 ## Allowed Children
 
-- `onentry`: Entry actions
-- `onexit`: Exit actions
 - `transition`: State transitions
 - `state`: Child states
 - `history`: History pseudo-states
@@ -67,15 +65,11 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
   </datamodel>
   
   <state id="monitor">
-    <onexit>
-      <script>stopMonitoring();</script>
-    </onexit>
+    <script>monitorResources();</script>
   </state>
   
   <state id="cleanup">
-    <onexit>
-      <script>releaseResources();</script>
-    </onexit>
+    <script>manageResources();</script>
   </state>
 </parallel>`} />
 

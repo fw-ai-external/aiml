@@ -11,11 +11,6 @@ import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
 import { TypeTable } from 'fumadocs-ui/components/type-table';
 
 <DynamicCodeBlock lang="jsx"  code={`<final id="complete">
-  <onentry>
-    <llm>
-      <prompt>Process completed</prompt>
-    </llm>
-  </onentry>
   <donedata>
     <content>
       {({state}) => ({
@@ -36,7 +31,6 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 
 ## Allowed Children
 
-- `onentry`: Entry actions
 - `donedata`: Completion data
 
 ## Examples
@@ -44,20 +38,16 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 ### Basic Final State
 
 <DynamicCodeBlock lang="jsx"  code={`<final id="done">
-  <onentry>
-    <log expr="Process complete" />
-  </onentry>
+  <log expr="Process complete" />
 </final>`} />
 
 ### Final State with Data
 
 <DynamicCodeBlock lang="jsx"  code={`<final id="complete">
-  <onentry>
-    <assign 
-      location="state.completionTime" 
-      expr={new Date().toISOString()} 
-    />
-  </onentry>
+  <assign 
+    location="state.completionTime" 
+    expr={new Date().toISOString()} 
+  />
   <donedata>
     <content>
       {({state}) => ({
@@ -73,12 +63,9 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 ### Error Final State
 
 <DynamicCodeBlock lang="jsx"  code={`<final id="error">
-  <onentry>
-    <log expr={({error}) => 
-      \`Process failed: \${error.message}\`
-    } />
-    <raise event="processError" />
-  </onentry>
+  <log expr={({error}) => 
+    \`Process failed: \${error.message}\`
+  } />
   <donedata>
     <content>
       {({state, error}) => ({
@@ -102,15 +89,13 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 ### Success Completion
 
 <DynamicCodeBlock lang="jsx"  code={`<final id="success">
-  <onentry>
-    <log expr="Process completed successfully" />
-    <script>
-      notifyCompletion({
-        status: "success",
-        result: state.result
-      });
-    </script>
-  </onentry>
+  <log expr="Process completed successfully" />
+  <script>
+    notifyCompletion({
+      status: "success",
+      result: state.result
+    });
+  </script>
   <donedata>
     <content>
       {({state}) => ({
@@ -128,17 +113,15 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 ### Error Completion
 
 <DynamicCodeBlock lang="jsx"  code={`<final id="failure">
-  <onentry>
-    <log expr={({error}) => 
-      \`Process failed: \${error.message}\`
-    } />
-    <script>
-      notifyError({
-        error: error,
-        context: state.context
-      });
-    </script>
-  </onentry>
+  <log expr={({error}) => 
+    \`Process failed: \${error.message}\`
+  } />
+  <script>
+    notifyError({
+      error: error,
+      context: state.context
+    });
+  </script>
   <donedata>
     <content>
       {({state, error}) => ({
@@ -157,14 +140,12 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 ### Cleanup Final State
 
 <DynamicCodeBlock lang="jsx"  code={`<final id="cleanup">
-  <onentry>
-    <script>
-      releaseResources();
-      clearCache();
-      resetState();
-    </script>
-    <log expr="Cleanup complete" />
-  </onentry>
+  <script>
+    releaseResources();
+    clearCache();
+    resetState();
+  </script>
+  <log expr="Cleanup complete" />
   <donedata>
     <content>
       {({state}) => ({

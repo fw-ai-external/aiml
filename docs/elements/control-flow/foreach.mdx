@@ -77,7 +77,10 @@ The `<foreach>` element enables iteration over arrays:
     </script>
   </if>
   <else>
-    <raise event="recordError" />
+    <assign location="state.errors" expr={({state, record}) => [
+      ...state.errors,
+      { record, error: 'Invalid record' }
+    ]} />
     <log expr={({record}) => 
       \`Invalid record: \${JSON.stringify(record)}\`
     } />
@@ -108,18 +111,19 @@ The `<foreach>` element enables iteration over arrays:
 ### Batch Operations
 
 <DynamicCodeBlock lang="jsx" code={`<foreach items={({state}) => state.batch} var="record" index="i">
-  <send 
-    type="http"
-    target="https://api.example.com/process"
-    event="processRecord"
-  >
-    <content>
-      {({record}) => ({
+  <script>
+    const response = await fetch('https://api.example.com/process', {
+      method: 'POST',
+      body: JSON.stringify({
         id: record.id,
         data: record.data
-      })}
-    </content>
-  </send>
+      })
+    });
+    _dataModel.setValue('state.responses', [
+      ...state.responses,
+      await response.json()
+    ]);
+  </script>
   
   <if condition={({i}) => (i + 1) % 10 === 0}>
     <log expr="Batch checkpoint reached" />
@@ -130,13 +134,16 @@ The `<foreach>` element enables iteration over arrays:
 
 <DynamicCodeBlock lang="jsx" code={`<foreach items={({state}) => state.inputs} var="input">
   <if condition={({input}) => !input.value}>
-    <raise event="validationError" />
     <assign 
       location="state.errors" 
       expr={({state, input}) => [
         ...state.errors,
         \`Missing value for \${input.name}\`
       ]}
+    />
+    <assign
+      location="state.isValid"
+      expr={false}
     />
   </if>
 </foreach>`} />

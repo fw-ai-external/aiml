@@ -12,12 +12,6 @@ The `<state>` element represents a standard state in the state machine:
 
 
 <DynamicCodeBlock lang="jsx"  code={`<state id="processing" initial="step1">
-  <onentry>
-    <llm>
-      <prompt>Entering processing state</prompt>
-    </llm>
-  </onentry>
-  
   <state id="step1">
     <transition target="step2" />
   </state>
@@ -25,12 +19,6 @@ The `<state>` element represents a standard state in the state machine:
   <state id="step2">
     <transition target="final" />
   </state>
-  
-  <onexit>
-    <llm>
-      <prompt>Exiting processing state</prompt>
-    </llm>
-  </onexit>
 </state>`} />
 
 <TypeTable type={{
@@ -48,8 +36,6 @@ The `<state>` element represents a standard state in the state machine:
 
 ## Allowed Children
 
-- `onentry`: Entry actions
-- `onexit`: Exit actions
 - `transition`: State transitions
 - `state`: Child states
 - `parallel`: Parallel states
@@ -100,14 +86,10 @@ The `<state>` element represents a standard state in the state machine:
 
 <DynamicCodeBlock lang="jsx"  code={`<state id="form">
   <datamodel>
-    <data id="formData" type="JSON" />
+    <data id="formData" type="JSON" value={{}} />
     <data id="errors" type="JSON" value={[]} />
     <data id="isValid" type="BOOLEAN" value={false} />
   </datamodel>
-  
-  <onentry>
-    <assign location="state.formData" expr={{}} />
-  </onentry>
   
   <transition 
     event="submit"
@@ -135,17 +117,15 @@ The `<state>` element represents a standard state in the state machine:
     <data id="error" type="STRING" />
   </datamodel>
   
-  <onentry>
-    <script>
-      try {
-        const result = processInput(state.input);
-        _dataModel.setValue("state.output", result);
-      } catch (err) {
-        _dataModel.setValue("state.error", err.message);
-        raise({ type: "error" });
-      }
-    </script>
-  </onentry>
+  <script>
+    try {
+      const result = processInput(state.input);
+      _dataModel.setValue("state.output", result);
+    } catch (err) {
+      _dataModel.setValue("state.error", err.message);
+      _dataModel.setValue("state.status", "error");
+    }
+  </script>
   
   <transition event="error" target="errorState" />
   <transition event="complete" target="successState" />
@@ -155,17 +135,13 @@ The `<state>` element represents a standard state in the state machine:
 
 <DynamicCodeBlock lang="jsx"  code={`<state id="userForm">
   <datamodel>
-    <data id="fields" type="JSON" value={{}} />
-    <data id="validation" type="JSON" value={{}} />
-  </datamodel>
-  
-  <onentry>
-    <assign location="state.fields" expr={{
+    <data id="fields" type="JSON" value={{
       name: "",
       email: "",
       age: null
     }} />
-  </onentry>
+    <data id="validation" type="JSON" value={{}} />
+  </datamodel>
   
   <transition 
     event="field.change"

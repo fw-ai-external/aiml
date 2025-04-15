@@ -52,7 +52,7 @@ The `<else>` element provides a default execution path when no other conditions 
   <script>processData(state.data);</script>
 </if>
 <else>
-  <raise event="dataError" />
+  <assign location="state.error" expr="Data is null" />
   <log expr="Data is null" />
 </else>`} />
 
@@ -66,7 +66,7 @@ The `<else>` element provides a default execution path when no other conditions 
 </elseif>
 <else>
   <assign location="state.access" expr="read" />
-  <raise event="limitedAccess" />
+  <assign location="state.accessLevel" expr="limited" />
 </else>`} />
 
 ## Usage Notes
@@ -94,7 +94,7 @@ The `<else>` element provides a default execution path when no other conditions 
 </if>
 <else>
   <log expr="Invalid state detected" />
-  <raise event="validationError" />
+  <assign location="state.error" expr="Validation failed" />
   <transition target="errorHandler" />
 </else>`} />
 

@@ -201,6 +201,43 @@ Control flow elements help manage the execution flow:
 
 ```
 
+## Document Order Execution
+
+AIML prompts are executed sequentially from top to bottom, making it intuitive to build complex prompt pipelines. Each text section, and element (along with it's children) is processed in order, allowing you to create sophisticated workflows while maintaining readability.
+
+## Circular Logic
+
+To create circular logic, AIML supports `<state>` elements. States, along with `<transition>` elements allow you to create loops, or to create more complex conditional logic by tying one or more states together.
+
+```mdx
+<state name="Step1">
+  <transition target="Step2" />
+</state>
+
+<state name="Step2">
+  <transition cond={({lastElement}) => lastElement.outputType == 'tool-call'} target="Step3" />
+  <transition target="respond" />
+</state>
+
+<state name="Step3">
+  <transition target="respond" />
+</state>
+
+<final name="respond" />
+```
+
+This will create a conditional loop that can be visualized as a flow chart like this:
+
+<Mermaid
+  chart={`
+stateDiagram-v2
+    Step1 --> Step2
+    Step2 --> Step3: If step 1 output is a tool call
+    Step2 --> respond: Else
+    Step3 --> respond
+`} />
+
+
 
 ## Next Steps
 

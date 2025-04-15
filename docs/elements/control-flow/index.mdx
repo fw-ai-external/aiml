@@ -27,12 +27,6 @@ The `<foreach>` element enables iteration over arrays, processing collections of
 ### [Transition](./transition)
 The `<transition>` element defines state transitions, controlling workflow progression.
 
-### [OnEntry](./onentry)
-The `<onentry>` element defines actions to execute when entering a state.
-
-### [OnExit](./onexit)
-The `<onexit>` element defines actions to execute when exiting a state.
-
 ## Common Use Cases
 
 ### Conditional Logic
@@ -57,13 +51,8 @@ The `<onexit>` element defines actions to execute when exiting a state.
 ### State Management
 
 <DynamicCodeBlock lang="jsx" code={`<state id="processing">
-  <onentry>
-    <assign location="state.status" expr="active" />
-  </onentry>
+  <assign location="state.status" expr="active" />
   <transition target="complete" />
-  <onexit>
-    <assign location="state.status" expr="done" />
-  </onexit>
 </state>`} />
 
 ## Best Practices
@@ -76,7 +65,6 @@ The `<onexit>` element defines actions to execute when exiting a state.
 
 2. **State Transitions**
    - Define clear paths
-   - Handle entry/exit
    - Manage resources
    - Track state changes
 
