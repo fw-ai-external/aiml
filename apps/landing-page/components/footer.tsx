@@ -8,9 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold">
-                AI
-              </div>
+              <img src="/mark.svg" alt="Fireworks AI" width={32} height={32} />
               <span className="font-bold text-xl">AIML</span>
             </div>
             <p className="text-sm text-gray-600">
