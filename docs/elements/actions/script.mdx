@@ -8,7 +8,7 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 
 # Script Element
 
-The `<script>` element executes JavaScript code:
+The `<script>` element executes JavaScript or Python code:
 
 <DynamicCodeBlock lang="jsx" code={`<script>
   // JavaScript code here
@@ -17,18 +17,16 @@ The `<script>` element executes JavaScript code:
 
 <TypeTable
   type={{
-    id: {
-      description: 'Unique identifier',
-      type: 'string',
-      optional: true
-    },
-    src: {
-      description: 'External script source',
-      type: 'string',
-      optional: true
+    language: {
+      description: 'Language of the script',
+      type: '"javascript" | "python"',
+      required: false,
+      default: 'javascript'
     }
   }}
 />
+
+Of note, each script element is executed in a new context, so you don't need to worry about variable collisions. This also means that you can't define functions that are used by multiple script elements.
 
 ## Examples
 
@@ -40,16 +38,12 @@ The `<script>` element executes JavaScript code:
   console.log(\`Total: \${result}\`);
 </script>`} />
 
-### External Script
-
-<DynamicCodeBlock lang="jsx" code={`<script src="/scripts/utils.js" />`} />
-
 ### State Manipulation
 
 <DynamicCodeBlock lang="jsx" code={`<script>
   // Update state based on calculations
   const newValue = performComplexCalculation();
-  _dataModel.setValue("state.result", newValue);
+  dataModel.setValue("state.result", newValue);
 </script>`} />
 
 ## Usage Notes
@@ -59,24 +53,3 @@ The `<script>` element executes JavaScript code:
 - Consider moving complex logic to external files
 - Be cautious with global state modifications
 - Use appropriate error handling
-- Document script functionality clearly
-
-## Best Practices
-
-1. **Code Organization**
-   - Keep scripts small and focused
-   - Use meaningful variable names
-   - Comment complex logic
-   - Follow consistent coding style
-
-2. **State Management**
-   - Use _dataModel for state access
-   - Validate state changes
-   - Handle edge cases
-   - Clean up after operations
-
-3. **Error Handling**
-   - Use try/catch blocks
-   - Log errors appropriately
-   - Provide fallback behavior
-   - Handle async operations properly
