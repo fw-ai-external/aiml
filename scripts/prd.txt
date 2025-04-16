@@ -1,0 +1,34 @@
+# Project Documentation and Rule Generation Plan
+
+## Goal
+
+Analyze the existing project structure within the `apps/` and `packages/` directories. For each identified application and package, generate comprehensive developer documentation and corresponding Cursor rule files to ensure consistency and maintainability.
+
+## Requirements
+
+1.  **Project Structure Analysis:**
+    *   Identify all applications within the `apps/` directory.
+    *   Identify all packages within the `packages/` directory.
+    *   For each component, determine its primary purpose and key functionalities by examining READMEs, configuration files (like `package.json`), and potentially entry point source files.
+
+2.  **Developer Documentation Generation:**
+    *   For each application and package, create a dedicated markdown file within the `docs/` directory (e.g., `docs/apps/server.md`, `docs/packages/shared.md`).
+    *   Each documentation file should include:
+        *   **Overview:** A brief description of the component's purpose and role in the project.
+        *   **Key Features/Functionality:** A list or description of the main things the component does.
+        *   **Setup/Usage:** Basic instructions on how to set up or use the component (if applicable).
+        *   **Key Dependencies:** Important internal or external dependencies.
+        *   **Architecture Notes:** High-level notes on internal structure or design patterns (if readily available or inferable).
+
+3.  **Cursor Rule File Generation:**
+    *   For each application and package, create a corresponding Cursor rule file (`.mdc`) within a suitable subdirectory under `.cursor/rules/` (e.g., `.cursor/rules/app-rules/server-agent.mdc`, `.cursor/rules/pkg-rules/shared-agent.mdc`).
+    *   Each rule file should be an "Agent Select" rule (`-agent.mdc`).
+    *   The rule file's `description` should clearly state when the rule applies (e.g., "Apply when working within the `apps/server` directory or modifying its core logic.").
+    *   The rule content (`# Critical Rules`) should include initial placeholder rules relevant to the component type (e.g., for a UI component: rules about state management, component structure; for a server: rules about API design, error handling; for a shared package: rules about API stability, versioning). These can be refined later.
+    *   Use the standard rule template defined in `core-rules/rule-generating-agent.mdc`.
+
+## Deliverables
+
+*   A set of markdown documentation files in `docs/` (one per app/package).
+*   A set of `.mdc` rule files in `.cursor/rules/` (one per app/package).
+*   Tasks generated in Task Master AI tracking the creation of each documentation file and rule file. 

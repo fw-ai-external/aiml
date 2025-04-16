@@ -1,0 +1,15 @@
+# AIML UI Application Rules (@fireworks/aiml-ui)
+
+## Critical Rules
+
+*   (TODO: Add rules specific to the aiml-ui application, e.g., state management patterns, component structure, styling guidelines)
+
+## Examples
+
+<example>
+  // (TODO: Add a valid example of applying a rule)
+</example>
+
+<example type="invalid">
+  // (TODO: Add an invalid example)
+</example>

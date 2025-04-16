@@ -1,0 +1,15 @@
+# Server Application Rules (server)
+
+## Critical Rules
+
+*   (TODO: Add rules specific to the server application, e.g., API endpoint conventions, error handling, authentication/authorization, database query patterns)
+
+## Examples
+
+<example>
+  // (TODO: Add a valid example of applying a rule)
+</example>
+
+<example type="invalid">
+  // (TODO: Add an invalid example)
+</example> 

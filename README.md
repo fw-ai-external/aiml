@@ -70,7 +70,8 @@ A comprehensive toolset for working with AIML based workflows, both familiar, ye
 
    Edit `.env.development` with your credentials:
 
-   - Required AI API keys:
+   - Supported LLM providers AI API keys:
+     - `FIREWORKS_API_KEY`: Fireworks API key
      - `OPENAI_API_KEY`: OpenAI API key
      - `ANTHROPIC_API_KEY`: Anthropic API key
    - PostgreSQL database credentials (for the API server)
@@ -103,30 +104,38 @@ bun run package    # Build VSIX package
 ```
 .
 ├── apps/
-│   ├── aiml-ui/            # Web-based management UI
-│   ├── server/             # API server
+│   ├── aiml-ui/            # Web-based management UI (Next.js)
+│   ├── landing-page/       # Project landing page (Astro)
+│   ├── server/             # API server (Hono/Elysia - TBD)
 │   └── vscode-plugin/      # VSCode extension
 ├── packages/
-│   ├── element-config/     # Element schemas and configurations
-│   ├── elements/           # Element implementations
-│   ├── language-server/    # Language server for VSCode extension
+│   ├── language-server/    # Language server implementation for VSCode extension
 │   ├── parser/             # AIML prompt parser
 │   ├── runtime/            # Runtime execution engine
-│   ├── shared/             # Base element class and factory
+│   ├── shared/             # Shared utilities and base components
+│   ├── test-tmp/           # Temporary files for testing
 │   ├── tsconfig/           # Shared TypeScript configurations
-│   ├── types/              # Shared TypeScript types
 │   └── vscode/             # VSCode extension utilities
+├── design-docs/            # Design and architecture documents
+├── scripts/                # Utility scripts
+└── turbo.json              # Turborepo configuration
 ```
 
 ## Architecture
 
-The AIML architecture has been refactored to address circular dependencies and improve maintainability. The key components are:
+The AIML architecture utilizes a monorepo structure managed by Turborepo. Key components include:
 
-- **Types Package**: Contains all type definitions used throughout the codebase
-- **Element Config Package**: Contains element schemas and configurations
-- **Shared Package**: Contains the base element class and factory
-- **Elements Package**: Contains specific element implementations
-- **Runtime Package**: Contains the runtime execution engine
-- **Parser Package**: Responsible for parsing AIML files and creating element instances
+- **`packages/shared`**: Contains base types, utilities, and classes used across multiple packages.
+- **`packages/parser`**: Responsible for parsing AIML (MDX/SCXML flavored) files and constructing the initial workflow representation.
+- **`packages/runtime`**: Contains the core execution engine (`Mastra`) that manages workflow state and transitions based on the parsed structure.
+- **`packages/language-server`**: Provides language intelligence (diagnostics, completion, hover info) for AIML files in VSCode.
+- **`packages/vscode`**: Contains utilities specific to the VSCode extension development.
+- **`packages/tsconfig`**: Centralized TypeScript configurations.
+- **`apps/server`**: The backend API server managing state persistence (PostgreSQL w/ Drizzle) and potentially handling events.
+- **`apps/aiml-ui`**: A web interface (likely Next.js) for managing and monitoring workflows.
+- **`apps/vscode-plugin`**: Integrates the language server and other features into VSCode.
+- **`apps/landing-page`**: The public-facing landing page for the project (Astro).
+
+This structure aims to separate concerns, improve code sharing, and facilitate independent development and deployment of components.
 
 For more details on the architecture, see the [architecture documentation](design-docs/architecture.md).

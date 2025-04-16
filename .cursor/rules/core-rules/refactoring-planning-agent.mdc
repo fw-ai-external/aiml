@@ -1,0 +1,30 @@
+# Refactoring Planning with Task Master AI
+
+## Critical Rules
+
+- When a user explicitly requests to 'refactor' code, a component, or a feature, ALWAYS use the `taskmaster-ai` tool suite to plan the necessary changes before modifying any code.
+- Create an initial top-level task using `mcp_taskmaster_ai_add_task` that describes the overall refactoring goal (e.g., "Refactor Authentication Flow").
+- Identify distinct areas or components that need investigation for the refactoring. For each area, create a separate top-level task using `mcp_taskmaster_ai_add_task` (e.g., "Investigate Auth Service for Refactoring", "Investigate UI Login Component for Refactoring").
+- After investigation (potentially involving code search/reading tools), for each specific file identified as needing changes, create a sub-task using `mcp_taskmaster_ai_add_subtask` under the relevant investigation task. The sub-task description should clearly state the file path and the required change.
+- Do NOT proceed with code modifications for the refactor until the planning tasks and sub-tasks have been created in Task Master AI.
+
+## Examples
+
+<example>
+  User: "Please refactor the user profile section."
+  Agent: "Okay, I will plan the refactoring using Task Master AI first.
+  [Calls `mcp_taskmaster_ai_add_task` with prompt: 'Create task for overall goal: Refactor user profile section']
+  [Calls `mcp_taskmaster_ai_add_task` with prompt: 'Create task for investigating profile data handling']
+  [Calls `mcp_taskmaster_ai_add_task` with prompt: 'Create task for investigating profile UI components']
+  ... (after investigation)
+  [Calls `mcp_taskmaster_ai_add_subtask` for `src/services/profile.ts` under the data handling task]
+  [Calls `mcp_taskmaster_ai_add_subtask` for `src/components/UserProfile.tsx` under the UI components task]"
+</example>
+
+<example type="invalid">
+  User: "Refactor the database connection logic."
+  Agent: "Okay, I will edit the `db.ts` file now." (Incorrect: Skips Task Master planning)
+
+  User: "Fix this bug in the login function."
+  Agent: [Uses Task Master AI to plan the bug fix] (Incorrect: Rule applies only to explicit 'refactor' requests, not general bug fixes)
+</example> 
