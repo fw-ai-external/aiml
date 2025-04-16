@@ -313,11 +313,7 @@ export function astToElementTree(
     if (nodeConfig.type === "state" && nodeConfig.tag !== "workflow") {
       stateId = processAttributes(node.attributes).id;
       // Pop off the current state ID once we're leaving a state
-      if (
-        nodeConfig.type === "state" &&
-        nodeConfig.tag !== "workflow" &&
-        stateId
-      ) {
+      if (nodeConfig.type === "state" && stateId) {
         context.currentStates.pop();
       }
       if (
@@ -340,7 +336,9 @@ export function astToElementTree(
       }
 
       console.warn("12scope---", context.currentStates);
-      context.currentStates.push(stateId);
+      if (stateId) {
+        context.currentStates.push(stateId);
+      }
     }
 
     const isData = node.name.toLowerCase() === "data";

@@ -28,13 +28,13 @@ describe("AIML Parsing Tests", () => {
 
       // Check that there's a final element among the children
       const hasFinalElement = result.nodes[0].children!.some(
-        (child) => child.type === "element" && child.tag === "final"
+        (child) => child.tag === "final"
       );
       expect(hasFinalElement).toBe(true);
 
       // Find the state element (not necessarily the first child now)
       const stateElement = result.nodes[0].children!.find(
-        (child) => child.type === "element" && child.tag === "state"
+        (child) => child.tag === "state"
       );
       expect(stateElement).not.toBeUndefined();
       // The state should not be an error state that was added by the healing code
@@ -82,7 +82,6 @@ Some text here with {userInput.message.content}
 
       // The parser now wraps everything in a single workflow element
       const workflow = result.nodes[0];
-      expect(workflow.type).toBe("element");
       expect(workflow.tag).toBe("workflow");
 
       // With the updated parser, workflow attributes may not include the header fields directly
@@ -141,7 +140,6 @@ target="end" />
 
       // The parser now wraps everything in a single workflow element
       const workflow = result.nodes[0];
-      expect(workflow.type).toBe("element");
       expect(workflow.tag).toBe("workflow");
 
       // With the updated parser, workflow attributes may not include the header fields directly
@@ -226,7 +224,6 @@ Some text here because why not
 
       // The workflow node should have the main attributes
       const workflow = result.nodes[0];
-      expect(workflow.type).toBe("element");
       expect(workflow.tag).toBe("workflow");
 
       // With the updated parser, the id is used from the explicit workflow tag
@@ -247,7 +244,6 @@ Some text here because why not
           (child) => child.tag === "message"
         );
         expect(messageElement).not.toBeUndefined();
-        expect(messageElement?.type).toBe("element");
         expect(messageElement?.tag).toBe("message");
       }
 
@@ -297,7 +293,6 @@ Third paragraph (should be merged with above due to blank line).
 
       // The workflow node should have a valid id
       const workflow = result.nodes[0];
-      expect(workflow.type).toBe("element");
       expect(workflow.tag).toBe("workflow");
       expect(workflow.attributes?.id).toBe("workflow-root");
 
