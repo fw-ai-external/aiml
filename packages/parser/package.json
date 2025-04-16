@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@fireworks/shared": "workspace:*",
+    "unified-aiml": "workspace:*",
     "@mdx-js/typescript-plugin": "^0.0.8",
     "acorn": "^8.14.1",
     "ajv": "^8.17.1",
@@ -41,7 +42,6 @@
     "@fireworks/tsconfig": "workspace:*",
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.11.7",
-    "@types/node": "^20.11.5",
     "@types/uuid": "^10.0.0",
     "@types/xml-formatter": "^2.1.1",
     "typescript": "^5.3.3"

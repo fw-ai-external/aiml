@@ -1,0 +1,30 @@
+{
+  "name": "unified-aiml",
+  "version": "0.0.1",
+  "description": "remark mdx plugin, forked from remark-mdx to support AIML syntax",
+  "license": "MIT",
+  "keywords": ["javascript", "jsx", "markdown", "mdast", "mdx", "plugin", "remark", "remark-plugin", "unified", "xml"],
+  "type": "module",
+  "sideEffects": false,
+  "exports": "./index.js",
+  "files": ["lib/", "index.d.ts.map", "index.d.ts", "index.js"],
+  "dependencies": {
+    "mdast-util-mdx": "^3.0.0",
+    "micromark-extension-aimljs": "workspace:*"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "bun run test-coverage",
+    "test-api": "bun test/index.js",
+    "test-coverage": "c8 --100 --reporter lcov npm run test-api",
+    "build": "echo 'built'"
+  },
+  "xo": {
+    "prettier": true,
+    "rules": {
+      "logical-assignment-operators": "off",
+      "n/file-extension-in-import": "off",
+      "unicorn/no-this-assignment": "off"
+    }
+  }
+}

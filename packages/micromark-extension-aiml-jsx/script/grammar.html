@@ -1,0 +1,55 @@
+<a id=x-mdx-jsx-flow href=#x-mdx-jsx-flow>mdx_jsx_flow</a> ::= <a href=#x-mdx-jsx>mdx_jsx</a> *<a href=#x-space-or-tab>space_or_tab</a> [<a href=#x-mdx-jsx>mdx_jsx</a> *<a href=#x-space-or-tab>space_or_tab</a>]
+<a id=x-mdx-jsx-text href=#x-mdx-jsx-text>mdx_jsx_text</a> ::= <a href=#x-mdx-jsx>mdx_jsx</a>
+
+; constraint: markdown whitespace (`<a href=#x-space-or-tab>space_or_tab</a> | <a href=#x-eol>eol</a>`) is NOT
+; allowed directly after `&lt;` in order to allow `1 &lt; 3` in markdown.
+<a id=x-mdx-jsx href=#x-mdx-jsx>mdx_jsx</a> ::=
+  '&lt;' [<a href=#x-closing>closing</a>]
+  [*<a href=#x-whitespace>whitespace</a> <a href=#x-name>name</a> [<a href=#x-attributes-after-identifier>attributes_after_identifier</a>] [<a href=#x-closing>closing</a>]]
+  *<a href=#x-whitespace>whitespace</a> '>'
+
+<a id=x-attributes-after-identifier href=#x-attributes-after-identifier>attributes_after_identifier</a> ::=
+  1*<a href=#x-whitespace>whitespace</a> (<a href=#x-attributes-boolean>attributes_boolean</a> | <a href=#x-attributes-value>attributes_value</a>) |
+  *<a href=#x-whitespace>whitespace</a> <a href=#x-attributes-expression>attributes_expression</a> |
+<a id=x-attributes-after-value href=#x-attributes-after-value>attributes_after_value</a> ::=
+  *<a href=#x-whitespace>whitespace</a> (<a href=#x-attributes-boolean>attributes_boolean</a> | <a href=#x-attributes-expression>attributes_expression</a> | <a href=#x-attributes-value>attributes_value</a>)
+<a id=x-attributes-boolean href=#x-attributes-boolean>attributes_boolean</a> ::= <a href=#x-key>key</a> [<a href=#x-attributes-after-identifier>attributes_after_identifier</a>]
+; Note: in gnostic mode the value of the expression must instead be a single valid ES spread
+; expression
+<a id=x-attributes-expression href=#x-attributes-expression>attributes_expression</a> ::= <a href=#x-expression>expression</a> [<a href=#x-attributes-after-value>attributes_after_value</a>]
+<a id=x-attributes-value href=#x-attributes-value>attributes_value</a> ::= <a href=#x-key>key</a> <a href=#x-initializer>initializer</a> [<a href=#x-attributes-after-value>attributes_after_value</a>]
+
+<a id=x-closing href=#x-closing>closing</a> ::= *<a href=#x-whitespace>whitespace</a> '/'
+
+<a id=x-name href=#x-name>name</a> ::= <a href=#x-identifier>identifier</a> [<a href=#x-local>local</a> | <a href=#x-members>members</a>]
+<a id=x-key href=#x-key>key</a> ::= <a href=#x-identifier>identifier</a> [<a href=#x-local>local</a>]
+<a id=x-local href=#x-local>local</a> ::= *<a href=#x-whitespace>whitespace</a> ':' *<a href=#x-whitespace>whitespace</a> <a href=#x-identifier>identifier</a>
+<a id=x-members href=#x-members>members</a> ::= <a href=#x-member>member</a> *<a href=#x-member>member</a>
+<a id=x-member href=#x-member>member</a> ::= *<a href=#x-whitespace>whitespace</a> '.' *<a href=#x-whitespace>whitespace</a> <a href=#x-identifier>identifier</a>
+
+<a id=x-identifier href=#x-identifier>identifier</a> ::= <a href=#x-identifier-start>identifier_start</a> *<a href=#x-identifier-part>identifier_part</a>
+<a id=x-initializer href=#x-initializer>initializer</a> ::= *<a href=#x-whitespace>whitespace</a> '=' *<a href=#x-whitespace>whitespace</a> <a href=#x-value>value</a>
+<a id=x-value href=#x-value>value</a> ::= <a href=#x-double-quoted>double_quoted</a> | <a href=#x-single-quoted>single_quoted</a> | <a href=#x-expression>expression</a>
+; Note: in gnostic mode the value must instead be a single valid ES expression
+<a id=x-expression href=#x-expression>expression</a> ::= '{' *(<a href=#x-expression-text>expression_text</a> | <a href=#x-expression>expression</a>) '}'
+
+<a id=x-double-quoted href=#x-double-quoted>double_quoted</a> ::= '"' *<a href=#x-double-quoted-text>double_quoted_text</a> '"'
+<a id=x-single-quoted href=#x-single-quoted>single_quoted</a> ::= "'" *<a href=#x-single-quoted-text>single_quoted_text</a> "'"
+
+<a id=x-whitespace href=#x-whitespace>whitespace</a> ::= <a href=#x-es-whitespace>es_whitespace</a>
+<a id=x-double-quoted-text href=#x-double-quoted-text>double_quoted_text</a> ::= char - '"'
+<a id=x-single-quoted-text href=#x-single-quoted-text>single_quoted_text</a> ::= char - "'"
+<a id=x-expression-text href=#x-expression-text>expression_text</a> ::= char - '{' - '}'
+<a id=x-identifier-start href=#x-identifier-start>identifier_start</a> ::= <a href=#x-es-identifier-start>es_identifier_start</a>
+<a id=x-identifier-part href=#x-identifier-part>identifier_part</a> ::= <a href=#x-es-identifier-part>es_identifier_part</a> | '-'
+
+<a id=x-space-or-tab href=#x-space-or-tab>space_or_tab</a> ::= '\t' | ' '
+<a id=x-eol href=#x-eol>eol</a> ::= '\n' | '\r' | '\r\n'
+
+; ECMAScript
+; See “IdentifierStart”: &lt;<a href=https://tc39.es/ecma262/#prod-IdentifierStart>https://tc39.es/ecma262/#prod-IdentifierStart</a>>
+<a id=x-es-identifier-start href=#x-es-identifier-start>es_identifier_start</a> ::= ?
+; See “IdentifierPart”: &lt;<a href=https://tc39.es/ecma262/#prod-IdentifierPart>https://tc39.es/ecma262/#prod-IdentifierPart</a>>
+<a id=x-es-identifier-part href=#x-es-identifier-part>es_identifier_part</a> ::= ?
+; See “Whitespace”: &lt;<a href=https://tc39.es/ecma262/#prod-WhiteSpace>https://tc39.es/ecma262/#prod-WhiteSpace</a>>
+<a id=x-es-whitespace href=#x-es-whitespace>es_whitespace</a> ::= ?

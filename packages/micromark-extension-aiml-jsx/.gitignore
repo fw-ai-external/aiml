@@ -1,0 +1,11 @@
+*.d.ts
+*.log
+*.map
+*.tsbuildinfo
+.DS_Store
+/index.js
+/lib/
+coverage/
+node_modules/
+yarn.lock
+!dev/index.d.ts

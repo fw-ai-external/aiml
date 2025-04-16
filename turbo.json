@@ -9,13 +9,22 @@
     "@fireworks/shared#build": {
       "outputs": ["dist/**"]
     },
-
     "@fireworks/runtime#build": {
       "dependsOn": ["^@fireworks/shared#build", "^@fireworks/parser#build"],
       "outputs": ["dist/**"]
     },
     "@fireworks/parser#build": {
-      "dependsOn": ["^@fireworks/shared#build"],
+      "dependsOn": ["^@fireworks/shared#build", "^unified-aiml#build"],
+      "outputs": ["dist/**"]
+    },
+    "@fireworks/unified-aiml#build": {
+      "dependsOn": [
+        "^micromark-extension-aiml-jsx#build",
+        "^mdast-util-aiml#build",
+        "^mdast-util-aiml-jsx#build",
+        "^unified-aiml#build",
+        "^micromark-extension-aimljs#build"
+      ],
       "outputs": ["dist/**"]
     },
     "fireagent-plugin-vscode#build": {
@@ -32,6 +41,12 @@
       "persistent": true
     },
     "@fireworks/parser#dev": {
+      "dependsOn": ["^unified-aiml#build"],
+      "persistent": true,
+      "outputs": ["dist/**"]
+    },
+    "@fireworks/parser#test": {
+      "dependsOn": ["^unified-aiml#build"],
       "persistent": true,
       "outputs": ["dist/**"]
     },

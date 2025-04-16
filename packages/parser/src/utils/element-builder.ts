@@ -27,6 +27,12 @@ export class ElementBuilder {
       allElementConfigs[
         tagName.toLowerCase() as keyof typeof allElementConfigs
       ];
+
+    // Throw an error if the config is not found for the tag
+    if (!config) {
+      throw new Error(`Unknown element tag found: ${tagName}`);
+    }
+
     // Generate a UUID if no id is provided
     const id = attributes.id || uuidv4();
 

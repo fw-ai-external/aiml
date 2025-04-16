@@ -4,7 +4,7 @@ import {
   DiagnosticSeverity,
 } from "@fireworks/shared";
 import remarkGfm from "remark-gfm";
-import remarkMdx from "remark-mdx";
+import unifiedAiml from "unified-aiml";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
 import remarkParse from "remark-parse";
 import { unified } from "unified";
@@ -33,7 +33,7 @@ export function safeParse(
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkMdxFrontmatter, { name: "frontmatter" })
-    .use(remarkMdx);
+    .use(unifiedAiml);
 
   // TODO support imported tags too
   const functionalTags = aimlElements;
