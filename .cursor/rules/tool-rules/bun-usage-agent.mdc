@@ -3,4 +3,40 @@ description:
 globs: 
 alwaysApply: false
 ---
- 
+# Bun Usage Standard
+
+## Critical Rules
+
+- Use `bun install` for installing all project dependencies.
+- Use `bun add <package>` to add a new dependency. Use `bun add -D <package>` to add a dev dependency.
+- Use `bun remove <package>` to remove a dependency.
+- Use `bun run <script_name>` to execute scripts defined in `package.json`.
+- **Do NOT use `npm` commands** (e.g., `npm install`, `npm run`, `npx`).
+- **Do NOT use `yarn` commands** (e.g., `yarn install`, `yarn add`, `yarn run`).
+
+## Examples
+
+<example>
+  ```bash
+  # Correct usage
+  bun install
+  bun add typescript
+  bun add -D prettier
+  bun run build
+  bun run dev
+  ```
+</example>
+
+<example type="invalid">
+  ```bash
+  # Incorrect usage - using npm
+  npm install
+  npm run dev
+  npx eslint .
+
+  # Incorrect usage - using yarn
+  yarn install
+  yarn add react
+  yarn run start
+  ```
+</example> 
