@@ -37,7 +37,7 @@
  *   Try and wrap syntax at this width (default: `Infinity`).
  *
  *   When set to a finite number (say, `80`), the formatter will print
- *   attributes on separate lines when a tag doesn’t fit on one line.
+ *   attributes on separate lines when a tag doesn't fit on one line.
  *   The normal behavior is to print attributes with spaces between them
  *   instead of line endings.
  */
@@ -52,15 +52,42 @@ import { VFileMessage } from "vfile-message";
 const indent = "  ";
 
 /**
+ * @typedef {import('./index.js').AimlJsxOptions} AimlJsxOptions
+ */
+
+/**
  * Create an extension for `mdast-util-from-markdown` to enable MDX JSX.
  *
+ * @param {AimlJsxOptions | null | undefined} [options]
+ *   Configuration (optional).
  * @returns {FromMarkdownExtension}
  *   Extension for `mdast-util-from-markdown` to enable MDX JSX.
  *
  *   When using the syntax extension with `addResult`, nodes will have a
  *   `data.estree` field set to an ESTree `Program` node.
  */
-export function aimlJsxFromMarkdown() {
+export function aimlJsxFromMarkdown(options) {
+  const settings = options || {};
+  const elementConfigs = settings.elementConfigs || {}; // Get config from options
+
+  /**
+   * Check if a tag name represents a valid AIML/JSX element based on
+   * provided config or if it's a fragment.
+   * Case-sensitive check against `elementConfigs`.
+   * Handles fragments (`null`/`undefined` names).
+   *
+   * @param {string | null | undefined} name The tag name.
+   * @returns {boolean} Whether it's a valid AIML/JSX tag or fragment.
+   */
+  function isValidAimlJsxTag(name) {
+    // Check for fragment
+    if (name === null || name === undefined) {
+      return true;
+    }
+    // Check if name is a key in the config object
+    return typeof name === "string" && name in elementConfigs;
+  }
+
   return {
     canContainEols: ["mdxJsxTextElement"],
     enter: {
@@ -171,13 +198,17 @@ export function aimlJsxFromMarkdown() {
     const stack = this.data.mdxJsxTagStack;
     assert(stack, "expected `mdxJsxTagStack`");
 
-    if (stack.length === 0) {
-      throw new VFileMessage(
-        "Unexpected closing slash `/` in tag, expected an open tag first",
-        { start: token.start, end: token.end },
-        "mdast-util-mdx-jsx:unexpected-closing-slash"
-      );
-    }
+    // Only throw an error if the stack is empty AND the closing tag is a VALID one.
+    // Invalid closing tags encountered with an empty stack are ignored.
+    // We determine validity later in exitMdxJsxTag based on what *was* expected.
+    // This simpler approach avoids needing tag name here.
+    // if (stack.length === 0) { // Original check - REMOVED
+    //   throw new VFileMessage(
+    //     "Unexpected closing slash `/` in tag, expected an open tag first",
+    //     { start: token.start, end: token.end },
+    //     "mdast-util-mdx-jsx:unexpected-closing-slash"
+    //   );
+    // }
   }
 
   /**
@@ -402,45 +433,73 @@ export function aimlJsxFromMarkdown() {
     assert(stack, "expected `mdxJsxTagStack`");
     const tail = stack[stack.length - 1];
 
-    if (tag.close && tail.name !== tag.name) {
-      throw new VFileMessage(
-        "Unexpected closing tag `" +
-          serializeAbbreviatedTag(tag) +
-          "`, expected corresponding closing tag for `" +
-          serializeAbbreviatedTag(tail) +
-          "` (" +
-          stringifyPosition(tail) +
-          ")",
-        { start: token.start, end: token.end },
-        "mdast-util-mdx-jsx:end-tag-mismatch"
-      );
-    }
+    const closing = tag.close;
+    const selfClosing = tag.selfClosing;
+    // Check if the current tag is a valid AIML/JSX tag or fragment
+    const currentIsValid = isValidAimlJsxTag(tag.name);
+    // Check if the tag on top of the stack is valid
+    const tailIsValid = tail ? isValidAimlJsxTag(tail.name) : false;
 
     // End of a tag, so drop the buffer.
     this.resume();
 
-    if (tag.close) {
-      stack.pop();
+    if (closing) {
+      // --- Closing Tag Logic ---
+      // --- Remove check: If it's a closing fragment, ignore it early ---
+      // if (tag.name === null) {
+      //   // Do nothing, fragments aren't tracked on the stack
+      // } else
+      if (tailIsValid) {
+        // Check stack top for closing named tags
+        // We were expecting a valid tag/fragment to close.
+        if (currentIsValid && tail.name === tag.name) {
+          // Correct tag/fragment closed.
+          stack.pop();
+        } else if (currentIsValid && tail.name !== tag.name) {
+          // Mismatched valid tag/fragment.
+          throw new VFileMessage(
+            "Unexpected closing tag `" +
+              serializeAbbreviatedTag(tag) +
+              "`, expected corresponding closing tag for `" +
+              serializeAbbreviatedTag(tail) +
+              "` (" +
+              stringifyPosition(tail) +
+              ")",
+            { start: token.start, end: token.end },
+            "mdast-util-mdx-jsx:end-tag-mismatch"
+          );
+        }
+        // If !currentIsValid: Found an invalid closing tag when expecting a valid one. Ignore it, don't pop.
+      }
+      // Else (!tailIsValid): The stack top is not a valid tag/fragment. Ignore this closing tag, don't pop.
     } else {
+      // --- Opening Tag Logic ---
+      // Enter the node into the tree *regardless* of validity.
+      // Invalid tags just won't require closing tags.
       this.enter(
         {
           type:
             token.type === "mdxJsxTextTag"
               ? "mdxJsxTextElement"
               : "mdxJsxFlowElement",
-          name: tag.name || null,
+          name: tag.name || null, // Keep null for fragments
           attributes: tag.attributes,
           children: [],
         },
         token,
-        onErrorRightIsTag
+        onErrorRightIsTag // Pass the potentially modified error handler
       );
+
+      // Only push opening *valid* tags/fragments onto the stack.
+      if (!selfClosing && currentIsValid /* && tag.name !== null */) {
+        stack.push(tag);
+      }
     }
 
-    if (tag.selfClosing || tag.close) {
-      this.exit(token, onErrorLeftIsTag);
-    } else {
-      stack.push(tag);
+    // Original exit logic: call exit handler for the node.
+    // Happens for both valid and invalid tags if they were entered.
+    if (selfClosing || closing) {
+      this.exit(token, onErrorLeftIsTag); // Pass the potentially modified error handler
     }
   }
 
@@ -451,23 +510,29 @@ export function aimlJsxFromMarkdown() {
   function onErrorRightIsTag(closing, open) {
     const stack = this.data.mdxJsxTagStack;
     assert(stack, "expected `mdxJsxTagStack`");
-    const tag = stack[stack.length - 1];
-    assert(tag, "expected `mdxJsxTag`");
-    const place = closing ? " before the end of `" + closing.type + "`" : "";
-    const position = closing
-      ? { start: closing.start, end: closing.end }
-      : undefined;
+    const tag = stack[stack.length - 1]; // The tag expecting a close
+    // assert(tag, 'expected `mdxJsxTag`'); // Can be undefined if stack is empty
 
-    throw new VFileMessage(
-      "Expected a closing tag for `" +
-        serializeAbbreviatedTag(tag) +
-        "` (" +
-        stringifyPosition({ start: open.start, end: open.end }) +
-        ")" +
-        place,
-      position,
-      "mdast-util-mdx-jsx:end-tag-mismatch"
-    );
+    // --- Only throw if the tag we were expecting to close IS valid ---
+    // Add check for tag existence
+    if (tag && isValidAimlJsxTag(tag.name)) {
+      const place = closing ? " before the end of `" + closing.type + "`" : "";
+      const position = closing
+        ? { start: closing.start, end: closing.end }
+        : undefined;
+
+      throw new VFileMessage(
+        "Expected a closing tag for `" +
+          serializeAbbreviatedTag(tag) +
+          "` (" +
+          stringifyPosition({ start: open.start, end: open.end }) +
+          ")" +
+          place,
+        position,
+        "mdast-util-mdx-jsx:end-tag-mismatch"
+      );
+    }
+    // Otherwise, do nothing, assume it's ignorable text/tag.
   }
 
   /**
@@ -475,29 +540,33 @@ export function aimlJsxFromMarkdown() {
    * @type {OnExitError}
    */
   function onErrorLeftIsTag(a, b) {
-    const tag = this.data.mdxJsxTag;
+    const tag = this.data.mdxJsxTag; // The tag that *was* just processed
     assert(tag, "expected `mdxJsxTag`");
 
-    throw new VFileMessage(
-      "Expected the closing tag `" +
-        serializeAbbreviatedTag(tag) +
-        "` either after the end of `" +
-        b.type +
-        "` (" +
-        stringifyPosition(b.end) +
-        ") or another opening tag after the start of `" +
-        b.type +
-        "` (" +
-        stringifyPosition(b.start) +
-        ")",
-      { start: a.start, end: a.end },
-      "mdast-util-mdx-jsx:end-tag-mismatch"
-    );
+    // --- Only throw if the tag that was just closed/self-closed IS valid ---
+    if (isValidAimlJsxTag(tag.name)) {
+      throw new VFileMessage(
+        "Expected the closing tag `" +
+          serializeAbbreviatedTag(tag) +
+          "` either after the end of `" +
+          b.type +
+          "` (" +
+          stringifyPosition(b.end) +
+          ") or another opening tag after the start of `" +
+          b.type +
+          "` (" +
+          stringifyPosition(b.start) +
+          ")",
+        { start: a.start, end: a.end },
+        "mdast-util-mdx-jsx:end-tag-mismatch"
+      );
+    }
+    // Otherwise, do nothing.
   }
 
   /**
    * Serialize a tag, excluding attributes.
-   * `self-closing` is not supported, because we don’t need it yet.
+   * `self-closing` is not supported, because we don't need it yet.
    *
    * @param {Tag} tag
    * @returns {string}
@@ -650,7 +719,7 @@ export function aimlJsxToMarkdown(options) {
       let index = -1;
 
       while (++index < serializedAttributes.length) {
-        // Only indent first line of of attributes, we can’t indent attribute
+        // Only indent first line of of attributes, we can't indent attribute
         // values.
         serializedAttributes[index] =
           currentIndent + indent + serializedAttributes[index];
@@ -703,7 +772,7 @@ export function aimlJsxToMarkdown(options) {
 // <https://github.com/syntax-tree/mdast-util-to-markdown/blob/a381cbc/lib/util/container-flow.js>.
 //
 // To do: add `indent` support to `mdast-util-to-markdown`.
-// As indents are only used for JSX, it’s fine for now, but perhaps better
+// As indents are only used for JSX, it's fine for now, but perhaps better
 // there.
 /**
  * @param {MdxJsxFlowElement} parent
