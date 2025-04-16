@@ -176,6 +176,10 @@ export function aimlJsxFromMarkdown(options) {
    * @type {FromMarkdownHandle}
    */
   function enterMdxJsxTag(token) {
+    // Get the raw text of the full tag
+    const tagText = this.sliceSerialize(token);
+
+    // Create and store tag info
     /** @type {Tag} */
     const tag = {
       name: undefined,
@@ -184,7 +188,9 @@ export function aimlJsxFromMarkdown(options) {
       selfClosing: false,
       start: token.start,
       end: token.end,
+      rawText: tagText, // Store the raw text for invalid tags
     };
+
     if (!this.data.mdxJsxTagStack) this.data.mdxJsxTagStack = [];
     this.data.mdxJsxTag = tag;
     this.buffer();
@@ -195,20 +201,9 @@ export function aimlJsxFromMarkdown(options) {
    * @type {FromMarkdownHandle}
    */
   function enterMdxJsxTagClosingMarker(token) {
-    const stack = this.data.mdxJsxTagStack;
-    assert(stack, "expected `mdxJsxTagStack`");
-
-    // Only throw an error if the stack is empty AND the closing tag is a VALID one.
-    // Invalid closing tags encountered with an empty stack are ignored.
-    // We determine validity later in exitMdxJsxTag based on what *was* expected.
-    // This simpler approach avoids needing tag name here.
-    // if (stack.length === 0) { // Original check - REMOVED
-    //   throw new VFileMessage(
-    //     "Unexpected closing slash `/` in tag, expected an open tag first",
-    //     { start: token.start, end: token.end },
-    //     "mdast-util-mdx-jsx:unexpected-closing-slash"
-    //   );
-    // }
+    const tag = this.data.mdxJsxTag;
+    assert(tag, "expected `mdxJsxTag`");
+    tag.close = true;
   }
 
   /**
@@ -223,7 +218,7 @@ export function aimlJsxFromMarkdown(options) {
       throw new VFileMessage(
         "Unexpected attribute in closing tag, expected the end of the tag",
         { start: token.start, end: token.end },
-        "mdast-util-mdx-jsx:unexpected-attribute"
+        "mdast-util-aiml-jsx:unexpected-attribute"
       );
     }
   }
@@ -240,7 +235,7 @@ export function aimlJsxFromMarkdown(options) {
       throw new VFileMessage(
         "Unexpected self-closing slash `/` in closing tag, expected the end of the tag",
         { start: token.start, end: token.end },
-        "mdast-util-mdx-jsx:unexpected-self-closing-slash"
+        "mdast-util-aiml-jsx:unexpected-self-closing-slash"
       );
     }
   }
@@ -250,9 +245,7 @@ export function aimlJsxFromMarkdown(options) {
    * @type {FromMarkdownHandle}
    */
   function exitMdxJsxTagClosingMarker() {
-    const tag = this.data.mdxJsxTag;
-    assert(tag, "expected `mdxJsxTag`");
-    tag.close = true;
+    // This is called right after closing marker. Nothing to do.
   }
 
   /**
@@ -290,19 +283,17 @@ export function aimlJsxFromMarkdown(options) {
    * @type {FromMarkdownHandle}
    */
   function enterMdxJsxTagAttribute(token) {
+    enterMdxJsxTagAnyAttribute.call(this, token);
+
+    // Store attribute info but don't enter the stack - avoid nesting that complicates the AST
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-    enterMdxJsxTagAnyAttribute.call(this, token);
-    tag.attributes.push({
+
+    tag.currentAttribute = {
       type: "mdxJsxAttribute",
-      name: "",
-      value: null,
-      position: {
-        start: point(token.start),
-        // @ts-expect-error: `end` will be patched later.
-        end: undefined,
-      },
-    });
+      name: undefined,
+      value: undefined,
+    };
   }
 
   /**
@@ -310,18 +301,17 @@ export function aimlJsxFromMarkdown(options) {
    * @type {FromMarkdownHandle}
    */
   function enterMdxJsxTagExpressionAttribute(token) {
+    enterMdxJsxTagAnyAttribute.call(this, token);
+
+    // Store attribute info but don't enter the stack - avoid nesting that complicates the AST
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-    enterMdxJsxTagAnyAttribute.call(this, token);
-    tag.attributes.push({
+
+    tag.currentAttribute = {
       type: "mdxJsxExpressionAttribute",
       value: "",
-      position: {
-        start: point(token.start),
-        // @ts-expect-error: `end` will be patched later.
-        end: undefined,
-      },
-    });
+    };
+
     this.buffer();
   }
 
@@ -332,17 +322,15 @@ export function aimlJsxFromMarkdown(options) {
   function exitMdxJsxTagExpressionAttribute(token) {
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-    const tail = tag.attributes[tag.attributes.length - 1];
-    assert(tail.type === "mdxJsxExpressionAttribute");
-    const estree = token.estree;
+    assert(tag.currentAttribute, "expected tag.currentAttribute");
 
-    tail.value = this.resume();
-    assert(tail.position !== undefined);
-    tail.position.end = point(token.end);
+    // Get expression attribute and add to attributes array
+    const attr = tag.currentAttribute;
+    attr.value = this.resume();
+    tag.attributes.push(attr);
 
-    if (estree) {
-      tail.data = { estree };
-    }
+    // Clear current attribute
+    tag.currentAttribute = undefined;
   }
 
   /**
@@ -352,11 +340,9 @@ export function aimlJsxFromMarkdown(options) {
   function exitMdxJsxTagAttributeNamePrimary(token) {
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-    const node = tag.attributes[tag.attributes.length - 1];
-    assert(node.type === "mdxJsxAttribute");
-    node.name = this.sliceSerialize(token);
-    assert(node.position !== undefined);
-    node.position.end = point(token.end);
+    assert(tag.currentAttribute, "expected tag.currentAttribute");
+
+    tag.currentAttribute.name = this.sliceSerialize(token);
   }
 
   /**
@@ -366,11 +352,9 @@ export function aimlJsxFromMarkdown(options) {
   function exitMdxJsxTagAttributeNameLocal(token) {
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-    const node = tag.attributes[tag.attributes.length - 1];
-    assert(node.type === "mdxJsxAttribute");
-    node.name += ":" + this.sliceSerialize(token);
-    assert(node.position !== undefined);
-    node.position.end = point(token.end);
+    assert(tag.currentAttribute, "expected tag.currentAttribute");
+
+    tag.currentAttribute.name += ":" + this.sliceSerialize(token);
   }
 
   /**
@@ -380,10 +364,16 @@ export function aimlJsxFromMarkdown(options) {
   function exitMdxJsxTagAttributeValueLiteral(token) {
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-    const node = tag.attributes[tag.attributes.length - 1];
-    node.value = parseEntities(this.resume(), { nonTerminated: false });
-    assert(node.position !== undefined);
-    node.position.end = point(token.end);
+    assert(tag.currentAttribute, "expected tag.currentAttribute");
+
+    const value = this.resume();
+    tag.currentAttribute.value = parseEntities(value, { nonTerminated: false });
+
+    // Add the completed attribute to the attributes array
+    tag.attributes.push(tag.currentAttribute);
+
+    // Clear current attribute
+    tag.currentAttribute = undefined;
   }
 
   /**
@@ -393,22 +383,23 @@ export function aimlJsxFromMarkdown(options) {
   function exitMdxJsxTagAttributeValueExpression(token) {
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-    const tail = tag.attributes[tag.attributes.length - 1];
-    assert(tail.type === "mdxJsxAttribute");
+    assert(tag.currentAttribute, "expected tag.currentAttribute");
+
+    const value = this.resume();
+
     /** @type {MdxJsxAttributeValueExpression} */
-    const node = {
+    const expressionValue = {
       type: "mdxJsxAttributeValueExpression",
-      value: this.resume(),
+      value,
     };
-    const estree = token.estree;
 
-    if (estree) {
-      node.data = { estree };
-    }
+    tag.currentAttribute.value = expressionValue;
 
-    tail.value = node;
-    assert(tail.position !== undefined);
-    tail.position.end = point(token.end);
+    // Add the completed attribute to the attributes array
+    tag.attributes.push(tag.currentAttribute);
+
+    // Clear current attribute
+    tag.currentAttribute = undefined;
   }
 
   /**
@@ -418,7 +409,6 @@ export function aimlJsxFromMarkdown(options) {
   function exitMdxJsxTagSelfClosingMarker() {
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-
     tag.selfClosing = true;
   }
 
@@ -435,25 +425,33 @@ export function aimlJsxFromMarkdown(options) {
 
     const closing = tag.close;
     const selfClosing = tag.selfClosing;
-    // Check if the current tag is a valid AIML/JSX tag or fragment
     const currentIsValid = isValidAimlJsxTag(tag.name);
-    // Check if the tag on top of the stack is valid
     const tailIsValid = tail ? isValidAimlJsxTag(tail.name) : false;
 
     // End of a tag, so drop the buffer.
     this.resume();
 
+    // For invalid tags, create text nodes with the raw tag content
+    if (!currentIsValid) {
+      // Get raw text of the whole tag
+      const rawText = this.sliceSerialize(token);
+
+      this.enter(
+        {
+          type: "text",
+          value: rawText,
+        },
+        token
+      );
+
+      this.exit(token);
+      return; // Return early, don't process further
+    }
+
     if (closing) {
       // --- Closing Tag Logic ---
-      // --- Remove check: If it's a closing fragment, ignore it early ---
-      // if (tag.name === null) {
-      //   // Do nothing, fragments aren't tracked on the stack
-      // } else
       if (tailIsValid) {
-        // Check stack top for closing named tags
-        // We were expecting a valid tag/fragment to close.
         if (currentIsValid && tail.name === tag.name) {
-          // Correct tag/fragment closed.
           stack.pop();
         } else if (currentIsValid && tail.name !== tag.name) {
           // Mismatched valid tag/fragment.
@@ -466,40 +464,38 @@ export function aimlJsxFromMarkdown(options) {
               stringifyPosition(tail) +
               ")",
             { start: token.start, end: token.end },
-            "mdast-util-mdx-jsx:end-tag-mismatch"
+            "mdast-util-aiml-jsx:end-tag-mismatch"
           );
         }
-        // If !currentIsValid: Found an invalid closing tag when expecting a valid one. Ignore it, don't pop.
       }
-      // Else (!tailIsValid): The stack top is not a valid tag/fragment. Ignore this closing tag, don't pop.
     } else {
       // --- Opening Tag Logic ---
-      // Enter the node into the tree *regardless* of validity.
-      // Invalid tags just won't require closing tags.
-      this.enter(
-        {
-          type:
-            token.type === "mdxJsxTextTag"
-              ? "mdxJsxTextElement"
-              : "mdxJsxFlowElement",
-          name: tag.name || null, // Keep null for fragments
-          attributes: tag.attributes,
-          children: [],
-        },
-        token,
-        onErrorRightIsTag // Pass the potentially modified error handler
-      );
+      // Enter the node into the tree ONLY IF it's a VALID tag or fragment.
+      if (currentIsValid) {
+        this.enter(
+          {
+            type:
+              token.type === "mdxJsxTextTag"
+                ? "mdxJsxTextElement"
+                : "mdxJsxFlowElement",
+            name: tag.name || null, // Keep null for fragments
+            attributes: tag.attributes,
+            children: [],
+          },
+          token,
+          onErrorRightIsTag
+        );
+      }
 
       // Only push opening *valid* tags/fragments onto the stack.
-      if (!selfClosing && currentIsValid /* && tag.name !== null */) {
+      if (!selfClosing && currentIsValid) {
         stack.push(tag);
       }
     }
 
-    // Original exit logic: call exit handler for the node.
-    // Happens for both valid and invalid tags if they were entered.
-    if (selfClosing || closing) {
-      this.exit(token, onErrorLeftIsTag); // Pass the potentially modified error handler
+    // Exit the node *only* if it was a valid tag that got entered.
+    if (currentIsValid && (selfClosing || closing)) {
+      this.exit(token, onErrorLeftIsTag);
     }
   }
 
@@ -510,11 +506,15 @@ export function aimlJsxFromMarkdown(options) {
   function onErrorRightIsTag(closing, open) {
     const stack = this.data.mdxJsxTagStack;
     assert(stack, "expected `mdxJsxTagStack`");
+
+    // Handle case when we can't find the opening tag on stack (empty stack)
+    if (stack.length === 0) {
+      return; // Skip throwing an error for empty stack
+    }
+
     const tag = stack[stack.length - 1]; // The tag expecting a close
-    // assert(tag, 'expected `mdxJsxTag`'); // Can be undefined if stack is empty
 
     // --- Only throw if the tag we were expecting to close IS valid ---
-    // Add check for tag existence
     if (tag && isValidAimlJsxTag(tag.name)) {
       const place = closing ? " before the end of `" + closing.type + "`" : "";
       const position = closing
@@ -529,10 +529,9 @@ export function aimlJsxFromMarkdown(options) {
           ")" +
           place,
         position,
-        "mdast-util-mdx-jsx:end-tag-mismatch"
+        "mdast-util-aiml-jsx:end-tag-mismatch"
       );
     }
-    // Otherwise, do nothing, assume it's ignorable text/tag.
   }
 
   /**
@@ -540,7 +539,7 @@ export function aimlJsxFromMarkdown(options) {
    * @type {OnExitError}
    */
   function onErrorLeftIsTag(a, b) {
-    const tag = this.data.mdxJsxTag; // The tag that *was* just processed
+    const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
 
     // --- Only throw if the tag that was just closed/self-closed IS valid ---
@@ -558,10 +557,9 @@ export function aimlJsxFromMarkdown(options) {
           stringifyPosition(b.start) +
           ")",
         { start: a.start, end: a.end },
-        "mdast-util-mdx-jsx:end-tag-mismatch"
+        "mdast-util-aiml-jsx:end-tag-mismatch"
       );
     }
-    // Otherwise, do nothing.
   }
 
   /**

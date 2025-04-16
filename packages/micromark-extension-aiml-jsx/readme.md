@@ -52,9 +52,6 @@ You can use this extension when you are working with
 To support all MDX features,
 use [`micromark-extension-mdxjs`][github-micromark-extension-mdxjs] instead.
 
-When you need a syntax tree,
-combine this package with [`mdast-util-mdx-jsx`][github-mdast-util-mdx-jsx].
-
 All these packages are used in [`remark-mdx`][mdxjs-remark-mdx],
 which focusses on making it easier to transform content by abstracting these
 internals away.
@@ -106,7 +103,7 @@ Yields:
 …which is useless:
 go to a syntax tree with
 [`mdast-util-from-markdown`][github-mdast-util-from-markdown] and
-[`mdast-util-mdx-jsx`][github-mdast-util-mdx-jsx] instead.
+[`mdast-util-aiml-jsx`][github-mdast-util-aiml-jsx] instead.
 
 ## API
 
@@ -462,7 +459,7 @@ This package is safe.
 
 - [`micromark-extension-mdxjs`][github-micromark-extension-mdxjs]
   — support all MDX syntax
-- [`mdast-util-mdx-jsx`][github-mdast-util-mdx-jsx]
+- [`mdast-util-aiml-jsx`][github-mdast-util-aiml-jsx]
   — support MDX JSX in mdast
 - [`remark-mdx`][mdxjs-remark-mdx]
   — support all MDX syntax in remark
@@ -501,7 +498,7 @@ or community you agree to abide by its terms.
 [github-expression-syntax]: https://github.com/micromark/micromark-extension-mdx-expression/blob/main/packages/micromark-extension-mdx-expression/readme.md#syntax
 [github-gist-esm]: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
 [github-mdast-util-from-markdown]: https://github.com/syntax-tree/mdast-util-from-markdown
-[github-mdast-util-mdx-jsx]: https://github.com/syntax-tree/mdast-util-mdx-jsx
+[github-mdast-util-aiml-jsx]: https://github.com/syntax-tree/mdast-util-aiml-jsx
 [github-micromark]: https://github.com/micromark/micromark
 [github-micromark-expression]: https://github.com/micromark/micromark-extension-mdx-expression
 [github-micromark-extension]: https://github.com/micromark/micromark#syntaxextension

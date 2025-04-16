@@ -34,7 +34,7 @@ export function healInvalidElementTree(
       comments.push(node as CommentNode);
     } else if (node.astSourceType === "paragraph") {
       rootLevelParagraphs.push(node);
-    } else if (node.subType === "user-input") {
+    } else if (node.tag === "workflow") {
       workflowNode = node;
       rootLevelNodes.push(node);
     } else {
@@ -434,7 +434,7 @@ export function healFlowOrError(
         // Add transition to next sibling
         currentState.children.push({
           astSourceType: "element",
-          type: "state" as ElementType,
+          type: "action" as ElementType,
           key: generateKey(),
           tag: "transition",
           subType: "action" as ElementSubType,

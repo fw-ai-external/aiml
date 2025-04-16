@@ -180,7 +180,6 @@ For info on the syntax of these features, see each corresponding readme:
 For info on the syntax tree of these features, see each corresponding readme:
 
 - [ESM](https://github.com/syntax-tree/mdast-util-mdxjs-esm#syntax-tree)
-- [JSX](https://github.com/syntax-tree/mdast-util-mdx-jsx#syntax-tree)
 - [expressions](https://github.com/syntax-tree/mdast-util-mdx-expression#syntax-tree)
 - CommonMark features not in MDX: n/a
 

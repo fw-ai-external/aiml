@@ -1,5 +1,5 @@
 // Placeholder test file
-// Add tests based on mdast-util-mdx-jsx tests
+// Add tests based on mdast-util-aiml-jsx tests
 
 import { strict as assert } from "node:assert";
 // import { micromark } from "micromark";
@@ -93,6 +93,78 @@ describe("mdast-util-aiml-jsx", () => {
     });
   });
 
+  test("treats unknown tags that don\\'t match as text/paragraphs", () => {
+    const contentWithUnknownTags = `<completelyfaketag>
+This is some text inside an unknown tag
+</completelyfaketag>
+
+Some regular paragraph text.
+
+<anotherfaketag attr="value">
+  With some nested content
+</anotherfaketag>`;
+
+    const result = process(contentWithUnknownTags);
+
+    // Check that all nodes with content are paragraphs or text
+    // Without the fixes, we'd get jsx element nodes for unknown tags
+    result.children.forEach((child) => {
+      assert.ok(
+        child.type === "paragraph" || child.type === "text",
+        `Expected node type to be "paragraph" or "text", got "${child.type}"`
+      );
+    });
+
+    // Find the content paragraphs (now we may have text nodes directly in children array)
+    const paragraphs = result.children.filter(
+      (node) => node.type === "paragraph"
+    );
+    assert.ok(paragraphs.length >= 2, "Expected at least 2 paragraphs");
+
+    // Find a paragraph with our known regular text content
+    const regularTextParagraph = paragraphs.find(
+      (p) =>
+        p.children &&
+        p.children[0] &&
+        p.children[0].value === "Some regular paragraph text."
+    );
+
+    // Check the content of the paragraph with regular text
+    assert.ok(regularTextParagraph, "Regular text paragraph not found");
+    assert.deepEqual(regularTextParagraph, {
+      type: "paragraph",
+      children: [{ type: "text", value: "Some regular paragraph text." }],
+    });
+
+    // Ensure we have the fake tag content (either as separate text nodes or in paragraphs)
+    const allTextContent = result.children
+      .flatMap((node) => (node.type === "paragraph" ? node.children : [node]))
+      .filter((node) => node.type === "text")
+      .map((node) => node.value);
+
+    // Check that we have the important content fragments somewhere in the result
+    assert.ok(
+      allTextContent.some((text) => text.includes("<completelyfaketag>")),
+      "Opening fake tag not found"
+    );
+    assert.ok(
+      allTextContent.some((text) =>
+        text.includes("This is some text inside an unknown tag")
+      ),
+      "Content text not found"
+    );
+    assert.ok(
+      allTextContent.some((text) => text.includes("</completelyfaketag>")),
+      "Closing fake tag not found"
+    );
+    assert.ok(
+      allTextContent.some((text) =>
+        text.includes('<anotherfaketag attr="value">')
+      ),
+      "Opening tag with attributes not found"
+    );
+  });
+
   it("should parse a valid fragment", () => {
     const result = process("<>fragment content</>");
     // Expect paragraph > text element wrapper
@@ -112,34 +184,22 @@ describe("mdast-util-aiml-jsx", () => {
   it("should parse an *invalid* (unconfigured) tag as an element even with closing tag", () => {
     // Test that an invalid tag pair parses correctly without validation errors
     const result = process("<invalid> some text</invalid>"); // Added closing tag
-    assert.deepEqual(result.children[0], {
-      type: "paragraph", // Expect paragraph wrapper
-      children: [
-        {
-          type: "mdxJsxTextElement", // Expect Text element
-          name: "invalid",
-          attributes: [],
-          children: [{ type: "text", value: " some text" }], // Content is processed
-        },
-      ],
-    });
+    // Since we now parse opening and closing tags as separate text nodes, we need to check both are present
+    assert.equal(result.children[0].children.length, 2);
+    assert.equal(result.children[0].children[0].type, "text");
+    assert.equal(result.children[0].children[0].value, "<invalid> some text");
+    assert.equal(result.children[0].children[1].type, "text");
+    assert.equal(result.children[0].children[1].value, "</invalid>");
   });
 
   it("should parse mismatched *invalid* tags without error", () => {
     const result = process("<invalid>text</unconfigured>"); // Mismatched, should NOT error
-    assert.deepEqual(result.children[0], {
-      type: "paragraph", // Expect paragraph wrapper
-      children: [
-        {
-          type: "mdxJsxTextElement", // Expect Text element
-          name: "invalid",
-          attributes: [],
-          children: [{ type: "text", value: "text" }], // Expect processed content, not raw string
-        },
-        // The closing tag might appear as text depending on micromark handling
-        // We don't assert on the closing tag part as its handling is outside this util's scope
-      ],
-    });
+    // Since we now parse opening and closing tags as separate text nodes, we need to check both are present
+    assert.equal(result.children[0].children.length, 2);
+    assert.equal(result.children[0].children[0].type, "text");
+    assert.equal(result.children[0].children[0].value, "<invalid>text");
+    assert.equal(result.children[0].children[1].type, "text");
+    assert.equal(result.children[0].children[1].value, "</unconfigured>");
   });
 
   it("should THROW on mismatched *valid* configured tags", () => {
@@ -172,20 +232,14 @@ describe("mdast-util-aiml-jsx", () => {
 
   it("should parse invalid tags with attributes (no validation)", () => {
     const result = process('<invalid data="stuff">text</other>');
-    assert.deepEqual(result.children[0], {
-      type: "paragraph", // Expect paragraph wrapper
-      children: [
-        {
-          type: "mdxJsxTextElement", // Expect Text element
-          name: "invalid",
-          attributes: [
-            { type: "mdxJsxAttribute", name: "data", value: "stuff" },
-          ],
-          children: [{ type: "text", value: "text" }],
-        },
-        // The closing tag might appear as text
-        // We don't assert on the closing tag part
-      ],
-    });
+    // Since we now parse opening and closing tags as separate text nodes, we need to check both are present
+    assert.equal(result.children[0].children.length, 2);
+    assert.equal(result.children[0].children[0].type, "text");
+    assert.equal(
+      result.children[0].children[0].value,
+      '<invalid data="stuff">text'
+    );
+    assert.equal(result.children[0].children[1].type, "text");
+    assert.equal(result.children[0].children[1].value, "</other>");
   });
 });

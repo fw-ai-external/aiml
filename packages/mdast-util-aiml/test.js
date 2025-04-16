@@ -1,6 +1,6 @@
 import assert from 'bun:assert/strict'
 import test from 'bun:test'
-import {mdxjs} from 'micromark-extension-mdxjs'
+import {aimljs} from 'micromark-extension-aimljs'
 import {fromMarkdown} from 'mdast-util-from-markdown'
 import {mdxFromMarkdown, mdxToMarkdown} from 'mdast-util-mdx'
 import {toMarkdown} from 'mdast-util-to-markdown'
@@ -20,7 +20,7 @@ test('mdxFromMarkdown()', async function (t) {
       JSON.parse(
         JSON.stringify(
           fromMarkdown('import a from "b"', {
-            extensions: [mdxjs()],
+            extensions: [aimljs()],
             mdastExtensions: [mdxFromMarkdown()]
           })
         )
@@ -109,7 +109,7 @@ test('mdxFromMarkdown()', async function (t) {
   await t.test('should support jsx', async function () {
     assert.deepEqual(
       fromMarkdown('<x/>', {
-        extensions: [mdxjs()],
+        extensions: [aimljs()],
         mdastExtensions: [mdxFromMarkdown()]
       }),
       {
@@ -139,7 +139,7 @@ test('mdxFromMarkdown()', async function (t) {
       JSON.parse(
         JSON.stringify(
           fromMarkdown('{1 + 1}', {
-            extensions: [mdxjs()],
+            extensions: [aimljs()],
             mdastExtensions: [mdxFromMarkdown()]
           })
         )
@@ -232,7 +232,7 @@ test('mdxFromMarkdown()', async function (t) {
           fromMarkdown(
             "<Stuff>\n  {{\n    template: /* Comment */ '',\n  }}\n</Stuff>",
             {
-              extensions: [mdxjs()],
+              extensions: [aimljs()],
               mdastExtensions: [mdxFromMarkdown()]
             }
           )
@@ -361,7 +361,7 @@ test('mdxFromMarkdown()', async function (t) {
       JSON.parse(
         JSON.stringify(
           fromMarkdown("export let a = 'a'\n\nexport let b = 'b'", {
-            extensions: [mdxjs()],
+            extensions: [aimljs()],
             mdastExtensions: [mdxFromMarkdown()]
           })
         )

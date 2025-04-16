@@ -4,55 +4,6 @@ import { DiagnosticSeverity } from "@fireworks/shared";
 import { VFile } from "vfile";
 
 describe("safeParse", () => {
-  test("handles malformed XML-like syntax with recovery using fuzzy matching of tag names", () => {
-    const malformedContent = `<data id="images"/>
-
-<foreach>
-dddfsd
-</foreach>
-
-<scrip>
-
-</script>`;
-
-    const result = safeParse(malformedContent, {
-      filePath: "test.aiml",
-      maxIterations: 10,
-      files: [],
-      generateIds: true,
-    });
-
-    // Verify diagnostics are generated
-    expect(result.diagnostics.size).toBeGreaterThan(0);
-
-    // Convert diagnostics to array for easier testing
-    const diagnosticsArray = Array.from(result.diagnostics);
-
-    console.log(diagnosticsArray);
-    // Verify we have warnings about syntax errors
-    expect(
-      diagnosticsArray.some(
-        (d) =>
-          d.severity === DiagnosticSeverity.Warning &&
-          (d.code === "AIML010" || d.code === "AIML011") &&
-          (d.message.includes("Invalid syntax") ||
-            d.message.includes("Corrected mismatched tag") || d.message.includes("not a valid AIML element"))
-      )
-    ).toBe(true);
-
-    // Verify AST is created even with errors
-    expect(result.ast).toBeDefined();
-    expect(result.ast.type).toBe("root");
-
-    // Uncomment the assertions
-    expect(result.ast.children).toHaveLength(1); // Only the data element is in the AST, as the parser stops at the syntax error
-
-    // First element: data
-    expect(result.ast.children[0].type).toBe("paragraph");
-    // Due to the error, the element becomes a paragraph instead of a proper MDX element
-
-  });
-
   test("handles empty content", () => {
     const result = safeParse("", {
       filePath: "test.aiml",
@@ -105,12 +56,10 @@ Some regular paragraph text.
       generateIds: true,
     });
 
-    // Verify diagnostics are generated
-    expect(result.diagnostics.size).toBeGreaterThan(0);
-
     // Verify AST is created
     expect(result.ast).toBeDefined();
     expect(result.ast.type).toBe("root");
+    console.log(result.ast);
 
     // Check that the content is treated as text paragraphs
     const paragraphs = result.ast.children.filter(

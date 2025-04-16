@@ -74,6 +74,7 @@ Some text here with {userInput.message.content}
       });
 
       const result = await parseMDXFilesToAIML([testFile]);
+      console.log("result", result);
 
       expect(result.nodes).not.toBeNull();
 
