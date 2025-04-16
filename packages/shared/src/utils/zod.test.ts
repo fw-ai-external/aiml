@@ -26,7 +26,9 @@ describe("jsExpressionSchema", () => {
   });
 
   it("should invalidate incorrect JavaScript expressions", () => {
-    const result1 = elementExpressionCallbackSchema.safeParse("1 +");
+    const result1 = elementExpressionCallbackSchema.safeParse(
+      "::FUNCTION-EXPRESSION::(context) => { const ctx = context; return 1 +}"
+    );
     expect(result1.success).toBe(false);
     if (!result1.success) {
       expect(result1.error.errors[0].message).toContain("Unexpected token"); // Acorn error
@@ -46,9 +48,9 @@ describe("jsExpressionSchema", () => {
     }
   });
 
-  it("should validate undefined for optional schema", () => {
+  it("should invalidate undefined for optional schema", () => {
     expect(elementExpressionCallbackSchema.safeParse(undefined).success).toBe(
-      true
+      false
     );
   });
 

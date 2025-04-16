@@ -108,17 +108,24 @@ export const functionStringSchemaReturnType = (returnType: z.ZodType<any>) =>
   z
     .string()
     .startsWith("::FUNCTION")
-    .transform((val) => {
-      if (val.startsWith("::FUNCTION-EXPRESSION::")) {
+    .transform((val, ctx: RefinementCtx) => {
+      try {
+        if (val.startsWith("::FUNCTION-EXPRESSION::")) {
+          return {
+            fn: new Function(val.slice(23)),
+            string: val,
+          };
+        }
         return {
-          fn: new Function(val.slice(23)),
+          fn: new Function(val.slice(12)),
           string: val,
         };
+      } catch (e) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: e instanceof Error ? e.message : "Invalid function",
+        });
       }
-      return {
-        fn: new Function(val.slice(12)),
-        string: val,
-      };
     })
     .pipe(
       z.object({
@@ -183,10 +190,24 @@ export const elementExpressionCallbackSchema = z.union([
     }),
   z
     .string()
-    .startsWith("::FUNCTION::")
-    .transform((val) => {
-      const fn = new Function(val.slice(12));
-      return fn;
+    .transform((val, ctx: RefinementCtx) => {
+      try {
+        if (val.startsWith("::FUNCTION-EXPRESSION::")) {
+          const fn = new Function(val.slice(23));
+          return fn;
+        } else if (val.startsWith("::FUNCTION::")) {
+          const fn = new Function(val.slice(12));
+          return fn;
+        } else {
+          return new Function(val);
+        }
+      } catch (e) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: e instanceof Error ? e.message : "Invalid function",
+        });
+        return z.NEVER;
+      }
     })
     .superRefine((val, ctx: RefinementCtx) => {
       if (typeof val !== "function") {
@@ -198,6 +219,7 @@ export const elementExpressionCallbackSchema = z.union([
 
       return val.toString();
     }),
+
   functionStringSchemaReturnType(z.any()),
 ]);
 export const elementArrayExpressionCallbackSchema = z.union([
