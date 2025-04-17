@@ -407,7 +407,10 @@ export class WorkflowGraphBuilder {
     this._currentCondition = condition;
 
     // Create a new context for the if branch
-    const ifContext = this.currentContext?.clone()!;
+    const ifContext =
+      this.currentContext?.clone() ??
+      this.rootContext ??
+      this.createBuildContext(this.currentContext?.element!);
     ifContext.isInIfBlock = true;
     ifContext.currentCondition = condition;
 
