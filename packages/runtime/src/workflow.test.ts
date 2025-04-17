@@ -1,9 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
 import fs from "fs";
 import path from "path";
-import { container } from "./di";
 import type { BaseElement } from "./elements";
-import { registerGraphBuilder } from "./graphBuilder";
 import { Workflow } from "./workflow";
 
 // Sample workflow data for testing
@@ -64,21 +62,12 @@ describe("Workflow Context Management", () => {
     // Create a real BaseElement for testing
     testElement = createTestElement();
 
-    // Make sure required services are available in the container
-    // Save original services if they exist
-    originalServices = new Map(container["services"]);
-
-    // Register the graph builder service
-    try {
-      registerGraphBuilder();
-    } catch (error) {
-      // Service might already be registered
-      console.log("Service already registered:", error);
-    }
-
     // Create a workflow instance for testing
     try {
-      workflow = new Workflow(testElement);
+      workflow = new Workflow(testElement, {
+        scopedDataModels: {},
+        fieldValues: {},
+      });
     } catch (error) {
       console.error("Error creating workflow:", error);
       throw error;
@@ -93,9 +82,6 @@ describe("Workflow Context Management", () => {
         fs.unlinkSync(path.join(testDir, file));
       }
     }
-
-    // Restore original services
-    container["services"] = originalServices;
   });
 
   describe("getContextValues", () => {

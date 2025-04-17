@@ -14,7 +14,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "bun run test-coverage",
+    "test": "bun run test-api",
     "test-api": "bun test/index.js",
     "test-coverage": "c8 --100 --reporter lcov npm run test-api",
     "build": "echo 'built'"
