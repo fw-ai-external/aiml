@@ -188,8 +188,10 @@ export function aimlJsxFromMarkdown(options) {
       selfClosing: false,
       start: token.start,
       end: token.end,
-      rawText: tagText, // Store the raw text for invalid tags
+      rawText: tagText, // Store the raw text for the sake of invalid tags
     };
+
+    console.log("AIML-JSX: Entering tag:", tag);
 
     if (!this.data.mdxJsxTagStack) this.data.mdxJsxTagStack = [];
     this.data.mdxJsxTag = tag;
@@ -245,7 +247,9 @@ export function aimlJsxFromMarkdown(options) {
    * @type {FromMarkdownHandle}
    */
   function exitMdxJsxTagClosingMarker() {
-    // This is called right after closing marker. Nothing to do.
+    const tag = this.data.mdxJsxTag;
+    assert(tag, "expected `mdxJsxTag`");
+    tag.close = true;
   }
 
   /**
@@ -283,17 +287,19 @@ export function aimlJsxFromMarkdown(options) {
    * @type {FromMarkdownHandle}
    */
   function enterMdxJsxTagAttribute(token) {
-    enterMdxJsxTagAnyAttribute.call(this, token);
-
-    // Store attribute info but don't enter the stack - avoid nesting that complicates the AST
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-
-    tag.currentAttribute = {
+    enterMdxJsxTagAnyAttribute.call(this, token);
+    tag.attributes.push({
       type: "mdxJsxAttribute",
-      name: undefined,
-      value: undefined,
-    };
+      name: "",
+      value: null,
+      position: {
+        start: point(token.start),
+        // @ts-expect-error: `end` will be patched later.
+        end: undefined,
+      },
+    });
   }
 
   /**
@@ -301,36 +307,35 @@ export function aimlJsxFromMarkdown(options) {
    * @type {FromMarkdownHandle}
    */
   function enterMdxJsxTagExpressionAttribute(token) {
-    enterMdxJsxTagAnyAttribute.call(this, token);
-
-    // Store attribute info but don't enter the stack - avoid nesting that complicates the AST
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-
-    tag.currentAttribute = {
+    enterMdxJsxTagAnyAttribute.call(this, token);
+    tag.attributes.push({
       type: "mdxJsxExpressionAttribute",
       value: "",
-    };
-
+      position: {
+        start: point(token.start),
+        // @ts-expect-error: `end` will be patched later.
+        end: undefined,
+      },
+    });
     this.buffer();
   }
 
-  /**
-   * @this {CompileContext}
-   * @type {FromMarkdownHandle}
-   */
   function exitMdxJsxTagExpressionAttribute(token) {
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-    assert(tag.currentAttribute, "expected tag.currentAttribute");
+    const tail = tag.attributes[tag.attributes.length - 1];
+    assert(tail.type === "mdxJsxExpressionAttribute");
+    const estree = token.estree;
 
-    // Get expression attribute and add to attributes array
-    const attr = tag.currentAttribute;
-    attr.value = this.resume();
-    tag.attributes.push(attr);
+    tail.value = this.resume();
+    assert(tail.position !== undefined);
+    tail.position.end = point(token.end);
 
-    // Clear current attribute
-    tag.currentAttribute = undefined;
+    if (estree) {
+      tail.data = { estree };
+    }
   }
 
   /**
@@ -340,9 +345,11 @@ export function aimlJsxFromMarkdown(options) {
   function exitMdxJsxTagAttributeNamePrimary(token) {
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-    assert(tag.currentAttribute, "expected tag.currentAttribute");
-
-    tag.currentAttribute.name = this.sliceSerialize(token);
+    const node = tag.attributes[tag.attributes.length - 1];
+    assert(node.type === "mdxJsxAttribute");
+    node.name = this.sliceSerialize(token);
+    assert(node.position !== undefined);
+    node.position.end = point(token.end);
   }
 
   /**
@@ -352,9 +359,11 @@ export function aimlJsxFromMarkdown(options) {
   function exitMdxJsxTagAttributeNameLocal(token) {
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-    assert(tag.currentAttribute, "expected tag.currentAttribute");
-
-    tag.currentAttribute.name += ":" + this.sliceSerialize(token);
+    const node = tag.attributes[tag.attributes.length - 1];
+    assert(node.type === "mdxJsxAttribute");
+    node.name += ":" + this.sliceSerialize(token);
+    assert(node.position !== undefined);
+    node.position.end = point(token.end);
   }
 
   /**
@@ -364,16 +373,10 @@ export function aimlJsxFromMarkdown(options) {
   function exitMdxJsxTagAttributeValueLiteral(token) {
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-    assert(tag.currentAttribute, "expected tag.currentAttribute");
-
-    const value = this.resume();
-    tag.currentAttribute.value = parseEntities(value, { nonTerminated: false });
-
-    // Add the completed attribute to the attributes array
-    tag.attributes.push(tag.currentAttribute);
-
-    // Clear current attribute
-    tag.currentAttribute = undefined;
+    const node = tag.attributes[tag.attributes.length - 1];
+    node.value = parseEntities(this.resume(), { nonTerminated: false });
+    assert(node.position !== undefined);
+    node.position.end = point(token.end);
   }
 
   /**
@@ -383,23 +386,22 @@ export function aimlJsxFromMarkdown(options) {
   function exitMdxJsxTagAttributeValueExpression(token) {
     const tag = this.data.mdxJsxTag;
     assert(tag, "expected `mdxJsxTag`");
-    assert(tag.currentAttribute, "expected tag.currentAttribute");
-
-    const value = this.resume();
-
+    const tail = tag.attributes[tag.attributes.length - 1];
+    assert(tail.type === "mdxJsxAttribute");
     /** @type {MdxJsxAttributeValueExpression} */
-    const expressionValue = {
+    const node = {
       type: "mdxJsxAttributeValueExpression",
-      value,
+      value: this.resume(),
     };
+    const estree = token.estree;
 
-    tag.currentAttribute.value = expressionValue;
+    if (estree) {
+      node.data = { estree };
+    }
 
-    // Add the completed attribute to the attributes array
-    tag.attributes.push(tag.currentAttribute);
-
-    // Clear current attribute
-    tag.currentAttribute = undefined;
+    tail.value = node;
+    assert(tail.position !== undefined);
+    tail.position.end = point(token.end);
   }
 
   /**
@@ -428,6 +430,14 @@ export function aimlJsxFromMarkdown(options) {
     const currentIsValid = isValidAimlJsxTag(tag.name);
     const tailIsValid = tail ? isValidAimlJsxTag(tail.name) : false;
 
+    console.log(
+      `AIML-JSX: Exiting tag: ${tag.name}, closing: ${closing}, selfClosing: ${selfClosing}, currentIsValid: ${currentIsValid}, tailIsValid: ${tailIsValid}`
+    );
+    console.log(
+      `AIML-JSX: Tag stack:`,
+      stack.map((t) => t.name)
+    );
+
     // End of a tag, so drop the buffer.
     this.resume();
 
@@ -435,7 +445,11 @@ export function aimlJsxFromMarkdown(options) {
     if (!currentIsValid) {
       // Get raw text of the whole tag
       const rawText = this.sliceSerialize(token);
+      console.log(
+        `AIML-JSX: Creating text node for invalid tag: '${tag.name}' with raw text: '${rawText.substring(0, 30)}...'`
+      );
 
+      // TODO add to paragraph if already in one, otherwise create new paragraph first
       this.enter(
         {
           type: "text",
@@ -452,8 +466,15 @@ export function aimlJsxFromMarkdown(options) {
       // --- Closing Tag Logic ---
       if (tailIsValid) {
         if (currentIsValid && tail.name === tag.name) {
+          console.log("AIML-JSX: Closing tailIsValid tag:", tag);
           stack.pop();
         } else if (currentIsValid && tail.name !== tag.name) {
+          console.log(
+            "AIML-JSX: Mismatched valid tag/fragment. Expected:",
+            serializeAbbreviatedTag(tail),
+            "but got:",
+            serializeAbbreviatedTag(tag)
+          );
           // Mismatched valid tag/fragment.
           throw new VFileMessage(
             "Unexpected closing tag `" +
@@ -472,6 +493,7 @@ export function aimlJsxFromMarkdown(options) {
       // --- Opening Tag Logic ---
       // Enter the node into the tree ONLY IF it's a VALID tag or fragment.
       if (currentIsValid) {
+        console.log("AIML-JSX: Entering valid tag:", tag);
         this.enter(
           {
             type:

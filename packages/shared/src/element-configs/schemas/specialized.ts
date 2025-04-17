@@ -116,31 +116,6 @@ export const dataModelConfig: BaseElementDefinition = {
 
 export type DataModelProps = z.infer<typeof dataModelConfig.propsSchema>;
 
-// Workflow Element - Root workflow element
-export const workflowConfig: BaseElementDefinition = {
-  tag: "workflow",
-  type: "state",
-  subType: "user-input",
-  propsSchema: z.object({
-    id: z.string().optional(),
-    initial: z.string().optional(),
-  }),
-  description: "Root workflow element",
-  allowedChildren: [
-    "state",
-    "parallel",
-    "final",
-    "datamodel",
-    "onentry",
-    "onexit",
-    "transition",
-  ] as AllowedChildrenType,
-  documentation: "Root workflow element, the main container for the workflow",
-  isRoot: true,
-};
-
-export type WorkflowProps = z.infer<typeof workflowConfig.propsSchema>;
-
 // SendText Element - Sends text response
 export const sendTextConfig: BaseElementDefinition = {
   tag: "sendText",

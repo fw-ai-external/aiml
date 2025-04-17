@@ -6,16 +6,7 @@ import { strict as assert } from "node:assert";
 import { fromMarkdown } from "mdast-util-from-markdown";
 import { aimlJsx } from "micromark-extension-aiml-jsx"; // Assuming the micromark extension is sibling
 import { aimlJsxFromMarkdown } from "./index.js";
-
-// --- Mock Configuration ---
-// TODO: Replace with actual import or setup if your config is complex
-const allElementConfigs = {
-  state: {},
-  topic: {},
-  category: {},
-  // Add other valid tags here based on your actual config
-};
-// --- End Mock ---
+import { allElementConfigs } from "@fireworks/shared";
 
 // Helper to process markdown with the extension
 function process(value) {
@@ -205,7 +196,7 @@ Some regular paragraph text.
   it("should THROW on mismatched *valid* configured tags", () => {
     assert.throws(() => {
       process("<state>content</topic>"); // Mismatched valid tags
-    }, /Unexpected closing tag `<\/topic>`, expected corresponding closing tag for `<state>`/);
+    }, /Expected a closing tag for `<state>`/);
   });
 
   it("should THROW on unclosed *valid* configured tags", () => {
@@ -230,6 +221,99 @@ Some regular paragraph text.
     });
   });
 
+  it("should parse nested tags with attributes that are valid", () => {
+    const input = `
+<workflow id="test">
+  <state id="first">
+    <llm prompt="First state" />
+  </state>
+  <state id="second">
+    <llm prompt="Second state" />
+  </state>
+</workflow>
+    `;
+
+    const result = process(input);
+    console.log(JSON.stringify(result, null, 2));
+
+    const workflow = result.children.find(
+      (child) => child.type === "mdxJsxFlowElement" && child.name === "workflow"
+    );
+    // expect workflow to be a top level AST node (maybe there is text or a paragraph before and after the workflow because of new lines but we dont care about that)
+    assert.ok(
+      !!workflow,
+      "Workflow mdxJsxFlowElement node not found as a top level node in the AST"
+    );
+
+    assert.equal(
+      workflow.attributes.find((attr) => attr.name === "id")?.value,
+      "test",
+      "Workflow mdxJsxFlowElement node exists but the id attribute was not found or is not equal to 'test'"
+    );
+
+    assert.equal(workflow.children.length, 2);
+    assert.equal(workflow.children[0]?.name, "state");
+
+    const firstState = workflow.children[0];
+    assert.equal(
+      firstState.attributes.find(
+        (attr) => attr.type === "mdxJsxAttribute" && attr.name === "id"
+      )?.value,
+      "first"
+    );
+    assert.equal(
+      firstState.children[0]?.type,
+      "mdxJsxFlowElement",
+      "the first state node should have had only 1 child node and it should have been of type mdxJsxFlowElement"
+    );
+    assert.notEqual(
+      firstState.children[0]?.type,
+      "code",
+      "the first state should have an mdxJsxFlowElement child node with a name of llm... NOT a code node"
+    );
+    assert.equal(
+      firstState.children[0]?.name,
+      "llm",
+      "the first state node had a mdxJsxFlowElement child node but it was not the expected name of llm node"
+    );
+    assert.equal(
+      firstState.children[0].attributes?.find(
+        (attr) => attr.type === "mdxJsxAttribute" && attr.name === "prompt"
+      )?.value,
+      "First state",
+      "the first state node had a llm mdxJsxFlowElement child node but it was not the expected prompt attribute of 'First state'"
+    );
+    const secondState = workflow.children[1];
+    assert.equal(secondState.name, "state");
+    assert.equal(
+      secondState.attributes?.find(
+        (attr) => attr.type === "mdxJsxAttribute" && attr.name === "id"
+      )?.value,
+      "second"
+    );
+    assert.notEqual(
+      secondState.children[0]?.type,
+      "code",
+      "the second state should have an mdxJsxFlowElement child node with a name of llm... NOT a code node"
+    );
+    assert.equal(
+      secondState.children[0]?.type,
+      "mdxJsxFlowElement",
+      "the second state node should have had only 1 child node and it should have been of type mdxJsxFlowElement"
+    );
+    assert.equal(
+      secondState.children[0]?.name,
+      "llm",
+      "the second state node had a mdxJsxFlowElement child node but it was not the expected name of llm node"
+    );
+    assert.equal(
+      secondState.children[0].attributes?.find(
+        (attr) => attr.type === "mdxJsxAttribute" && attr.name === "prompt"
+      )?.value,
+      "Second state",
+      "the second state node had a llm mdxJsxFlowElement child node but it was not the expected prompt attribute of 'Second state'"
+    );
+  });
   it("should parse invalid tags with attributes (no validation)", () => {
     const result = process('<invalid data="stuff">text</other>');
     // Since we now parse opening and closing tags as separate text nodes, we need to check both are present

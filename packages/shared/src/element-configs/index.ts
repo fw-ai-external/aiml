@@ -26,7 +26,7 @@ import {
   initialConfig,
   invokeConfig,
   paramConfig,
-  scxmlConfig,
+  workflowConfig,
 } from "./schemas/scxml";
 import {
   dataConfig,
@@ -40,7 +40,6 @@ import {
   sendTextConfig,
   sendToolCallsConfig,
   toolCallConfig,
-  workflowConfig,
 } from "./schemas/specialized";
 import { finalConfig, parallelConfig, stateConfig } from "./schemas/states";
 
@@ -77,7 +76,7 @@ export const allElementConfigs: Record<
   raise: raiseConfig,
   send: sendConfig,
   // Add SCXML specific elements
-  scxml: scxmlConfig,
+  scxml: workflowConfig,
   initial: initialConfig,
   history: historyConfig,
   donedata: donedataConfig,
@@ -123,7 +122,7 @@ export type CancelProps = z.infer<typeof cancelConfig.propsSchema>;
 export type RaiseProps = z.infer<typeof raiseConfig.propsSchema>;
 export type SendProps = z.infer<typeof sendConfig.propsSchema>;
 // Export new SCXML prop types
-export type ScxmlProps = z.infer<typeof scxmlConfig.propsSchema>;
+export type ScxmlProps = z.infer<typeof workflowConfig.propsSchema>;
 export type InitialProps = z.infer<typeof initialConfig.propsSchema>;
 export type HistoryProps = z.infer<typeof historyConfig.propsSchema>;
 export type DonedataProps = z.infer<typeof donedataConfig.propsSchema>;

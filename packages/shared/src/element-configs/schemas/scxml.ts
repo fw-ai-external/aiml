@@ -1,20 +1,34 @@
 import { z } from "zod";
-import type { ElementDefinition } from "../../types";
+import type {
+  ElementDefinition,
+  AllowedChildrenType,
+  BaseElementDefinition,
+} from "../../types";
 
-//   for SCXML root element
-export const scxmlConfig: ElementDefinition = {
+// Workflow Element - Root workflow element
+export const workflowConfig: BaseElementDefinition = {
   tag: "workflow",
   type: "state",
   subType: "user-input",
-  allowedChildren: ["state", "parallel", "final", "datamodel", "initial"],
   propsSchema: z.object({
-    name: z.string().optional(),
+    id: z.string().optional(),
     initial: z.string().optional(),
-    version: z.string().optional(),
-  }) as z.ZodObject<any>,
-  description: "The root element of a SCXML document",
-  documentation: "The SCXML element is the root container for a state machine.",
+  }),
+  description: "Root workflow element",
+  allowedChildren: [
+    "state",
+    "parallel",
+    "final",
+    "datamodel",
+    "onentry",
+    "onexit",
+    "transition",
+  ] as AllowedChildrenType,
+  documentation: "Root workflow element, the main container for the workflow",
+  isRoot: true,
 };
+
+export type WorkflowProps = z.infer<typeof workflowConfig.propsSchema>;
 
 // Schema for initial element
 export const initialConfig: ElementDefinition = {
