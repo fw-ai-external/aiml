@@ -1,4 +1,6 @@
-# @fireworks/shared Documentation
+---
+title: "@fireworks/shared Documentation"
+---
 
 ## Overview
 

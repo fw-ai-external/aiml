@@ -1,4 +1,6 @@
-# @fireworks/aiml-ui Documentation
+---
+title: Developer UI Documentation
+---
 
 ## Overview
 

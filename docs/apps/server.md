@@ -1,4 +1,6 @@
-# server Documentation
+---
+title: API Server Documentation
+---
 
 ## Overview
 

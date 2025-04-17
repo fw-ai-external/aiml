@@ -1,4 +1,6 @@
-# @fireworks/parser Documentation
+---
+title: AIML syntax parser Documentation
+---
 
 ## Overview
 

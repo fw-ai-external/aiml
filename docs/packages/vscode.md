@@ -1,4 +1,6 @@
-# vscode-aiml Documentation
+---
+title: VSCode Plugin Documentation
+---
 
 ## Overview
 

@@ -1,4 +1,6 @@
-# @fireworks/language-server Documentation
+---
+title: Language Server Documentation
+---
 
 ## Overview
 
