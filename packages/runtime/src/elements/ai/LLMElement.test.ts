@@ -1,6 +1,5 @@
 import { describe, expect, it } from "bun:test";
 import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
 import { ElementExecutionContext } from "../../ElementExecutionContext";
 import { StepValue } from "../../StepValue";
 import { MockMastraContext } from "../../utils/MockMastraContext";
@@ -52,17 +51,16 @@ describe("LLM Element", () => {
       new WeakRef(
         new BaseElement({
           id: "root",
-          elementType: "scxml",
-          tag: "scxml",
-          role: "state",
+          tag: "workflow",
+          type: "state",
+          subType: "user-input",
+          scope: ["root"],
           key: uuidv4(),
-          type: "element",
           lineStart: 0,
           lineEnd: 0,
           columnStart: 0,
           columnEnd: 0,
           allowedChildren: [],
-          schema: z.object({}),
           onExecutionGraphConstruction: () => ({}) as any,
         })
       )
@@ -88,17 +86,16 @@ describe("LLM Element", () => {
       new WeakRef(
         new BaseElement({
           id: "root",
-          elementType: "scxml",
-          tag: "scxml",
-          role: "state",
+          tag: "workflow",
+          type: "state",
+          subType: "user-input",
+          scope: ["root"],
           key: uuidv4(),
-          type: "element",
           lineStart: 0,
           lineEnd: 0,
           columnStart: 0,
           columnEnd: 0,
           allowedChildren: [],
-          schema: z.object({}),
           onExecutionGraphConstruction: () => ({}) as any,
         })
       )
@@ -127,17 +124,16 @@ describe("LLM Element", () => {
       new WeakRef(
         new BaseElement({
           id: "root",
-          elementType: "scxml",
-          tag: "scxml",
-          role: "state",
+          tag: "workflow",
+          type: "state",
+          subType: "user-input",
+          scope: ["root"],
           key: uuidv4(),
-          type: "element",
           lineStart: 0,
           lineEnd: 0,
           columnStart: 0,
           columnEnd: 0,
           allowedChildren: [],
-          schema: z.object({}),
           onExecutionGraphConstruction: () => ({}) as any,
         })
       )
@@ -166,17 +162,16 @@ describe("LLM Element", () => {
       new WeakRef(
         new BaseElement({
           id: "root",
-          elementType: "scxml",
-          tag: "scxml",
-          role: "state",
+          tag: "workflow",
+          type: "state",
+          subType: "user-input",
+          scope: ["root"],
           key: uuidv4(),
-          type: "element",
           lineStart: 0,
           lineEnd: 0,
           columnStart: 0,
           columnEnd: 0,
           allowedChildren: [],
-          schema: z.object({}),
           onExecutionGraphConstruction: () => ({}) as any,
         })
       )
@@ -219,17 +214,16 @@ describe("LLM Element", () => {
       new WeakRef(
         new BaseElement({
           id: "root",
-          elementType: "scxml",
-          tag: "scxml",
-          role: "state",
+          tag: "workflow",
+          type: "state",
+          subType: "user-input",
+          scope: ["root"],
           key: uuidv4(),
-          type: "element",
           lineStart: 0,
           lineEnd: 0,
           columnStart: 0,
           columnEnd: 0,
           allowedChildren: [],
-          schema: z.object({}),
           onExecutionGraphConstruction: () => ({}) as any,
         })
       )

@@ -9,7 +9,7 @@ import { ElementExecutionContext } from "../ElementExecutionContext";
 import type { BuildContext } from "../graphBuilder/Context";
 import type { ExecutionReturnType, RuntimeElementDefinition } from "../types";
 import { defaultStepExecutionGraphMapper } from "../utils";
-import type { DataModelRegistry } from "../DataModelRegistry";
+import { DataModelRegistry } from "../DataModelRegistry";
 import type { ElementSubType } from "@fireworks/shared";
 import { v4 as uuidv4 } from "uuid";
 export class BaseElement
@@ -168,7 +168,7 @@ export class BaseElement
       };
     }
     const datamodel: DataModelRegistry =
-      context.context.triggerData.getDatamodel();
+      context.context?.triggerData?.getDatamodel() ?? new DataModelRegistry();
     const scopedDatamodel = datamodel.getScopedDataModel(this.scope.join("."));
     if (!context.context.input) {
       console.log("no input in contextcontext for ", context);

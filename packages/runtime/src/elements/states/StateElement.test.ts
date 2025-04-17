@@ -20,17 +20,16 @@ describe("StateElement", () => {
   beforeEach(() => {
     root = new BaseElement({
       id: "root",
-      elementType: "scxml",
-      tag: "scxml",
-      role: "state",
+      tag: "workflow",
+      type: "state",
+      subType: "user-input",
+      scope: ["root"],
       key: "root",
-      type: "element",
       lineStart: 0,
       lineEnd: 0,
       columnStart: 0,
       columnEnd: 0,
       allowedChildren: "any",
-      schema: z.object({}),
       onExecutionGraphConstruction: () => ({}) as any,
     });
 
@@ -64,7 +63,7 @@ describe("StateElement", () => {
       new WeakRef(root)
     );
 
-    expect((element as BaseElement).elementType).toBe("state");
+    expect((element as BaseElement).type).toBe("state");
     expect((element as BaseElement).attributes.initial).toBe("substate1");
   });
 

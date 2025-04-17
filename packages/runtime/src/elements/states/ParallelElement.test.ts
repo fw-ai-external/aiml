@@ -20,17 +20,16 @@ describe("ParallelElement", () => {
   beforeEach(() => {
     root = new BaseElement({
       id: "root",
-      elementType: "scxml",
-      tag: "scxml",
-      role: "state",
+      tag: "workflow",
+      type: "state",
+      subType: "user-input",
+      scope: ["root"],
       key: "root",
-      type: "element",
       lineStart: 0,
       lineEnd: 0,
       columnStart: 0,
       columnEnd: 0,
       allowedChildren: "any",
-      schema: z.object({}),
       onExecutionGraphConstruction: () => ({}) as any,
     });
 
@@ -48,7 +47,7 @@ describe("ParallelElement", () => {
       new WeakRef(root)
     ) as unknown as BaseElement;
 
-    expect(element.elementType).toBe("parallel");
+    expect(element.subType).toBe("parallel");
   });
 
   it("should execute all child states in parallel", async () => {
@@ -105,7 +104,7 @@ describe("ParallelElement", () => {
       {
         id: "parallel1",
       },
-      [state1, state2],
+      [state1.toJSON(), state2.toJSON()],
       new WeakRef(root)
     ) as unknown as BaseElement;
 
