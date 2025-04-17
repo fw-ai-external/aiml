@@ -6,19 +6,14 @@ import { parseMDXFilesToAIML } from "../../packages/parser/src";
 // Helper function to print a simplified view of the execution graph
 function printGraph(node: any, indent = 0) {
   const spaces = " ".repeat(indent);
-  console.log(
-    `${spaces}ID: ${node.id || node.attributes?.id}, Type: ${node.type}, Tag: ${node.tag || node.tag}`
-  );
 
   if (node.next && node.next.length > 0) {
-    console.log(`${spaces}Next nodes:`);
     node.next.forEach((next: any) => {
       printGraph(next, indent + 2);
     });
   }
 
   if (node.children && node.children.length > 0) {
-    console.log(`${spaces}Children:`);
     node.children.forEach((child: any) => {
       printGraph(child, indent + 2);
     });
@@ -34,15 +29,12 @@ async function testFinalStateAddition() {
   const file = new VFile({ path: aimlPath, value: content });
   const result = await parseMDXFilesToAIML([file]);
 
-  console.log("===== Parsed AIML Nodes =====");
-
   // Check if a final element was added automatically
   const workflow = result.nodes[0];
-  console.log(`Workflow ID: ${workflow.attributes?.id}`);
 
   // Look for final element
   const finalElement = workflow.children?.find(
-    (child) => child.type === "element" && child.tag === "final"
+    (child) => child.tag === "final"
   );
 
   if (finalElement) {
@@ -55,33 +47,21 @@ async function testFinalStateAddition() {
 
   // Parse the elements from the file
   const startState = workflow.children?.find(
-    (child) =>
-      child.type === "element" &&
-      child.tag === "state" &&
-      child.attributes?.id === "start"
+    (child) => child.tag === "state" && child.attributes?.id === "start"
   );
 
   const anotherState = workflow.children?.find(
-    (child) =>
-      child.type === "element" &&
-      child.tag === "state" &&
-      child.attributes?.id === "another_state"
+    (child) => child.tag === "state" && child.attributes?.id === "another_state"
   );
 
   const thirdState = workflow.children?.find(
-    (child) =>
-      child.type === "element" &&
-      child.tag === "state" &&
-      child.attributes?.id === "third_state"
+    (child) => child.tag === "state" && child.attributes?.id === "third_state"
   );
-
-  console.log("\n===== Testing Workflow Graph Construction =====");
 
   // Now we need to build the execution graph to check transitions
   // Import necessary code from @fireworks/runtime
   // This is a simplified version since we don't have those modules available directly
 
-  console.log("\nWorkflow children:");
   workflow.children?.forEach((child: any) => {
     console.log(`- ${child.tag} (${child.attributes?.id})`);
   });

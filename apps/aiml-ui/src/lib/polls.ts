@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface PollingOptions<TData, TError = Error> {
   /** Async function that fetches the data */
@@ -49,7 +49,6 @@ export function usePolling<TData, TError = Error>({
   const mountedRef = useRef(true);
 
   const cleanup = useCallback(() => {
-    console.log('cleanup');
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -57,13 +56,11 @@ export function usePolling<TData, TError = Error>({
   }, []);
 
   const stopPolling = useCallback(() => {
-    console.log('stopPolling');
     setIsPolling(false);
     cleanup();
   }, [cleanup]);
 
   const startPolling = useCallback(() => {
-    console.log('startPolling');
     setIsPolling(true);
     setError(null);
   }, []);
@@ -101,7 +98,7 @@ export function usePolling<TData, TError = Error>({
         }
       }
     },
-    [fetchFn, interval, onSuccess, onError, shouldContinue, stopPolling],
+    [fetchFn, interval, onSuccess, onError, shouldContinue, stopPolling]
   );
 
   useEffect(() => {
@@ -112,7 +109,6 @@ export function usePolling<TData, TError = Error>({
     }
 
     return () => {
-      console.log('cleanup poll');
       mountedRef.current = false;
       cleanup();
     };

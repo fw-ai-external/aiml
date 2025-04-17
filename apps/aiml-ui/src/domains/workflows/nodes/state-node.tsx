@@ -160,8 +160,6 @@ export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
       (action) => action.type === "action" && action.subType !== "transition"
     ) || [];
 
-  console.log("actions", actions);
-
   const transitions = React.useMemo(() => {
     const directTransitions =
       data.children?.filter(
@@ -184,8 +182,6 @@ export const StateNode: React.FC<NodeProps<StateNodeProps>> = ({
           label: "IF (something)",
         }))
       ) || [];
-
-    console.log("nestedTransitions", nestedTransitions);
 
     return [...directTransitions, ...nestedTransitions];
   }, [data.next, data.id]);

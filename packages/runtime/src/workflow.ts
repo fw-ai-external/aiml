@@ -76,7 +76,7 @@ export class Workflow<
     // );
 
     this.initMastraWorkflow(this.executionGraph);
-    console.log("[DEBUG] mastra workflow 'code':\n", this.debug);
+    // Mastra workflow code initialized
     this.workflow.commit();
   }
 
@@ -237,7 +237,7 @@ export class Workflow<
     });
 
     workflowOutput.then(async (results) => {
-      console.log(JSON.stringify(results, null, 2));
+      // Workflow execution completed
       await this.value?.finalize();
     });
 
@@ -308,6 +308,10 @@ export class Workflow<
    * @param contextValues The context values to set
    */
   public rehydrateContextValues(contextValues: Record<string, any>): void {
+    const runId = contextValues.__runId;
+    if (runId) {
+      // Rehydrated workflow context with run ID
+    }
     if (!contextValues || typeof contextValues !== "object") {
       return;
     }

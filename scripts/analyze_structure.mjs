@@ -53,7 +53,7 @@ async function analyzeDirectory(dirPath, type, excludeList = []) {
 }
 
 async function main() {
-  console.log("Analyzing project structure...");
+  // console.log("Analyzing project structure...");
   const apps = await analyzeDirectory(appsDir, "app");
   const packages = await analyzeDirectory(
     packagesDir,
@@ -64,8 +64,8 @@ async function main() {
     apps: apps,
     packages: packages,
   };
-  console.log(JSON.stringify(analysisResult, null, 2));
-  console.log("Analysis complete.");
+  // console.log(JSON.stringify(analysisResult, null, 2));
+  // console.log("Analysis complete.");
 }
 
 main().catch((err) => {

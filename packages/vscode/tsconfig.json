@@ -1,7 +1,6 @@
 {
   "exclude": ["out"],
   "extends": "@fireworks/tsconfig/library.json",
-  "references": [{ "path": "@fireworks/language-service/tsconfig.build.json" }],
   "compilerOptions": {
     "module": "preserve",
     "moduleResolution": "bundler",

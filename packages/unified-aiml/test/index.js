@@ -18,16 +18,12 @@ import { visit } from "unist-util-visit";
 
 const basic = unified().use(remarkParse).use(remarkMdx);
 
-test("remark-mdx: core", async function (t) {
-  await t.test("should expose the public api", async function () {
-    assert.deepEqual(Object.keys(await import("remark-mdx")).sort(), [
-      "default",
-    ]);
-  });
+test("remark-mdx: core", async function () {
+  assert.deepEqual(Object.keys(await import("remark-mdx")).sort(), ["default"]);
 });
 
-test("remark-mdx: parse", async function (t) {
-  await t.test("should parse a self-closing tag", function () {
+test("remark-mdx: parse", async function () {
+  test("should parse a self-closing tag", function () {
     const tree = basic.parse("Alpha <b/> charlie.");
 
     clean(tree);
@@ -52,7 +48,7 @@ test("remark-mdx: parse", async function (t) {
     });
   });
 
-  await t.test("should parse an opening and a closing tag", function () {
+  test("should parse an opening and a closing tag", function () {
     const tree = basic.parse("Alpha <b></b> charlie.");
 
     clean(tree);
@@ -77,7 +73,7 @@ test("remark-mdx: parse", async function (t) {
     });
   });
 
-  await t.test("should parse fragments", function () {
+  test("should parse fragments", function () {
     const tree = basic.parse("Alpha <></> charlie.");
 
     clean(tree);
@@ -102,7 +98,7 @@ test("remark-mdx: parse", async function (t) {
     });
   });
 
-  await t.test("should parse markdown inside tags", function () {
+  test("should parse markdown inside tags", function () {
     const tree = basic.parse("Alpha <b>*bravo*</b> charlie.");
 
     clean(tree);
@@ -132,7 +128,7 @@ test("remark-mdx: parse", async function (t) {
     });
   });
 
-  await t.test("should parse expressions", function () {
+  test("should parse expressions", function () {
     const tree = basic.parse("Alpha {1 + 1} charlie.");
 
     clean(tree);
@@ -157,10 +153,10 @@ test("remark-mdx: parse", async function (t) {
   });
 });
 
-test("remark-mdx: stringify", async function (t) {
+test("remark-mdx: stringify", async function () {
   const basic = unified().use(remarkStringify).use(remarkMdx);
 
-  await t.test("should serialize an empty nameless fragment", function () {
+  test("should serialize an empty nameless fragment", function () {
     assert.equal(
       basic.stringify({
         type: "root",
@@ -184,7 +180,7 @@ test("remark-mdx: stringify", async function (t) {
     );
   });
 
-  await t.test("should serialize a tag with a name", function () {
+  test("should serialize a tag with a name", function () {
     assert.equal(
       basic.stringify({
         type: "root",
@@ -208,7 +204,7 @@ test("remark-mdx: stringify", async function (t) {
     );
   });
 
-  await t.test("should serialize a boolean attribute (element)", function () {
+  test("should serialize a boolean attribute (element)", function () {
     assert.equal(
       basic.stringify({
         type: "root",
@@ -232,7 +228,7 @@ test("remark-mdx: stringify", async function (t) {
     );
   });
 
-  await t.test("should serialize an attribute (element)", function () {
+  test("should serialize an attribute (element)", function () {
     assert.equal(
       basic.stringify({
         type: "root",
@@ -258,7 +254,7 @@ test("remark-mdx: stringify", async function (t) {
     );
   });
 
-  await t.test("should serialize a prefixed attribute (element)", function () {
+  test("should serialize a prefixed attribute (element)", function () {
     assert.equal(
       basic.stringify({
         type: "root",
@@ -284,78 +280,72 @@ test("remark-mdx: stringify", async function (t) {
     );
   });
 
-  await t.test(
-    "should serialize a attribute expression (element)",
-    function () {
-      assert.equal(
-        basic.stringify({
-          type: "root",
-          children: [
-            {
-              type: "paragraph",
-              children: [
-                { type: "text", value: "Alpha " },
-                {
-                  type: "mdxJsxTextElement",
+  test("should serialize a attribute expression (element)", function () {
+    assert.equal(
+      basic.stringify({
+        type: "root",
+        children: [
+          {
+            type: "paragraph",
+            children: [
+              { type: "text", value: "Alpha " },
+              {
+                type: "mdxJsxTextElement",
 
-                  name: "b",
-                  attributes: [
-                    {
-                      type: "mdxJsxExpressionAttribute",
-                      value: "...properties",
+                name: "b",
+                attributes: [
+                  {
+                    type: "mdxJsxExpressionAttribute",
+                    value: "...properties",
+                  },
+                ],
+                children: [],
+              },
+              { type: "text", value: " charlie." },
+            ],
+          },
+        ],
+      }),
+      "Alpha <b {...properties} /> charlie.\n"
+    );
+  });
+
+  test("should serialize an expression attribute (element)", function () {
+    assert.equal(
+      basic.stringify({
+        type: "root",
+        children: [
+          {
+            type: "paragraph",
+            children: [
+              { type: "text", value: "Alpha " },
+              {
+                type: "mdxJsxTextElement",
+
+                name: "b",
+                attributes: [
+                  {
+                    type: "mdxJsxAttribute",
+                    name: "b",
+                    value: {
+                      type: "mdxJsxAttributeValueExpression",
+                      data: { estree: undefined },
+                      value: "1 + 1",
                     },
-                  ],
-                  children: [],
-                },
-                { type: "text", value: " charlie." },
-              ],
-            },
-          ],
-        }),
-        "Alpha <b {...properties} /> charlie.\n"
-      );
-    }
-  );
+                  },
+                ],
+                children: [],
+              },
+              { type: "text", value: " charlie." },
+            ],
+          },
+        ],
+      }),
+      "Alpha <b b={1 + 1} /> charlie.\n"
+    );
+  });
 
-  await t.test(
-    "should serialize an expression attribute (element)",
-    function () {
-      assert.equal(
-        basic.stringify({
-          type: "root",
-          children: [
-            {
-              type: "paragraph",
-              children: [
-                { type: "text", value: "Alpha " },
-                {
-                  type: "mdxJsxTextElement",
-
-                  name: "b",
-                  attributes: [
-                    {
-                      type: "mdxJsxAttribute",
-                      name: "b",
-                      value: {
-                        type: "mdxJsxAttributeValueExpression",
-                        data: { estree: undefined },
-                        value: "1 + 1",
-                      },
-                    },
-                  ],
-                  children: [],
-                },
-                { type: "text", value: " charlie." },
-              ],
-            },
-          ],
-        }),
-        "Alpha <b b={1 + 1} /> charlie.\n"
-      );
-    }
-  );
-
-  await t.test("should write out a url as the raw value", function () {
+  test("should write out a url as the raw value", function () {
     assert.equal(
       basic.stringify({
         type: "root",
@@ -376,7 +366,7 @@ test("remark-mdx: stringify", async function (t) {
     );
   });
 
-  await t.test("should encode `<` in text", function () {
+  test("should encode `<` in text", function () {
     assert.equal(
       basic.stringify({
         type: "root",
@@ -400,7 +390,7 @@ test("remark-mdx: stringify", async function (t) {
     );
   });
 
-  await t.test("should encode `{` in text", function () {
+  test("should encode `{` in text", function () {
     assert.equal(
       basic.stringify({
         type: "root",
@@ -424,7 +414,7 @@ test("remark-mdx: stringify", async function (t) {
     );
   });
 
-  await t.test("should serialize empty expressions", function () {
+  test("should serialize empty expressions", function () {
     assert.equal(
       basic.stringify({
         type: "root",
@@ -443,7 +433,7 @@ test("remark-mdx: stringify", async function (t) {
     );
   });
 
-  await t.test("should serialize expressions", function () {
+  test("should serialize expressions", function () {
     assert.equal(
       basic.stringify({
         type: "root",

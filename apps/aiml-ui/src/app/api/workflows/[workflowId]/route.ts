@@ -233,7 +233,7 @@ export async function POST(
       });
     }
 
-    console.log("getExecutionGraph", workflow?.getExecutionGraph());
+    // Get execution graph for workflow
     // Create a structure that excludes circular references for serialization
     const workflowData = {
       ...body,
@@ -282,7 +282,7 @@ export async function POST(
       JSON.stringify(workflowData, null, 2),
       "utf8"
     );
-    console.log("saved workflow");
+    // Workflow saved successfully
 
     // Return the sanitized response
     return NextResponse.json(workflowData);

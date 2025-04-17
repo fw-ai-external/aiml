@@ -198,7 +198,6 @@ export const contructNodesAndEdges = ({
     // Check if current step is a transition and next step is a state
     if (executionGraph[i + 1]?.type === "state") {
       const nextStep = executionGraph[i + 1];
-      console.log(currentStep.scope[currentStep.scope.length - 1], nextStep.id);
       edges.push({
         id: `e${currentStep.scope[currentStep.scope.length - 1]}-${nextStep.id}`,
         source: currentStep.scope[currentStep.scope.length - 1],

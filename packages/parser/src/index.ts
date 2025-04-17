@@ -59,26 +59,12 @@ export async function parseMDXFilesToAIML(
       files,
     });
 
-    console.log("result.ast?", result.ast ? "yes" : "no");
-    console.log(
-      "result.ast.children is array?",
-      Array.isArray(result.ast.children) ? "yes" : "no"
-    );
-    console.log("result.ast.children length", result.ast.children.length);
-
     // Transform the AST to AIML nodes and datamodel
     const {
       nodes: intermediateNodes,
       diagnostics: transformDiagnostics,
       datamodel,
     } = transformToAIMLNodes(result.ast, options, result.diagnostics);
-
-    console.log("intermediateNodes?", intermediateNodes ? "yes" : "no");
-    console.log(
-      "intermediateNodes is array?",
-      Array.isArray(intermediateNodes) ? "yes" : "no"
-    );
-    console.log("intermediateNodes length", intermediateNodes.length);
 
     // Process the intermediate nodes into a final SerializedBaseElement tree
     // that's ready for hydration by the runtime
@@ -87,11 +73,8 @@ export async function parseMDXFilesToAIML(
       transformDiagnostics
     );
 
-    console.log("finalNodes?", finalNodes ? "yes" : "no");
     // Apply the healFlowOrError phase to ensure proper workflow structure and transitions
     const healedNodes = healFlowOrError(finalNodes, transformDiagnostics);
-
-    console.log("healedNodes?", healedNodes ? "yes" : "no");
 
     // Apply addAllTransitions to ensure all states have proper transitions
     const nodesWithTransitions = addAllTransitions(
@@ -107,12 +90,6 @@ export async function parseMDXFilesToAIML(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    console.error(
-      "caught error",
-      errorMessage,
-      "stack",
-      (error as Error).stack
-    );
     return {
       nodes: [],
       diagnostics: [

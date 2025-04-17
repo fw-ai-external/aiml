@@ -19,7 +19,7 @@ export const Log = createElementDefinition({
 
       const value = evaluateExpression(expr);
       const message = label ? `${label}: ${value}` : String(value);
-      console.log(message);
+      // Message would normally be logged here
 
       return {
         result: new StepValue({

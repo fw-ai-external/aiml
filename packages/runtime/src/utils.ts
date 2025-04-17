@@ -6,7 +6,7 @@ export const defaultStepExecutionGraphMapper = (buildContext: BuildContext) => {
 
   buildContext.children.map((child) => {
     if (!(child instanceof BaseElement)) {
-      console.log("child is not a BaseElement", child);
+      // console.log("child is not a BaseElement", child);
       // TODO: handle as value in parser
       return;
     }

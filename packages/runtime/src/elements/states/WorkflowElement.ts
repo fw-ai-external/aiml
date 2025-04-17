@@ -5,10 +5,7 @@ import { createElementDefinition } from "../createElementFactory";
 export const Workflow = createElementDefinition({
   ...workflowConfig,
   onExecutionGraphConstruction(buildContext) {
-    console.log(
-      "processing workflow2",
-      buildContext.children.map((c) => c.tag)
-    );
+    // Processing workflow elements
     buildContext.graphBuilder.then();
 
     // Convert all child elements into ExecutionGraphStep
@@ -51,7 +48,7 @@ export const Workflow = createElementDefinition({
     );
 
     if (initialChild) {
-      console.log("processing initial child", initialChild);
+      // Processing initial child element
       initialChild.onExecutionGraphConstruction(
         buildContext.createNewContextForChild(initialChild)
       );

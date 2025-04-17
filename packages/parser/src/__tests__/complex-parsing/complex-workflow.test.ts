@@ -32,18 +32,11 @@ describe("Complex Workflow Parsing", () => {
     });
 
     try {
-      console.log("Starting test for simple workflow parsing...");
-
       // Parse the file
       const result = await parseMDXFilesToAIML([testFile], {
         filePath: "simple-workflow.aiml",
         preserveCustomTags: true,
       });
-
-      // Log the diagnostics for debugging purposes
-      if (result.diagnostics.length > 0) {
-        console.log("Simple workflow diagnostics:", result.diagnostics);
-      }
 
       // Validate the result
       expect(result.nodes).not.toBeNull();
@@ -76,8 +69,6 @@ describe("Complex Workflow Parsing", () => {
         (child) => child.tag === "final" && child.attributes?.id === "respond"
       );
       expect(finalState).not.toBeUndefined();
-
-      console.log("Simple test completed successfully.");
     } catch (error) {
       console.error("Simple test failed with error:", error);
       throw error; // Re-throw to fail the test

@@ -7,8 +7,7 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   const { messages, workflowId } = await req.json();
-  console.log("workflowId", workflowId);
-  console.log("messages", messages);
+  // Processing workflow with ID and message data
 
   let persistedWorkflow: {
     ast: {
