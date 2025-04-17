@@ -24,7 +24,7 @@
     "claude-task-master": "^1.6.4",
     "concurrently": "^9.1.2",
     "tsup": "^8.4.0",
-    "turbo": "latest"
+    "turbo": "^2.5.0"
   },
   "workspaces": ["packages/*", "apps/*"],
   "dependencies": {
