@@ -489,35 +489,31 @@ export function aimlJsxFromMarkdown(options) {
           );
         }
       }
-    } else {
+    } else if (currentIsValid) {
       // --- Opening Tag Logic ---
       // Enter the node into the tree ONLY IF it's a VALID tag or fragment.
-      if (currentIsValid) {
-        console.log("AIML-JSX: Entering valid tag:", tag);
-        this.enter(
-          {
-            type:
-              token.type === "mdxJsxTextTag"
-                ? "mdxJsxTextElement"
-                : "mdxJsxFlowElement",
-            name: tag.name || null, // Keep null for fragments
-            attributes: tag.attributes,
-            children: [],
-          },
-          token,
-          onErrorRightIsTag
-        );
-      }
 
-      // Only push opening *valid* tags/fragments onto the stack.
-      if (!selfClosing && currentIsValid) {
-        stack.push(tag);
-      }
+      console.log("AIML-JSX: Entering valid tag:", tag);
+      this.enter(
+        {
+          type:
+            token.type === "mdxJsxTextTag"
+              ? "mdxJsxTextElement"
+              : "mdxJsxFlowElement",
+          name: tag.name || null, // Keep null for fragments
+          attributes: tag.attributes,
+          children: [],
+        },
+        token,
+        onErrorRightIsTag
+      );
     }
 
     // Exit the node *only* if it was a valid tag that got entered.
     if (currentIsValid && (selfClosing || closing)) {
       this.exit(token, onErrorLeftIsTag);
+    } else {
+      stack.push(tag);
     }
   }
 
@@ -739,7 +735,7 @@ export function aimlJsxToMarkdown(options) {
       let index = -1;
 
       while (++index < serializedAttributes.length) {
-        // Only indent first line of of attributes, we can't indent attribute
+        // Only indent first line of of attributes, we can’t indent attribute
         // values.
         serializedAttributes[index] =
           currentIndent + indent + serializedAttributes[index];
@@ -792,7 +788,7 @@ export function aimlJsxToMarkdown(options) {
 // <https://github.com/syntax-tree/mdast-util-to-markdown/blob/a381cbc/lib/util/container-flow.js>.
 //
 // To do: add `indent` support to `mdast-util-to-markdown`.
-// As indents are only used for JSX, it's fine for now, but perhaps better
+// As indents are only used for JSX, it’s fine for now, but perhaps better
 // there.
 /**
  * @param {MdxJsxFlowElement} parent
