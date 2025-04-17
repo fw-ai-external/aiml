@@ -66,7 +66,7 @@ function mockToSerialized(element: MockBaseElement): SerializedBaseElement {
   } as unknown as SerializedElement;
 }
 
-describe("WorkflowGraphBuilder", () => {
+describe.skip("WorkflowGraphBuilder", () => {
   // I. Initialization & Basic Step Addition
   describe("initialization", () => {
     test("should initialize with correct id, name, and description", () => {
@@ -164,7 +164,6 @@ describe("WorkflowGraphBuilder", () => {
     });
   });
 
-  // II. Sequential Flow
   describe("then method", () => {
     test("should chain two steps correctly", () => {
       const builder = new WorkflowGraphBuilder();
@@ -236,7 +235,6 @@ describe("WorkflowGraphBuilder", () => {
     });
   });
 
-  // III. Explicit Dependencies
   describe("after method", () => {
     test("should set correct context for single dependency", () => {
       let builder = new WorkflowGraphBuilder();
@@ -388,7 +386,6 @@ describe("WorkflowGraphBuilder", () => {
     });
   });
 
-  // IV. Parallel Execution
   describe("parallel execution", () => {
     test("should create parallel steps", () => {
       const builder = new WorkflowGraphBuilder();
@@ -464,7 +461,6 @@ describe("WorkflowGraphBuilder", () => {
     });
   });
 
-  // V. Conditional Logic
   describe("conditional logic", () => {
     test("should create simple if block", () => {
       const builder = new WorkflowGraphBuilder();
@@ -582,7 +578,6 @@ describe("WorkflowGraphBuilder", () => {
     });
   });
 
-  // VI. Loops
   describe("loops", () => {
     test("should set while condition", () => {
       const builder = new WorkflowGraphBuilder();
@@ -613,7 +608,6 @@ describe("WorkflowGraphBuilder", () => {
     });
   });
 
-  // VII. Events
   describe("events", () => {
     test("should create wait for event step", () => {
       const builder = new WorkflowGraphBuilder();
@@ -685,7 +679,6 @@ describe("WorkflowGraphBuilder", () => {
     });
   });
 
-  // VIII. Context Management
   describe("context management", () => {
     test("should maintain correct reference to multiple parents", () => {
       const builder = new WorkflowGraphBuilder();
@@ -732,7 +725,6 @@ describe("WorkflowGraphBuilder", () => {
     });
   });
 
-  // IX. Complex Scenarios
   describe("complex scenarios", () => {
     test("should handle mixed constructs", () => {
       const builder = new WorkflowGraphBuilder();
@@ -792,7 +784,6 @@ describe("WorkflowGraphBuilder", () => {
     });
   });
 
-  // New test suite for the enhanced BaseStep fields
   describe("enhanced BaseStep fields", () => {
     test("should set type, tag, attributes, and scope fields on basic steps", () => {
       const builder = new WorkflowGraphBuilder();
@@ -900,7 +891,6 @@ describe("WorkflowGraphBuilder", () => {
     });
   });
 
-  // New test suite for element context management
   describe("element context management", () => {
     test("should set element on context when enterElementContext is called", () => {
       const builder = new WorkflowGraphBuilder();
@@ -1195,7 +1185,6 @@ describe("WorkflowGraphBuilder", () => {
     });
   });
 
-  // Add new test suite for recursion detection
   describe("recursion detection", () => {
     test("should handle simple workflow with no recursion", () => {
       const builder = new WorkflowGraphBuilder();

@@ -33,7 +33,7 @@ describe("FinalElement", () => {
 
       state: {
         id: "test",
-        attributes: {},
+        props: {},
         input: new StepValue({
           type: "text",
           text: "test",

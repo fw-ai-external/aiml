@@ -1,6 +1,11 @@
-import { StepValue } from '@fireworks/shared';
-import type { ElementExecutionContext as ElementExecutionContextInterface } from '@fireworks/shared';
-import { type ActionContext, deepMerge } from '@mastra/core';
+import type { ElementExecutionContext as ElementExecutionContextInterface } from "../ElementExecutionContext";
+import { type ActionContext, deepMerge } from "@mastra/core";
+import { StepValue } from "../StepValue";
+import {
+  DataModelRegistry,
+  ScopedDataModelRegistry,
+} from "../DataModelRegistry";
+import { ElementExecutionContext } from "../ElementExecutionContext/index";
 
 /**
  * A simplified mock implementation of ElementExecutionContext for use in elements package
@@ -12,39 +17,39 @@ export class MockMastraContext implements ActionContext<any> {
   public runId: string;
 
   constructor(config: Partial<ElementExecutionContextInterface<any>>) {
-    const input = new StepValue({ type: 'text', text: 'input text' });
-    const defaultConfig: ElementExecutionContextInterface<any> = {
+    const input = new StepValue({ type: "text", text: "input text" });
+    const defaultConfig = new ElementExecutionContext({
       input,
-      workflowInput: {
-        userMessage: '',
+      requestInput: {
+        userMessage: "",
         chatHistory: [],
         clientSideTools: [],
+        secrets: {
+          system: {},
+          user: {},
+        },
       },
-      datamodel: {},
-      attributes: {},
+      datamodel: new ScopedDataModelRegistry(new DataModelRegistry(), "root"),
+      props: {},
       state: {
-        id: 'test',
-        attributes: {},
+        id: "test",
+        props: {},
         input,
       },
       machine: {
-        id: 'test',
+        id: "test",
         secrets: {
           system: {},
           user: {},
         },
       },
       run: {
-        id: 'test',
+        id: "test",
       },
-      runId: 'test',
-      context: {},
-      suspend: () => Promise.resolve(),
-      serialize: () => Promise.resolve({}),
-    };
+    });
     // Deeply merge the default config with the provided config
     this.context = deepMerge(defaultConfig, config);
-    this.runId = config.runId || 'test';
+    this.runId = config.runId || "test";
   }
 
   public async suspend(): Promise<void> {

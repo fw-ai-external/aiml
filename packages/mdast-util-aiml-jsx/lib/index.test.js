@@ -327,7 +327,6 @@ Some regular paragraph text.
     `;
 
     const result = process(input);
-    console.log(JSON.stringify(result, null, 2));
 
     const workflow = result.children.find(
       (child) => child.type === "mdxJsxFlowElement" && child.name === "workflow"

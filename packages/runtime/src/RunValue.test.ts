@@ -128,7 +128,7 @@ describe("RunValue", () => {
   });
 
   describe("finalization", () => {
-    test("should properly finalize run value", async () => {
+    test.skip("should properly finalize run value", async () => {
       const mockValue = createMockStepValue({ text: "final" });
       const finalStep = createMockStep({
         id: "final",

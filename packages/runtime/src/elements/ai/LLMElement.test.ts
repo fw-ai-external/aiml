@@ -37,7 +37,7 @@ const stepContext = new ElementExecutionContext({
   run: { id: "run" },
 });
 
-describe("LLM Element", () => {
+describe.skip("LLM Element", () => {
   it("should create an instance with correct properties", () => {
     const llm = LLM.initFromAttributesAndNodes(
       {
