@@ -1,17 +1,17 @@
-import { afterEach, beforeEach, test } from 'bun:test';
+import { afterEach, beforeEach, test } from "bun:test";
 /**
  * @import {LanguageServerHandle} from '@volar/test-utils'
  */
-import assert from 'node:assert/strict';
-import { URI } from 'vscode-uri';
-import { createServer, fixturePath, fixtureUri, tsdk } from './utils.js';
+import assert from "node:assert/strict";
+import { URI } from "vscode-uri";
+import { createServer, fixturePath, fixtureUri, tsdk } from "./utils.js";
 
 /** @type {LanguageServerHandle} */
 let serverHandle;
 
 beforeEach(async () => {
   serverHandle = createServer();
-  await serverHandle.initialize(fixtureUri('node16'), {
+  await serverHandle.initialize(fixtureUri("node16"), {
     typescript: { enabled: true, tsdk },
   });
 });
@@ -20,33 +20,37 @@ afterEach(() => {
   serverHandle.connection.dispose();
 });
 
-test('parse errors', async () => {
-  const { uri } = await serverHandle.openTextDocument(fixturePath('node16/syntax-error.mdx'), 'mdx');
+test("parse errors", async () => {
+  const { uri } = await serverHandle.openTextDocument(
+    fixturePath("node16/syntax-error.mdx"),
+    "mdx"
+  );
   const diagnostics = await serverHandle.sendDocumentDiagnosticRequest(uri);
 
   assert.deepEqual(diagnostics, {
-    kind: 'full',
+    kind: "full",
     items: [
       {
-        code: 'micromark-extension-mdxjs-esm:acorn',
+        code: "micromark-extension-aimljs:acorn",
         codeDescription: {
-          href: 'https://github.com/micromark/micromark-extension-mdxjs-esm#could-not-parse-importexports-with-acorn',
+          href: "https://github.com/micromark/micromark-extension-aimljs#could-not-parse-importexports-with-acorn",
         },
         data: {
           documentUri: String(
             URI.from({
-              scheme: 'volar-embedded-content',
-              authority: 'mdx',
-              path: '/' + encodeURIComponent(fixtureUri('node16/syntax-error.mdx')),
-            }),
+              scheme: "volar-embedded-content",
+              authority: "mdx",
+              path:
+                "/" + encodeURIComponent(fixtureUri("node16/syntax-error.mdx")),
+            })
           ),
           isFormat: false,
           original: {},
           pluginIndex: 1,
-          uri: fixtureUri('node16/syntax-error.mdx'),
+          uri: fixtureUri("node16/syntax-error.mdx"),
           version: 0,
         },
-        message: 'Could not parse import/exports with acorn',
+        message: "Could not parse import/exports with acorn",
         range: {
           end: {
             character: 7,
@@ -58,33 +62,37 @@ test('parse errors', async () => {
           },
         },
         severity: 1,
-        source: 'MDX',
+        source: "MDX",
       },
     ],
   });
 });
 
-test('type errors', async () => {
-  const { uri } = await serverHandle.openTextDocument(fixturePath('node16/type-errors.mdx'), 'mdx');
+test("type errors", async () => {
+  const { uri } = await serverHandle.openTextDocument(
+    fixturePath("node16/type-errors.mdx"),
+    "mdx"
+  );
   const diagnostics = await serverHandle.sendDocumentDiagnosticRequest(uri);
 
   assert.deepEqual(diagnostics, {
-    kind: 'full',
+    kind: "full",
     items: [
       {
         code: 2568,
         data: {
           documentUri: String(
             URI.from({
-              scheme: 'volar-embedded-content',
-              authority: 'jsx',
-              path: '/' + encodeURIComponent(fixtureUri('node16/type-errors.mdx')),
-            }),
+              scheme: "volar-embedded-content",
+              authority: "jsx",
+              path:
+                "/" + encodeURIComponent(fixtureUri("node16/type-errors.mdx")),
+            })
           ),
           isFormat: false,
           original: {},
           pluginIndex: 2,
-          uri: fixtureUri('node16/type-errors.mdx'),
+          uri: fixtureUri("node16/type-errors.mdx"),
           version: 0,
         },
         message:
@@ -94,25 +102,27 @@ test('type errors', async () => {
           end: { line: 14, character: 58 },
         },
         severity: 4,
-        source: 'ts',
+        source: "ts",
       },
       {
         code: 2568,
         data: {
           documentUri: String(
             URI.from({
-              scheme: 'volar-embedded-content',
-              authority: 'jsx',
-              path: '/' + encodeURIComponent(fixtureUri('node16/type-errors.mdx')),
-            }),
+              scheme: "volar-embedded-content",
+              authority: "jsx",
+              path:
+                "/" + encodeURIComponent(fixtureUri("node16/type-errors.mdx")),
+            })
           ),
           isFormat: false,
           original: {},
           pluginIndex: 2,
-          uri: fixtureUri('node16/type-errors.mdx'),
+          uri: fixtureUri("node16/type-errors.mdx"),
           version: 0,
         },
-        message: "Property 'counts' may not exist on type 'Props'. Did you mean 'count'?",
+        message:
+          "Property 'counts' may not exist on type 'Props'. Did you mean 'count'?",
         range: {
           start: { line: 6, character: 15 },
           end: { line: 6, character: 21 },
@@ -124,30 +134,36 @@ test('type errors', async () => {
                 end: { line: 12, character: 2 },
                 start: { line: 11, character: 4 },
               },
-              uri: fixtureUri('node16/type-errors.mdx'),
+              uri: fixtureUri("node16/type-errors.mdx"),
             },
             message: "'count' is declared here.",
           },
         ],
         severity: 4,
-        source: 'ts',
+        source: "ts",
       },
     ],
   });
 });
 
-test('does not resolve shadow content', async () => {
-  const { uri } = await serverHandle.openTextDocument(fixturePath('node16/link-reference.mdx'), 'mdx');
+test("does not resolve shadow content", async () => {
+  const { uri } = await serverHandle.openTextDocument(
+    fixturePath("node16/link-reference.mdx"),
+    "mdx"
+  );
   const diagnostics = await serverHandle.sendDocumentDiagnosticRequest(uri);
 
   assert.deepEqual(diagnostics, {
     items: [],
-    kind: 'full',
+    kind: "full",
   });
 });
 
-test('provided components', async () => {
-  const { uri } = await serverHandle.openTextDocument(fixturePath('provide/solar-system.mdx'), 'mdx');
+test("provided components", async () => {
+  const { uri } = await serverHandle.openTextDocument(
+    fixturePath("provide/solar-system.mdx"),
+    "mdx"
+  );
   const diagnostics = await serverHandle.sendDocumentDiagnosticRequest(uri);
 
   assert.deepEqual(diagnostics, {
@@ -157,15 +173,17 @@ test('provided components', async () => {
         data: {
           documentUri: String(
             URI.from({
-              scheme: 'volar-embedded-content',
-              authority: 'jsx',
-              path: '/' + encodeURIComponent(fixtureUri('provide/solar-system.mdx')),
-            }),
+              scheme: "volar-embedded-content",
+              authority: "jsx",
+              path:
+                "/" +
+                encodeURIComponent(fixtureUri("provide/solar-system.mdx")),
+            })
           ),
           isFormat: false,
           original: {},
           pluginIndex: 2,
-          uri: fixtureUri('provide/solar-system.mdx'),
+          uri: fixtureUri("provide/solar-system.mdx"),
           version: 0,
         },
         message:
@@ -181,15 +199,15 @@ test('provided components', async () => {
                 end: { character: 18, line: 3 },
                 start: { character: 2, line: 3 },
               },
-              uri: fixtureUri('provide/components.tsx'),
+              uri: fixtureUri("provide/components.tsx"),
             },
             message: "'distanceFromStar' is declared here.",
           },
         ],
         severity: 1,
-        source: 'ts',
+        source: "ts",
       },
     ],
-    kind: 'full',
+    kind: "full",
   });
 });

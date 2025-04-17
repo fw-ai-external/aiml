@@ -43,7 +43,7 @@ test('core', async function (t) {
   await t.test('should expose the public api', async function () {
     assert.deepEqual(
       Object.keys(await import('micromark-extension-aiml-jsx')).sort(),
-      ['mdxJsx']
+      ['aimlJsx']
     )
   })
 

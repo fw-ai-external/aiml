@@ -1,5 +1,5 @@
 // Placeholder test file
-// Add tests based on micromark-extension-mdxjs tests
+// Add tests based on micromark-extension-aimljs tests
 
 import {strict as assert} from 'node:assert'
 import {describe, it} from 'bun:test'

@@ -50,7 +50,7 @@ This project is useful when you want to support JSX in markdown.
 You can use this extension when you are working with
 [`micromark`][github-micromark].
 To support all MDX features,
-use [`micromark-extension-mdxjs`][github-micromark-extension-mdxjs] instead.
+use [`micromark-extension-aimljs`][github-micromark-extension-aimljs] instead.
 
 All these packages are used in [`remark-mdx`][mdxjs-remark-mdx],
 which focusses on making it easier to transform content by abstracting these
@@ -457,7 +457,7 @@ This package is safe.
 
 ## Related
 
-- [`micromark-extension-mdxjs`][github-micromark-extension-mdxjs]
+- [`micromark-extension-aimljs`][github-micromark-extension-aimljs]
   — support all MDX syntax
 - [`mdast-util-aiml-jsx`][github-mdast-util-aiml-jsx]
   — support MDX JSX in mdast
@@ -502,7 +502,7 @@ or community you agree to abide by its terms.
 [github-micromark]: https://github.com/micromark/micromark
 [github-micromark-expression]: https://github.com/micromark/micromark-extension-mdx-expression
 [github-micromark-extension]: https://github.com/micromark/micromark#syntaxextension
-[github-micromark-extension-mdxjs]: https://github.com/micromark/micromark-extension-mdxjs
+[github-micromark-extension-aimljs]: https://github.com/micromark/micromark-extension-aimljs
 [health-coc]: https://github.com/micromark/.github/blob/main/code-of-conduct.md
 [health-contributing]: https://github.com/micromark/.github/blob/main/contributing.md
 [health-support]: https://github.com/micromark/.github/blob/main/support.md

@@ -46,7 +46,7 @@ You can use these extensions when you are working with
 `mdast-util-from-markdown` and `mdast-util-to-markdown` already.
 
 When working with `mdast-util-from-markdown`, you must combine this package
-with [`micromark-extension-mdx`][mdx] or [`micromark-extension-mdxjs`][mdxjs].
+with [`micromark-extension-mdx`][mdx] or [`micromark-extension-aimljs`][mdxjs].
 
 Instead of this package, you can also use the extensions separately:
 
@@ -111,7 +111,7 @@ Which you can also put inline: {1+1}.
 
 ```js
 import fs from 'node:fs/promises'
-import {mdxjs} from 'micromark-extension-mdxjs'
+import {mdxjs} from 'micromark-extension-aimljs'
 import {fromMarkdown} from 'mdast-util-from-markdown'
 import {mdxFromMarkdown, mdxToMarkdown} from 'mdast-util-mdx'
 import {toMarkdown} from 'mdast-util-to-markdown'
@@ -332,7 +332,7 @@ You can enable passing MDX through to hast by configuring
 
 ## Syntax
 
-See [Syntax in `micromark-extension-mdxjs`][mdxjs].
+See [Syntax in `micromark-extension-aimljs`][mdxjs].
 
 ## Syntax tree
 
@@ -399,7 +399,7 @@ This utility works with `mdast-util-from-markdown` version 2+ and
   — remark plugin to support MDX
 - [`micromark-extension-mdx`][mdx]
   — micromark extension to parse MDX
-- [`micromark-extension-mdxjs`][mdxjs]
+- [`micromark-extension-aimljs`][mdxjs]
   — micromark extension to parse JavaScript-aware MDX
 
 ## Contribute
@@ -448,7 +448,7 @@ abide by its terms.
 [to-markdown-extension]: https://github.com/syntax-tree/mdast-util-to-markdown#options
 [mdast-util-to-hast]: https://github.com/syntax-tree/mdast-util-to-hast
 [mdx]: https://github.com/micromark/micromark-extension-mdx
-[mdxjs]: https://github.com/micromark/micromark-extension-mdxjs
+[mdxjs]: https://github.com/micromark/micromark-extension-aimljs
 [remark-mdx]: https://github.com/mdx-js/mdx/tree/next/packages/remark-mdx
 [program]: https://github.com/estree/estree/blob/master/es2015.md#programs
 [api-mdx-from-markdown]: #mdxfrommarkdown

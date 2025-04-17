@@ -1,5 +1,5 @@
 /**
- * @import {Options} from 'micromark-extension-mdxjs'
+ * @import {Options} from 'micromark-extension-aimljs'
  * @import {Extension} from 'micromark-util-types'
  */
 

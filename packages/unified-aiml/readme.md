@@ -153,7 +153,7 @@ Configuration (TypeScript type).
 
 For recommendations on how to author MDX, see each corresponding readme:
 
-- [ESM](https://github.com/micromark/micromark-extension-mdxjs-esm#authoring)
+- [ESM](https://github.com/micromark/micromark-extension-aimljs#authoring)
 - [JSX](https://github.com/micromark/micromark-extension-aiml-jsx#authoring)
 - [expressions](https://github.com/micromark/micromark-extension-mdx-expression/tree/main/packages/micromark-extension-mdx-expression#authoring)
 - [CommonMark features not in MDX](https://github.com/micromark/micromark-extension-mdx-md#authoring)
@@ -170,7 +170,7 @@ You can enable passing MDX through to hast by configuring
 
 For info on the syntax of these features, see each corresponding readme:
 
-- [ESM](https://github.com/micromark/micromark-extension-mdxjs-esm#syntax)
+- [ESM](https://github.com/micromark/micromark-extension-aimljs#syntax)
 - [JSX](https://github.com/micromark/micromark-extension-aiml-jsx#syntax)
 - [expressions](https://github.com/micromark/micromark-extension-mdx-expression/tree/main/packages/micromark-extension-mdx-expression#syntax)
 - CommonMark features not in MDX: n/a
@@ -187,7 +187,7 @@ For info on the syntax tree of these features, see each corresponding readme:
 
 For info on what errors are thrown, see each corresponding readme:
 
-- [ESM](https://github.com/micromark/micromark-extension-mdxjs-esm#errors)
+- [ESM](https://github.com/micromark/micromark-extension-aimljs#errors)
 - [JSX](https://github.com/micromark/micromark-extension-aiml-jsx#errors)
 - [expressions](https://github.com/micromark/micromark-extension-mdx-expression/tree/main/packages/micromark-extension-mdx-expression#errors)
 - CommonMark features not in MDX: n/a

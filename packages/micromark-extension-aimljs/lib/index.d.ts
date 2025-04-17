@@ -7,6 +7,7 @@
  *   Extension for `micromark` that can be passed in `extensions` to enable MDX
  *   syntax.
  */
-export function aimljs(options?: Options | null | undefined): Extension;
-import type { Options } from 'micromark-extension-mdxjs';
-import type { Extension } from 'micromark-util-types';
+import type {Options} from 'micromark-extension-aimljs'
+import type {Extension} from 'micromark-util-types'
+
+export function aimljs(options?: Options | null | undefined): Extension

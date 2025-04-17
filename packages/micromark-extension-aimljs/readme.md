@@ -1,4 +1,4 @@
-# micromark-extension-mdxjs
+# micromark-extension-aimljs
 
 [![Build][build-badge]][build]
 [![Coverage][coverage-badge]][coverage]
@@ -56,7 +56,7 @@ Alternatively, you can also use the underlying syntax extensions separately:
   — support MDX JSX
 - [`micromark-extension-mdx-md`][micromark-extension-mdx-md]
   — turn some CommonMark features off
-- [`micromark-extension-mdxjs-esm`][micromark-extension-mdxjs-esm]
+- [`micromark-extension-aimljs`][micromark-extension-aimljs]
   — support MDX export/imports
 
 When you need a syntax tree, combine this package with
@@ -71,20 +71,20 @@ This package is [ESM only][esm].
 In Node.js (version 16+), install with [npm][]:
 
 ```sh
-npm install micromark-extension-mdxjs
+npm install micromark-extension-aimljs
 ```
 
 In Deno with [`esm.sh`][esmsh]:
 
 ```js
-import {mdxjs} from 'https://esm.sh/micromark-extension-mdxjs@2'
+import {mdxjs} from 'https://esm.sh/micromark-extension-aimljs@2'
 ```
 
 In browsers with [`esm.sh`][esmsh]:
 
 ```html
 <script type="module">
-  import {mdxjs} from 'https://esm.sh/micromark-extension-mdxjs@2?bundle'
+  import {mdxjs} from 'https://esm.sh/micromark-extension-aimljs@2?bundle'
 </script>
 ```
 
@@ -92,7 +92,7 @@ In browsers with [`esm.sh`][esmsh]:
 
 ```js
 import {micromark} from 'micromark'
-import {mdxjs} from 'micromark-extension-mdxjs'
+import {mdxjs} from 'micromark-extension-aimljs'
 
 const output = micromark('import a from "b"\n\na <b /> c {1 + 1} d', {
   extensions: [mdxjs()]
@@ -152,7 +152,7 @@ For recommendations on how to author MDX, see each corresponding readme:
 
 - [expressions](https://github.com/micromark/micromark-extension-mdx-expression/tree/main/packages/micromark-extension-mdx-expression#authoring)
 - [JSX](https://github.com/micromark/micromark-extension-aiml-jsx#authoring)
-- [ESM](https://github.com/micromark/micromark-extension-mdxjs-esm#authoring)
+- [ESM](https://github.com/micromark/micromark-extension-aimljs#authoring)
 - [CommonMark features not in MDX](https://github.com/micromark/micromark-extension-mdx-md#authoring)
 
 ## Syntax
@@ -161,7 +161,7 @@ For info on the syntax of these features, see each corresponding readme:
 
 - [expressions](https://github.com/micromark/micromark-extension-mdx-expression/tree/main/packages/micromark-extension-mdx-expression#syntax)
 - [JSX](https://github.com/micromark/micromark-extension-aiml-jsx#syntax)
-- [ESM](https://github.com/micromark/micromark-extension-mdxjs-esm#syntax)
+- [ESM](https://github.com/micromark/micromark-extension-aimljs#syntax)
 - CommonMark features not in MDX: n/a
 
 ## Errors
@@ -170,7 +170,7 @@ For info on what errors are thrown, see each corresponding readme:
 
 - [expressions](https://github.com/micromark/micromark-extension-mdx-expression/tree/main/packages/micromark-extension-mdx-expression#errors)
 - [JSX](https://github.com/micromark/micromark-extension-aiml-jsx#errors)
-- [ESM](https://github.com/micromark/micromark-extension-mdxjs-esm#errors)
+- [ESM](https://github.com/micromark/micromark-extension-aimljs#errors)
 - CommonMark features not in MDX: n/a
 
 ## Types
@@ -186,7 +186,7 @@ versions of Node.js.
 When we cut a new major release, we drop support for unmaintained versions of
 Node.
 This means we try to keep the current release line,
-`micromark-extension-mdxjs@^2`, compatible with Node.js 16.
+`micromark-extension-aimljs@^2`, compatible with Node.js 16.
 
 This package works with `micromark` version `3` and later.
 
@@ -219,14 +219,14 @@ abide by its terms.
 
 <!-- Definitions -->
 
-[build-badge]: https://github.com/micromark/micromark-extension-mdxjs/workflows/main/badge.svg
-[build]: https://github.com/micromark/micromark-extension-mdxjs/actions
-[coverage-badge]: https://img.shields.io/codecov/c/github/micromark/micromark-extension-mdxjs.svg
-[coverage]: https://codecov.io/github/micromark/micromark-extension-mdxjs
-[downloads-badge]: https://img.shields.io/npm/dm/micromark-extension-mdxjs.svg
-[downloads]: https://www.npmjs.com/package/micromark-extension-mdxjs
-[size-badge]: https://img.shields.io/badge/dynamic/json?label=minzipped%20size&query=$.size.compressedSize&url=https://deno.bundlejs.com/?q=micromark-extension-mdxjs
-[size]: https://bundlejs.com/?q=micromark-extension-mdxjs
+[build-badge]: https://github.com/micromark/micromark-extension-aimljs/workflows/main/badge.svg
+[build]: https://github.com/micromark/micromark-extension-aimljs/actions
+[coverage-badge]: https://img.shields.io/codecov/c/github/micromark/micromark-extension-aimljs.svg
+[coverage]: https://codecov.io/github/micromark/micromark-extension-aimljs
+[downloads-badge]: https://img.shields.io/npm/dm/micromark-extension-aimljs.svg
+[downloads]: https://www.npmjs.com/package/micromark-extension-aimljs
+[size-badge]: https://img.shields.io/badge/dynamic/json?label=minzipped%20size&query=$.size.compressedSize&url=https://deno.bundlejs.com/?q=micromark-extension-aimljs
+[size]: https://bundlejs.com/?q=micromark-extension-aimljs
 [sponsors-badge]: https://opencollective.com/unified/sponsors/badge.svg
 [backers-badge]: https://opencollective.com/unified/backers/badge.svg
 [collective]: https://opencollective.com/unified
@@ -248,7 +248,7 @@ abide by its terms.
 [micromark-extension-mdx-expression]: https://github.com/micromark/micromark-extension-mdx-expression
 [micromark-extension-aiml-jsx]: https://github.com/micromark/micromark-extension-aiml-jsx
 [micromark-extension-mdx-md]: https://github.com/micromark/micromark-extension-mdx-md
-[micromark-extension-mdxjs-esm]: https://github.com/micromark/micromark-extension-mdxjs-esm
+[micromark-extension-aimljs]: https://github.com/micromark/micromark-extension-aimljs
 [mdast-util-from-markdown]: https://github.com/syntax-tree/mdast-util-from-markdown
 [mdast-util-mdx]: https://github.com/syntax-tree/mdast-util-mdx
 [remark-mdx]: https://mdxjs.com/packages/remark-mdx/

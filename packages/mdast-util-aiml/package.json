@@ -20,7 +20,11 @@
   "sideEffects": false,
   "type": "module",
   "exports": "./index.js",
-  "files": ["lib/", "index.d.ts", "index.js"],
+  "files": [
+    "lib/",
+    "index.d.ts",
+    "index.js"
+  ],
   "dependencies": {
     "mdast-util-from-markdown": "^2.0.0",
     "mdast-util-mdx-expression": "^2.0.0",
@@ -32,7 +36,7 @@
     "@types/node": "^20.0.0",
     "c8": "^9.0.0",
     "micromark-extension-mdx": "^2.0.0",
-    "micromark-extension-mdxjs": "^3.0.0",
+    "micromark-extension-aimljs": "workspace:*",
     "prettier": "^3.0.0",
     "remark-cli": "^11.0.0",
     "remark-preset-wooorm": "^9.0.0",
@@ -43,7 +47,7 @@
   "scripts": {
     "prepack": "npm run build && npm run format",
     "build": "tsc --build --clean && tsc --build && type-coverage",
-    "format": "remark . -qfo && prettier . -w --log-level warn && xo --fix",
+    "format": "prettier . -w --log-level error && xo --fix",
     "test-api": "bun test test.js",
     "test-coverage": "c8 --100 --reporter lcov npm run test-api",
     "test": "npm run build && npm run format && npm run test-coverage"
@@ -57,7 +61,9 @@
     "useTabs": false
   },
   "remarkConfig": {
-    "plugins": ["remark-preset-wooorm"]
+    "plugins": [
+      "remark-preset-wooorm"
+    ]
   },
   "typeCoverage": {
     "atLeast": 100,

@@ -13,4 +13,4 @@
   },
   "include": ["lib/**/*.js", "index.d.ts"],
   "exclude": ["node_modules"]
-} 
+}

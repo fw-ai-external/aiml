@@ -1,6 +1,6 @@
 /**
  * @import {ToMarkdownOptions} from 'mdast-util-mdx'
- * @import {Options as MicromarkOptions} from 'micromark-extension-mdxjs'
+ * @import {Options as MicromarkOptions} from 'micromark-extension-aimljs'
  * @import {Processor} from 'unified'
  */
 

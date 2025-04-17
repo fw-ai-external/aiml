@@ -36,7 +36,12 @@
     "development": "./dev/index.js",
     "default": "./index.js"
   },
-  "files": ["dev/", "index.d.ts", "index.js", "lib/"],
+  "files": [
+    "dev/",
+    "index.d.ts",
+    "index.js",
+    "lib/"
+  ],
   "keywords": [
     "ecmascript",
     "es",
@@ -60,12 +65,9 @@
     "trailingComma": "none",
     "useTabs": false
   },
-  "remarkConfig": {
-    "plugins": ["remark-preset-wooorm", "./script/grammar.js", ["remark-lint-fenced-code-flag", false]]
-  },
   "scripts": {
     "build": "tsc --build --clean && tsc --build && type-coverage && micromark-build",
-    "format": "remark --frail --output --quiet -- . && prettier --log-level warn --write -- . && xo --fix",
+    "format": "prettier --log-level error --write -- . && xo --fix",
     "test-api-dev": "node --conditions development test/index.js",
     "test-api-prod": "node --conditions production test/index.js",
     "test-api": "npm run test-api-dev && npm run test-api-prod",
@@ -82,7 +84,9 @@
   "xo": {
     "overrides": [
       {
-        "files": ["**/*.d.ts"],
+        "files": [
+          "**/*.d.ts"
+        ],
         "rules": {
           "@typescript-eslint/array-type": [
             "error",
@@ -96,7 +100,10 @@
               "extendDefaults": true
             }
           ],
-          "@typescript-eslint/consistent-type-definitions": ["error", "interface"]
+          "@typescript-eslint/consistent-type-definitions": [
+            "error",
+            "interface"
+          ]
         }
       }
     ],
