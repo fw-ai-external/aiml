@@ -217,8 +217,6 @@ describe("validateAttributes", () => {
       diagnostics
     );
 
-    console.log(diagnosticsResult);
-
     expect(diagnosticsResult.size).toBe(0);
   });
 

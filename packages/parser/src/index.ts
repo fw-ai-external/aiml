@@ -60,7 +60,6 @@ export async function parseMDXFilesToAIML(
     });
 
     console.log("result.ast?", result.ast ? "yes" : "no");
-    console.log("result.ast.children?", result.ast.children);
     console.log(
       "result.ast.children is array?",
       Array.isArray(result.ast.children) ? "yes" : "no"

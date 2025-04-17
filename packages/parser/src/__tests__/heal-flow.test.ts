@@ -43,7 +43,6 @@ describe("healFlowOrError Phase Tests", () => {
     expect(finalState).not.toBeUndefined();
     expect(finalState?.attributes?.id).toBe("final");
 
-    console.log(workflow.children);
     // Check for error state
     const errorState = workflow.children?.find(
       (child) => child.tag === "state" && child.attributes?.id === "error"
@@ -66,8 +65,6 @@ describe("healFlowOrError Phase Tests", () => {
 
     const result = await parseMDXToAIML(input);
     const workflow = result.nodes[0];
-
-    console.log(workflow.children?.[1]);
     // Find the first state
     const firstState = workflow.children?.find(
       (child) => child.tag === "state" && child.attributes?.id === "first"
@@ -104,8 +101,6 @@ describe("healFlowOrError Phase Tests", () => {
     );
     expect(lastState).not.toBeUndefined();
     expect(lastState?.attributes?.id).toBe("last");
-
-    console.log(workflow.children?.map((c) => c.attributes?.id));
 
     // Expect a transition to final state
     const finalState = workflow.children?.find(
