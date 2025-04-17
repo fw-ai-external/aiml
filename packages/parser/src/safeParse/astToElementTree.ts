@@ -674,7 +674,6 @@ export function astToElementTree(
     const scope =
       context.currentStates.length > 0 ? context.currentStates : ["root"];
 
-    console.warn("pscope---", scope);
     // If it's a standalone text node, wrap it in a paragraph
     return {
       astSourceType: "paragraph",

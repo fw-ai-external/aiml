@@ -57,6 +57,7 @@ export class ElementExecutionContext<
   // Static property for built-in keys that should match the serialized output
   static builtinKeys = [
     "input",
+    "inputAsText",
     "requestInput",
     "datamodel",
     "props",
