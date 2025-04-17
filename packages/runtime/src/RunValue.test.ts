@@ -118,8 +118,8 @@ describe("RunValue", () => {
         output: mockValue2,
       });
 
-      runValue.addActiveStep(step1);
-      runValue.addActiveStep(step2);
+      runValue.addActiveStep(step1 as any);
+      runValue.addActiveStep(step2 as any);
 
       expect(runValue.allValues).toHaveLength(2);
       expect(await runValue.allValues[0].type()).toBe("object");
@@ -132,12 +132,12 @@ describe("RunValue", () => {
       const mockValue = createMockStepValue({ text: "final" });
       const finalStep = createMockStep({
         id: "final",
-        elementType: "final",
+        type: "state",
         input: mockValue,
         output: mockValue,
       });
 
-      runValue.addActiveStep(finalStep);
+      runValue.addActiveStep(finalStep as any);
       await runValue.finalize();
 
       expect(runValue.finished).toBe(true);
@@ -197,11 +197,11 @@ describe("RunValue", () => {
       const objectValue = createMockStepValue({ text: "object step" });
       const objectStep = createMockStep({
         id: "object-step",
-        elementType: "invoke",
+        type: "action",
         input: objectValue,
         output: objectValue,
       });
-      testRunValue.addActiveStep(objectStep);
+      testRunValue.addActiveStep(objectStep as any);
 
       // Mock the responseIterator method to return specific chunks
       const originalResponseIterator = testRunValue.responseIterator;
