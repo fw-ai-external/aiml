@@ -27,6 +27,9 @@
       ],
       "outputs": ["dist/**"]
     },
+    "landing-page#build": {
+      "outputs": [".source/**", ".next/**"]
+    },
     "fireagent-plugin-vscode#build": {
       "dependsOn": ["^@fireworks/parser#build"],
       "outputs": ["dist/**"]
