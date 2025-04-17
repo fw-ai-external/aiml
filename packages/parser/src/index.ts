@@ -89,8 +89,11 @@ export async function parseMDXFilesToAIML(
       transformDiagnostics
     );
 
+    console.log("finalNodes?", finalNodes ? "yes" : "no");
     // Apply the healFlowOrError phase to ensure proper workflow structure and transitions
     const healedNodes = healFlowOrError(finalNodes, transformDiagnostics);
+
+    console.log("healedNodes?", healedNodes ? "yes" : "no");
 
     // Apply addAllTransitions to ensure all states have proper transitions
     const nodesWithTransitions = addAllTransitions(

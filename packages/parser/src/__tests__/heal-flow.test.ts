@@ -20,7 +20,7 @@ describe("healFlowOrError Phase Tests", () => {
     }
   }
   // Test 1: Final state and error state should be added if none exists
-  it("should add final state and error state to workflow if none exists", async () => {
+  it("should not be required to defines final or error states. Their presence is implied.", async () => {
     const input = `
 <workflow id="test">
   <state id="start">
@@ -43,6 +43,7 @@ describe("healFlowOrError Phase Tests", () => {
     expect(finalState).not.toBeUndefined();
     expect(finalState?.attributes?.id).toBe("final");
 
+    console.log(workflow.children);
     // Check for error state
     const errorState = workflow.children?.find(
       (child) => child.tag === "state" && child.attributes?.id === "error"
@@ -66,6 +67,7 @@ describe("healFlowOrError Phase Tests", () => {
     const result = await parseMDXToAIML(input);
     const workflow = result.nodes[0];
 
+    console.log(workflow.children?.[1]);
     // Find the first state
     const firstState = workflow.children?.find(
       (child) => child.tag === "state" && child.attributes?.id === "first"

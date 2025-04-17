@@ -337,8 +337,8 @@ export function healFlowOrError(
   diagnostics: Set<Diagnostic>
 ): SerializedBaseElement[] {
   // Get the workflow node (should be the first node after processFinalStructure)
-  const workflowNode = nodes[0];
-  if (!workflowNode || workflowNode.subType !== "user-input") {
+  const workflowNode = nodes[0]?.tag === "workflow" ? nodes[0] : null;
+  if (!workflowNode) {
     return nodes; // No workflow node found, return as is
   }
 
@@ -391,6 +391,7 @@ export function healFlowOrError(
 
     // Create error state if needed
     if (!hasErrorState) {
+      console.log("Creating error state");
       const newErrorState: SerializedBaseElement = {
         astSourceType: "element",
         type: "state" as ElementType,
@@ -410,6 +411,8 @@ export function healFlowOrError(
       };
       workflowNode.children.push(newErrorState);
       errorState = newErrorState;
+    } else {
+      console.log("Error state already exists");
     }
 
     // Find all direct child states of the workflow
@@ -486,7 +489,7 @@ export function healFlowOrError(
       if (
         child.astSourceType === "element" &&
         child.tag === "state" &&
-        child !== errorState
+        child.attributes?.id !== errorState?.attributes?.id
       ) {
         if (
           child.children?.some(
