@@ -15,7 +15,7 @@ import {
 import {codes, constants, types} from 'micromark-util-symbol'
 import {VFileMessage} from 'vfile-message'
 
-const trouble = 'https://github.com/micromark/micromark-extension-aiml-jsx'
+const trouble = 'https://github.com/micromark/micromark-extension-mdx-jsx'
 
 /**
  * @this {TokenizeContext}
@@ -126,7 +126,7 @@ export function factoryTag(
    */
   function startAfter(code) {
     // Deviate from JSX, which allows arbitrary whitespace.
-    // See: <https://github.com/micromark/micromark-extension-aiml-jsx/issues/7>.
+    // See: <https://github.com/micromark/micromark-extension-mdx-jsx/issues/7>.
     if (markdownLineEndingOrSpace(code)) {
       return nok(code)
     }
@@ -1043,7 +1043,7 @@ export function factoryTag(
       const error = new VFileMessage(
         'Unexpected lazy line in container, expected line to be prefixed with `>` when in a block quote, whitespace when in a list, etc',
         self.now(),
-        'micromark-extension-aiml-jsx:unexpected-lazy'
+        'micromark-extension-mdx-jsx:unexpected-lazy'
       )
       error.url =
         trouble + '#unexpected-lazy-line-in-container-expected-line-to-be'
@@ -1077,7 +1077,7 @@ export function factoryTag(
         ', expected ' +
         expect,
       self.now(),
-      'micromark-extension-aiml-jsx:unexpected-' +
+      'micromark-extension-mdx-jsx:unexpected-' +
         (code === codes.eof ? 'eof' : 'character')
     )
     error.url =
