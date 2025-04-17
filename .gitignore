@@ -26,6 +26,7 @@ pr_msg*.txt
 # production
 /build
 .workflows/
+.sources
 
 # misc
 .DS_Store
