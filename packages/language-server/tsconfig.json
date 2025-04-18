@@ -2,7 +2,7 @@
   "exclude": ["**/coverage/**", "node_modules", "../../node_modules", "dist", "test"],
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
-    "checkJs": true,
+    "checkJs": false,
     "lib": ["es2022"],
     "module": "ES2020",
     "moduleDetection": "force",
