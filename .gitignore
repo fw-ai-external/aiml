@@ -72,6 +72,7 @@ token_logs/
 test_token_logs/
 
 .sources
+coverage/
 # Private individual user cursor rules
 .cursor/rules/_*.mdc
 

@@ -48,7 +48,7 @@
     "prepack": "npm run build && npm run format",
     "build": "tsc --build --clean && tsc --build && type-coverage",
     "format": "prettier . -w --log-level error && xo --fix",
-    "test-api": "bun test test.js",
+    "test-api": "bun test",
     "test-coverage": "c8 --100 --reporter lcov npm run test-api",
     "test": "npm run build && npm run format && npm run test-coverage"
   },

@@ -28,7 +28,6 @@
     "micromark-extension-mdx-expression": "^3.0.0",
     "micromark-extension-aiml-jsx": "workspace:*",
     "micromark-extension-mdx-md": "^2.0.0",
-    "micromark-extension-aimljs": "^3.0.0",
     "micromark-util-combine-extensions": "^2.0.0",
     "micromark-util-types": "^2.0.0"
   },
@@ -47,8 +46,8 @@
     "prepack": "npm run build && npm run format",
     "build": "tsc --build --clean && tsc --build && type-coverage",
     "format": "prettier . -w --log-level error && xo --fix",
-    "test-api-prod": "bun test test.js",
-    "test-api-dev": "bun test test.js",
+    "test-api-prod": "bun test",
+    "test-api-dev": "bun test",
     "test-api": "npm run test-api-dev && npm run test-api-prod",
     "test": "npm run build && npm run format && npm run test-api"
   },
