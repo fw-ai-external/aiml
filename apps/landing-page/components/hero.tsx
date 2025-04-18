@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -35,9 +36,11 @@ export default function Hero() {
             <Button
               size="lg"
               className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full transition-colors"
+              asChild
             >
-              View the Docs
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <Link href="/docs">
+                View the Docs <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
             <Button
               size="lg"
