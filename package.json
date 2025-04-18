@@ -13,7 +13,7 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean",
-    "test": "turbo run test",
+    "test": "turbo run build --filter=micromark-extension-aiml-jsx && turbo run test",
     "validate": "bun run build && bun test",
     "e2e": "turbo run e2e",
     "bunp-version": "bun changeset version",
