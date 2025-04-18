@@ -28,7 +28,7 @@
       ],
       "outputs": ["dist/**"]
     },
-    "mdast-util-aiml#build": {
+    "mdast-util-aiml-jsx#build": {
       "dependsOn": ["^micromark-extension-aiml-jsx#build"],
       "outputs": ["dist/**"]
     },
@@ -104,6 +104,14 @@
     "@aiml/parser#test": {
       "dependsOn": ["^@aiml/shared#build", "^unified-aiml#build"],
       "persistent": true,
+      "outputs": ["dist/**"]
+    },
+    "micromark-extension-aiml-js#test": {
+      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
+      "outputs": ["dist/**"]
+    },
+    "mdast-util-aiml-jsx#test": {
+      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
       "outputs": ["dist/**"]
     },
     "@aiml/aiml-ui#dev": {
