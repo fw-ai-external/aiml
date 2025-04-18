@@ -3,30 +3,16 @@
   "version": "0.0.1",
   "description": "micromark extension to support AIML syntax",
   "license": "MIT",
-  "keywords": [
-    "micromark",
-    "micromark-extension",
-    "mdx",
-    "mdxjs",
-    "esm",
-    "jsx",
-    "expression",
-    "markdown",
-    "unified"
-  ],
+  "keywords": ["micromark", "micromark-extension", "mdx", "mdxjs", "esm", "jsx", "expression", "markdown", "unified"],
   "sideEffects": false,
   "type": "module",
   "exports": "./index.js",
-  "files": [
-    "lib/",
-    "index.d.ts",
-    "index.js"
-  ],
+  "files": ["lib/", "index.d.ts", "index.js"],
   "dependencies": {
     "acorn": "^8.0.0",
     "acorn-jsx": "^5.0.0",
     "micromark-extension-mdx-expression": "^3.0.0",
-    "micromark-extension-aiml-jsx": "workspace:*",
+    "micromark-extension-aiml-jsx": "file:../micromark-extension-aiml-jsx",
     "micromark-extension-mdx-md": "^2.0.0",
     "micromark-util-combine-extensions": "^2.0.0",
     "micromark-util-types": "^2.0.0"
@@ -60,9 +46,7 @@
     "useTabs": false
   },
   "remarkConfig": {
-    "plugins": [
-      "remark-preset-wooorm"
-    ]
+    "plugins": ["remark-preset-wooorm"]
   },
   "typeCoverage": {
     "atLeast": 100,
@@ -73,9 +57,7 @@
   "xo": {
     "overrides": [
       {
-        "files": [
-          "**/*.d.ts"
-        ],
+        "files": ["**/*.d.ts"],
         "rules": {
           "@typescript-eslint/array-type": [
             "error",
@@ -89,10 +71,7 @@
               "extendDefaults": true
             }
           ],
-          "@typescript-eslint/consistent-type-definitions": [
-            "error",
-            "interface"
-          ]
+          "@typescript-eslint/consistent-type-definitions": ["error", "interface"]
         }
       }
     ],

@@ -15,7 +15,9 @@
     "unist-util-stringify-position": "^3.0.0",
     "vfile-message": "^4.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "micromark-extension-aiml-jsx": "file:../micromark-extension-aiml-jsx"
+  },
   "scripts": {
     "test": "bun test"
   }
