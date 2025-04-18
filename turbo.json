@@ -132,6 +132,7 @@
     "test": {
       "dependsOn": [
         "mdast-util-aiml#build",
+        "mdast-util-aiml-jsx#build",
         "micromark-extension-aiml-jsx#build",
         "micromark-extension-aimljs#build",
         "unified-aiml#build"
