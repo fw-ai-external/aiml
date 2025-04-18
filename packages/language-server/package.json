@@ -22,9 +22,11 @@
     "test": "echo \"bun run test-api\"",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint .",
-    "prod-build": "echo \"tsc -p tsconfig.build.json\""
+    "prod-build": "echo \"tsc -p tsconfig.build.json\"",
+    "clean": "rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
+    "@fireworks/shared": "workspace:*",
     "@mdx-js/language-service": "0.6.2",
     "@volar/language-server": "~2.4.0",
     "load-plugin": "^6.0.0",

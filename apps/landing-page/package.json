@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "biome lint .",
     "typecheck": "tsc --noEmit",
-    "postinstall": "fumadocs-mdx"
+    "postinstall": "fumadocs-mdx",
+    "clean": "rm -rf .next && rm -rf node_modules"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

@@ -17,7 +17,8 @@
     "test": "bun test",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "lint": "biome lint ."
+    "lint": "biome lint .",
+    "clean": "rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
     "acorn": "^8.14.1",

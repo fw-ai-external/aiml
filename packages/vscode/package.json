@@ -19,7 +19,8 @@
     "publish": "vsce publish --no-dependencies",
     "vscode:prepublish": "bun ./script/build.ts",
     "typecheck": "tsc --noEmit",
-    "lint": "biome lint ."
+    "lint": "biome lint .",
+    "clean": "rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
     "@hediet/node-reload": "^0.7.3",

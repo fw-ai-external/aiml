@@ -5,7 +5,8 @@
   "scripts": {
     "migrate": "npx drizzle-kit push",
     "typecheck": "tsc --noEmit",
-    "lint": "biome lint ."
+    "lint": "biome lint .",
+    "clean": "rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
     "@types/bun": "latest",

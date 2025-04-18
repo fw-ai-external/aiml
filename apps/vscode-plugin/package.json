@@ -100,6 +100,7 @@
     "publish:marketplace": "bun run package && vsce publish --no-dependencies && ovsx publish --no-dependencies",
     "publish:marketplace:prerelease": "bun run package && vsce publish --pre-release --no-dependencies && ovsx publish --pre-release --no-dependencies",
     "changeset": "changeset",
-    "version-packages": "changeset version"
+    "version-packages": "changeset version",
+    "clean": "rm -rf node_modules && rm -rf dist"
   }
 }

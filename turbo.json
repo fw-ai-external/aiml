@@ -5,7 +5,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**/*"]
+      "outputs": ["dist/**/*", "dist/**", ".next/**", ".source/**"]
     },
     "@fireworks/shared#build": {
       "outputs": ["dist/**"]
@@ -29,6 +29,23 @@
       "outputs": ["dist/**"]
     },
 
+    "landing-page#dev": {
+      "outputs": [".source/**", ".next/**"]
+    },
+    "aiml-ui#dev": {
+      "outputs": [".next/**"]
+    },
+    "aiml-ui#build": {
+      "outputs": [".next/**"]
+    },
+    "@fireworks/language-server#typecheck": {
+      "dependsOn": ["^@fireworks/parser#build", "^@fireworks/shared#build"],
+      "outputs": ["dist/**"]
+    },
+    "@fireworks/aiml-ui#typecheck": {
+      "dependsOn": ["^@fireworks/parser#build", "^@fireworks/shared#build", "^@fireworks/runtime#build"],
+      "outputs": ["dist/**"]
+    },
     "fireagent-plugin-vscode#typecheck": {
       "dependsOn": ["^@fireworks/parser#build", "^@fireworks/shared#build"],
       "outputs": ["dist/**"]
@@ -78,7 +95,8 @@
       "outputs": ["dist/**"]
     },
     "@fireworks/aiml-ui#dev": {
-      "persistent": true
+      "persistent": true,
+      "outputs": [".next/**"]
     },
     "lint": {
       "outputs": []
