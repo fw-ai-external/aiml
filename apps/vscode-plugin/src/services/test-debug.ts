@@ -1,4 +1,4 @@
-import { mock } from "bun:test";
+import { mock } from 'bun:test';
 
 /**
  * Debug utility for tests to help troubleshoot module loading issues
@@ -32,13 +32,13 @@ export function debugModuleLoading(moduleName: string): void {
 export function createElementConfigMock() {
   const mockAllElementConfigs = {
     state: {
-      documentation: "State element documentation",
+      documentation: 'State element documentation',
       propsSchema: {
         shape: {
           id: {
-            type: "string",
-            description: "State identifier (unique within a workflow)",
-            constructor: { name: "Object" },
+            type: 'string',
+            description: 'State identifier (unique within a workflow)',
+            constructor: { name: 'Object' },
           },
         },
       },
@@ -48,10 +48,10 @@ export function createElementConfigMock() {
   const mockExports = {
     allElementConfigs: mockAllElementConfigs,
     isSupportedNodeName: (nodeName: string) => {
-      return nodeName === "state";
+      return nodeName === 'state';
     },
     getNodeDefinitionClass: (tag: string) => {
-      if (tag === "state") {
+      if (tag === 'state') {
         return mockAllElementConfigs.state;
       }
       return null;
@@ -60,7 +60,7 @@ export function createElementConfigMock() {
     allStateElementConfigs: [],
   };
 
-  mock.module("@aiml/shared", () => mockExports);
+  mock.module('@aiml/shared', () => mockExports);
 
   return mockExports;
 }
