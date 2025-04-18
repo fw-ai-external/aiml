@@ -1,6 +1,4 @@
-# AIML Prompting Language
-
-## Modern MDX flavored SCXML, designed for an Agentic world!
+# AIML Agentic Prompting Language
 
 > [!IMPORTANT]  
 > This repository is in a high state of flux, and might not build correctly at this moment, please be patient as rapid progress is made :)
