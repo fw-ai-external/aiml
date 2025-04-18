@@ -1,11 +1,13 @@
-import * as path from 'path';
-import * as vscode from 'vscode';
+import * as path from "path";
+import * as vscode from "vscode";
 
-import os from 'os';
-import globby from 'globby';
-import { arePathsEqual } from './utils/path';
+import os from "os";
+import { globby, type Options as GlobbyOptions } from "globby";
+import { arePathsEqual } from "./utils/path";
 
-const cwd = vscode.workspace.workspaceFolders?.map((folder) => folder.uri.fsPath).at(0);
+const cwd = vscode.workspace.workspaceFolders
+  ?.map((folder) => folder.uri.fsPath)
+  .at(0);
 
 // Note: this is not a drop-in replacement for listFiles at the start of tasks, since that will be done for Desktops when there is no workspace selected
 export class WorkspaceTracker {
@@ -29,13 +31,19 @@ export class WorkspaceTracker {
   private registerListeners() {
     // Listen for file creation
     // .bind(this) ensures the callback refers to class instance when using this, not necessary when using arrow function
-    this.disposables.push(vscode.workspace.onDidCreateFiles(this.onFilesCreated.bind(this)));
+    this.disposables.push(
+      vscode.workspace.onDidCreateFiles(this.onFilesCreated.bind(this))
+    );
 
     // Listen for file deletion
-    this.disposables.push(vscode.workspace.onDidDeleteFiles(this.onFilesDeleted.bind(this)));
+    this.disposables.push(
+      vscode.workspace.onDidDeleteFiles(this.onFilesDeleted.bind(this))
+    );
 
     // Listen for file renaming
-    this.disposables.push(vscode.workspace.onDidRenameFiles(this.onFilesRenamed.bind(this)));
+    this.disposables.push(
+      vscode.workspace.onDidRenameFiles(this.onFilesRenamed.bind(this))
+    );
 
     /*
 		 An event that is emitted when a workspace folder is added or removed.
@@ -52,7 +60,7 @@ export class WorkspaceTracker {
     await Promise.all(
       event.files.map(async (file) => {
         await this.addFilePath(file.fsPath);
-      }),
+      })
     );
     this.workspaceDidUpdate();
   }
@@ -64,7 +72,7 @@ export class WorkspaceTracker {
         if (await this.removeFilePath(file.fsPath)) {
           updated = true;
         }
-      }),
+      })
     );
     if (updated) {
       this.workspaceDidUpdate();
@@ -76,7 +84,7 @@ export class WorkspaceTracker {
       event.files.map(async (file) => {
         await this.removeFilePath(file.oldUri.fsPath);
         await this.addFilePath(file.newUri.fsPath);
-      }),
+      })
     );
     this.workspaceDidUpdate();
   }
@@ -88,16 +96,23 @@ export class WorkspaceTracker {
   }
 
   private normalizeFilePath(filePath: string): string {
-    const resolvedPath = cwd ? path.resolve(cwd, filePath) : path.resolve(filePath);
-    return filePath.endsWith('/') ? resolvedPath + '/' : resolvedPath;
+    const resolvedPath = cwd
+      ? path.resolve(cwd, filePath)
+      : path.resolve(filePath);
+    return filePath.endsWith("/") ? resolvedPath + "/" : resolvedPath;
   }
 
   private async addFilePath(filePath: string): Promise<string> {
     const normalizedPath = this.normalizeFilePath(filePath);
     try {
-      const stat = await vscode.workspace.fs.stat(vscode.Uri.file(normalizedPath));
+      const stat = await vscode.workspace.fs.stat(
+        vscode.Uri.file(normalizedPath)
+      );
       const isDirectory = (stat.type & vscode.FileType.Directory) !== 0;
-      const pathWithSlash = isDirectory && !normalizedPath.endsWith('/') ? normalizedPath + '/' : normalizedPath;
+      const pathWithSlash =
+        isDirectory && !normalizedPath.endsWith("/")
+          ? normalizedPath + "/"
+          : normalizedPath;
       this.filePaths.add(pathWithSlash);
       return pathWithSlash;
     } catch {
@@ -109,13 +124,21 @@ export class WorkspaceTracker {
 
   private async removeFilePath(filePath: string): Promise<boolean> {
     const normalizedPath = this.normalizeFilePath(filePath);
-    return this.filePaths.delete(normalizedPath) || this.filePaths.delete(normalizedPath + '/');
+    return (
+      this.filePaths.delete(normalizedPath) ||
+      this.filePaths.delete(normalizedPath + "/")
+    );
   }
 
-  private async listFiles(dirPath: string, recursive: boolean, limit: number): Promise<[string[], boolean]> {
+  private async listFiles(
+    dirPath: string,
+    recursive: boolean,
+    limit: number
+  ): Promise<[string[], boolean]> {
     const absolutePath = path.resolve(dirPath);
     // Do not allow listing files in root or home directory, this is a precautionary measure to prevent memory issues due to OS level cloud syncs
-    const root = process.platform === 'win32' ? path.parse(absolutePath).root : '/';
+    const root =
+      process.platform === "win32" ? path.parse(absolutePath).root : "/";
     const isRoot = arePathsEqual(absolutePath, root);
     if (isRoot) {
       return [[root], false];
@@ -127,22 +150,22 @@ export class WorkspaceTracker {
     }
 
     const dirsToIgnore = [
-      'node_modules',
-      '__pycache__',
-      'env',
-      'venv',
-      'target/dependency',
-      'build/dependencies',
-      'dist',
-      'out',
-      'bundle',
-      'vendor',
-      'tmp',
-      'temp',
-      'deps',
-      'pkg',
-      'Pods',
-      '.*', // '!**/.*' excludes hidden directories, while '!**/.*/**' excludes only their contents. This way we are at least aware of the existence of hidden directories.
+      "node_modules",
+      "__pycache__",
+      "env",
+      "venv",
+      "target/dependency",
+      "build/dependencies",
+      "dist",
+      "out",
+      "bundle",
+      "vendor",
+      "tmp",
+      "temp",
+      "deps",
+      "pkg",
+      "Pods",
+      ".*", // '!**/.*' excludes hidden directories, while '!**/.*/**' excludes only their contents. This way we are at least aware of the existence of hidden directories.
     ].map((dir) => `**/${dir}/**`);
 
     const options = {
@@ -158,7 +181,7 @@ export class WorkspaceTracker {
     // * globs all files in one dir, ** globs files in nested directories
     const filePaths = recursive
       ? await this.globbyLevelByLevel(limit, options)
-      : (await globby('*', options)).slice(0, limit);
+      : (await globby("*", options)).slice(0, limit);
 
     return [filePaths, filePaths.length >= limit];
   }
@@ -173,9 +196,9 @@ export class WorkspaceTracker {
    *   - Potential for loops if symbolic links reference back to parent (we could use followSymlinks: false but that may not be ideal for some projects and it's pointless if they're not using symlinks wrong)
    *   - Timeout mechanism prevents infinite loops
    */
-  private async globbyLevelByLevel(limit: number, options?: globby.GlobbyOptions) {
+  private async globbyLevelByLevel(limit: number, options?: GlobbyOptions) {
     let results: Set<string> = new Set();
-    let queue: string[] = ['*'];
+    let queue: string[] = ["*"];
 
     const globbingProcess = async () => {
       while (queue.length > 0 && results.size < limit) {
@@ -187,7 +210,7 @@ export class WorkspaceTracker {
             break;
           }
           results.add(file);
-          if (file.endsWith('/')) {
+          if (file.endsWith("/")) {
             queue.push(`${file}*`);
           }
         }
@@ -197,12 +220,12 @@ export class WorkspaceTracker {
 
     // Timeout after 10 seconds and return partial results
     const timeoutPromise = new Promise<string[]>((_, reject) => {
-      setTimeout(() => reject(new Error('Globbing timeout')), 10_000);
+      setTimeout(() => reject(new Error("Globbing timeout")), 10_000);
     });
     try {
       return await Promise.race([globbingProcess(), timeoutPromise]);
     } catch (error) {
-      console.warn('Globbing timed out, returning partial results');
+      console.warn("Globbing timed out, returning partial results");
       return Array.from(results);
     }
   }

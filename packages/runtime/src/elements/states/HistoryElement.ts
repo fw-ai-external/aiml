@@ -11,8 +11,8 @@ type HistoryProps = z.infer<typeof historySchema>;
 export const History = createElementDefinition({
   tag: "history",
   propsSchema: historySchema,
-  role: "state",
-  elementType: "history",
+  type: "state",
+  subType: "other",
   allowedChildren: ["onentry", "onexit"],
   onExecutionGraphConstruction(buildContext) {
     // Might have a single transition child or onentry blocks

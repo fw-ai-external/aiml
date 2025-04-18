@@ -1,7 +1,7 @@
-import type { SerializedBaseElement } from '@fireworks/shared';
+import type { SerializedBaseElement } from "@fireworks/shared";
 
 interface ValidationError {
-  type: 'unreachable_state';
+  type: "unreachable_state";
   stateId: string;
   message: string;
 }
@@ -16,16 +16,25 @@ export function validateConfig(config: SerializedBaseElement): {
   };
 }
 
-function hasTagProperties(node: SerializedBaseElement): node is SerializedBaseElement & {
-  kind: 'tag';
+function hasTagProperties(
+  node: SerializedBaseElement
+): node is SerializedBaseElement & {
+  kind: "tag";
   name: string;
   attributes: { [key: string]: string | number | undefined };
   nodes?: SerializedBaseElement[];
 } {
-  return 'kind' in node && (node as any).kind === 'tag' && 'name' in node && 'attributes' in node;
+  return (
+    "kind" in node &&
+    (node as any).kind === "tag" &&
+    "name" in node &&
+    "attributes" in node
+  );
 }
 
-function findUnreachableStates(element: SerializedBaseElement): ValidationError[] {
+function findUnreachableStates(
+  element: SerializedBaseElement
+): ValidationError[] {
   const errors: ValidationError[] = [];
   const reachableStates = new Set<string>();
 
@@ -33,7 +42,11 @@ function findUnreachableStates(element: SerializedBaseElement): ValidationError[
   function collectStateIds(elem: SerializedBaseElement): Set<string> {
     const stateIds = new Set<string>();
 
-    if (hasTagProperties(elem) && elem.name === 'state' && elem.attributes?.id) {
+    if (
+      hasTagProperties(elem) &&
+      elem.name === "state" &&
+      elem.attributes?.id
+    ) {
       stateIds.add(String(elem.attributes.id));
     }
 
@@ -48,26 +61,35 @@ function findUnreachableStates(element: SerializedBaseElement): ValidationError[
   }
 
   // Helper function to collect all transitions and mark initial states
-  function collectTransitionsAndInitials(elem: SerializedBaseElement): Map<string, string[]> {
+  function collectTransitionsAndInitials(
+    elem: SerializedBaseElement
+  ): Map<string, string[]> {
     const transitions = new Map<string, string[]>();
 
     // Handle SCXML element
-    if (hasTagProperties(elem) && elem.name === 'scxml') {
+    if (hasTagProperties(elem) && elem.name === "scxml") {
       if (elem.attributes.initial) {
         reachableStates.add(String(elem.attributes.initial));
       } else if (elem.nodes && elem.nodes.length > 0) {
         // If no initial attribute, first state child is initial
         const firstState = elem.nodes.find(
-          (child: SerializedBaseElement) => hasTagProperties(child) && child.name === 'state' && child.attributes?.id,
+          (child: SerializedBaseElement) =>
+            hasTagProperties(child) &&
+            child.name === "state" &&
+            child.attributes?.id
         );
-        if (firstState && hasTagProperties(firstState) && firstState.attributes.id) {
+        if (
+          firstState &&
+          hasTagProperties(firstState) &&
+          firstState.attributes.id
+        ) {
           reachableStates.add(String(firstState.attributes.id));
         }
       }
     }
 
     // Handle state element
-    if (hasTagProperties(elem) && elem.name === 'state' && elem.attributes.id) {
+    if (hasTagProperties(elem) && elem.name === "state" && elem.attributes.id) {
       const stateId = String(elem.attributes.id);
       transitions.set(stateId, []);
 
@@ -77,18 +99,34 @@ function findUnreachableStates(element: SerializedBaseElement): ValidationError[
       } else if (elem.nodes) {
         // If no initial attribute, first state child is initial
         const firstState = elem.nodes.find(
-          (child: SerializedBaseElement) => hasTagProperties(child) && child.role === 'state' && child.attributes?.id,
+          (child: SerializedBaseElement) =>
+            hasTagProperties(child) &&
+            child.type === "state" &&
+            child.attributes?.id
         );
-        if (firstState && hasTagProperties(firstState) && firstState.attributes.id) {
+        if (
+          firstState &&
+          hasTagProperties(firstState) &&
+          firstState.attributes.id
+        ) {
           reachableStates.add(String(firstState.attributes.id));
         }
       }
     }
 
-    if (hasTagProperties(elem) && elem.name === 'transition' && elem.attributes.target) {
+    if (
+      hasTagProperties(elem) &&
+      elem.name === "transition" &&
+      elem.attributes.target
+    ) {
       const parentState = findParentState(elem);
-      if (parentState && hasTagProperties(parentState) && parentState.attributes?.id) {
-        const targets = transitions.get(String(parentState.attributes.id)) || [];
+      if (
+        parentState &&
+        hasTagProperties(parentState) &&
+        parentState.attributes?.id
+      ) {
+        const targets =
+          transitions.get(String(parentState.attributes.id)) || [];
         targets.push(String(elem.attributes.target));
         transitions.set(String(parentState.attributes.id), targets);
       }
@@ -107,9 +145,11 @@ function findUnreachableStates(element: SerializedBaseElement): ValidationError[
     return transitions;
   }
 
-  function findParentState(elem: SerializedBaseElement): SerializedBaseElement | null {
+  function findParentState(
+    elem: SerializedBaseElement
+  ): SerializedBaseElement | null {
     let current = elem;
-    while (current && hasTagProperties(current) && current.role !== 'state') {
+    while (current && hasTagProperties(current) && current.type !== "state") {
       current = findParent(current);
     }
     return current || null;
@@ -119,7 +159,11 @@ function findUnreachableStates(element: SerializedBaseElement): ValidationError[
     let queue = [element];
     while (queue.length > 0) {
       const current = queue.shift()!;
-      if (hasTagProperties(elem) && hasTagProperties(current) && current.nodes?.includes(elem)) {
+      if (
+        hasTagProperties(elem) &&
+        hasTagProperties(current) &&
+        current.nodes?.includes(elem)
+      ) {
         return current;
       }
       if (hasTagProperties(current) && current.nodes) {
@@ -153,7 +197,7 @@ function findUnreachableStates(element: SerializedBaseElement): ValidationError[
   allStates.forEach((stateId) => {
     if (!reachableStates.has(stateId)) {
       errors.push({
-        type: 'unreachable_state',
+        type: "unreachable_state",
         stateId,
         message: `State "${stateId}" is unreachable: no Transition elements or \`initial\` props lead to this state`,
       });
