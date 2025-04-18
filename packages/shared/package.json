@@ -15,7 +15,9 @@
   "scripts": {
     "build": "tsup",
     "test": "bun test",
-    "dev": "tsup --watch"
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint ."
   },
   "dependencies": {
     "acorn": "^8.14.1",

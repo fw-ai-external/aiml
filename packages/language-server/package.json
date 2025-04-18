@@ -20,6 +20,8 @@
     "test-api": "bun test",
     "dev": "echo \"bun run dev.ts --watch\"",
     "test": "echo \"bun run test-api\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint .",
     "prod-build": "echo \"tsc -p tsconfig.build.json\""
   },
   "dependencies": {

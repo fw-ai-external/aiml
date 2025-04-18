@@ -11,6 +11,7 @@
     "dev": "turbo run dev --concurrency 11",
     "dev:watch": "turbo run build && bun --watch turbo run dev",
     "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
     "clean": "turbo run clean",
     "test": "turbo run test",
     "validate": "bun run build && bun test",

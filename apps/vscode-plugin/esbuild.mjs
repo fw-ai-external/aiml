@@ -1,13 +1,13 @@
-import * as esbuild from "esbuild";
+import * as esbuild from 'esbuild';
 
-const production = process.argv.includes("--production");
-const watch = process.argv.includes("--watch");
+const production = process.argv.includes('--production');
+const watch = process.argv.includes('--watch');
 
 /**
  * @type {import('esbuild').Plugin}
  */
 const esbuildProblemMatcherPlugin = {
-  name: "esbuild-problem-matcher",
+  name: 'esbuild-problem-matcher',
 
   setup(build) {
     build.onStart(() => {
@@ -16,9 +16,7 @@ const esbuildProblemMatcherPlugin = {
     build.onEnd((result) => {
       result.errors.forEach(({ text, location }) => {
         console.error(`✘ [ERROR] ${text}`);
-        console.error(
-          `    ${location.file}:${location.line}:${location.column}:`
-        );
+        console.error(`    ${location.file}:${location.line}:${location.column}:`);
       });
       // Build finished
     });
@@ -29,33 +27,33 @@ const baseConfig = {
   bundle: true,
   minify: production,
   sourcemap: !production,
-  logLevel: "info", // Change to info for better debugging
-  format: "cjs",
+  logLevel: 'info', // Change to info for better debugging
+  format: 'cjs',
   sourcesContent: false,
-  platform: "node",
+  platform: 'node',
   plugins: [esbuildProblemMatcherPlugin],
-  target: "node16", // Specify node target version
-  mainFields: ["module", "main"], // Prioritize ESM
-  resolveExtensions: [".ts", ".js"],
+  target: 'node16', // Specify node target version
+  mainFields: ['module', 'main'], // Prioritize ESM
+  resolveExtensions: ['.ts', '.js'],
   loader: {
     // Add explicit loaders
-    ".ts": "ts",
-    ".js": "js",
+    '.ts': 'ts',
+    '.js': 'js',
   },
 };
 
 const extensionConfig = {
   ...baseConfig,
-  entryPoints: ["src/extension.ts"],
-  outfile: ".dist/extension.js",
-  external: ["vscode"],
+  entryPoints: ['src/extension.ts'],
+  outfile: '.dist/extension.js',
+  external: ['vscode'],
 };
 
 const serverConfig = {
   ...baseConfig,
-  entryPoints: ["src/server.ts"],
-  outfile: ".dist/server.js",
-  external: ["vscode"],
+  entryPoints: ['src/server.ts'],
+  outfile: '.dist/server.js',
+  external: ['vscode'],
 };
 
 async function main() {

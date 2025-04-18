@@ -17,6 +17,7 @@
     "dev": "tsup --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
+    "lint": "biome lint .",
     "test": "bun test ./src/**/*.test.ts ./src/*.test.ts",
     "test:e2e": "bun test e2e/"
   },

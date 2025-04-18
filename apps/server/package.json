@@ -3,7 +3,9 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
-    "migrate": "npx drizzle-kit push"
+    "migrate": "npx drizzle-kit push",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint ."
   },
   "devDependencies": {
     "@types/bun": "latest",

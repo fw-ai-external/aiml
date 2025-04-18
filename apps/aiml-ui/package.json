@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "biome lint .",
+    "typecheck": "tsc --noEmit"
   },
   "resolutions": {
     "@types/react": "19.0.10",

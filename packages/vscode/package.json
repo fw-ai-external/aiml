@@ -17,7 +17,9 @@
     "build": "bun ./script/build.ts",
     "package": "vsce package --no-dependencies",
     "publish": "vsce publish --no-dependencies",
-    "vscode:prepublish": "bun ./script/build.ts"
+    "vscode:prepublish": "bun ./script/build.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint ."
   },
   "devDependencies": {
     "@hediet/node-reload": "^0.7.3",
