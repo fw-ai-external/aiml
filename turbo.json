@@ -48,6 +48,13 @@
       "outputs": [".next/**"]
     },
     "aiml-ui#build": {
+      "dependsOn": [
+        "^unified-aiml#build",
+        "^micromark-extension-aiml-jsx#build",
+        "^micromark-extension-aimljs#build",
+        "^mdast-util-aiml#build",
+        "^mdast-util-aiml-jsx#build"
+      ],
       "outputs": [".next/**"]
     },
     "@aiml/language-server#typecheck": {
