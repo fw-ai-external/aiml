@@ -28,6 +28,29 @@
       ],
       "outputs": ["dist/**"]
     },
+
+    "fireagent-plugin-vscode#typecheck": {
+      "dependsOn": ["^@fireworks/parser#build"],
+      "outputs": ["dist/**"]
+    },
+    "@fireworks/runtime#typecheck": {
+      "dependsOn": ["^@fireworks/shared#build", "^@fireworks/parser#build"],
+      "outputs": ["dist/**"]
+    },
+    "@fireworks/parser#typecheck": {
+      "dependsOn": ["^@fireworks/shared#build", "^unified-aiml#build"],
+      "outputs": ["dist/**"]
+    },
+    "@fireworks/unified-aiml#typecheck": {
+      "dependsOn": [
+        "^micromark-extension-aiml-jsx#build",
+        "^mdast-util-aiml#build",
+        "^mdast-util-aiml-jsx#build",
+        "^unified-aiml#build",
+        "^micromark-extension-aimljs#build"
+      ],
+      "outputs": ["dist/**"]
+    },
     "landing-page#build": {
       "outputs": [".source/**", ".next/**"]
     },
