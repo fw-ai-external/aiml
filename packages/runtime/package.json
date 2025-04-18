@@ -21,6 +21,7 @@
     "clean": "rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^1.2.10",
     "@dmitryrechkin/json-schema-to-zod": "^1.0.1",
     "@fireworks/shared": "workspace:*",
     "@mastra/core": "^0.6.0",

@@ -90,7 +90,7 @@
       "outputs": ["dist/**"]
     },
     "@fireworks/parser#test": {
-      "dependsOn": ["^unified-aiml#build"],
+      "dependsOn": ["^@fireworks/shared#build", "^unified-aiml#build"],
       "persistent": true,
       "outputs": ["dist/**"]
     },
@@ -108,6 +108,7 @@
     "clean": {
       "cache": false
     },
+
     "test": {
       "dependsOn": [
         "mdast-util-aiml#build",
