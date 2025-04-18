@@ -2,7 +2,7 @@ import type {
   RunStep,
   SerializedBaseElement,
   WorkflowGraph,
-} from "@fireworks/shared";
+} from "@aiml/shared";
 import { v4 as uuidv4 } from "uuid";
 import type { BaseElement } from "../elements/BaseElement";
 import { BuildContext } from "./Context";

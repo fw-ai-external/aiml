@@ -1,4 +1,4 @@
-import { scriptConfig } from "@fireworks/shared";
+import { scriptConfig } from "@aiml/shared";
 import type { ElementExecutionContext } from "../../ElementExecutionContext";
 import { StepValue } from "../../StepValue";
 import type { ExecutionReturnType } from "../../types";

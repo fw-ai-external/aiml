@@ -1,4 +1,4 @@
-import { stateConfig } from "@fireworks/shared";
+import { stateConfig } from "@aiml/shared";
 import { BaseElement } from "../BaseElement";
 import { createElementDefinition } from "../createElementFactory";
 

@@ -1,4 +1,4 @@
-import { cancelConfig } from "@fireworks/shared";
+import { cancelConfig } from "@aiml/shared";
 import { createElementDefinition } from "../createElementFactory";
 
 export const Cancel = createElementDefinition({

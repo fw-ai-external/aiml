@@ -5,9 +5,9 @@
  */
 
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { ErrorCode, ReplayableAsyncIterableStream } from "@fireworks/shared";
-import type { StepValueChunk, StepValueResult } from "@fireworks/shared";
-import type { ElementType } from "@fireworks/shared";
+import { ErrorCode, ReplayableAsyncIterableStream } from "@aiml/shared";
+import type { StepValueChunk, StepValueResult } from "@aiml/shared";
+import type { ElementType } from "@aiml/shared";
 import { RunValue } from "./RunValue";
 import { StepValue } from "./StepValue";
 

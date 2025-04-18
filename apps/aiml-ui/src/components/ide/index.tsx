@@ -5,7 +5,7 @@ import Editor from "@codingame/monaco-editor-react";
 // @ts-expect-error no types on @codingame/monaco-editor-wrapper
 import { initialize } from "@codingame/monaco-editor-wrapper";
 import type { IStandaloneCodeEditor } from "@codingame/monaco-vscode-api/vscode/vs/editor/standalone/browser/standaloneCodeEditor";
-import { type Diagnostic, DiagnosticSeverity } from "@fireworks/shared";
+import { type Diagnostic, DiagnosticSeverity } from "@aiml/shared";
 import { MarkerSeverity } from "monaco-editor";
 import { useRef } from "react";
 import { useEffect, useState } from "react";

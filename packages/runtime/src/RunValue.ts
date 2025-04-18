@@ -1,19 +1,19 @@
-import { ErrorCode } from "@fireworks/shared";
-import type { ReplayableAsyncIterableStream } from "@fireworks/shared";
+import { ErrorCode } from "@aiml/shared";
+import type { ReplayableAsyncIterableStream } from "@aiml/shared";
 import type {
   OpenAIChatCompletion,
   RunEvent,
   StepValueChunk,
   StepValueResult,
-} from "@fireworks/shared";
-import type { ElementType } from "@fireworks/shared";
+} from "@aiml/shared";
+import type { ElementType } from "@aiml/shared";
 import type { FinishReason } from "ai";
 import { StepValue } from "./StepValue";
 import {
   stepValueChunkToOpenAIChatCompletionChunk,
   stepValueResultToOpenAIChatCompletion,
 } from "./responses/openai.chat";
-import type { ExecutionGraphStep } from "@fireworks/shared";
+import type { ExecutionGraphStep } from "@aiml/shared";
 
 export type RunStepStream = ReplayableAsyncIterableStream<StepValueChunk>;
 

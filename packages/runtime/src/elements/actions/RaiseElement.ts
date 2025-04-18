@@ -1,4 +1,4 @@
-import { raiseConfig } from "@fireworks/shared";
+import { raiseConfig } from "@aiml/shared";
 import { createElementDefinition } from "../createElementFactory";
 
 export const Raise = createElementDefinition({

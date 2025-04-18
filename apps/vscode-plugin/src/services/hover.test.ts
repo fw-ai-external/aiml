@@ -1,32 +1,32 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { Connection } from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
-import type { DebugLogger } from '../utils/debug';
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import type { Connection } from "vscode-languageserver";
+import { TextDocument } from "vscode-languageserver-textdocument";
+import type { DebugLogger } from "../utils/debug";
 
 // Mock the element-config module before importing HoverProvider
 const mockElementConfig = {
   allElementConfigs: {
     state: {
-      documentation: 'State element documentation',
+      documentation: "State element documentation",
       propsSchema: {
         shape: {
           id: {
-            type: 'string',
-            description: 'State identifier',
-            constructor: { name: 'Object' },
+            type: "string",
+            description: "State identifier",
+            constructor: { name: "Object" },
           },
         },
       },
     },
   },
-  isSupportedNodeName: (nodeName: string) => nodeName === 'state',
+  isSupportedNodeName: (nodeName: string) => nodeName === "state",
 };
 
 // Mock the module using Bun's mocking capabilities
-mock.module('@fireworks/shared', () => mockElementConfig);
+mock.module("@aiml/shared", () => mockElementConfig);
 
 // Now import the HoverProvider
-import { HoverProvider } from './hover';
+import { HoverProvider } from "./hover";
 
 // Mock dependencies
 const mockConnection = {
@@ -47,7 +47,7 @@ const mockLogger: DebugLogger = {
   state: mock(() => {}),
 };
 
-describe.skip('HoverProvider', () => {
+describe.skip("HoverProvider", () => {
   let provider: HoverProvider;
   let document: TextDocument;
 
@@ -67,22 +67,27 @@ describe.skip('HoverProvider', () => {
   });
 
   // Just test the internal getElementConfig functionality first
-  describe.skip('getElementConfig', () => {
-    it('should return element config for valid tag', () => {
-      const result = (provider as any).getElementConfigPublic('state');
+  describe.skip("getElementConfig", () => {
+    it("should return element config for valid tag", () => {
+      const result = (provider as any).getElementConfigPublic("state");
       expect(result).not.toBeNull();
-      expect(result.documentation).toBe('State element documentation');
+      expect(result.documentation).toBe("State element documentation");
     });
 
-    it('should return null for invalid tag', () => {
-      const result = (provider as any).getElementConfigPublic('nonexistent');
+    it("should return null for invalid tag", () => {
+      const result = (provider as any).getElementConfigPublic("nonexistent");
       expect(result).toBeNull();
     });
   });
 
-  describe('getHover', () => {
-    it('should provide hover information for elements', () => {
-      document = TextDocument.create('test.aiml', 'aiml', 1, "<state id='idle'/>");
+  describe("getHover", () => {
+    it("should provide hover information for elements", () => {
+      document = TextDocument.create(
+        "test.aiml",
+        "aiml",
+        1,
+        "<state id='idle'/>"
+      );
 
       // Position over 'state' tag name (between index 1-6)
       const position = document.positionAt(3);
@@ -90,15 +95,15 @@ describe.skip('HoverProvider', () => {
 
       expect(hover).not.toBeNull();
       expect(hover?.contents).toEqual({
-        kind: 'markdown',
-        value: expect.stringContaining('**state**'),
+        kind: "markdown",
+        value: expect.stringContaining("**state**"),
       });
       expect(mockLogger.info).toHaveBeenCalled();
     });
 
-    it('should handle missing tokens', () => {
-      const content = '';
-      document = TextDocument.create('file:///test.xml', 'xml', 1, content);
+    it("should handle missing tokens", () => {
+      const content = "";
+      document = TextDocument.create("file:///test.xml", "xml", 1, content);
       const position = { line: 0, character: 0 };
 
       const hover = provider.getHover(document, position);
@@ -107,8 +112,13 @@ describe.skip('HoverProvider', () => {
       expect(mockLogger.info).toHaveBeenCalled();
     });
 
-    it('should provide hover information for attributes', () => {
-      document = TextDocument.create('test.aiml', 'aiml', 1, "<state id='test'/>");
+    it("should provide hover information for attributes", () => {
+      document = TextDocument.create(
+        "test.aiml",
+        "aiml",
+        1,
+        "<state id='test'/>"
+      );
 
       // Position over 'id' attribute
       const position = document.positionAt(8); // Middle of 'id' token
@@ -116,37 +126,46 @@ describe.skip('HoverProvider', () => {
 
       expect(hover).not.toBeNull();
       expect(hover?.contents).toEqual({
-        kind: 'markdown',
-        value: expect.stringContaining('**state.id**'),
+        kind: "markdown",
+        value: expect.stringContaining("**state.id**"),
       });
       expect(mockLogger.info).toHaveBeenCalled();
     });
 
-    it('should handle unknown elements', () => {
-      document = TextDocument.create('test.aiml', 'aiml', 1, '<unknown/>');
+    it("should handle unknown elements", () => {
+      document = TextDocument.create("test.aiml", "aiml", 1, "<unknown/>");
 
       // Position over 'unknown' tag name (between index 1-8)
       const position = document.positionAt(3);
       const hover = provider.getHover(document, position);
 
       expect(hover).toBeNull();
-      expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining('No element config found for tag'));
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.stringContaining("No element config found for tag")
+      );
     });
 
-    it('should handle errors in getElementConfig', () => {
-      document = TextDocument.create('test.aiml', 'aiml', 1, "<state id='idle'/>");
+    it("should handle errors in getElementConfig", () => {
+      document = TextDocument.create(
+        "test.aiml",
+        "aiml",
+        1,
+        "<state id='idle'/>"
+      );
 
       // Mock the getElementConfig method to throw an error
       // Use any to access the private method
       (provider as any).getElementConfig = mock(() => {
-        throw new Error('Test error in getElementConfig');
+        throw new Error("Test error in getElementConfig");
       });
 
       const position = document.positionAt(3);
       const hover = provider.getHover(document, position);
 
       expect(hover).toBeNull();
-      expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('Error providing hover information'));
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining("Error providing hover information")
+      );
     });
   });
 });

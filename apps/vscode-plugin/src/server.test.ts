@@ -1,57 +1,49 @@
-import { jest } from "bun:test";
-import { TextDocument } from "vscode-languageserver-textdocument";
-import {
-  CompletionItemKind,
-  type Connection,
-  type Position,
-} from "vscode-languageserver/node";
-import {
-  buildActiveToken,
-  getOwnerAttributeName,
-  getOwnerTagName,
-} from "./utils/token";
+import { jest } from 'bun:test';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { CompletionItemKind, type Connection, type Position } from 'vscode-languageserver/node';
+import { buildActiveToken, getOwnerAttributeName, getOwnerTagName } from './utils/token';
 // Remove the problematic import and create a mock version
 // import { allElementConfigs } from "@aiml/shared";
 
 // Mock version of allElementConfigs
 const mockElementConfigs = {
   state: {
-    documentation: "State element documentation",
+    documentation: 'State element documentation',
     propsSchema: {
       shape: {
         id: {
-          type: "string",
-          documentation: "Unique identifier for the state",
+          type: 'string',
+          documentation: 'Unique identifier for the state',
           _def: {
-            typeName: "ZodString",
+            typeName: 'ZodString',
           },
         },
         initial: {
-          type: "string",
-          documentation: "Initial substate",
+          type: 'string',
+          documentation: 'Initial substate',
           _def: {
-            typeName: "ZodString",
+            typeName: 'ZodString',
           },
         },
       },
     },
   },
   transition: {
-    documentation: "Transition element documentation",
+    documentation: 'Transition element documentation',
     propsSchema: {
       shape: {
         target: {
-          type: "string",
-          documentation: "Target state ID",
+          type: 'string',
+          documentation: 'Target state ID',
           _def: {
-            typeName: "ZodString",
+            typeName: 'ZodString',
           },
         },
         event: {
-          type: "string",
-          documentation: "Event that triggers the transition",
+          type: 'string',
+          documentation: 'Event that triggers the transition',
           _def: {
-            typeName: "ZodString",
+            typeName: 'ZodString',
           },
         },
       },
@@ -59,8 +51,8 @@ const mockElementConfigs = {
   },
 };
 
-import { TokenType } from "./acorn";
-import { parseToTokens } from "./acorn";
+import { TokenType } from './acorn';
+import { parseToTokens } from './acorn';
 // Mock the connection with required methods
 const mockConnection: Connection = {
   console: { log: () => {} },
@@ -89,7 +81,7 @@ const mockConnection: Connection = {
 
 // Helper to create a text document with content
 function createTextDocument(content: string): TextDocument {
-  return TextDocument.create("file:///test.aiml", "aiml", 1, content);
+  return TextDocument.create('file:///test.aiml', 'aiml', 1, content);
 }
 
 // Helper to get completion items at a specific position
@@ -100,7 +92,7 @@ async function getCompletionsAt(content: string, position: Position) {
   const token = buildActiveToken(tokens, offset);
 
   // Get the tag name if we're inside an element
-  let tagName = "";
+  let tagName = '';
   for (let i = token.index; i >= 0; i--) {
     const t = token.all[i];
     if (t.type === TokenType.TagName) {
@@ -125,8 +117,7 @@ async function getCompletionsAt(content: string, position: Position) {
 
   // Attribute completions
   if (tagName && token.prevToken?.type === TokenType.Whitespace) {
-    const elementConfig =
-      mockElementConfigs[tagName as keyof typeof mockElementConfigs];
+    const elementConfig = mockElementConfigs[tagName as keyof typeof mockElementConfigs];
     if (elementConfig) {
       return Object.keys(elementConfig.propsSchema.shape).map((attr) => ({
         label: attr,
@@ -144,21 +135,14 @@ async function getCompletionsAt(content: string, position: Position) {
       .find((t) => t.type === TokenType.AttributeName);
 
     if (attrNameToken) {
-      const attrName = content.substring(
-        attrNameToken.startIndex,
-        attrNameToken.endIndex
-      );
-      const elementConfig =
-        mockElementConfigs[tagName as keyof typeof mockElementConfigs];
+      const attrName = content.substring(attrNameToken.startIndex, attrNameToken.endIndex);
+      const elementConfig = mockElementConfigs[tagName as keyof typeof mockElementConfigs];
 
       if (elementConfig) {
-        const schema =
-          elementConfig.propsSchema.shape[
-            attrName as keyof typeof elementConfig.propsSchema.shape
-          ];
+        const schema = elementConfig.propsSchema.shape[attrName as keyof typeof elementConfig.propsSchema.shape];
 
         // Special handling for transition target
-        if (tagName === "transition" && attrName === "target") {
+        if (tagName === 'transition' && attrName === 'target') {
           // Find all state IDs in the document
           const stateIds = new Set<string>();
           for (let i = 0; i < token.all.length; i++) {
@@ -168,20 +152,11 @@ async function getCompletionsAt(content: string, position: Position) {
               const tagNameToken = getOwnerTagName(token.all, i);
 
               if (attrNameToken && tagNameToken) {
-                const tagName = content.substring(
-                  tagNameToken.startIndex,
-                  tagNameToken.endIndex
-                );
-                const attrName = content.substring(
-                  attrNameToken.startIndex,
-                  attrNameToken.endIndex
-                );
-                const attrValue = content.substring(
-                  t.startIndex + 1,
-                  t.endIndex - 1
-                );
+                const tagName = content.substring(tagNameToken.startIndex, tagNameToken.endIndex);
+                const attrName = content.substring(attrNameToken.startIndex, attrNameToken.endIndex);
+                const attrValue = content.substring(t.startIndex + 1, t.endIndex - 1);
 
-                if (tagName === "state" && attrName === "id") {
+                if (tagName === 'state' && attrName === 'id') {
                   stateIds.add(attrValue);
                 }
               }
@@ -199,14 +174,14 @@ async function getCompletionsAt(content: string, position: Position) {
           // Add a type assertion to match the expected structure
           return [
             {
-              label: "true",
+              label: 'true',
               kind: CompletionItemKind.Value,
-              documentation: "Boolean true value",
+              documentation: 'Boolean true value',
             },
             {
-              label: "false",
+              label: 'false',
               kind: CompletionItemKind.Value,
-              documentation: "Boolean false value",
+              documentation: 'Boolean false value',
             },
           ];
         }

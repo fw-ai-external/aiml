@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { finalConfig } from "@fireworks/shared";
+import { finalConfig } from "@aiml/shared";
 import { createElementDefinition } from "../createElementFactory";
 
 const finalSchema = z.object({

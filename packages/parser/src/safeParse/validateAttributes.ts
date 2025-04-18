@@ -1,5 +1,5 @@
-import type { Diagnostic } from "@fireworks/shared";
-import { DiagnosticSeverity, allElementConfigs } from "@fireworks/shared";
+import type { Diagnostic } from "@aiml/shared";
+import { DiagnosticSeverity, allElementConfigs } from "@aiml/shared";
 import { fromError } from "zod-validation-error";
 import { getPosition } from "../utils/helpers.js";
 import * as acorn from "acorn";

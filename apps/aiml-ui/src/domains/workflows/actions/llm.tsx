@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { SerializedBaseElement } from "@fireworks/shared";
+import type { SerializedBaseElement } from "@aiml/shared";
 export const LLMActionDetails = ({
   action,
   extraInfo,

@@ -1,4 +1,4 @@
-import { foreachConfig } from "@fireworks/shared";
+import { foreachConfig } from "@aiml/shared";
 import { createElementDefinition } from "../createElementFactory";
 
 export const ForEach = createElementDefinition({

@@ -2,7 +2,7 @@ import {
   DiagnosticSeverity,
   type Diagnostic,
   type SerializedBaseElement,
-} from "@fireworks/shared";
+} from "@aiml/shared";
 import * as allElements from "./elements";
 import type { BaseElement } from "./elements/BaseElement";
 import type { createElementDefinition } from "./elements/createElementFactory";

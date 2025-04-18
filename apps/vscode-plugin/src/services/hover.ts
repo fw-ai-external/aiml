@@ -1,16 +1,24 @@
-import type { Connection, Hover } from 'vscode-languageserver';
-import type { TextDocument } from 'vscode-languageserver-textdocument';
-import { parseToTokens } from '../acorn';
-import type { DebugLogger } from '../utils/debug';
-import { buildActiveToken, getOwnerAttributeName, getOwnerTagName } from '../utils/token';
-import { generateAttributeHover, generateElementHover, getTextFromToken } from './hover-utils';
+import type { Connection, Hover } from "vscode-languageserver";
+import type { TextDocument } from "vscode-languageserver-textdocument";
+import { parseToTokens } from "../acorn";
+import type { DebugLogger } from "../utils/debug";
+import {
+  buildActiveToken,
+  getOwnerAttributeName,
+  getOwnerTagName,
+} from "../utils/token";
+import {
+  generateAttributeHover,
+  generateElementHover,
+  getTextFromToken,
+} from "./hover-utils";
 
 // Import element config at the end to make mocking easier
 let elementConfigModule: any;
 try {
-  elementConfigModule = require('@fireworks/shared');
+  elementConfigModule = require("@aiml/shared");
 } catch (error) {
-  console.error('Error loading element-config module:', error);
+  console.error("Error loading element-config module:", error);
   elementConfigModule = {
     allElementConfigs: {},
   };
@@ -23,7 +31,7 @@ try {
 export class HoverProvider {
   constructor(
     private connection: Connection,
-    private logger: DebugLogger,
+    private logger: DebugLogger
   ) {}
 
   /**
@@ -35,7 +43,9 @@ export class HoverProvider {
       const { allElementConfigs } = elementConfigModule;
       return allElementConfigs[tagName as keyof typeof allElementConfigs];
     } catch (error) {
-      this.logger.error(`Error getting element config for ${tagName}: ${error}`);
+      this.logger.error(
+        `Error getting element config for ${tagName}: ${error}`
+      );
       return null;
     }
   }
@@ -46,7 +56,10 @@ export class HoverProvider {
    * @param position The position in the document
    * @returns Hover information or null if none available
    */
-  public getHover(document: TextDocument, position: { line: number; character: number }): Hover | null {
+  public getHover(
+    document: TextDocument,
+    position: { line: number; character: number }
+  ): Hover | null {
     try {
       const offset = document.offsetAt(position);
       const content = document.getText();
@@ -54,11 +67,11 @@ export class HoverProvider {
       const token = buildActiveToken(tokens, offset);
 
       this.logger.info(
-        `Processing hover request - uri: ${document.uri}, offset: ${offset}, position: ${JSON.stringify(position)}`,
+        `Processing hover request - uri: ${document.uri}, offset: ${offset}, position: ${JSON.stringify(position)}`
       );
 
       if (!token.token) {
-        this.logger.info('No token found at position');
+        this.logger.info("No token found at position");
         return null;
       }
 
@@ -67,7 +80,7 @@ export class HoverProvider {
       const attrNameToken = getOwnerAttributeName(token.all, token.index);
 
       if (!tagNameToken) {
-        this.logger.info('No tag name found at position');
+        this.logger.info("No tag name found at position");
         return null;
       }
 
@@ -101,7 +114,7 @@ export class HoverProvider {
             start: document.positionAt(attrNameToken.startIndex),
             end: document.positionAt(attrNameToken.endIndex),
           },
-          this.logger,
+          this.logger
         );
       }
 
@@ -113,10 +126,11 @@ export class HoverProvider {
           start: document.positionAt(tagNameToken.startIndex),
           end: document.positionAt(tagNameToken.endIndex),
         },
-        this.logger,
+        this.logger
       );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       this.logger.error(`Error providing hover information: ${errorMessage}`);
       if (error instanceof Error && error.stack) {
         this.logger.error(error.stack);

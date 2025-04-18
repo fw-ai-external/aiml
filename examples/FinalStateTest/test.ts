@@ -59,7 +59,7 @@ async function testFinalStateAddition() {
   );
 
   // Now we need to build the execution graph to check transitions
-  // Import necessary code from @fireworks/runtime
+  // Import necessary code from @aiml/runtime
   // This is a simplified version since we don't have those modules available directly
 
   workflow.children?.forEach((child: any) => {

@@ -13,7 +13,7 @@ import {
   type ChatModelAdapter,
   useLocalRuntime,
 } from "@assistant-ui/react";
-import type { OpenAIChatCompletionChunk } from "@fireworks/shared";
+import type { OpenAIChatCompletionChunk } from "@aiml/shared";
 import { use } from "react";
 
 const AIMLOpenAIChatRuntime = ({

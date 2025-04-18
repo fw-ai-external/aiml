@@ -4,7 +4,7 @@ import type {
   SerializedBaseElement,
   ElementType,
   ElementSubType,
-} from "@fireworks/shared";
+} from "@aiml/shared";
 import { generateKey } from "../utils/helpers.js";
 import { convertParagraphToLlmNode } from "./astToElementTree.js";
 

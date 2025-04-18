@@ -1,6 +1,6 @@
 import { expect, test, describe, beforeEach } from "bun:test";
 import { DataModelRegistry } from "./DataModelRegistry";
-import type { DataModel } from "@fireworks/shared";
+import type { DataModel } from "@aiml/shared";
 
 describe("DataModelRegistry Class", () => {
   let registry: DataModelRegistry;

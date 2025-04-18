@@ -1,4 +1,4 @@
-import { elseIfConfig } from "@fireworks/shared";
+import { elseIfConfig } from "@aiml/shared";
 import { createElementDefinition } from "../createElementFactory";
 
 export const ElseIf = createElementDefinition({

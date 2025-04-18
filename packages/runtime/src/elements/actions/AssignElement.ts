@@ -1,4 +1,4 @@
-import { type StepValueResult, assignConfig } from "@fireworks/shared";
+import { type StepValueResult, assignConfig } from "@aiml/shared";
 import type { ElementExecutionContext } from "../../ElementExecutionContext";
 import type { ExecutionReturnType } from "../../types";
 import { createElementDefinition } from "../createElementFactory";

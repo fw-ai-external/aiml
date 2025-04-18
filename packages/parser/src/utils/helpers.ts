@@ -2,7 +2,7 @@ import {
   type Diagnostic,
   type DiagnosticPosition,
   DiagnosticSeverity,
-} from "@fireworks/shared";
+} from "@aiml/shared";
 import type { VFile } from "vfile";
 
 // Counter for generating unique keys

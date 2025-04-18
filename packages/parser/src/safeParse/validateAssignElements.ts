@@ -1,5 +1,5 @@
-import { type Diagnostic, DiagnosticSeverity } from "@fireworks/shared";
-import { ValueType } from "@fireworks/shared";
+import { type Diagnostic, DiagnosticSeverity } from "@aiml/shared";
+import { ValueType } from "@aiml/shared";
 import { visit } from "unist-util-visit";
 
 interface FieldDefinition {

@@ -1,9 +1,9 @@
 import fs from "node:fs";
-import { parseMDXToAIML } from "@fireworks/parser";
-import { Workflow, hydreateElementTree } from "@fireworks/runtime";
+import { parseMDXToAIML } from "@aiml/parser";
+import { Workflow, hydreateElementTree } from "@aiml/runtime";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { DiagnosticSeverity, ObjectSet } from "@fireworks/shared";
+import { DiagnosticSeverity, ObjectSet } from "@aiml/shared";
 
 /**
  * Helper function to strip circular references from any object

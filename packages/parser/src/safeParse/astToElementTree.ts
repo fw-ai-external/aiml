@@ -8,7 +8,7 @@ import {
   type FieldDefinition,
   type FieldType,
   aimlElements,
-} from "@fireworks/shared";
+} from "@aiml/shared";
 import { validateAttributes } from "./validateAttributes.js";
 
 interface ParserContext {
@@ -27,7 +27,7 @@ import {
   buildDatamodelFromAST,
   validateAssignElements,
 } from "./validateAssignElements.js";
-import { allElementConfigs, type ElementDefinition } from "@fireworks/shared";
+import { allElementConfigs, type ElementDefinition } from "@aiml/shared";
 
 /**
  * Process attributes from an AST node into a record
