@@ -317,6 +317,7 @@
         "estree-util-is-identifier-name": "^2.0.0",
         "mdast-util-from-markdown": "^2.0.0",
         "mdast-util-to-markdown": "^2.0.0",
+        "micromark-extension-aiml-jsx": "workspace:*",
         "micromark-util-decode-string": "^2.0.0",
         "unist-util-stringify-position": "^3.0.0",
         "vfile-message": "^4.0.0",
