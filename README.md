@@ -110,21 +110,7 @@ bun run package    # Build VSIX package
 │   ├── shared/             # Shared utilities and base components
 │   ├── test-tmp/           # Temporary files for testing
 │   ├── tsconfig/           # Shared TypeScript configurations
-│   └── vscode/             # VSCode extension
+│   ├── vscode/             # VSCode extension
+|   └-- ...others/          # Forks of MDX parser plugins for MD to tweak them for AIML
 └── turbo.json              # Turborepo configuration
 ```
-
-## ArchitectureMastra
-
-The AIML architecture utilizes a monorepo structure managed by Turborepo. Key components include:
-
-- **`packages/shared`**: Contains base types, utilities, and classes used across multiple packages.
-- **`packages/parser`**: Responsible for parsing AIML (MDX/SCXML flavored) files and constructing the initial workflow representation.
-- **`packages/runtime`**: Contains the core execution engine that manages workflow state and transitions based on the parsed structure.
-- **`packages/language-server`**: Provides language intelligence (diagnostics, completion, hover info) for AIML files in VSCode.
-- **`packages/vscode`**: VSCode extension for AIML language support.
-- **`packages/tsconfig`**: Centralized TypeScript configurations.
-- **`apps/server`**: The backend API server managing state persistence (PostgreSQL w/ Drizzle) and potentially handling events.
-- **`apps/aiml-ui`**: A web interface (likely Next.js) for managing and monitoring workflows.
-- **`apps/vscode-plugin`**: (deprecated) Initial VSCode plugin
-- **`apps/landing-page`**: The public-facing landing page for the project (Astro).

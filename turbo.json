@@ -124,6 +124,10 @@
     },
     "typecheck": {
       "cache": false
+    },
+    "e2e": {
+      "dependsOn": ["^e2e"],
+      "cache": false
     }
   }
 }

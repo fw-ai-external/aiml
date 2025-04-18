@@ -17,7 +17,8 @@
     "validate": "bun run build && bun test",
     "list": "node scripts/dev.js list",
     "generate": "node scripts/dev.js generate",
-    "parse-prd": "node scripts/dev.js parse-prd"
+    "parse-prd": "node scripts/dev.js parse-prd",
+    "e2e": "turbo run e2e"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
