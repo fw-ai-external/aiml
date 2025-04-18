@@ -28,6 +28,10 @@
       ],
       "outputs": ["dist/**"]
     },
+    "micromark-extension-aiml-js#build": {
+      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
+      "outputs": ["dist/**"]
+    },
 
     "landing-page#dev": {
       "outputs": [".source/**", ".next/**"]
