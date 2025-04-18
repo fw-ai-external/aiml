@@ -36,6 +36,10 @@
       "dependsOn": ["^micromark-extension-aiml-jsx#build"],
       "outputs": ["dist/**"]
     },
+    "micromark-extension-aimljs#build": {
+      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
+      "outputs": ["dist/**"]
+    },
 
     "landing-page#dev": {
       "outputs": [".source/**", ".next/**"]
