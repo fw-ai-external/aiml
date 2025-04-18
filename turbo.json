@@ -68,6 +68,12 @@
       "cache": false
     },
     "test": {
+      "dependsOn": [
+        "mdast-util-aiml#build",
+        "micromark-extension-aiml-jsx#build",
+        "micromark-extension-aimljs#build",
+        "unified-aiml#build"
+      ],
       "cache": false
     },
     "typecheck": {
