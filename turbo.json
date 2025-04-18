@@ -28,6 +28,10 @@
       ],
       "outputs": ["dist/**"]
     },
+    "mdast-util-aiml#build": {
+      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
+      "outputs": ["dist/**"]
+    },
     "micromark-extension-aiml-js#build": {
       "dependsOn": ["^micromark-extension-aiml-jsx#build"],
       "outputs": ["dist/**"]
