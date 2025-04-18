@@ -15,6 +15,9 @@
     "@types/react-dom": "19.0.4"
   },
   "dependencies": {
+    "unified-aiml": "workspace:*",
+    "micromark-extension-aiml-jsx": "workspace:*",
+    "micromark-extension-aimljs": "workspace:*",
     "@ai-sdk/fireworks": "^0.1.14",
     "@assistant-ui/react": "^0.8.4",
     "@assistant-ui/react-ai-sdk": "^0.8.0",
