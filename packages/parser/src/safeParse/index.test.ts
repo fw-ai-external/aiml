@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { safeParse } from ".";
-import { DiagnosticSeverity } from "@fireworks/shared";
+import { DiagnosticSeverity } from "@aiml/shared";
 import { VFile } from "vfile";
 
 describe("safeParse", () => {

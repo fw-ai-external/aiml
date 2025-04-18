@@ -1,5 +1,5 @@
 {
-  "name": "@fireworks/shared",
+  "name": "@aiml/shared",
   "version": "0.1.0",
   "description": "Core element classes and factories for AIML",
   "type": "module",

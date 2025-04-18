@@ -1,5 +1,5 @@
 import { safeParse } from "../src/safeParse";
-import { DiagnosticSeverity } from "@fireworks/shared";
+import { DiagnosticSeverity } from "@aiml/shared";
 import { describe, it, expect } from "bun:test";
 
 // Sample Complex AIML

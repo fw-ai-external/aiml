@@ -1,5 +1,5 @@
 {
-  "name": "@fireworks/runtime",
+  "name": "@aiml/runtime",
   "version": "0.1.0",
   "description": "Runtime execution engine for AIML",
   "type": "module",
@@ -24,7 +24,7 @@
     "@ai-sdk/anthropic": "^1.2.10",
     "@ai-sdk/openai": "^1.3.16",
     "@dmitryrechkin/json-schema-to-zod": "^1.0.1",
-    "@fireworks/shared": "workspace:*",
+    "@aiml/shared": "workspace:*",
     "@mastra/core": "^0.6.0",
     "@nyariv/sandboxjs": "^0.8.23",
     "openai": "^4.90.0",

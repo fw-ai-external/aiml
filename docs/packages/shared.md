@@ -1,5 +1,5 @@
 ---
-title: "@fireworks/shared Documentation"
+title: "@aiml/shared Documentation"
 ---
 
 ## Overview
@@ -22,7 +22,7 @@ This package is intended to be imported and used by other packages/applications 
 
 ```typescript
 // Example Usage (Conceptual)
-import { createCategory, AimlElement } from '@fireworks/shared';
+import { createCategory, AimlElement } from '@aiml/shared';
 
 const category = createCategory();
 // Use types

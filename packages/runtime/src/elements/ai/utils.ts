@@ -1,7 +1,7 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
 import type { LanguageModelV1 } from "@ai-sdk/provider";
-import type { Secrets } from "@fireworks/shared";
+import type { Secrets } from "@aiml/shared";
 import OpenAI from "openai";
 export function getProvider(
   model: string = "accounts/fireworks/models/llama-v3p1-8b-instruct",

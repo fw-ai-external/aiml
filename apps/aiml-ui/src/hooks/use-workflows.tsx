@@ -1,8 +1,5 @@
 "use client";
-import type {
-  ExecutionGraphStep,
-  SerializedBaseElement,
-} from "@fireworks/shared";
+import type { ExecutionGraphStep, SerializedBaseElement } from "@aiml/shared";
 import type { Workflow } from "@mastra/core/workflows";
 import {
   createContext,

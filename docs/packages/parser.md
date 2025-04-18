@@ -20,7 +20,7 @@ This package is likely used as a library by other parts of the system.
 
 ```typescript
 // Example Usage (Conceptual)
-import { parseAIML } from "@fireworks/parser";
+import { parseAIML } from "@aiml/parser";
 
 const aimlSource = `<aiml><category><pattern>HELLO</pattern><template>Hi there!</template></category></aiml>`;
 
@@ -38,7 +38,7 @@ Setup usually involves installing it as a dependency in another package/applicat
 ## Key Dependencies
 
 - May use external parsing libraries (e.g., `chevrotain`, `antlr`) or be hand-written.
-- Internal: May depend on `@fireworks/shared` for AST node types or interfaces.
+- Internal: May depend on `@aiml/shared` for AST node types or interfaces.
 
 ## Architecture Notes
 

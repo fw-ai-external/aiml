@@ -1,14 +1,14 @@
-import { describe, expect, it } from 'bun:test';
-import type { SerializedBaseElement } from '@fireworks/shared';
-import { validateConfig } from './validateConfig';
+import { describe, expect, it } from "bun:test";
+import type { SerializedBaseElement } from "@aiml/shared";
+import { validateConfig } from "./validateConfig";
 
-describe('validateConfig', () => {
-  it('should validate the config', () => {
+describe("validateConfig", () => {
+  it("should validate the config", () => {
     const config: SerializedBaseElement = {
-      type: 'element',
-      key: 'parent' as any,
-      tag: 'scxml',
-      role: 'state',
+      type: "element",
+      key: "parent" as any,
+      tag: "scxml",
+      role: "state",
       attributes: {},
       children: [],
       lineStart: 0,

@@ -1,6 +1,6 @@
 import type { MDXToAIMLOptions, MDXParseResult } from "./types.js";
 import { VFile } from "vfile";
-import { DiagnosticSeverity } from "@fireworks/shared";
+import { DiagnosticSeverity } from "@aiml/shared";
 import { safeParse } from "./safeParse/index.js";
 import { transformToAIMLNodes } from "./safeParse/astToElementTree.js";
 import {

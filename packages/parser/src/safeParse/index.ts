@@ -2,7 +2,7 @@ import {
   aimlElements,
   DiagnosticSeverity,
   type Diagnostic,
-} from "@fireworks/shared";
+} from "@aiml/shared";
 import remarkGfm from "remark-gfm";
 import unifiedAiml from "unified-aiml";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
@@ -12,7 +12,7 @@ import { VFile } from "vfile";
 import type { Point } from "unist";
 
 import type { MDXToAIMLOptions } from "../types.js";
-import { ObjectSet } from "@fireworks/shared";
+import { ObjectSet } from "@aiml/shared";
 import type { Root } from "mdast";
 import { extractErrorLocation } from "../utils/helpers.js";
 import { getLineInfo } from "acorn";

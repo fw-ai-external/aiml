@@ -1,4 +1,4 @@
-import type { ElementDefinition } from "@fireworks/shared";
+import type { ElementDefinition } from "@aiml/shared";
 import type { ObjectStreamPart, TextStreamPart } from "ai";
 import type { z } from "zod";
 import type { ElementExecutionContext } from "./ElementExecutionContext";

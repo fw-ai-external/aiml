@@ -9,7 +9,7 @@ This package implements a Language Server Protocol (LSP) server specifically for
 ## Key Features/Functionality
 
 - **LSP Implementation:** Adheres to the Language Server Protocol specification.
-- **Diagnostics (Linting):** Analyzes AIML/SCXML documents using the `@fireworks/parser` and reports errors or warnings.
+- **Diagnostics (Linting):** Analyzes AIML/SCXML documents using the `@aiml/parser` and reports errors or warnings.
 - **Autocompletion:** Provides context-aware suggestions for tags, attributes, etc.
 - **Hover Information:** Supplies documentation or details for elements under the cursor.
 - **Document Symbol Provider:** Enables navigation via outlines or breadcrumbs.
@@ -30,11 +30,11 @@ Client applications configure the path to the server's entry point (e.g., `./dis
 
 - **`vscode-languageserver`:** Core LSP library from Microsoft.
 - **`vscode-languageserver-textdocument`:** Helper library for managing text documents.
-- **Internal:** `@fireworks/parser` (for parsing documents), `@fireworks/shared` (for common types).
+- **Internal:** `@aiml/parser` (for parsing documents), `@aiml/shared` (for common types).
 
 ## Architecture Notes
 
 - **LSP Request Handling:** Listens for and responds to LSP messages (requests/notifications) from the client.
 - **Document Management:** Maintains state for open documents provided by the client.
-- **Parsing Integration:** Uses the `@fireworks/parser` to generate Abstract Syntax Trees (ASTs) for analysis.
+- **Parsing Integration:** Uses the `@aiml/parser` to generate Abstract Syntax Trees (ASTs) for analysis.
 - **Asynchronous:** Heavily reliant on `async/await` for handling requests and analysis.

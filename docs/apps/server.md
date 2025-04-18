@@ -12,7 +12,7 @@ This application provides the backend services and API endpoints for the Firewor
 - **Business Logic:** Implements core functionalities related to AIML agent management, execution, or data processing.
 - **Database Interaction:** Manages connections and queries to a database (e.g., PostgreSQL, MongoDB) for storing user data, agent configurations, etc.
 - **Authentication/Authorization:** Handles user login, session management, and permissions.
-- **Integration:** May interact with other packages like `@fireworks/runtime` to execute AIML or `@fireworks/parser`.
+- **Integration:** May interact with other packages like `@aiml/runtime` to execute AIML or `@aiml/parser`.
 
 ## Setup/Usage
 
@@ -33,7 +33,7 @@ Usage involves making API requests to the endpoints it exposes.
 - **Framework:** Likely ElysiaJS, Hono, or potentially Node.js frameworks adapted for Bun (Express, Koa, Fastify, NestJS).
 - **Database ORM/Driver:** Prisma, Drizzle ORM, TypeORM, node-postgres (via Bun compatibility), etc.
 - **Authentication:** Libraries like Passport.js, JWT libraries.
-- **Internal:** May depend on `@fireworks/shared`, `@fireworks/runtime`, `@fireworks/parser`.
+- **Internal:** May depend on `@aiml/shared`, `@aiml/runtime`, `@aiml/parser`.
 
 ## Architecture Notes
 
