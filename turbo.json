@@ -30,7 +30,7 @@
     },
 
     "fireagent-plugin-vscode#typecheck": {
-      "dependsOn": ["^@fireworks/parser#build"],
+      "dependsOn": ["^@fireworks/parser#build", "^@fireworks/shared#build"],
       "outputs": ["dist/**"]
     },
     "@fireworks/runtime#typecheck": {

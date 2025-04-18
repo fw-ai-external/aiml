@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { ValueType } from "@fireworks/shared";
-import type { ErrorResult } from "@fireworks/shared";
+import type { ErrorResult, StepValueResult } from "@fireworks/shared";
 import type { ActionContext } from "@mastra/core";
 import { ElementExecutionContext } from "../../ElementExecutionContext";
 import { StepValue } from "../../StepValue";
@@ -260,7 +260,7 @@ describe("AssignElement", () => {
       value: inputValue,
     });
 
-    expect(valueResult.object?.value).toBe(inputValue);
+    expect((valueResult as StepValueResult).object?.value).toBe(inputValue);
   });
 
   // Test 3: Error when location is missing
@@ -294,7 +294,7 @@ describe("AssignElement", () => {
     const result = await stepValue.value();
 
     expect(exception).toBeDefined();
-    expect(exception?.message).toContain("does not exist");
+    expect(exception).toContain("does not exist");
   });
 
   // Test 5: Error when assigning to readonly variable
@@ -320,7 +320,7 @@ describe("AssignElement", () => {
     } = await assignElement.execute(ctx as any);
 
     expect(exception).toBeDefined();
-    expect(exception?.message).toContain("readonly");
+    expect(exception).toContain("readonly");
     expect(contextUpdate).toBeUndefined();
   });
 
@@ -361,7 +361,7 @@ describe("AssignElement", () => {
     ctx.context.datamodel.set("numberVar", 42);
     expect(ctx.context.datamodel.get("numberVar")).toBe(42);
 
-    expect(contextUpdate.numberVar).toBe(123);
+    expect((contextUpdate as any).numberVar).toBe(123);
   });
 
   // Test 7: Error when type validation fails
@@ -381,6 +381,6 @@ describe("AssignElement", () => {
     const { exception } = await assignElement.execute(ctx as any);
 
     expect(exception).toBeDefined();
-    expect(exception?.message).toContain("must be a number");
+    expect(exception).toContain("must be a number");
   });
 });
