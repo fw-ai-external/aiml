@@ -73,14 +73,15 @@ export default function Header() {
         <div className="md:hidden bg-white border-t py-4 px-4 shadow-md">
           <nav className="flex flex-col gap-4">
             <Link
-              href="#"
+              href="/docs"
               className="text-lg font-medium hover:text-emerald-500 transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
               Docs
             </Link>
             <Link
-              href="#"
+              href="https://discord.gg/fireworks"
+              target="_blank"
               className="flex items-center gap-2 text-lg font-medium hover:text-emerald-500 transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
@@ -88,7 +89,8 @@ export default function Header() {
               Join our Discord
             </Link>
             <Link
-              href="#"
+              href="https://github.com/fw-ai-external/aiml"
+              target="_blank"
               className="flex items-center gap-2 text-gray-700 hover:text-emerald-500 transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
