@@ -54,6 +54,10 @@
       "dependsOn": ["^@fireworks/shared#build", "^@fireworks/parser#build"],
       "outputs": ["dist/**"]
     },
+    "@fireworks/runtime#test": {
+      "dependsOn": ["^@fireworks/shared#build", "^@fireworks/parser#build"],
+      "outputs": ["dist/**"]
+    },
     "@fireworks/parser#typecheck": {
       "dependsOn": ["^@fireworks/shared#build", "^unified-aiml#build"],
       "outputs": ["dist/**"]
