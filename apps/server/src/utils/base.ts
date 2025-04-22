@@ -2,7 +2,6 @@ export const nextTick = async (frames = 1) => {
   const _nextTick = async (idx: number) => {
     return new Promise((resolve) => {
       // Adding `lib: ["DOM"]` to tsconfig.json fixed this - but then breaks types for Request and Response
-      // @ts-expect-error - I guess this isn't defined within Cloudflare types?
       requestAnimationFrame(() => resolve(idx));
     });
   };
@@ -11,7 +10,8 @@ export const nextTick = async (frames = 1) => {
   }
 };
 
-export const firstOf = <T = any>(datas?: T[]) => (datas ? (datas.length < 1 ? undefined : datas[0]) : undefined);
+export const firstOf = <T = any>(datas?: T[]) =>
+  datas ? (datas.length < 1 ? undefined : datas[0]) : undefined;
 
 export const lastOf = <T = any>(datas?: T[]) =>
   datas ? (datas.length < 1 ? undefined : datas[datas.length - 1]) : undefined;
@@ -24,7 +24,8 @@ export const randomInt = (min: number, max?: number) => {
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
-export const pickOne = <T = any>(datas: T[]) => (datas.length < 1 ? undefined : datas[randomInt(datas.length - 1)]);
+export const pickOne = <T = any>(datas: T[]) =>
+  datas.length < 1 ? undefined : datas[randomInt(datas.length - 1)];
 
 export const range = (start: number, end?: number) => {
   if (!end) {
@@ -88,7 +89,7 @@ export function removeEmpty<T = any>(data: T): T {
 }
 
 export const deepClone = <T>(obj: T): T => {
-  if (obj === null || typeof obj !== 'object') {
+  if (obj === null || typeof obj !== "object") {
     return obj;
   }
 
