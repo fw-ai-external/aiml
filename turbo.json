@@ -32,10 +32,6 @@
       "dependsOn": ["^micromark-extension-aiml-jsx#build"],
       "outputs": ["dist/**"]
     },
-    "micromark-extension-aiml-js#build": {
-      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
-      "outputs": ["dist/**"]
-    },
     "micromark-extension-aimljs#build": {
       "dependsOn": ["^micromark-extension-aiml-jsx#build"],
       "outputs": ["dist/**"]
@@ -84,10 +80,10 @@
     "@aiml/unified-aiml#typecheck": {
       "dependsOn": [
         "^micromark-extension-aiml-jsx#build",
+        "^micromark-extension-aimljs#build",
         "^mdast-util-aiml#build",
         "^mdast-util-aiml-jsx#build",
-        "^unified-aiml#build",
-        "^micromark-extension-aimljs#build"
+        "^unified-aiml#build"
       ],
       "outputs": ["dist/**"]
     },
@@ -142,10 +138,10 @@
 
     "test": {
       "dependsOn": [
-        "mdast-util-aiml#build",
-        "mdast-util-aiml-jsx#build",
         "micromark-extension-aiml-jsx#build",
         "micromark-extension-aimljs#build",
+        "mdast-util-aiml#build",
+        "mdast-util-aiml-jsx#build",
         "unified-aiml#build"
       ],
       "cache": false
