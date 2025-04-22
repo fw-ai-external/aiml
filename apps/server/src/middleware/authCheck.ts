@@ -35,10 +35,9 @@ export const authCheckMiddleware = createMiddleware<ContextEnv>(
       // Create a user object with the user's accountId, username, email, and apiKey
       // this is added to the request by the API gateway when deployed by fireworks
       context.set("user", {
-        username: context.req.header("x-fireworks-user-name"),
-        email: context.req.header("x-fireworks-developer-email"),
-        accountId: context.req.header("x-fireworks-account-id"),
-        accountType: context.req.header("x-fireworks-account-type"),
+        username: context.req.header("x-fireworks-user-name")!,
+        email: context.req.header("x-fireworks-developer-email")!,
+        accountId: context.req.header("x-fireworks-account-id")!,
         apiKey: apiKey,
       });
     }
