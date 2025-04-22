@@ -7,7 +7,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Cpu } from "lucide-react";
-import type { SerializedBaseElement } from "@fireworks/shared";
+import type { SerializedBaseElement } from "@aiml/shared";
 import { DefaultActionDetails } from "@/domains/workflows/actions/default";
 import { LLMActionDetails } from "@/domains/workflows/actions/llm";
 

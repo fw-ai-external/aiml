@@ -1,7 +1,7 @@
 import fs from "node:fs";
-import { Workflow, hydreateElementTree } from "@fireworks/runtime";
-import type { Diagnostic } from "@fireworks/shared";
-import type { SerializedBaseElement } from "@fireworks/shared";
+import { Workflow, hydreateElementTree } from "@aiml/runtime";
+import type { Diagnostic } from "@aiml/shared";
+import type { SerializedBaseElement } from "@aiml/shared";
 
 export const maxDuration = 30;
 

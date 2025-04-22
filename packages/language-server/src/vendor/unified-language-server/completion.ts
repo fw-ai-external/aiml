@@ -1,10 +1,20 @@
-import { allElementConfigs } from '@fireworks/shared';
-import type { TextDocument } from 'vscode-languageserver-textdocument';
-import { type CompletionItem, CompletionItemKind, type Connection, type Position } from 'vscode-languageserver/node';
-import type { ZodTypeAny } from 'zod';
-import { type Token, TokenType, parseToTokens } from '../../vendor/acorn';
-import type { DebugLogger } from '../../vendor/utils/debug';
-import { type IActiveToken, buildActiveToken, getOwnerAttributeName, getOwnerTagName } from '../../vendor/utils/token';
+import { allElementConfigs } from "@aiml/shared";
+import type { TextDocument } from "vscode-languageserver-textdocument";
+import {
+  type CompletionItem,
+  CompletionItemKind,
+  type Connection,
+  type Position,
+} from "vscode-languageserver/node";
+import type { ZodTypeAny } from "zod";
+import { type Token, TokenType, parseToTokens } from "../../vendor/acorn";
+import type { DebugLogger } from "../../vendor/utils/debug";
+import {
+  type IActiveToken,
+  buildActiveToken,
+  getOwnerAttributeName,
+  getOwnerTagName,
+} from "../../vendor/utils/token";
 
 type StateTracker = any;
 export class CompletionProvider {
@@ -12,7 +22,11 @@ export class CompletionProvider {
   private logger: DebugLogger;
   private stateTracker: StateTracker;
 
-  constructor(connection: Connection, logger: DebugLogger, stateTracker: StateTracker) {
+  constructor(
+    connection: Connection,
+    logger: DebugLogger,
+    stateTracker: StateTracker
+  ) {
     this.connection = connection;
     this.logger = logger;
     this.stateTracker = stateTracker;
@@ -20,10 +34,10 @@ export class CompletionProvider {
 
   public getCompletions(
     document: TextDocument,
-    position: Position,
+    position: Position
   ): {
     completions: CompletionItem[];
-    type: 'attribute_value' | 'attribute_name' | 'tag_name' | 'none';
+    type: "attribute_value" | "attribute_name" | "tag_name" | "none";
     context?: {
       tagName?: string;
       attributeName?: string;
@@ -35,17 +49,17 @@ export class CompletionProvider {
 
       // Return empty completions for empty documents
       if (!content.trim()) {
-        return { completions: [], type: 'tag_name' };
+        return { completions: [], type: "tag_name" };
       }
 
       const offset = document.offsetAt(position);
       const tokens = parseToTokens(content);
       if (tokens.length === 0) {
-        return { completions: [], type: 'tag_name' };
+        return { completions: [], type: "tag_name" };
       }
       const tokenContext = buildActiveToken(tokens, offset);
 
-      this.logger.completion('Getting completions', {
+      this.logger.completion("Getting completions", {
         offset,
         tokenContext: {
           token: tokenContext.token,
@@ -54,11 +68,14 @@ export class CompletionProvider {
       });
 
       // Get the current tag name
-      const tagNameToken = getOwnerTagName(tokens, tokenContext.token?.index ?? tokens.length - 1);
+      const tagNameToken = getOwnerTagName(
+        tokens,
+        tokenContext.token?.index ?? tokens.length - 1
+      );
 
       // First check for attribute value completions
       if (this.shouldProvideAttributeValueCompletions(tokenContext)) {
-        this.logger.completion('Providing attribute value completions');
+        this.logger.completion("Providing attribute value completions");
         if (tagNameToken) {
           const tagName = tagNameToken.text;
           const attributeValueCompletions = this.getAttributeValueCompletions(
@@ -66,31 +83,37 @@ export class CompletionProvider {
             tagName,
             content,
             tokens,
-            tokenContext.token?.index ?? tokens.length - 1,
+            tokenContext.token?.index ?? tokens.length - 1
           );
-          const attrNameToken = getOwnerAttributeName(tokens, tokenContext.token?.index ?? tokens.length - 1);
+          const attrNameToken = getOwnerAttributeName(
+            tokens,
+            tokenContext.token?.index ?? tokens.length - 1
+          );
           const attrName = attrNameToken?.text;
           return {
             completions: attributeValueCompletions,
-            type: 'attribute_value',
+            type: "attribute_value",
             context: {
               tagName,
               attributeName: attrName,
             },
           };
         }
-        return { completions: [], type: 'attribute_value' };
+        return { completions: [], type: "attribute_value" };
       }
 
       // Then check for attribute completions
-      if (tagNameToken && this.shouldProvideAttributeCompletions(tokenContext)) {
+      if (
+        tagNameToken &&
+        this.shouldProvideAttributeCompletions(tokenContext)
+      ) {
         const tagName = tagNameToken.text;
-        this.logger.completion('Providing attribute completions', {
+        this.logger.completion("Providing attribute completions", {
           tagName,
         });
         return {
           completions: this.getAttributeCompletions(tagName),
-          type: 'attribute_name',
+          type: "attribute_name",
           context: {
             tagName,
           },
@@ -99,14 +122,17 @@ export class CompletionProvider {
 
       // Finally check for element completions
       if (this.shouldProvideElementCompletions(tokenContext)) {
-        this.logger.completion('Providing element completions');
+        this.logger.completion("Providing element completions");
         // Get parent tag name for element completions
-        const parentTagNameToken = tokens.length > 1 ? getOwnerTagName(tokens, tokens.length - 2) : undefined;
+        const parentTagNameToken =
+          tokens.length > 1
+            ? getOwnerTagName(tokens, tokens.length - 2)
+            : undefined;
         const parentTagName = parentTagNameToken?.text;
 
         return {
           completions: this.getElementCompletions(),
-          type: 'tag_name',
+          type: "tag_name",
           context: {
             parentTagName,
           },
@@ -114,10 +140,10 @@ export class CompletionProvider {
       }
 
       // If we have no context or empty document, return empty completions with tag_name type
-      return { completions: [], type: 'tag_name' };
+      return { completions: [], type: "tag_name" };
     } catch (error) {
-      this.logger.error('Error getting completions', error as Error);
-      return { completions: [], type: 'tag_name' };
+      this.logger.error("Error getting completions", error as Error);
+      return { completions: [], type: "tag_name" };
     }
   }
 
@@ -140,7 +166,7 @@ export class CompletionProvider {
   }
 
   private getElementCompletions(): CompletionItem[] {
-    this.logger.completion('Providing element completions');
+    this.logger.completion("Providing element completions");
     return Object.entries(allElementConfigs).map(([name, config]) => ({
       label: name,
       kind: CompletionItemKind.Class,
@@ -148,13 +174,21 @@ export class CompletionProvider {
     }));
   }
 
-  private shouldProvideAttributeCompletions(tokenContext: IActiveToken): boolean {
+  private shouldProvideAttributeCompletions(
+    tokenContext: IActiveToken
+  ): boolean {
     // Provide attribute completions after tag name or when inside an attribute name
-    if (tokenContext.token?.type === TokenType.Whitespace && tokenContext.prevToken?.type === TokenType.TagName) {
+    if (
+      tokenContext.token?.type === TokenType.Whitespace &&
+      tokenContext.prevToken?.type === TokenType.TagName
+    ) {
       return true;
     }
 
-    if (tokenContext.token?.type === TokenType.Name || tokenContext.token?.type === TokenType.AttributeName) {
+    if (
+      tokenContext.token?.type === TokenType.Name ||
+      tokenContext.token?.type === TokenType.AttributeName
+    ) {
       return true;
     }
 
@@ -162,8 +196,9 @@ export class CompletionProvider {
   }
 
   private getAttributeCompletions(tagName: string): CompletionItem[] {
-    this.logger.completion('Providing attribute completions', { tagName });
-    const elementConfig = allElementConfigs[tagName as keyof typeof allElementConfigs];
+    this.logger.completion("Providing attribute completions", { tagName });
+    const elementConfig =
+      allElementConfigs[tagName as keyof typeof allElementConfigs];
     if (!elementConfig) {
       return [];
     }
@@ -175,11 +210,16 @@ export class CompletionProvider {
     }));
   }
 
-  private shouldProvideAttributeValueCompletions(tokenContext: IActiveToken): boolean {
-    this.logger.completion('Checking if should provide attribute value completions', {
-      token: tokenContext.token,
-      prevToken: tokenContext.prevToken,
-    });
+  private shouldProvideAttributeValueCompletions(
+    tokenContext: IActiveToken
+  ): boolean {
+    this.logger.completion(
+      "Checking if should provide attribute value completions",
+      {
+        token: tokenContext.token,
+        prevToken: tokenContext.prevToken,
+      }
+    );
 
     if (!tokenContext.prevToken) {
       return false;
@@ -194,7 +234,7 @@ export class CompletionProvider {
       tokenContext.token?.type === TokenType.AttributeExpression ||
       tokenContext.prevToken.type === TokenType.Equal;
 
-    this.logger.completion('Should provide attribute value completions', {
+    this.logger.completion("Should provide attribute value completions", {
       tokenType: tokenContext.token?.type,
       prevTokenType: tokenContext.prevToken.type,
       shouldProvide,
@@ -208,25 +248,26 @@ export class CompletionProvider {
     tagName: string,
     content: string,
     tokens: Token[],
-    currentIndex: number,
+    currentIndex: number
   ): CompletionItem[] {
     // For attribute values, we need to look back from the current token
     const attrNameToken = getOwnerAttributeName(tokens, currentIndex);
-    this.logger.completion('Looking for attribute name token', {
+    this.logger.completion("Looking for attribute name token", {
       currentIndex,
       attrNameToken,
       tokens: tokens.map((t) => ({ type: t.type, text: t.text })),
     });
     if (!attrNameToken) {
-      this.logger.completion('No attribute name token found', { currentIndex });
+      this.logger.completion("No attribute name token found", { currentIndex });
       return [];
     }
 
     const attrName = attrNameToken.text;
 
-    const elementConfig = allElementConfigs[tagName as keyof typeof allElementConfigs];
+    const elementConfig =
+      allElementConfigs[tagName as keyof typeof allElementConfigs];
     if (!elementConfig) {
-      this.logger.completion('No element config found', { tagName });
+      this.logger.completion("No element config found", { tagName });
       return [];
     }
 
@@ -234,11 +275,11 @@ export class CompletionProvider {
       attrName as keyof typeof elementConfig.propsSchema.shape
     ] as ZodTypeAny;
     if (!schema) {
-      this.logger.completion('No schema found', { attrName });
+      this.logger.completion("No schema found", { attrName });
       return [];
     }
 
-    this.logger.completion('Found schema', {
+    this.logger.completion("Found schema", {
       tagName,
       attrName,
       typeName: schema._def?.typeName,
@@ -246,7 +287,7 @@ export class CompletionProvider {
     });
 
     // Handle transition target attribute first
-    if (tagName === 'transition' && attrName === 'target') {
+    if (tagName === "transition" && attrName === "target") {
       const stateIds = this.stateTracker.getStatesForDocument(document.uri);
       return Array.from(stateIds).map((id) => ({
         label: id,
@@ -256,15 +297,15 @@ export class CompletionProvider {
     }
 
     // For boolean attributes
-    if (schema._def?.typeName === 'ZodBoolean') {
+    if (schema._def?.typeName === "ZodBoolean") {
       return [
-        { label: 'true', kind: CompletionItemKind.Value },
-        { label: 'false', kind: CompletionItemKind.Value },
+        { label: "true", kind: CompletionItemKind.Value },
+        { label: "false", kind: CompletionItemKind.Value },
       ];
     }
 
     // For enum attributes
-    if (schema._def?.typeName === 'ZodEnum') {
+    if (schema._def?.typeName === "ZodEnum") {
       const values = schema._def?.values || [];
       return values.map((value: string) => ({
         label: value,

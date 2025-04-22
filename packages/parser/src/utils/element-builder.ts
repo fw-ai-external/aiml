@@ -1,7 +1,4 @@
-import {
-  allElementConfigs,
-  type SerializedBaseElement,
-} from "@fireworks/shared";
+import { allElementConfigs, type SerializedBaseElement } from "@aiml/shared";
 import {
   type JsxAttributeLike,
   type JsxElement,

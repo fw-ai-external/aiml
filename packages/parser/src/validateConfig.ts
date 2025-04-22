@@ -1,4 +1,4 @@
-import type { SerializedBaseElement } from "@fireworks/shared";
+import type { SerializedBaseElement } from "@aiml/shared";
 
 interface ValidationError {
   type: "unreachable_state";

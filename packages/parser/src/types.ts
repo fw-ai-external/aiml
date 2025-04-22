@@ -2,7 +2,7 @@ import type {
   Diagnostic,
   SerializedBaseElement,
   DataModel,
-} from "@fireworks/shared";
+} from "@aiml/shared";
 import type { VFile } from "vfile";
 
 /**

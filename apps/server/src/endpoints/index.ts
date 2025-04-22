@@ -1,3 +1,4 @@
-import { agentRoutes } from './agents';
+import { agentRoutes } from "./agents";
+import { getHealth } from "./health";
 
-export const endpoints = [...agentRoutes];
+export const endpoints = [...agentRoutes, getHealth];

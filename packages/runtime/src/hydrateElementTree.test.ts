@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { parseMDXFilesToAIML, parseMDXToAIML } from "@fireworks/parser";
-import type { SerializedBaseElement } from "@fireworks/shared";
+import { parseMDXFilesToAIML, parseMDXToAIML } from "@aiml/parser";
+import type { SerializedBaseElement } from "@aiml/shared";
 import { VFile } from "vfile";
 import type { BaseElement } from "./elements";
 import { hydreateElementTree } from "./hydrateElementTree";

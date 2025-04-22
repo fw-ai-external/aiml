@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { elseConfig } from "@fireworks/shared";
+import { elseConfig } from "@aiml/shared";
 import { createElementDefinition } from "../createElementFactory";
 
 const elseSchema = z.object({

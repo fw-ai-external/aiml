@@ -1,6 +1,6 @@
-import { llmConfig } from "@fireworks/shared";
-import type { StepValueChunk } from "@fireworks/shared";
-import { ReplayableAsyncIterableStream } from "@fireworks/shared";
+import { llmConfig } from "@aiml/shared";
+import type { StepValueChunk } from "@aiml/shared";
+import { ReplayableAsyncIterableStream } from "@aiml/shared";
 import { streamText } from "ai";
 import { StepValue } from "../../StepValue";
 import type { ExecutionReturnType } from "../../types";

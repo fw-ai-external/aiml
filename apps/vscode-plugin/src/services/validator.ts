@@ -1,8 +1,8 @@
 import type { TextDocument } from 'vscode-languageserver-textdocument';
 import type { Connection, Diagnostic } from 'vscode-languageserver/node';
 
-import { parseMDXToAIML } from '@fireworks/parser';
-import type { SerializedBaseElement } from '@fireworks/shared';
+import { parseMDXToAIML } from '@aiml/parser';
+import type { SerializedBaseElement } from '@aiml/shared';
 import { type Token, TokenType } from '../acorn';
 import type { DebugLogger } from '../utils/debug';
 import { getOwnerAttributeName, getOwnerTagName } from '../utils/token';

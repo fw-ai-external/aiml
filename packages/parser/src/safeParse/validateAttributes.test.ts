@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { validateAttributes } from "./validateAttributes";
-import { DiagnosticSeverity, type Diagnostic } from "@fireworks/shared";
+import { DiagnosticSeverity, type Diagnostic } from "@aiml/shared";
 
 describe("validateAttributes", () => {
   test("validates assign element with required location attribute", () => {

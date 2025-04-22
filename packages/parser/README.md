@@ -111,7 +111,7 @@ The `healFlowOrError` phase ensures:
 ## Usage
 
 ```typescript
-import { parseMDXToAIML } from "@fireworks/parser";
+import { parseMDXToAIML } from "@aiml/parser";
 
 const result = await parseMDXToAIML(mdxContent, {
   filePath: "myfile.aiml",
@@ -124,7 +124,7 @@ const result = await parseMDXToAIML(mdxContent, {
 For multiple files with imports:
 
 ```typescript
-import { parseMDXFilesToAIML } from "@fireworks/parser";
+import { parseMDXFilesToAIML } from "@aiml/parser";
 
 const result = await parseMDXFilesToAIML(files);
 ```

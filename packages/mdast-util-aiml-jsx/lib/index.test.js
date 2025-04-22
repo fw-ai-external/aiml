@@ -6,7 +6,7 @@ import { strict as assert } from "node:assert";
 import { fromMarkdown } from "mdast-util-from-markdown";
 import { aimlJsx } from "micromark-extension-aiml-jsx"; // Assuming the micromark extension is sibling
 import { aimlJsxFromMarkdown } from "./index.js";
-import { allElementConfigs } from "@fireworks/shared";
+import { allElementConfigs } from "@aiml/shared";
 
 // Helper to process markdown with the extension
 function process(value) {

@@ -2,7 +2,7 @@ import type {
   AllowedChildrenType,
   ElementType,
   SerializedBaseElement,
-} from "@fireworks/shared";
+} from "@aiml/shared";
 import type { ActionContext as MastraActionContext } from "@mastra/core";
 import { z } from "zod";
 import { ElementExecutionContext } from "../ElementExecutionContext";
@@ -10,7 +10,7 @@ import type { BuildContext } from "../graphBuilder/Context";
 import type { ExecutionReturnType, RuntimeElementDefinition } from "../types";
 import { defaultStepExecutionGraphMapper } from "../utils";
 import { DataModelRegistry } from "../DataModelRegistry";
-import type { ElementSubType } from "@fireworks/shared";
+import type { ElementSubType } from "@aiml/shared";
 import { v4 as uuidv4 } from "uuid";
 export class BaseElement
   implements

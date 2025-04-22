@@ -1,4 +1,4 @@
-import { allElementConfigs } from '@fireworks/shared';
+import { allElementConfigs } from '@aiml/shared';
 import type { TextDocument } from 'vscode-languageserver-textdocument';
 import { type CompletionItem, CompletionItemKind, type Connection, type Position } from 'vscode-languageserver/node';
 import { type Token, TokenType, parseToTokens } from '../acorn';

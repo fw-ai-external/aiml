@@ -3,10 +3,14 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
+    "dev": "bun run --watch ./src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --external playwright-core --target bun",
+    "start": "bun run ./dist/index.js",
     "migrate": "npx drizzle-kit push",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint .",
-    "clean": "rm -rf node_modules && rm -rf dist"
+    "clean": "rm -rf node_modules && rm -rf dist",
+    "deploy": "./build-images.sh deploy"
   },
   "devDependencies": {
     "@types/bun": "latest",

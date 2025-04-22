@@ -1,4 +1,4 @@
-import { sendConfig } from "@fireworks/shared";
+import { sendConfig } from "@aiml/shared";
 import { StepValue } from "../../StepValue";
 import { createElementDefinition } from "../createElementFactory";
 

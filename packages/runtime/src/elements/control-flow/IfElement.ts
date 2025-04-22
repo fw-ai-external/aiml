@@ -1,4 +1,4 @@
-import { ifConfig } from "@fireworks/shared";
+import { ifConfig } from "@aiml/shared";
 import { createElementDefinition } from "../createElementFactory";
 
 export const If = createElementDefinition({

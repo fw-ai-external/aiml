@@ -5,7 +5,7 @@ import {
   type JSONSchema as ImportedJSONSchema,
   ValueType,
   dataConfig,
-} from "@fireworks/shared";
+} from "@aiml/shared";
 
 // Re-export for backward compatibility
 export { ValueType };

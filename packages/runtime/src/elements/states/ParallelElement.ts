@@ -1,4 +1,4 @@
-import { parallelConfig } from "@fireworks/shared";
+import { parallelConfig } from "@aiml/shared";
 import { BaseElement } from "../BaseElement";
 import { createElementDefinition } from "../createElementFactory";
 

@@ -6,7 +6,7 @@ import type {
   RunStep,
   SerializedBaseElement,
   WorkflowGraph,
-} from "@fireworks/shared";
+} from "@aiml/shared";
 
 export type Condition = {
   ref: {

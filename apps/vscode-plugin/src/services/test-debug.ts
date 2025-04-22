@@ -60,7 +60,7 @@ export function createElementConfigMock() {
     allStateElementConfigs: [],
   };
 
-  mock.module('@fireworks/shared', () => mockExports);
+  mock.module('@aiml/shared', () => mockExports);
 
   return mockExports;
 }

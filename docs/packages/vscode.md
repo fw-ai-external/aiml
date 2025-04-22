@@ -28,7 +28,7 @@ Setup involves installing it as a dependency in `apps/vscode-plugin`.
 ## Key Dependencies
 
 - May have minimal dependencies, potentially including types from `@types/vscode`.
-- Internal: `@fireworks/shared` could be a dependency.
+- Internal: `@aiml/shared` could be a dependency.
 
 ## Architecture Notes
 

@@ -1,8 +1,4 @@
-import type {
-  DataModel,
-  FieldDefinition,
-  FieldValues,
-} from "@fireworks/shared";
+import type { DataModel, FieldDefinition, FieldValues } from "@aiml/shared";
 import { JSONSchemaToZod } from "@dmitryrechkin/json-schema-to-zod";
 
 /**

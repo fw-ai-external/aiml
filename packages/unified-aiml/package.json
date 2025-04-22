@@ -10,7 +10,10 @@
   "files": ["lib/", "index.d.ts.map", "index.d.ts", "index.js"],
   "dependencies": {
     "mdast-util-mdx": "^3.0.0",
-    "micromark-extension-aimljs": "workspace:*"
+    "micromark-extension-aimljs": "workspace:*",
+    "micromark-extension-aiml-jsx": "workspace:*",
+    "mdast-util-aiml": "workspace:*",
+    "mdast-util-aiml-jsx": "workspace:*"
   },
   "devDependencies": {},
   "scripts": {

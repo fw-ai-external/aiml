@@ -2,8 +2,7 @@ import { describe, test, expect } from "bun:test";
 import fs from "node:fs";
 import path from "node:path";
 import { parseMDXToAIML } from "../index.js"; // Use correct exported function name
-import { DiagnosticSeverity } from "@fireworks/shared";
-
+import { DiagnosticSeverity } from "@aiml/shared";
 const examplesDir = path.resolve(__dirname, "../../../../examples"); // Adjust path as needed
 
 const exampleDirs = [

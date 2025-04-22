@@ -8,7 +8,7 @@ import { generateAttributeHover, generateElementHover, getTextFromToken } from '
 // Import element config at the end to make mocking easier
 let elementConfigModule: any;
 try {
-  elementConfigModule = require('@fireworks/shared');
+  elementConfigModule = require('@aiml/shared');
 } catch (error) {
   console.error('Error loading element-config module:', error);
   elementConfigModule = {

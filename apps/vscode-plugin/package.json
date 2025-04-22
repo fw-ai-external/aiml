@@ -51,8 +51,8 @@
     }
   },
   "dependencies": {
-    "@fireworks/shared": "workspace:*",
-    "@fireworks/parser": "workspace:*",
+    "@aiml/shared": "workspace:*",
+    "@aiml/parser": "workspace:*",
     "dot-object": "^2.1.5",
     "find-up": "^7.0.0",
     "load-plugin": "^6.0.3",

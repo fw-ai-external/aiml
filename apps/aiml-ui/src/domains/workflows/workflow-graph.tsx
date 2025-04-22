@@ -13,7 +13,7 @@ import { WorkflowDefaultNode } from "./nodes/default";
 import { ChevronRight } from "lucide-react";
 import { StateNode } from "@/domains/workflows/nodes/state-node";
 import React, { useCallback, useEffect, useState } from "react";
-import type { SerializedBaseElement, WorkflowGraph } from "@fireworks/shared";
+import type { SerializedBaseElement, WorkflowGraph } from "@aiml/shared";
 import { IncomingRequestNode } from "@/domains/workflows/nodes/IncomingRequest";
 
 export interface BreadcrumbItem {

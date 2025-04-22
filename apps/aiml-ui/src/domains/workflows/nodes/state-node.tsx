@@ -18,10 +18,7 @@ import { cn } from "@/lib/utils";
 
 // Import only types
 import type { Node, NodeProps } from "@xyflow/react";
-import type {
-  ExecutionGraphStep,
-  SerializedBaseElement,
-} from "@fireworks/shared";
+import type { ExecutionGraphStep, SerializedBaseElement } from "@aiml/shared";
 
 const StatusColors = {
   pending: "text-yellow-500",

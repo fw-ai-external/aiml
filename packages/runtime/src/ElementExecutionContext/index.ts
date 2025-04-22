@@ -9,7 +9,7 @@ import type {
   Secrets,
   SerializedBaseElement,
   StepValueResult,
-} from "@fireworks/shared";
+} from "@aiml/shared";
 import type {
   CoreAssistantMessage,
   CoreToolMessage,
@@ -21,7 +21,7 @@ import { StepValue } from "../StepValue";
 import type { BaseElement } from "../elements/BaseElement";
 import { hydreateElementTree } from "../hydrateElementTree";
 import type { ScopedDataModelRegistry } from "../DataModelRegistry";
-import { isErrorResult } from "@fireworks/shared";
+import { isErrorResult } from "@aiml/shared";
 /**
  * Serialized execution context
  */

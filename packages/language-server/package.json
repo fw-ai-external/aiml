@@ -1,5 +1,5 @@
 {
-  "name": "@fireworks/language-server",
+  "name": "@aiml/language-server",
   "version": "0.0.1",
   "type": "module",
   "description": "A language server for AIML",
@@ -26,7 +26,7 @@
     "clean": "rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
-    "@fireworks/shared": "workspace:*",
+    "@aiml/shared": "workspace:*",
     "@mdx-js/language-service": "0.6.2",
     "@volar/language-server": "~2.4.0",
     "load-plugin": "^6.0.0",

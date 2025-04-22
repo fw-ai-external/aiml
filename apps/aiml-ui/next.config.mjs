@@ -10,9 +10,7 @@ const nextConfig = {
     "@uiw/codemirror-theme-github",
     "@uiw/react-codemirror",
     "@xyflow/react",
-    ...(isDev
-      ? ["@fireworks/parser", "@fireworks/runtime", "@fireworks/shared"]
-      : []),
+    ...(isDev ? ["@aiml/parser", "@aiml/runtime", "@aiml/shared"] : []),
   ],
   webpack(config, { isServer }) {
     if (!isServer) {

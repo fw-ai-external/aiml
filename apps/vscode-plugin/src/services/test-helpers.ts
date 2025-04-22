@@ -31,7 +31,7 @@ export const setupElementConfigMock = () => {
   };
 
   // Apply the mock
-  mock.module('@fireworks/shared', () => mockExports);
+  mock.module('@aiml/shared', () => mockExports);
 
   return mockExports;
 };

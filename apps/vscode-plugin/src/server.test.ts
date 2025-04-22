@@ -3,7 +3,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CompletionItemKind, type Connection, type Position } from 'vscode-languageserver/node';
 import { buildActiveToken, getOwnerAttributeName, getOwnerTagName } from './utils/token';
 // Remove the problematic import and create a mock version
-// import { allElementConfigs } from "@fireworks/shared";
+// import { allElementConfigs } from "@aiml/shared";
 
 // Mock version of allElementConfigs
 const mockElementConfigs = {

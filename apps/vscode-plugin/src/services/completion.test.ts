@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { allElementConfigs } from '@fireworks/shared';
+import { allElementConfigs } from '@aiml/shared';
 import type { Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import type { DebugLogger } from '../utils/debug';
 
-// Mock the @fireworks/shared module
-mock.module('@fireworks/shared', () => ({
+// Mock the @aiml/shared module
+mock.module('@aiml/shared', () => ({
   allElementConfigs,
   isSupportedNodeName: (nodeName: string) => nodeName === 'state',
   getNodeDefinitionClass: (tag: string) => {

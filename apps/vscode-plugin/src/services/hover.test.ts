@@ -23,7 +23,7 @@ const mockElementConfig = {
 };
 
 // Mock the module using Bun's mocking capabilities
-mock.module('@fireworks/shared', () => mockElementConfig);
+mock.module('@aiml/shared', () => mockElementConfig);
 
 // Now import the HoverProvider
 import { HoverProvider } from './hover';

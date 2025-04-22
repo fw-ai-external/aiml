@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { transitionConfig } from "@fireworks/shared";
+import { transitionConfig } from "@aiml/shared";
 import { BaseElement } from "../BaseElement";
 import { createElementDefinition } from "../createElementFactory";
 

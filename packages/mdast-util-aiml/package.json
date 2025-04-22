@@ -20,11 +20,7 @@
   "sideEffects": false,
   "type": "module",
   "exports": "./index.js",
-  "files": [
-    "lib/",
-    "index.d.ts",
-    "index.js"
-  ],
+  "files": ["lib/", "index.d.ts", "index.js"],
   "dependencies": {
     "mdast-util-from-markdown": "^2.0.0",
     "mdast-util-mdx-expression": "^2.0.0",
@@ -61,9 +57,7 @@
     "useTabs": false
   },
   "remarkConfig": {
-    "plugins": [
-      "remark-preset-wooorm"
-    ]
+    "plugins": ["remark-preset-wooorm"]
   },
   "typeCoverage": {
     "atLeast": 100,

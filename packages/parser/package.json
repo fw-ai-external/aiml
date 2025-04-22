@@ -1,5 +1,5 @@
 {
-  "name": "@fireworks/parser",
+  "name": "@aiml/parser",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -21,7 +21,7 @@
     "test": "bun test ./src/**/*.test.ts ./src/*.test.ts"
   },
   "dependencies": {
-    "@fireworks/shared": "workspace:*",
+    "@aiml/shared": "workspace:*",
     "unified-aiml": "workspace:*",
     "@mdx-js/typescript-plugin": "^0.0.8",
     "acorn": "^8.14.1",
@@ -39,7 +39,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@fireworks/tsconfig": "workspace:*",
+    "@aiml/tsconfig": "workspace:*",
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.11.7",
     "@types/uuid": "^10.0.0",

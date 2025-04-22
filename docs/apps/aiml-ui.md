@@ -29,7 +29,7 @@ Usage typically involves importing and composing components within the applicati
 
 - **Framework:** Likely React, Vue, Angular, or Svelte.
 - **Styling:** CSS libraries (e.g., Tailwind CSS, Material UI) or CSS-in-JS solutions.
-- **Internal:** May depend on the `@fireworks/shared` package for common types or utilities.
+- **Internal:** May depend on the `@aiml/shared` package for common types or utilities.
 - **API Client:** A library for making HTTP requests (e.g., `axios`, `fetch`).
 
 ## Architecture Notes

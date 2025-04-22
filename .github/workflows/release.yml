@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - next
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Release
+    if: github.repository == 'changesets/changesets'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache turbo build setup
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest # Or specify a version
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Create Release Pull Request or Publish to npm
+        # https://github.com/changesets/action
+        uses: changesets/action@v1
+        with:
+          # this expects you to have a script called release which does a build for your packages and calls changeset publish
+          publish: bun run release
+          version: bun run bunp-version
+          commit: "[ci] release"
+          title: "[ci] release"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_MODE: "production"
+          #   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          OCI_AUTH_TOKEN: ${{ secrets.OCI_AUTH_TOKEN }}
+          OCI_USER: ${{ secrets.OCI_USER }}
+      - name: Generate Announcement
+        id: message
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: node .github/scripts/announce.mjs '${{ steps.changesets.outputs.publishedPackages }}'
+
+      - name: Send message on Discord
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: Ilshidur/action-discord@0c4b27844ba47cb1c7bee539c8eead5284ce9fa9 # 0.3.2
+        with:
+          args: "${{ steps.message.outputs.DISCORD_MESSAGE }}"

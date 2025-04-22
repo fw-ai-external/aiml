@@ -1,6 +1,6 @@
 {
   "exclude": ["out"],
-  "extends": "@fireworks/tsconfig/library.json",
+  "extends": "@aiml/tsconfig/library.json",
   "compilerOptions": {
     "module": "preserve",
     "moduleResolution": "bundler",

@@ -1,4 +1,4 @@
-import { logConfig } from "@fireworks/shared";
+import { logConfig } from "@aiml/shared";
 import { StepValue } from "../../StepValue";
 import { createElementDefinition } from "../createElementFactory";
 

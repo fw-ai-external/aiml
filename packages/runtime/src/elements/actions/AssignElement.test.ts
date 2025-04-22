@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { ValueType } from "@fireworks/shared";
-import type { ErrorResult, StepValueResult } from "@fireworks/shared";
+import { ValueType } from "@aiml/shared";
+import type { ErrorResult, StepValueResult } from "@aiml/shared";
 import type { ActionContext } from "@mastra/core";
 import { ElementExecutionContext } from "../../ElementExecutionContext";
 import { StepValue } from "../../StepValue";

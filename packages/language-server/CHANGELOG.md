@@ -1,4 +1,4 @@
-# @fireworks/language-server
+# @aiml/language-server
 
 ## 0.0.1
 

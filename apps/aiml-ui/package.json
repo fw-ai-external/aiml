@@ -1,5 +1,5 @@
 {
-  "name": "@fireworks/aiml-ui",
+  "name": "@aiml/aiml-ui",
   "private": true,
   "version": "0.0.1",
   "scripts": {
@@ -15,6 +15,9 @@
     "@types/react-dom": "19.0.4"
   },
   "dependencies": {
+    "unified-aiml": "workspace:*",
+    "micromark-extension-aiml-jsx": "workspace:*",
+    "micromark-extension-aimljs": "workspace:*",
     "@ai-sdk/fireworks": "^0.1.14",
     "@assistant-ui/react": "^0.8.4",
     "@assistant-ui/react-ai-sdk": "^0.8.0",
@@ -25,8 +28,8 @@
     "@codingame/monaco-editor-wrapper": "^13.0.0",
     "@codingame/monaco-vscode-api": "^15.0.3",
     "@dagrejs/dagre": "^1.1.4",
-    "@fireworks/parser": "workspace:*",
-    "@fireworks/shared": "workspace:*",
+    "@aiml/parser": "workspace:*",
+    "@aiml/shared": "workspace:*",
     "@hookform/resolvers": "^3.9.0",
     "@jsonhero/fuzzy-json-search": "^0.2.2",
     "@lezer/highlight": "^1.2.1",

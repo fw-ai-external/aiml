@@ -1,7 +1,7 @@
 import { test, expect, describe } from "bun:test";
 import { WorkflowGraphBuilder } from ".";
 import { BaseElement } from "../elements/BaseElement";
-import type { SerializedElement, WorkflowGraph } from "@fireworks/shared";
+import type { SerializedBaseElement, WorkflowGraph } from "@aiml/shared";
 
 /**
  * IMPORTANT: WorkflowGraphBuilder.build() returns a WorkflowGraph (array of RunStep),
@@ -63,7 +63,7 @@ function mockToSerialized(element: MockBaseElement): SerializedBaseElement {
     lineEnd: 0,
     columnStart: 0,
     columnEnd: 0,
-  } as unknown as SerializedElement;
+  } as unknown as SerializedBaseElement;
 }
 
 describe.skip("WorkflowGraphBuilder", () => {

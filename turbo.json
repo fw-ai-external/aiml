@@ -5,20 +5,20 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**/*", "dist/**", ".next/**", ".source/**"]
+      "outputs": ["dist/**/*", "dist/**", ".next/**", ".source/**", "lib/**"]
     },
-    "@fireworks/shared#build": {
+    "@aiml/shared#build": {
       "outputs": ["dist/**"]
     },
-    "@fireworks/runtime#build": {
-      "dependsOn": ["^@fireworks/shared#build", "^@fireworks/parser#build"],
+    "@aiml/runtime#build": {
+      "dependsOn": ["^@aiml/shared#build", "^@aiml/parser#build"],
       "outputs": ["dist/**"]
     },
-    "@fireworks/parser#build": {
-      "dependsOn": ["^@fireworks/shared#build", "^unified-aiml#build"],
+    "@aiml/parser#build": {
+      "dependsOn": ["^@aiml/shared#build", "^unified-aiml#build"],
       "outputs": ["dist/**"]
     },
-    "@fireworks/unified-aiml#build": {
+    "@aiml/unified-aiml#build": {
       "dependsOn": [
         "^micromark-extension-aiml-jsx#build",
         "^mdast-util-aiml#build",
@@ -26,7 +26,21 @@
         "^unified-aiml#build",
         "^micromark-extension-aimljs#build"
       ],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", "lib/**", "index.js", "index.d.ts"]
+    },
+    "mdast-util-aiml-jsx#build": {
+      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
+      "outputs": ["lib/**", "index.js", "index.d.ts"]
+    },
+    "micromark-extension-aimljs#build": {
+      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
+      "outputs": ["lib/**", "index.js", "index.d.ts"]
+    },
+    "micromark-extension-aiml-jsx#build": {
+      "outputs": ["lib/**", "index.js", "index.d.ts"]
+    },
+    "mdast-util-aiml#build": {
+      "outputs": ["lib/**", "index.js", "index.d.ts"]
     },
 
     "landing-page#dev": {
@@ -36,39 +50,46 @@
       "outputs": [".next/**"]
     },
     "aiml-ui#build": {
+      "dependsOn": [
+        "^unified-aiml#build",
+        "^micromark-extension-aiml-jsx#build",
+        "^micromark-extension-aimljs#build",
+        "^mdast-util-aiml#build",
+        "^mdast-util-aiml-jsx#build"
+      ],
       "outputs": [".next/**"]
     },
-    "@fireworks/language-server#typecheck": {
-      "dependsOn": ["^@fireworks/parser#build", "^@fireworks/shared#build"],
+    "@aiml/language-server#typecheck": {
+      "dependsOn": ["^@aiml/parser#build", "^@aiml/shared#build"],
       "outputs": ["dist/**"]
     },
-    "@fireworks/aiml-ui#typecheck": {
-      "dependsOn": ["^@fireworks/parser#build", "^@fireworks/shared#build", "^@fireworks/runtime#build"],
+    "@aiml/aiml-ui#typecheck": {
+      "dependsOn": ["^@aiml/parser#build", "^@aiml/shared#build", "^@aiml/runtime#build"],
       "outputs": ["dist/**"]
     },
     "fireagent-plugin-vscode#typecheck": {
-      "dependsOn": ["^@fireworks/parser#build", "^@fireworks/shared#build"],
+      "dependsOn": ["^@aiml/parser#build", "^@aiml/shared#build"],
       "outputs": ["dist/**"]
     },
-    "@fireworks/runtime#typecheck": {
-      "dependsOn": ["^@fireworks/shared#build", "^@fireworks/parser#build"],
+    "@aiml/runtime#typecheck": {
+      "dependsOn": ["^@aiml/shared#build", "^@aiml/parser#build"],
       "outputs": ["dist/**"]
     },
-    "@fireworks/runtime#test": {
-      "dependsOn": ["^@fireworks/shared#build", "^@fireworks/parser#build"],
+    "@aiml/runtime#test": {
+      "dependsOn": ["^@aiml/shared#build", "^@aiml/parser#build"],
       "outputs": ["dist/**"]
     },
-    "@fireworks/parser#typecheck": {
-      "dependsOn": ["^@fireworks/shared#build", "^unified-aiml#build"],
+    "@aiml/parser#typecheck": {
+      "dependsOn": ["^@aiml/shared#build", "^unified-aiml#build"],
       "outputs": ["dist/**"]
     },
-    "@fireworks/unified-aiml#typecheck": {
+    "@aiml/unified-aiml#typecheck": {
       "dependsOn": [
         "^micromark-extension-aiml-jsx#build",
+        "^micromark-extension-aimljs#build",
         "^mdast-util-aiml#build",
         "^mdast-util-aiml-jsx#build",
-        "^unified-aiml#build",
-        "^micromark-extension-aimljs#build"
+        "^unified-aiml#build"
       ],
       "outputs": ["dist/**"]
     },
@@ -76,29 +97,37 @@
       "outputs": [".source/**", ".next/**"]
     },
     "fireagent-plugin-vscode#build": {
-      "dependsOn": ["^@fireworks/parser#build"],
+      "dependsOn": ["^@aiml/parser#build"],
       "outputs": ["dist/**"]
     },
-    "@fireworks/shared#dev": {
+    "@aiml/shared#dev": {
       "outputs": ["dist/**"],
       "persistent": true
     },
 
-    "@fireworks/runtime#dev": {
+    "@aiml/runtime#dev": {
       "outputs": ["dist/**"],
       "persistent": true
     },
-    "@fireworks/parser#dev": {
+    "@aiml/parser#dev": {
       "dependsOn": ["^unified-aiml#build"],
       "persistent": true,
       "outputs": ["dist/**"]
     },
-    "@fireworks/parser#test": {
-      "dependsOn": ["^@fireworks/shared#build", "^unified-aiml#build"],
+    "@aiml/parser#test": {
+      "dependsOn": ["^@aiml/shared#build", "^unified-aiml#build"],
       "persistent": true,
       "outputs": ["dist/**"]
     },
-    "@fireworks/aiml-ui#dev": {
+    "micromark-extension-aiml-js#test": {
+      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
+      "outputs": ["dist/**"]
+    },
+    "mdast-util-aiml-jsx#test": {
+      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
+      "outputs": ["dist/**"]
+    },
+    "@aiml/aiml-ui#dev": {
       "persistent": true,
       "outputs": [".next/**"]
     },
@@ -115,9 +144,10 @@
 
     "test": {
       "dependsOn": [
-        "mdast-util-aiml#build",
         "micromark-extension-aiml-jsx#build",
         "micromark-extension-aimljs#build",
+        "mdast-util-aiml#build",
+        "mdast-util-aiml-jsx#build",
         "unified-aiml#build"
       ],
       "cache": false
@@ -127,6 +157,10 @@
     },
     "e2e": {
       "dependsOn": ["^e2e"],
+      "cache": false
+    },
+    "deploy": {
+      "dependsOn": ["^build"],
       "cache": false
     }
   }

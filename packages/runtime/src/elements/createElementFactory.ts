@@ -6,7 +6,7 @@
  * improve maintainability.
  */
 
-import type { aimlElements, SerializedBaseElement } from "@fireworks/shared";
+import type { aimlElements, SerializedBaseElement } from "@aiml/shared";
 import { v4 as uuidv4 } from "uuid";
 import type { z } from "zod";
 import type { RuntimeElementDefinition } from "../types";
