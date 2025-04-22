@@ -24,9 +24,12 @@ fi
 
 # Function to build Docker images
 docker_build() {
+    # Change to project root directory regardless of current working directory
+    cd "$(dirname "$(readlink -f "$0")")/../.."
+    echo "Changed to project root: $(pwd)"
     echo "Building Docker images..."
     # docker build -t "${GCP_IMAGE}" -t "${AWS_IMAGE}" -t "${OCI_IMAGE}" .
-    docker build -t "${OCI_IMAGE}" --build-arg DEPLOY_MODE="${DEPLOY_MODE}" .
+    docker build -t "${OCI_IMAGE}" --build-arg DEPLOY_MODE="${DEPLOY_MODE}" -f ./apps/server/Dockerfile 2>&1
 }
 
 # Function to push Docker images
@@ -41,7 +44,7 @@ docker_push() {
 # Function to login to Docker registries
 docker_login() {
     echo "Logging into Docker registries..."
-    docker login --username "axhaeqbjwexc/${OCI_USER}" --password "${OCI_AUTH_TOKEN}" "${OCIR_REPO}"
+    docker login --username "axhaeqbjwexc/${OCI_USER}" --password "${OCI_AUTH_TOKEN}" "${OCIR_REPO}" 2>&1
     # aws ecr get-login-password --profile prod --region us-east-1 | docker login --username AWS --password-stdin "${ECR_REPO}"
 }
 
