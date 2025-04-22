@@ -1,17 +1,19 @@
-name: Release
-
+name: Deploy API Server to Production
 on:
-  push:
-    branches:
-      - main
-      - next
+  workflow_dispatch:
+    inputs:
+      allow_outside_business_hours:
+        type: boolean
+        description: "[ONLY USE IN EMERGENCIES] If enabled, allow this action to run outside of business hours."
+        required: false
+        default: false
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
     name: Release
-    if: github.repository == 'changesets/changesets'
+    if: github.repository == 'fw-ai-external/aiml'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -19,6 +21,23 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+      - name: Check if deployment is allowed
+        id: check-deploy-time
+        if: ${{ inputs.allow_outside_business_hours == false }}
+        run: |
+          if [ "$(date -u +%u)" -lt 1 ] || [ "$(date -u +%u)" -gt 5 ]; then
+            echo "Deployments are only allowed Monday to Friday."
+            echo "::set-output name=status::failure-outside-business-hours"
+            exit 1
+          fi
+
+          hour=$(date -u +%H)
+          if [ $hour -lt 13 ] || [ $hour -gt 22 ]; then
+            echo "Deployments are only allowed between 9AM and 3PM Pacific Time."
+            echo "::set-output name=status::failure-outside-business-hours"
+            exit 1
+          fi
+          echo "::set-output name=status::allowed"
       - name: Cache turbo build setup
         uses: actions/cache@v4
         with:
