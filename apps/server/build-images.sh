@@ -49,7 +49,8 @@ docker_push() {
 # Function to login to Docker registries
 docker_login() {
     echo "Logging into Docker registries..."
-    docker login --username "axhaeqbjwexc/${OCI_USER}" --password "${OCI_AUTH_TOKEN}" "${OCIR_REPO}"
+    # Use password-stdin to avoid interactive prompt and command-line password exposure
+    echo "${OCI_AUTH_TOKEN}" | docker login --username "axhaeqbjwexc/${OCI_USER}" --password-stdin "${OCIR_REPO}"
     # aws ecr get-login-password --profile prod --region us-east-1 | docker login --username AWS --password-stdin "${ECR_REPO}"
 }
 
