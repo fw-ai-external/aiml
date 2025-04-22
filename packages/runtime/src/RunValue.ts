@@ -270,8 +270,14 @@ export class RunValue {
   }
 
   public async openaiChatResponse(): Promise<OpenAIChatCompletion> {
-    const value = await this._finalOutput?.value();
-    if (!value) {
+    const finalOutput = await this.waitForFinalOutput(true);
+    const value = await finalOutput.value();
+    if (
+      value &&
+      typeof value === "object" &&
+      "type" in value &&
+      value.type === "error"
+    ) {
       throw new Error("No final output available");
     }
 
