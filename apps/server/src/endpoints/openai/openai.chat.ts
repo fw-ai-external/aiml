@@ -115,16 +115,10 @@ export const openaiChat = {
     const secrets = {
       user: {},
       system: {
-        OPENAI_API_KEY: c.get("user").OPENAI_API_KEY,
-        ANTHROPIC_API_KEY: c.get("user").ANTHROPIC_API_KEY,
-        FIREWORKS_API_KEY: c.get("user").FIREWORKS_API_KEY,
+        // OPENAI_API_KEY: c.get("user").OPENAI_API_KEY,
+        // ANTHROPIC_API_KEY: c.get("user").ANTHROPIC_API_KEY,
+        FIREWORKS_API_KEY: c.get("user").apiKey,
       },
-    };
-    const systemVariables = {
-      accountId: c.req.header("x-fireworks-account-id"),
-      developerEmail: c.req.header("x-fireworks-developer-email"),
-      accountType: c.req.header("x-fireworks-account-type"),
-      fireworksPlayground: c.req.header("Fireworks-Playground"),
     };
 
     const aimlSystemMessageIndex = validatedRequest.data.messages.findIndex(

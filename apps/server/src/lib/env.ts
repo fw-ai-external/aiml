@@ -1,23 +1,14 @@
-import { z } from 'zod';
-import type { Services } from '~/composeServices';
-import { User } from '~/types/user';
+import { z } from "zod";
+import type { Services } from "../composeServices";
+import type { User } from "../types/user";
 
 export const zEnv = z.object({
-  ENVIRONMENT: z.enum(['development', 'preview', 'production', 'staging', 'test']).default('development'),
-  FIREWORKS_API_KEY: z.string().optional(),
-  FIREWORKS_GATEWAY_URL: z.string().optional(),
+  ENVIRONMENT: z
+    .enum(["development", "preview", "production", "staging", "test"])
+    .default("development"),
+
+  FIREWORKS_API_KEY: z.string().optional(), // Just for tests
   DATABASE_URL: z.string().optional(),
-  LAUNCHDARKLY_SDK_KEY: z.string().optional(),
-  FIREWORKS_GATEWAY_SECRET: z.string().optional(),
-  OPENAI_API_KEY: z.string().optional(),
-  OPENAI_API_URL: z.string().optional(),
-  ANTHROPIC_API_KEY: z.string().optional(),
-  CEREBRAS_API_KEY: z.string().optional(),
-  FIREWORKS_BASE_URL: z.string().optional(),
-  FIRESEARCH_USERNAME: z.string().optional(),
-  FIRESEARCH_PASSWORD: z.string().optional(),
-  FIRESEARCH_ENDPOINT: z.string().optional(),
-  AUDIO_ENDPOINT: z.string().optional(),
 });
 
 export type Env = z.infer<typeof zEnv>;

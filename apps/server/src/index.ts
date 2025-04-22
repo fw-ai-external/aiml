@@ -1,9 +1,14 @@
 import { createServer } from "http";
 import { Readable } from "stream";
-import { Hono } from "hono";
 import { endpoints } from "./endpoints";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { logger } from "hono/logger";
+import { authCheckMiddleware } from "./middleware/authCheck";
 
-const app = new Hono();
+const app = new OpenAPIHono();
+
+app.use("*", logger());
+app.use("*", authCheckMiddleware);
 
 console.log("Mounting endpoints", endpoints);
 // Mount endpoints
