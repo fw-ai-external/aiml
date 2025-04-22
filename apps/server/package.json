@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "@hono/zod-openapi": "^0.19.5",
+    "@aiml/runtime": "workspace:*",
+    "@aiml/parser": "workspace:*",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.39.2",
     "drizzle-zod": "^0.7.0",

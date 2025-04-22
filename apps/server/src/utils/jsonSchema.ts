@@ -1,4 +1,4 @@
-import { JsonSchema7AnyType, JsonSchema7Type } from 'zod-to-json-schema';
+import type { JsonSchema7AnyType, JsonSchema7Type } from 'zod-to-json-schema';
 
 export function generateDefaultFromSchema(schema: JsonSchema7AnyType): any {
   if ('default' in schema && schema.default !== undefined) {

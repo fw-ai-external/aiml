@@ -1,8 +1,8 @@
 // Not sure the right way to fix these types - but want to unblock other efforts
 // @ts-nocheck
-import Anthropic from '@anthropic-ai/sdk';
-import { ZodError, ZodSchema, z } from 'zod';
-import { JsonSchema7Type, getRefs, zodToJsonSchema } from 'zod-to-json-schema';
+import type Anthropic from '@anthropic-ai/sdk';
+import { type ZodError, type ZodSchema, z } from 'zod';
+import { type JsonSchema7Type, getRefs, zodToJsonSchema } from 'zod-to-json-schema';
 import { fromError } from 'zod-validation-error';
 
 export function zodSchemaToToolSchema(zodSchema: ZodSchema): Anthropic.Messages.Tool.InputSchema {
