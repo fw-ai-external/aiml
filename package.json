@@ -17,7 +17,7 @@
     "validate": "bun run build && bun test",
     "e2e": "turbo run e2e",
     "bunp-version": "bun changeset version",
-    "release": "bun run build --filter=landing-page && bun run deploy",
+    "release": "bun run build --filter=!landing-page && bun run deploy",
     "deploy": "turbo run deploy"
   },
   "devDependencies": {
