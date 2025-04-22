@@ -5,7 +5,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**/*", "dist/**", ".next/**", ".source/**"]
+      "outputs": ["dist/**/*", "dist/**", ".next/**", ".source/**", "lib/**"]
     },
     "@aiml/shared#build": {
       "outputs": ["dist/**"]
@@ -26,15 +26,21 @@
         "^unified-aiml#build",
         "^micromark-extension-aimljs#build"
       ],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", "lib/**", "index.js", "index.d.ts"]
     },
     "mdast-util-aiml-jsx#build": {
       "dependsOn": ["^micromark-extension-aiml-jsx#build"],
-      "outputs": ["dist/**"]
+      "outputs": ["lib/**", "index.js", "index.d.ts"]
     },
     "micromark-extension-aimljs#build": {
       "dependsOn": ["^micromark-extension-aiml-jsx#build"],
-      "outputs": ["dist/**"]
+      "outputs": ["lib/**", "index.js", "index.d.ts"]
+    },
+    "micromark-extension-aiml-jsx#build": {
+      "outputs": ["lib/**", "index.js", "index.d.ts"]
+    },
+    "mdast-util-aiml#build": {
+      "outputs": ["lib/**", "index.js", "index.d.ts"]
     },
 
     "landing-page#dev": {
