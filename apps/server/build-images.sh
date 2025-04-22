@@ -24,9 +24,12 @@ fi
 
 # Function to build Docker images
 docker_build() {
+    # Change to project root directory regardless of current working directory
+    cd "$(dirname "$(readlink -f "$0")")/../.."
+    echo "Changed to project root: $(pwd)"
     echo "Building Docker images..."
     # docker build -t "${GCP_IMAGE}" -t "${AWS_IMAGE}" -t "${OCI_IMAGE}" .
-    docker build -t "${OCI_IMAGE}" --build-arg DEPLOY_MODE="${DEPLOY_MODE}" . 2>&1
+    docker build -t "${OCI_IMAGE}" --build-arg DEPLOY_MODE="${DEPLOY_MODE}" -f ./apps/server/Dockerfile 2>&1
 }
 
 # Function to push Docker images
