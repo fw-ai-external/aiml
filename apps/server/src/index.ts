@@ -10,7 +10,6 @@ const app = new OpenAPIHono();
 app.use("*", logger());
 app.use("*", authCheckMiddleware);
 
-console.log("Mounting endpoints", endpoints);
 // Mount endpoints
 endpoints.forEach((endpoint) => {
   if ("method" in endpoint && "path" in endpoint && "handler" in endpoint) {

@@ -140,7 +140,7 @@ const predictionSchema = z
 // Main chat completion params schema
 export const chatCompletionParamsSchema = z.object({
   messages: z.array(messageSchema),
-  model: z.string(),
+  model: z.string().optional(),
   frequency_penalty: z.number().min(-2).max(2).nullable().optional().default(0),
   function_call: z
     .union([

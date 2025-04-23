@@ -391,7 +391,6 @@ export function healFlowOrError(
 
     // Create error state if needed
     if (!hasErrorState) {
-      console.log("Creating error state");
       const newErrorState: SerializedBaseElement = {
         astSourceType: "element",
         type: "state" as ElementType,

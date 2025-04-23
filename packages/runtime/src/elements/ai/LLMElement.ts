@@ -25,7 +25,6 @@ export const LLM = createElementDefinition({
       serializedCtx
     );
 
-    console.log("execut 1", ctx.props.model, ctx.machine?.secrets);
     const { provider } = getProviderWithClient(
       ctx.props.model,
       ctx.machine?.secrets || { system: {}, user: {} },

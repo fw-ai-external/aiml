@@ -64,7 +64,6 @@ export class WorkflowGraphBuilder {
     maxRecursion?: number
   ): boolean {
     const recursionCount = this.currentConstructionPath.get(elementKey) || 0;
-    console.log("recursionCount", elementKey, recursionCount);
     // Use provided max recursion or DEFAULT_MAX_RECURSION
     const maxRecursionLimit = maxRecursion ?? DEFAULT_MAX_RECURSION;
 
