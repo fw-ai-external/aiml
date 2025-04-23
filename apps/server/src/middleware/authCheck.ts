@@ -18,16 +18,7 @@ export const authCheckMiddleware = createMiddleware<ContextEnv>(
       if (!context.req.header("Authorization")) {
         return context.json({ error: "Unauthorized" }, 401);
       }
-      const headerGetter =
-        "header" in context.req
-          ? (name: string) => context.req.header(name)
-          : (name: string) => context.req.header(name);
-      const apiKey =
-        headerGetter("x-api-key") ||
-        headerGetter("Authorization")
-          ?.replace(/bearer/i, "")
-          .trim() ||
-        null;
+      const apiKey = getApiKeyFromRequest(context.req);
 
       if (!apiKey) {
         return context.json({ error: "Unauthorized" }, 401);

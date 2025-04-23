@@ -138,16 +138,13 @@ export const openaiChat = {
       },
     };
 
-    const aimlSystemMessageIndex = validatedRequest.data.messages.findIndex(
+    let aimlSystemMessageIndex = validatedRequest.data.messages.findIndex(
       (message) =>
         message.role === "system" && message.content.startsWith("---")
     );
     if (aimlSystemMessageIndex === -1) {
-      return c.json(
-        {
-          error: "No system prompt found containing AIML",
-        },
-        400
+      aimlSystemMessageIndex = validatedRequest.data.messages.findIndex(
+        (message) => message.role === "system"
       );
     }
 
@@ -160,15 +157,10 @@ export const openaiChat = {
           )?.text)
         : null;
 
-    if (aimlSystemMessageIndex === -1) {
-      return c.json({ error: "AIML based system message not found" }, 400);
-    }
-
     if (!aimlPrompt) {
       return c.json(
         {
-          error:
-            "AIML based system message must have a content property that is a string",
+          error: `AIML based system message must have a key of "content" with the AIML prompt as it\'s value. But we receved: ${validatedRequest.data.messages[aimlSystemMessageIndex] ? JSON.stringify(validatedRequest.data.messages[aimlSystemMessageIndex]) : "No system messages at all"}`,
         },
         400
       );
@@ -238,9 +230,14 @@ export const openaiChat = {
         const result = await workflow.run({
           userMessage: userMessage.content,
           secrets,
+          systemMessage: cleanRequest.messages
+            .filter((m) => m.role === "system")
+            .map((m) => m.content)
+            .join("\n\n"),
+          chatHistory: cleanRequest.messages.filter((m) => m.role !== "system"),
         });
         return c.json(
-          result.openaiChatResponse().catch((error: Error) => {
+          await result.openaiChatResponse().catch((error: Error) => {
             console.error("error", error);
             return c.json({ error: error.message }, { status: 500 });
           })
@@ -254,12 +251,7 @@ export const openaiChat = {
     try {
       const result = workflow.runStream({
         userMessage: userMessage.content,
-        secrets: {
-          system: {
-            FIREWORKS_API_KEY: process.env.FIREWORK_API_KEY,
-            FIREWORKS_BASE_URL: process.env.FIREWORKS_BASE_URL,
-          },
-        },
+        secrets,
         systemMessage: cleanRequest.messages
           .filter((m) => m.role === "system")
           .map((m) => m.content)

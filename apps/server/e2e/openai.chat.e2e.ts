@@ -2,6 +2,7 @@ import { test, expect } from "bun:test";
 import fs from "fs";
 import path from "path";
 import { app } from "../src";
+import "@dotenvx/dotenvx/config";
 
 // Helper function to read AIML file content
 function readAimlFile(filePath: string): string {
@@ -66,11 +67,11 @@ async function processStreamingResponse(response: Response) {
 const exampleDirs = [
   //   "Character PersonaGenerator",
   //   "CodeReviewer",
-  //   "FinalStateTest",
-  //   "InvestmentAdvisor",
-  //   "JustPrompt",
-  //   "MedicalDiagnosis",
-  //   "RecipeGenerator",
+  "FinalStateTest",
+  "InvestmentAdvisor",
+  "JustPrompt",
+  // "MedicalDiagnosis",
+  // "RecipeGenerator",
   "SimpleChain",
   "SimpleRouter",
 ];
@@ -95,11 +96,12 @@ exampleDirs.forEach((dir) => {
 
     const data = JSON.parse(body);
     expect(data).toBeDefined();
+
     expect(data.choices).toBeDefined();
     expect(data.choices.length).toBeGreaterThan(0);
     expect(data.choices[0].message).toBeDefined();
     expect(data.choices[0].message.content).toBeDefined();
-  });
+  }, 20000);
 });
 
 // Test each AIML file with streaming enabled

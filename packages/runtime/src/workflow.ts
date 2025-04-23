@@ -197,12 +197,12 @@ export class Workflow<
       throw error;
     });
 
-    workflowOutput.then(async (results) => {
+    await workflowOutput.then(async (results) => {
       // Workflow execution completed
       await this.value?.finalize();
     });
 
-    return this.value?.openaiChatResponse();
+    return this.value;
   }
 
   public runStream(input: InputType) {
