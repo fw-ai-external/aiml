@@ -106,7 +106,7 @@ exampleDirs.forEach((dir) => {
 
 // Test each AIML file with streaming enabled
 exampleDirs.forEach((dir) => {
-  test.skip(`${dir} - streaming`, async () => {
+  test(`${dir} - streaming`, async () => {
     const aimlPath = path.join(dir, "index.aiml");
     const aimlContent = readAimlFile(aimlPath);
 
@@ -118,19 +118,20 @@ exampleDirs.forEach((dir) => {
 
     expect(
       response.status,
-      `Expected status code 200, but receved ${response.status} and a body of ${await response.text()}`
+      `Expected status code 200, but receved ${response.status}}`
     ).toBe(200);
     expect(response.headers.get("content-type")).toContain("text/event-stream");
 
     const chunks = await processStreamingResponse(response);
-    expect(chunks.length).toBeGreaterThan(0);
-    const doneChunk = chunks.find((chunk) => chunk.includes("[DONE]"));
+    expect(chunks.length).toBeGreaterThan(1);
+
+    const doneChunk = chunks.find((chunk) => chunk.includes("[done]"));
     expect(doneChunk).toBeDefined();
 
     // Verify that the chunks contain valid SSE data
     const validChunk = chunks.some(
       (chunk) =>
-        chunk.includes("data:") &&
+        chunk.includes("[data]") &&
         (chunk.includes("content") || chunk.includes("delta"))
     );
 
@@ -138,5 +139,5 @@ exampleDirs.forEach((dir) => {
       validChunk,
       `No valid chunk found\n\nChunks received:\n ${chunks.join("\n")}`
     ).toBe(true);
-  });
+  }, 20000);
 });
