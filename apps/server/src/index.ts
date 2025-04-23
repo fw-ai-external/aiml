@@ -16,19 +16,19 @@ endpoints.forEach((endpoint) => {
     const { method, path, handler } = endpoint;
     switch (method.toLowerCase()) {
       case "get":
-        app.get(path, handler);
+        app.get(path, handler as any);
         break;
       case "post":
-        app.post(path, handler);
+        app.post(path, handler as any);
         break;
       case "put":
-        app.put(path, handler);
+        app.put(path, handler as any);
         break;
       case "delete":
-        app.delete(path, handler);
+        app.delete(path, handler as any);
         break;
       case "patch":
-        app.patch(path, handler);
+        app.patch(path, handler as any);
         break;
       default:
         console.warn(`Unsupported HTTP method: ${method}`);
