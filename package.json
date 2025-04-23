@@ -12,7 +12,7 @@
     "dev:watch": "turbo run build && bun --watch turbo run dev",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "clean": "turbo run clean",
+    "clean": "rm -rf node_modules && turbo run clean",
     "test": "turbo run test",
     "validate": "bun run build && bun test",
     "e2e": "turbo run e2e",

@@ -83,6 +83,10 @@
       "dependsOn": ["^@aiml/shared#build", "^unified-aiml#build"],
       "outputs": ["dist/**"]
     },
+    "server#typecheck": {
+      "dependsOn": ["^@aiml/shared#build", "^@aiml/parser#build", "^@aiml/runtime#build"],
+      "outputs": ["dist/**"]
+    },
     "@aiml/unified-aiml#typecheck": {
       "dependsOn": [
         "^micromark-extension-aiml-jsx#build",
