@@ -397,7 +397,7 @@ function setupTypeScriptPlugin() {
     "typescript-plugin",
     "dist"
   );
-  const nodeModulesDir = path.resolve(rootDir, "node_modules", "@fireworks");
+  const nodeModulesDir = path.resolve(rootDir, "node_modules", "@aiml");
 
   if (!fs.existsSync(path.join(nodeModulesDir, "typescript-plugin"))) {
     fs.mkdirSync(path.join(nodeModulesDir, "typescript-plugin"), {
