@@ -270,8 +270,21 @@ export class RunValue {
   }
 
   public async openaiChatResponse(): Promise<OpenAIChatCompletion> {
-    const value = await this._finalOutput?.value();
-    if (!value) {
+    const finalOutput = await this.waitForFinalOutput(true);
+
+    const value = await finalOutput.value().catch((error) => {
+      return {
+        type: "error",
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    });
+
+    if (
+      value &&
+      typeof value === "object" &&
+      "type" in value &&
+      value.type === "error"
+    ) {
       throw new Error("No final output available");
     }
 
@@ -497,7 +510,6 @@ export class RunValue {
 
     // Race the timeout promise against the wait promise
     const result = await Promise.race([waitPromise, timeoutPromise]);
-
     // Update our final output with the race result
     this._finalOutput = result;
     return result;

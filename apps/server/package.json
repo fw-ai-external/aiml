@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome lint .",
     "clean": "rm -rf node_modules && rm -rf dist",
-    "deploy": "./build-images.sh deploy"
+    "deploy": "./build-images.sh deploy",
+    "e2e": "bun test ./**/*.e2e.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -22,12 +23,17 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@aiml/parser": "workspace:*",
+    "@aiml/runtime": "workspace:*",
+    "@dotenvx/dotenvx": "^1.41.0",
+    "@hono/zod-openapi": "^0.19.5",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.39.2",
     "drizzle-zod": "^0.7.0",
     "hono": "^4.7.7",
     "lodash": "^4.17.21",
     "pg": "^8.13.1",
-    "postgres": "^3.4.5"
+    "postgres": "^3.4.5",
+    "zod-error": "^1.5.0"
   }
 }

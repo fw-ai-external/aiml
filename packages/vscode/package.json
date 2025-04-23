@@ -26,7 +26,7 @@
     "@hediet/node-reload": "^0.7.3",
     "@hediet/std": "^0.6.0",
     "@types/node": "^22.0.0",
-    "@types/vscode": "^1.96.0",
+    "@types/vscode": "1.96.0",
     "@volar/language-server": "~2.4.0",
     "@volar/vscode": "~2.4.0",
     "@vscode/vsce": "^3.2.0",

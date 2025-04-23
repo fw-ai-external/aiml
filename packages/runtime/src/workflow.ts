@@ -170,38 +170,39 @@ export class Workflow<
 
     const { runId, start } = this.workflow.createRun();
 
+    this.value = new RunValue({ runId });
     // Set up state transition monitoring
     this.workflow.watch((state: WorkflowRunState) =>
-      this.handleStateTransition(state)
+      this.handleStateTransition(state).catch((error) => {
+        console.error("error", error);
+        this.options?.onError?.(error as Error);
+        throw error;
+      })
     );
 
-    // .catch((error) => {
-    //   console.error("error", error);
-    //   this.options?.onError?.(error as Error);
-    // });
-
-    try {
-      const { results } = await start({
-        triggerData: {
-          input: new StepValue(input.userMessage[0]),
-          chatHistory: input.chatHistory,
-          systemMessage: input.systemMessage,
-          userInput: input.userMessage[0],
-          secrets: input.secrets,
+    const workflowOutput = start({
+      triggerData: {
+        input: new StepValue(input.userMessage),
+        chatHistory: input.chatHistory,
+        systemMessage: input.systemMessage,
+        userInput: input.userMessage[0],
+        secrets: input.secrets,
+        getDatamodel: () => {
+          return this.datamodel;
         },
-      });
-
-      this.options?.onComplete?.();
-
-      return {
-        runId,
-        results,
-      };
-    } catch (error) {
+      },
+    }).catch((error) => {
       console.error("error", error);
       this.options?.onError?.(error as Error);
       throw error;
-    }
+    });
+
+    await workflowOutput.then(async (results) => {
+      // Workflow execution completed
+      await this.value?.finalize();
+    });
+
+    return this.value;
   }
 
   public runStream(input: InputType) {

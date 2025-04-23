@@ -1,7 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env.*local", "**/.env"],
-
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -83,6 +82,10 @@
       "dependsOn": ["^@aiml/shared#build", "^unified-aiml#build"],
       "outputs": ["dist/**"]
     },
+    "server#typecheck": {
+      "dependsOn": ["^@aiml/shared#build", "^@aiml/parser#build", "^@aiml/runtime#build"],
+      "outputs": ["dist/**"]
+    },
     "@aiml/unified-aiml#typecheck": {
       "dependsOn": [
         "^micromark-extension-aiml-jsx#build",
@@ -156,7 +159,7 @@
       "cache": false
     },
     "e2e": {
-      "dependsOn": ["^e2e"],
+      "dependsOn": ["^build", "^e2e"],
       "cache": false
     },
     "deploy": {

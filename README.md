@@ -68,11 +68,8 @@ A comprehensive toolset for working with AIML based workflows, both familiar, ye
 
    Edit `.env.development` with your credentials:
 
-   - Supported LLM providers AI API keys:
-     - `FIREWORKS_API_KEY`: Fireworks API key
-     - `OPENAI_API_KEY`: OpenAI API key
-     - `ANTHROPIC_API_KEY`: Anthropic API key
-   - PostgreSQL database credentials (for the API server)
+   - `FIREWORKS_API_KEY`: Fireworks API key for tests
+   - `DATABASE_URL` PostgreSQL database credentials (for the API server)
 
 4. Run database migrations:
 

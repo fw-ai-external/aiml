@@ -5,10 +5,6 @@ import type { StepValueChunk, StepValueResult } from "@aiml/shared";
 import { StepValue } from "./StepValue";
 
 // Define a local interface for test chunks to avoid dependencies on deprecated types
-interface TestStreamChunk {
-  type: string;
-  [key: string]: any;
-}
 
 function toAsyncIterable<T>(items: T[]): AsyncIterable<T> {
   return {

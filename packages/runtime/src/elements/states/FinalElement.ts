@@ -10,6 +10,5 @@ export const Final = createElementDefinition({
   ...finalConfig,
   onExecutionGraphConstruction(buildContext) {
     buildContext.graphBuilder.then();
-    console.log("Final element registered successfully");
   },
 });

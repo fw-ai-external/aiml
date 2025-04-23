@@ -88,3 +88,6 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Run E2E Tests
         run: bun run e2e
+        env:
+          # Set the environment variable for the E2E tests
+          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}

@@ -417,7 +417,6 @@ export class StepValue<Value extends StepValueResult = StepValueResult> {
 
   public async waitForValue() {
     await this.waitForInputs();
-
     while (!this.valueReady) {
       await new Promise((resolve) => setTimeout(resolve, 2));
     }
@@ -427,7 +426,6 @@ export class StepValue<Value extends StepValueResult = StepValueResult> {
     while (!this._error && !this.finalValue) {
       await new Promise((resolve) => setTimeout(resolve, 2));
     }
-
     return true;
   }
 
@@ -456,7 +454,9 @@ export class StepValue<Value extends StepValueResult = StepValueResult> {
   }
 
   public async value(): Promise<Value | ErrorResult> {
-    await this.waitForValue();
+    await this.waitForValue().catch((err) => {
+      this._error = err;
+    });
     if (this._error) {
       return {
         type: "error",
