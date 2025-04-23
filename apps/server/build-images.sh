@@ -26,13 +26,21 @@ fi
 docker_build() {
     echo "Building Docker images..."
     # docker build -t "${GCP_IMAGE}" -t "${AWS_IMAGE}" -t "${OCI_IMAGE}" .
-    docker build -t "${OCI_IMAGE}" --build-arg DEPLOY_MODE="${DEPLOY_MODE}" .
+    
+    # Check if docker buildx is being used
+    if docker buildx version &>/dev/null; then
+        echo "Using Docker Buildx..."
+        docker buildx build --load -t "${OCI_IMAGE}" --build-arg DEPLOY_MODE="${DEPLOY_MODE}" .
+    else
+        echo "Using standard Docker build..."
+        docker build -t "${OCI_IMAGE}" --build-arg DEPLOY_MODE="${DEPLOY_MODE}" .
+    fi
 }
 
 # Function to push Docker images
 docker_push() {
     echo "Pushing Docker images..."
-    docker_build
+    # No need to build again as we already build in the deploy case
     docker image push "${OCI_IMAGE}"
     # docker image push "${AWS_IMAGE}"
     # docker image push "${GCP_IMAGE}"
@@ -41,7 +49,8 @@ docker_push() {
 # Function to login to Docker registries
 docker_login() {
     echo "Logging into Docker registries..."
-    docker login --username "axhaeqbjwexc/${OCI_USER}" --password "${OCI_AUTH_TOKEN}" "${OCIR_REPO}"
+    # Use password-stdin to avoid interactive prompt and command-line password exposure
+    echo "${OCI_AUTH_TOKEN}" | docker login --username "axhaeqbjwexc/${OCI_USER}" --password-stdin "${OCIR_REPO}"
     # aws ecr get-login-password --profile prod --region us-east-1 | docker login --username AWS --password-stdin "${ECR_REPO}"
 }
 
