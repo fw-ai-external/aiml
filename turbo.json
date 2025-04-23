@@ -156,7 +156,7 @@
       "cache": false
     },
     "e2e": {
-      "dependsOn": ["^e2e"],
+      "dependsOn": ["^build", "^e2e"],
       "cache": false
     },
     "deploy": {
