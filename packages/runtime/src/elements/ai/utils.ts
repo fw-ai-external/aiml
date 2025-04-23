@@ -87,32 +87,40 @@ export function getProviderWithClient(
     const baseURL =
       secrets?.system?.FIREWORKS_BASE_URL ??
       "https://api.fireworks.ai/inference/v1";
+
+    // Define the fetch wrapper function
+    const customFetch = async (
+      input: RequestInfo | URL,
+      init?: RequestInit
+    ): Promise<Response> => {
+      let modifiedInit = init;
+      if (response_format || repetitionPenalty !== undefined) {
+        const originalRequest = init?.body
+          ? JSON.parse(init.body as string)
+          : {};
+        if (response_format) {
+          originalRequest.response_format = response_format;
+        }
+        if (repetitionPenalty !== undefined) {
+          originalRequest.repetition_penalty = repetitionPenalty;
+        }
+        modifiedInit = {
+          ...init,
+          body: JSON.stringify(originalRequest),
+        };
+      }
+      // Call the original fetch
+      return fetch(input, modifiedInit);
+    };
+
+    // Assign static properties from global fetch to custom fetch to match the type
+    Object.assign(customFetch, fetch);
+
     provider = createOpenAI({
       apiKey: secrets?.system?.FIREWORKS_API_KEY ?? "",
       baseURL,
       ...(extra_headers ? { headers: extra_headers } : {}),
-      fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
-        if (response_format || repetitionPenalty !== undefined) {
-          const originalRequest = init?.body
-            ? JSON.parse(init.body as string)
-            : {};
-          if (response_format) {
-            originalRequest.response_format = response_format;
-          }
-          if (repetitionPenalty !== undefined) {
-            originalRequest.repetition_penalty = repetitionPenalty;
-          }
-          const modifiedInit = {
-            ...init,
-            body: JSON.stringify(originalRequest),
-          };
-          return fetch(input, modifiedInit);
-        } else {
-          const response = await fetch(input, init);
-
-          return response;
-        }
-      },
+      fetch: customFetch as typeof fetch, // Use the wrapper, casting to satisfy TS initially
     });
     client = new OpenAI({
       apiKey: secrets.system.FIREWORKS_API_KEY ?? "",

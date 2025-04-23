@@ -78,7 +78,7 @@ export function CodeEditor({
   return (
     <div ref={editorRef} className="h-[95%] w-full rounded-xl">
       <Editor
-        ref={monacoRef}
+        ref={monacoRef as any}
         height={editorHeight}
         options={{
           minimap: {
