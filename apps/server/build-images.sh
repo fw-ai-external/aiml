@@ -64,7 +64,6 @@ case "$1" in
         docker_push
         ;;
     deploy)
-        docker_login
         docker_build
         docker_push
         ;;

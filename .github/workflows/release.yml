@@ -51,8 +51,13 @@ jobs:
           bun-version: latest # Or specify a version
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
-      - name: Create Release Pull Request or Publish to npm
+      - name: Login to OCIR
+        uses: docker/login-action@v3
+        with:
+          registry: us-chicago-1.ocir.io
+          username: ${{ secrets.OCI_USER }}
+          password: ${{ secrets.OCI_AUTH_TOKEN }}
+      - name: Create Release
         # https://github.com/changesets/action
         uses: changesets/action@v1
         with:
