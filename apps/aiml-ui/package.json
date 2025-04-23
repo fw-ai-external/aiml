@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "biome lint .",
     "typecheck": "tsc --noEmit",
