@@ -90,10 +90,12 @@ export function safeParse(
       };
     }
 
+    const codeWithError = content.split("\n")[lineInfo.line - 1].trim();
+
     // Add diagnostic for this specific line
     diagnostics.add({
-      message: `${error}`,
-      severity: DiagnosticSeverity.Warning,
+      message: `${(error as any).message.replace(" with acorn", "")} \`${codeWithError}\``,
+      severity: DiagnosticSeverity.Error,
       code: "AIML010",
       source: "aiml-parser",
       range: {

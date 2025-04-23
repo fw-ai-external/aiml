@@ -7,6 +7,7 @@ import {
 import type { Context } from "hono";
 import { Workflow, hydreateElementTree } from "@aiml/runtime";
 import { parseMDXToAIML } from "@aiml/parser";
+import { DiagnosticSeverity, type Diagnostic } from "@aiml/shared";
 
 export const RouteConfig = createRoute({
   method: "post",
@@ -41,6 +42,22 @@ export const RouteConfig = createRoute({
         "application/json": {
           schema: z.object({
             error: z.string(),
+            diagnostics: z
+              .array(
+                z.object({
+                  severity: z.enum(["error", "warning"]),
+                  message: z.string(),
+                  start: z.object({
+                    line: z.number(),
+                    column: z.number(),
+                  }),
+                  end: z.object({
+                    line: z.number(),
+                    column: z.number(),
+                  }),
+                })
+              )
+              .optional(),
           }),
         },
       },
@@ -125,11 +142,23 @@ export const openaiChat = {
       (message) =>
         message.role === "system" && message.content.startsWith("---")
     );
+    if (aimlSystemMessageIndex === -1) {
+      return c.json(
+        {
+          error: "No system prompt found containing AIML",
+        },
+        400
+      );
+    }
 
     const aimlPrompt =
-      validatedRequest.data.messages[aimlSystemMessageIndex].content ??
-      (validatedRequest.data.messages[aimlSystemMessageIndex].content as any)
-        ?.text;
+      aimlSystemMessageIndex > -1
+        ? (validatedRequest.data.messages?.[aimlSystemMessageIndex].content ??
+          (
+            validatedRequest.data.messages[aimlSystemMessageIndex]
+              .content as any
+          )?.text)
+        : null;
 
     if (aimlSystemMessageIndex === -1) {
       return c.json({ error: "AIML based system message not found" }, 400);
@@ -160,48 +189,93 @@ export const openaiChat = {
       );
     }
 
-    const ast = await parseMDXToAIML(aimlPrompt);
+    const ast = await parseMDXToAIML(aimlPrompt).catch((error: Error) => {
+      c.json(
+        {
+          error: "Could not parse AIML prompt. Invalid AIML syntax.",
+        },
+        400
+      );
+      return null;
+    });
+    if (!ast) {
+      return;
+    }
 
-    const elementTree = hydreateElementTree(
-      ast.nodes,
-      new Set(ast.diagnostics)
-    );
+    if (ast.diagnostics.some((d) => d.severity === DiagnosticSeverity.Error)) {
+      return c.json(
+        {
+          error: "AIML system prompt contained errors, and could not be run",
+          diagnostics: ast.diagnostics,
+        },
+        400
+      );
+    }
+
+    let elementTree: {
+      elementTree?: any;
+      diagnostics: Set<Diagnostic>;
+    };
+    try {
+      elementTree = hydreateElementTree(ast.nodes, new Set(ast.diagnostics));
+    } catch (error) {
+      return c.json(
+        {
+          error:
+            "AIML system prompt contained valid syntax, but was an invalid flow. Cause is unknown.",
+        },
+        400
+      );
+    }
+
     const workflow = new Workflow(elementTree.elementTree!, {
       scopedDataModels: ast.datamodel || {},
       fieldValues: ast.datamodel?.fieldValues || {},
     });
 
     if (!cleanRequest.stream) {
-      const result = await workflow.run({
-        userMessage: userMessage.content,
-      });
-      return c.json(
-        result.openaiChatResponse().catch((error: Error) => {
-          console.error("error", error);
-          return c.json({ error: error.message }, { status: 500 });
-        })
-      );
+      try {
+        const result = await workflow.run({
+          userMessage: userMessage.content,
+          secrets,
+        });
+        return c.json(
+          result.openaiChatResponse().catch((error: Error) => {
+            console.error("error", error);
+            return c.json({ error: error.message }, { status: 500 });
+          })
+        );
+      } catch (error) {
+        console.error("error", error);
+        return c.json({ error: (error as any).message }, { status: 500 });
+      }
     }
-    const result = workflow.runStream({
-      userMessage: userMessage.content,
-      secrets: {
-        system: {
-          FIREWORKS_API_KEY: process.env.FIREWORK_API_KEY,
-          FIREWORKS_BASE_URL: process.env.FIREWORKS_BASE_URL,
-        },
-      },
-      systemMessage: cleanRequest.messages
-        .filter((m) => m.role === "system")
-        .map((m) => m.content)
-        .join("\n\n"),
-      chatHistory: cleanRequest.messages.filter((m) => m.role !== "system"),
-    });
 
-    return new Response(await result.openaiChatStream(), {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Transfer-Encoding": "chunked",
-      },
-    });
+    try {
+      const result = workflow.runStream({
+        userMessage: userMessage.content,
+        secrets: {
+          system: {
+            FIREWORKS_API_KEY: process.env.FIREWORK_API_KEY,
+            FIREWORKS_BASE_URL: process.env.FIREWORKS_BASE_URL,
+          },
+        },
+        systemMessage: cleanRequest.messages
+          .filter((m) => m.role === "system")
+          .map((m) => m.content)
+          .join("\n\n"),
+        chatHistory: cleanRequest.messages.filter((m) => m.role !== "system"),
+      });
+
+      return new Response(await result.openaiChatStream(), {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Transfer-Encoding": "chunked",
+        },
+      });
+    } catch (error) {
+      console.error("error", JSON.stringify(error));
+      return c.json({ error: (error as any).message }, { status: 500 });
+    }
   },
 };
