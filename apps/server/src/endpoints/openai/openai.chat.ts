@@ -197,6 +197,11 @@ export const openaiChat = {
       chatHistory: cleanRequest.messages.filter((m) => m.role !== "system"),
     });
 
-    return new Response(await result.openaiChatStream());
+    return new Response(await result.openaiChatStream(), {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Transfer-Encoding": "chunked",
+      },
+    });
   },
 };
