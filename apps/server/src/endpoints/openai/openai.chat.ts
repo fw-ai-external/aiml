@@ -1,17 +1,16 @@
-import { createRoute, z } from "@hono/zod-openapi";
 import {
   chatCompletionParams,
   chatCompletionResponseSchema,
   chatCompletionStreamResponseSchema,
 } from "@/types/openai/chatZod";
-import type { Context } from "hono";
 import { Workflow, hydreateElementTree } from "@aiml/runtime";
 import { parseMDXToAIML } from "@aiml/parser";
 import { DiagnosticSeverity, type Diagnostic } from "@aiml/shared";
-
-export const RouteConfig = createRoute({
+import { z } from "@hono/zod-openapi";
+import { createRouteconfig } from "@/lib/route";
+export const openaiChat = createRouteconfig({
   method: "post",
-  path: "/inference/v1/chat/completions",
+  path: "/openai/v1/chat/completions",
   request: {
     body: {
       content: {
@@ -114,21 +113,9 @@ export const RouteConfig = createRoute({
       description: "Server overloaded or service unavailable",
     },
   },
-});
+  handler: async (c) => {
+    const jsonBody = await c.req.json<z.infer<typeof chatCompletionParams>>();
 
-export const openaiChat = {
-  method: "POST",
-  path: "/openai/v1/chat/completions",
-  handler: async (c: Context) => {
-    const req = await c.req.json();
-    const validatedRequest =
-      RouteConfig.request.body.content["application/json"].schema.safeParse(
-        req
-      );
-
-    if (!validatedRequest.success) {
-      return c.json({ error: "Invalid request body" }, 400);
-    }
     const secrets = {
       user: {},
       system: {
@@ -138,37 +125,34 @@ export const openaiChat = {
       },
     };
 
-    let aimlSystemMessageIndex = validatedRequest.data.messages.findIndex(
+    let aimlSystemMessageIndex = jsonBody.messages.findIndex(
       (message) =>
         message.role === "system" && message.content.startsWith("---")
     );
     if (aimlSystemMessageIndex === -1) {
-      aimlSystemMessageIndex = validatedRequest.data.messages.findIndex(
+      aimlSystemMessageIndex = jsonBody.messages.findIndex(
         (message) => message.role === "system"
       );
     }
 
     const aimlPrompt =
       aimlSystemMessageIndex > -1
-        ? (validatedRequest.data.messages?.[aimlSystemMessageIndex].content ??
-          (
-            validatedRequest.data.messages[aimlSystemMessageIndex]
-              .content as any
-          )?.text)
+        ? (jsonBody.messages?.[aimlSystemMessageIndex].content ??
+          (jsonBody.messages[aimlSystemMessageIndex].content as any)?.text)
         : null;
 
     if (!aimlPrompt) {
       return c.json(
         {
-          error: `AIML based system message must have a key of "content" with the AIML prompt as it\'s value. But we receved: ${validatedRequest.data.messages[aimlSystemMessageIndex] ? JSON.stringify(validatedRequest.data.messages[aimlSystemMessageIndex]) : "No system messages at all"}`,
+          error: `AIML based system message must have a key of "content" with the AIML prompt as it\'s value. But we receved: ${jsonBody.messages[aimlSystemMessageIndex] ? JSON.stringify(jsonBody.messages[aimlSystemMessageIndex]) : "No system messages at all"}`,
         },
         400
       );
     }
 
     const cleanRequest = {
-      ...validatedRequest.data,
-      messages: validatedRequest.data.messages.slice(aimlSystemMessageIndex),
+      ...jsonBody,
+      messages: jsonBody.messages.slice(aimlSystemMessageIndex),
     };
 
     const userMessage = cleanRequest.messages[cleanRequest.messages.length - 1];
@@ -270,4 +254,4 @@ export const openaiChat = {
       return c.json({ error: (error as any).message }, { status: 500 });
     }
   },
-};
+});
