@@ -25,7 +25,7 @@ export async function parseTemplateLiteral(
       (result === undefined || result === null || result.trim() === "")
     ) {
       throw new Error(
-        `Error evaluating expression: ${template.trim()}: result is undefined, null, or empty`
+        `Error evaluating template litteral expression: ${template.trim()}: sandbox output is undefined, null, or empty`
       );
     }
     return finalResult;

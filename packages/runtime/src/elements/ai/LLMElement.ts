@@ -59,7 +59,7 @@ export const LLM = createElementDefinition({
 
     // For testing purposes, we'll check if we're in a test environment
     // by checking if the model is "test-model"
-    if (ctx.props.model === "test-model") {
+    if (ctx.props.model === "test-model" && process.env.NODE_ENV === "test") {
       const result = new StepValue({
         type: "text",
         text: "Mock LLM response",

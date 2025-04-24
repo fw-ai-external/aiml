@@ -56,17 +56,17 @@ import TestingTools from "./testingtools.js"
   </datamodel>
 
   <state id="fetchCode">
-    <script>
+    <script>{`
       // Prepare for fetching code
       ctx.log("Preparing to fetch code from repository");
-    </script>
+    `}</script>
       
     <toolcall name="gitFetch">
       <param name="repoUrl" value={(ctx) => ctx.datamodel.repositoryUrl} />
       <param name="prId" value={(ctx) => ctx.datamodel.pullRequestId} />
     </toolcall>
       
-    <script>
+    <script>{`
       try {
         const result = ctx.lastElement.output;
         ctx.datamodel.codeFiles = result.files;
@@ -76,14 +76,14 @@ import TestingTools from "./testingtools.js"
         ctx.datamodel.codeFiles = {};
         ctx.datamodel.diffStats = { additions: 0, deletions: 0, filesChanged: 0, error: true };
       }
-    </script>
+    `}</script>
       
     <log value={(ctx) => 'Fetched ' + ctx.datamodel.diffStats.filesChanged + ' files with ' + ctx.datamodel.diffStats.additions + ' additions and ' + ctx.datamodel.diffStats.deletions + ' deletions'} />
     <transition target="securityAnalysis" />
   </state>
 
   <state id="securityAnalysis">
-      <script>
+      <script>{`
         // Load security rules
         const securityRules = JSON.parse(SecurityRules);
         const filesToAnalyze = Object.entries(ctx.datamodel.codeFiles);
@@ -129,13 +129,13 @@ import TestingTools from "./testingtools.js"
             }
           }
         }
-      </script>
+      `}</script>
       <log value={(ctx) => 'Security analysis complete. Found ' + ctx.datamodel.securityFindings.length + ' potential issues'} />
       <transition target="codeQualityAnalysis" />
   </state>
 
   <state id="codeQualityAnalysis">
-      <script>
+      <script>{`
         // Load code quality rules
         const qualityRules = JSON.parse(CodeQualityRules);
         const filesToAnalyze = Object.entries(ctx.datamodel.codeFiles);
@@ -177,13 +177,13 @@ import TestingTools from "./testingtools.js"
             }
           }
         }
-      </script>
+      `}</script>
       <log value={(ctx) => 'Code quality analysis complete. Found ' + ctx.datamodel.qualityIssues.length + ' issues'} />
       <transition target="performanceAnalysis" />
   </state>
 
   <state id="performanceAnalysis">
-      <script>
+      <script>{`
         // Functions to analyze performance
         function analyzeComplexity(code) {
           // Simple complexity estimation by counting nested blocks and loops
@@ -235,13 +235,13 @@ import TestingTools from "./testingtools.js"
             });
           }
         }
-      </script>
+      `}</script>
       <log value={(ctx) => 'Performance analysis complete. Found ' + ctx.datamodel.performanceIssues.length + ' issues'} />
       <transition target="testCoverageAnalysis" />
   </state>
 
   <state id="testCoverageAnalysis">
-    <script>
+    <script>{`
       // Mock test coverage analysis
       try {
         const testingToolCode = TestingTools;
@@ -262,7 +262,7 @@ import TestingTools from "./testingtools.js"
           ]
         };
       }
-    </script>
+    `}</script>
     <log value={(ctx) => 'Test coverage analysis complete. Overall coverage: ' + (ctx.datamodel.testCoverage.overall || 0) + '%'} />
     <transition target="synthesizeFindings" />
   </state>
@@ -356,7 +356,7 @@ import TestingTools from "./testingtools.js"
           ]
         </prompt>
       </llm>
-      <script>
+      <script>{`
         try {
           ctx.datamodel.recommendations = JSON.parse(ctx.lastElement.output);
           
@@ -379,18 +379,18 @@ import TestingTools from "./testingtools.js"
             }
           ];
         }
-      </script>
+      `}</script>
       <log value={(ctx) => 'Generated ' + ctx.datamodel.recommendations.length + ' recommendations'} />
       <transition target="generateFileComments" />
   </state>
 
   <state id="generateFileComments">
       <forEach item="file" array={ctx => ctx.datamodel.filesToReview}>
-        <script>
+        <script>{`
           const fileContent = ctx.datamodel.codeContent[file] || "File content not available";
           const fileChanges = ctx.datamodel.diffContent[file] || "Diff not available";
           ctx.datamodel.currentFile = file;
-        </script>
+        `}</script>
         
         <llm model="gpt-4o" temperature={0.3}>
           <prompt>
@@ -399,14 +399,14 @@ import TestingTools from "./testingtools.js"
             File: {ctx.datamodel.currentFile}
             
             Original changes:
-            ```diff
+            \`\`\`diff
             {ctx.datamodel.diffContent[ctx.datamodel.currentFile]}
-            ```
+            \`\`\`
             
             Full file content:
-            ```
+            \`\`\`
             {ctx.datamodel.codeContent[ctx.datamodel.currentFile]}
-            ```
+            \`\`\`
             
             Please provide review comments for this file considering:
             
@@ -432,7 +432,7 @@ import TestingTools from "./testingtools.js"
           </prompt>
         </llm>
         
-        <script>
+        <script>{`
           try {
             const reviewResult = JSON.parse(ctx.lastElement.output);
             ctx.datamodel.reviewComments[ctx.datamodel.currentFile] = reviewResult;
@@ -443,11 +443,11 @@ import TestingTools from "./testingtools.js"
               comments: []
             };
           }
-        </script>
+        `}</script>
       </forEach>
       <log value={(ctx) => 'Generated comments for ' + Object.keys(ctx.datamodel.reviewComments).length + ' files'} />
       
-      <script>
+      <script>{`
         // Prepare the final code review object that will be automatically sent when reaching the final state
         ctx.datamodel.finalReview = {
           "summary": ctx.datamodel.reviewSummary,
@@ -463,7 +463,7 @@ import TestingTools from "./testingtools.js"
             "testCoverage": ctx.datamodel.testCoverage.overall
           }
         };
-      </script>
+      `}</script>
       
       <transition target="complete" />
   </state>

@@ -75,8 +75,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
           likelihood: { type: "string" },
           explanation: { type: "string" },
           keySymptoms: { type: "array", items: { type: "string" } }
-        },
-        required: ["diagnosis", "likelihood", "explanation", "keySymptoms"]
+        }
     }} />
     <data id="diagnosticReasoning" type="string" value={""} />
     <data id="recommendations" type="array" value={[]} schema={{
@@ -92,7 +91,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
   </datamodel>
 
   <state id="emergencyCheck">
-      <script>
+      <script>{`
         // Check if any symptoms match emergency symptoms
         const emergencySymptoms = JSON.parse(EmergencySymptoms);
         let isEmergency = false;
@@ -133,7 +132,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
           isEmergency,
           emergencyReason
         };
-      </script>
+      `}</script>
       
       <assign location="isEmergency" value={(ctx) => ctx.lastElement.output.isEmergency} />
       <assign location="emergencyReason" value={(ctx) => ctx.lastElement.output.emergencyReason} />
@@ -160,7 +159,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
   </final>
 
   <state id="symptomAnalysis">
-      <script>
+      <script>{`
         // Group symptoms by body system
         const bodySystems = {
           respiratory: ["cough", "shortness of breath", "wheezing", "sore throat", "congestion"],
@@ -197,7 +196,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
         return {
           symptomGroups
         };
-      </script>
+      `}</script>
       
       <assign location="symptomGroups" value={(ctx) => ctx.lastElement.output.symptomGroups} />
       
@@ -237,7 +236,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
           possibilities that should not be missed. Consider age, gender, and duration in your assessment.
         </prompt>
       </llm>
-      <script>
+      <script>{`
         let potentialDiagnoses;
         try {
           potentialDiagnoses = JSON.parse(ctx.lastElement.output);
@@ -268,7 +267,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
         return {
           potentialDiagnoses
         };
-      </script>
+      `}</script>
       
       <assign location="potentialDiagnoses" value={(ctx) => ctx.lastElement.output.potentialDiagnoses} />
       
@@ -340,7 +339,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
           - "rationale": Brief explanation of why this recommendation is important
         </prompt>
       </llm>
-      <script>
+      <script>{`
         let recommendations;
         try {
           recommendations = JSON.parse(ctx.lastElement.output);
@@ -371,7 +370,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
           recommendations,
           finalDiagnosis
         };
-      </script>
+      `}</script>
       
       <assign location="recommendations" value={(ctx) => ctx.lastElement.output.recommendations} />
       <assign location="finalDiagnosis" value={(ctx) => ctx.lastElement.output.finalDiagnosis} />

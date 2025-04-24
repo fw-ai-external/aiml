@@ -42,7 +42,7 @@ It generates detailed investment portfolio recommendations based on investor pro
     </prompt>
      
   </llm>
-  <script>
+  <script>{`
     try {
       ctx.datamodel.portfolioRecommendation = JSON.parse(ctx.lastElement.output);
     } catch(e) {
@@ -52,7 +52,7 @@ It generates detailed investment portfolio recommendations based on investor pro
         "message": "Failed to generate structured recommendation. Please try again."
       };
     }
-  </script>
+  `}</script>
   <log value="Portfolio recommendation completed" />
   <transition target="prepareRecommendation" />
 </state> 

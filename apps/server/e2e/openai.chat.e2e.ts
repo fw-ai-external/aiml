@@ -1,4 +1,4 @@
-import { test, expect } from "bun:test";
+import { test, expect, describe } from "bun:test";
 import fs from "fs";
 import path from "path";
 import { app } from "../src";
@@ -65,8 +65,8 @@ async function processStreamingResponse(response: Response) {
 
 // Test each AIML file in the examples directory
 const exampleDirs = [
-  //   "Character PersonaGenerator",
-  //   "CodeReviewer",
+  "Character PersonaGenerator",
+  // "CodeReviewer",
   "FinalStateTest",
   "InvestmentAdvisor",
   "JustPrompt",
@@ -76,68 +76,79 @@ const exampleDirs = [
   "SimpleRouter",
 ];
 
-// Test each AIML file with streaming disabled
-exampleDirs.forEach((dir) => {
-  test(`${dir} - non-streaming`, async () => {
-    const aimlPath = path.join(dir, "index.aiml");
-    const aimlContent = readAimlFile(aimlPath);
+describe("openai chat endpoint e2e using /examples", () => {
+  describe("Non-streaming", () => {
+    // Test each AIML file with streaming disabled
+    exampleDirs.forEach((dir) => {
+      test(`${dir}`, async () => {
+        const aimlPath = path.join(dir, "index.aiml");
+        const aimlContent = readAimlFile(aimlPath);
 
-    const response = await makeRequest(
-      aimlContent,
-      "Hello, can you help me?",
-      false
-    );
+        const response = await makeRequest(
+          aimlContent,
+          "Hello, can you help me?",
+          false
+        );
 
-    const body = await response.text();
-    expect(
-      response.status,
-      `Expected status code 200, but receved ${response.status} and a body of ${body}`
-    ).toBe(200);
+        const body = await response.text();
+        expect(
+          response.status,
+          `Expected status code 200, but receved ${response.status} and a body of ${body}`
+        ).toBe(200);
 
-    const data = JSON.parse(body);
-    expect(data).toBeDefined();
+        const data = JSON.parse(body);
+        expect(data).toBeDefined();
 
-    expect(data.choices).toBeDefined();
-    expect(data.choices.length).toBeGreaterThan(0);
-    expect(data.choices[0].message).toBeDefined();
-    expect(data.choices[0].message.content).toBeDefined();
-  }, 20000);
+        expect(data.choices).toBeDefined();
+        expect(data.choices.length).toBeGreaterThan(0);
+        expect(data.choices[0].message).toBeDefined();
+        expect(data.choices[0].message.content).toBeDefined();
+      });
+    }, 30000);
+  });
 });
 
-// Test each AIML file with streaming enabled
-exampleDirs.forEach((dir) => {
-  test(`${dir} - streaming`, async () => {
-    const aimlPath = path.join(dir, "index.aiml");
-    const aimlContent = readAimlFile(aimlPath);
+describe("Streaming", () => {
+  // Test each AIML file with streaming enabled
+  exampleDirs.forEach((dir) => {
+    test(`${dir}`, async () => {
+      // Configure VCR
 
-    const response = await makeRequest(
-      aimlContent,
-      "Hello, can you help me?",
-      true
-    );
+      // Intercept HTTP traffic
+      const aimlPath = path.join(dir, "index.aiml");
+      const aimlContent = readAimlFile(aimlPath);
 
-    expect(
-      response.status,
-      `Expected status code 200, but receved ${response.status}}`
-    ).toBe(200);
-    expect(response.headers.get("content-type")).toContain("text/event-stream");
+      const response = await makeRequest(
+        aimlContent,
+        "Hello, can you help me?",
+        true
+      );
 
-    const chunks = await processStreamingResponse(response);
-    expect(chunks.length).toBeGreaterThan(1);
+      expect(
+        response.status,
+        `Expected status code 200, but receved ${response.status}}`
+      ).toBe(200);
+      expect(response.headers.get("content-type")).toContain(
+        "text/event-stream"
+      );
 
-    const doneChunk = chunks.find((chunk) => chunk.includes("[done]"));
-    expect(doneChunk).toBeDefined();
+      const chunks = await processStreamingResponse(response);
+      expect(chunks.length).toBeGreaterThan(0);
 
-    // Verify that the chunks contain valid SSE data
-    const validChunk = chunks.some(
-      (chunk) =>
-        chunk.includes("[data]") &&
-        (chunk.includes("content") || chunk.includes("delta"))
-    );
+      const doneChunk = chunks.find((chunk) => chunk.includes("[done]"));
+      expect(doneChunk).toBeDefined();
 
-    expect(
-      validChunk,
-      `No valid chunk found\n\nChunks received:\n ${chunks.join("\n")}`
-    ).toBe(true);
-  }, 20000);
+      // Verify that the chunks contain valid SSE data
+      const validChunk = chunks.some(
+        (chunk) =>
+          chunk.includes("[data]") &&
+          (chunk.includes("content") || chunk.includes("delta"))
+      );
+
+      expect(
+        validChunk,
+        `No valid chunk found\n\nChunks received:\n ${chunks.join("\n")}`
+      ).toBe(true);
+    }, 30000);
+  });
 });

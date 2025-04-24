@@ -9,7 +9,7 @@ It is the final state that assembles and returns the complete investment recomme
 
 <>
     <state id="prepareRecommendation">
-    <script>
+    <script>{`
         // Prepare the final investment recommendation that will be automatically sent when reaching the final state
         ctx.datamodel.finalRecommendation = {
         "profile": ctx.datamodel.profile,
@@ -17,7 +17,7 @@ It is the final state that assembles and returns the complete investment recomme
         "assetAllocation": ctx.datamodel.assetAllocation,
         "recommendation": ctx.datamodel.portfolioRecommendation
         };
-    </script>
+    `}</script>
     <transition target="presentRecommendation" />
     </state>
 

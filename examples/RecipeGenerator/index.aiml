@@ -88,7 +88,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
     </datamodel>
 
     <state id="filterIngredients" description="Filter ingredients based on dietary restrictions">
-        <script>
+        <script>{`
         // Function to check if an ingredient matches restrictions
         function matchesRestriction(ingredient, restriction) {
             // In a real system, this would check against a database
@@ -118,7 +118,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             );
             }
         }
-        </script>
+        `}</script>
         <log value={(ctx) => 'Filtered ingredients: ' + ctx.datamodel.filteredIngredients.join(', ')} />
     </state>
 
@@ -194,7 +194,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
         </prompt>
         
         </llm>
-        <script>
+        <script>{`
         try {
             ctx.datamodel.recipeIngredients = JSON.parse(ctx.lastElement.output);
             // Validate the structure
@@ -210,7 +210,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             preparation: ""
             }));
         }
-        </script>
+        `}</script>
         <log value={(ctx) => 'Determined ' + ctx.datamodel.recipeIngredients.length + ' ingredients with quantities'} />
     </state>
 
@@ -239,7 +239,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
         </prompt>
 
         </llm>
-        <script>
+        <script>{`
         try {
             ctx.datamodel.prepSteps = JSON.parse(ctx.lastElement.output);
             // Validate the structure
@@ -252,7 +252,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             { step: "Prepare all ingredients as listed", time: 10 }
             ];
         }
-        </script>
+        `}</script>
         <log value={(ctx) => 'Created ' + ctx.datamodel.prepSteps.length + ' preparation steps'} />
     </state>
 
@@ -280,7 +280,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
         </prompt>
 
         </llm>
-        <script>
+        <script>{`
         try {
             ctx.datamodel.cookingSteps = JSON.parse(ctx.lastElement.output);
         } catch(e) {
@@ -289,11 +289,11 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             { step: "Cook ingredients to proper temperatures for food safety", time: 10 }
             ];
         }
-        </script>
+        `}</script>
     </state>
 
     <state id="calculateNutritionalInfo" description="Calculate approximate nutritional information">
-        <script>
+        <script>{`
         // In a real system, this would look up values in a database
         // For demo purposes, we'll simulate nutrition calculation
         
@@ -362,12 +362,12 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             note: "Nutritional information could not be calculated accurately."
             };
         }
-        </script>
+        `}</script>
         <log value={(ctx) => 'Calculated nutritional information'} />
     </state>
 
     <state id="calculateTimes" description="Calculate preparation and cooking times">
-        <script>
+        <script>{`
         // Calculate prep time
         const prepTime = ctx.datamodel.prepSteps.reduce((total, step) => total + (step.time || 0), 0);
         
@@ -382,7 +382,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             cooking: cookTime,
             total: totalTimeCalc
         };
-        </script>
+        `}</script>
         <log value={(ctx) => 'Calculated times: Prep=' + ctx.datamodel.totalTime.prep + 'm, Cooking=' + ctx.datamodel.totalTime.cooking + 'm, Total=' + ctx.datamodel.totalTime.total + 'm'} />
     </state>
 
@@ -412,7 +412,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
         </prompt>
 
         </llm>
-        <script>
+        <script>{`
             let tips = [];
             let variations = [];
             
@@ -450,7 +450,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
                 variations,
                 finalRecipe
             };
-        </script>
+        `}</script>
         
         <assign location="tips" value={(ctx) => ctx.scriptResults.tips} />
         <assign location="variations" value={(ctx) => ctx.scriptResults.variations} />

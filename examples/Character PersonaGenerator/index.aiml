@@ -99,7 +99,7 @@ or developers can immediately use in their creative projects.
     </state>
 
     <state id="definePersonality" description="Define the character's personality traits">
-        <script>
+        <script>{`
         // Load appropriate personality traits based on archetype
         const traitsData = JSON.parse(PersonalityTraits);
         let archetypeTraits = traitsData[ctx.datamodel.archetype] || traitsData.default;
@@ -150,12 +150,13 @@ or developers can immediately use in their creative projects.
         }
         
         ctx.datamodel.personalityTraits = selectedTraits;
-        </script>
+
+        `}</script>
         <log value={(ctx) => 'Defined ' + ctx.datamodel.personalityTraits.length + ' personality traits'} />
     </state>
 
     <state id="createBackstory" description="Create a backstory that explains the character's development">
-        <script>
+        <script>{`
         // Get backstory template based on genre and archetype
         const backstoryTemplates = JSON.parse(BackstoryTemplates);
         
@@ -182,7 +183,7 @@ or developers can immediately use in their creative projects.
         // Prepare context for backstory generation
         ctx.datamodel.backstoryTemplate = template ? template.template : "A character with an intriguing past";
         ctx.datamodel.backstoryElements = template ? template.elements : ["childhood", "defining moment", "motivation"];
-        </script>
+        `}</script>
     
         <llm model="gpt-4o" temperature={0.6}>
         <prompt>
@@ -260,7 +261,7 @@ or developers can immediately use in their creative projects.
         </prompt>
 
         </llm>
-        <script>
+        <script>{`
         try {
             const parsedTraits = JSON.parse(ctx.lastElement.output);
             ctx.datamodel.motivations = parsedTraits.motivations || [];
@@ -273,7 +274,7 @@ or developers can immediately use in their creative projects.
             ctx.datamodel.flaws = ["Reluctant to trust others", "Impulsive under pressure"];
             ctx.datamodel.strengths = ["Resourceful", "Determined"];
         }
-        </script>
+        `}</script>
         <log value={(ctx) => 'Defined ' + ctx.datamodel.motivations.length + ' motivations, ' + 
                     ctx.datamodel.flaws.length + ' flaws, and ' + 
                     ctx.datamodel.strengths.length + ' strengths'} />
@@ -302,7 +303,7 @@ or developers can immediately use in their creative projects.
         </prompt>
 
         </llm>
-        <script>
+        <script>{`
         try {
             ctx.datamodel.relationships = JSON.parse(ctx.lastElement.output);
             if (!Array.isArray(ctx.datamodel.relationships)) {
@@ -326,7 +327,7 @@ or developers can immediately use in their creative projects.
             }
             ];
         }
-        </script>
+        `}</script>
         <log value={(ctx) => 'Created ' + ctx.datamodel.relationships.length + ' character relationships'} />
     </state>
 
@@ -384,7 +385,7 @@ or developers can immediately use in their creative projects.
             Format as a JSON array of strings.
         </prompt>
         </llm>
-        <script>
+        <script>{`
             let plotHooks = [];
             try {
                 plotHooks = JSON.parse(ctx.lastElement.output);
@@ -420,7 +421,7 @@ or developers can immediately use in their creative projects.
                 plotHooks,
                 finalCharacterPersona
             };
-        </script>
+        `}</script>
         
         <assign location="plotHooks" value={(ctx) => ctx.lastElement.output.plotHooks} />
         <assign location="finalCharacterPersona" value={(ctx) => ctx.lastElement.output.finalCharacterPersona} />
