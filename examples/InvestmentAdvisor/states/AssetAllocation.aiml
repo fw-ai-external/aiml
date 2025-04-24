@@ -8,7 +8,7 @@ It calculates appropriate asset allocation percentages based on the investor's r
 */}
 
 <state id="assetAllocation">
-<script>
+<script>{`
     // Base allocations depending on risk tolerance
     if (ctx.datamodel.riskTolerance === "low") {
     ctx.datamodel.assetAllocation.stocks = 20;
@@ -48,7 +48,7 @@ It calculates appropriate asset allocation percentages based on the investor's r
     Object.keys(ctx.datamodel.assetAllocation).forEach(key => {
     ctx.datamodel.assetAllocation[key] = Math.round((ctx.datamodel.assetAllocation[key] / sum) * 100);
     });
-</script>
+`}</script>
 <log value={(ctx) => 'Asset allocation completed: ' + JSON.stringify(ctx.datamodel.assetAllocation)} />
   <transition target="portfolioRecommendation" />
 </state> 

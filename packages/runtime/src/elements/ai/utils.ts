@@ -3,6 +3,9 @@ import { createOpenAI } from "@ai-sdk/openai";
 import type { LanguageModelV1 } from "@ai-sdk/provider";
 import type { Secrets } from "@aiml/shared";
 import OpenAI from "openai";
+import { fsCacheMiddleware } from "./fsCache";
+import { wrapLanguageModel } from "ai";
+
 export function getProvider(
   model: string = "accounts/fireworks/models/llama-v3p1-8b-instruct",
   secrets: Secrets,
@@ -130,5 +133,14 @@ export function getProviderWithClient(
   }
 
   // Type assertion to handle incompatible types between different versions of @ai-sdk/provider
-  return { provider: provider(model) as LanguageModelV1, client };
+  return {
+    provider:
+      process.env.NODE_ENV === "test"
+        ? wrapLanguageModel({
+            model: provider(model) as LanguageModelV1,
+            middleware: fsCacheMiddleware as any,
+          })
+        : (provider(model) as LanguageModelV1),
+    client,
+  };
 }
