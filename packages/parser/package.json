@@ -22,7 +22,6 @@
   },
   "dependencies": {
     "@aiml/shared": "workspace:*",
-    "unified-aiml": "workspace:*",
     "@mdx-js/typescript-plugin": "^0.0.8",
     "acorn": "^8.14.1",
     "ajv": "^8.17.1",
@@ -31,8 +30,10 @@
     "js-sourcemap": "^0.0.6",
     "magic-string": "^0.30.17",
     "mdast": "^3.0.0",
+    "ohm-js": "^17.1.0",
     "remark-mdx-frontmatter": "^5.0.0",
     "ts-morph": "^21.0.1",
+    "unified-aiml": "workspace:*",
     "uuid": "^11.1.0",
     "xml-formatter": "^3.6.2",
     "xml-js": "^1.6.11",
