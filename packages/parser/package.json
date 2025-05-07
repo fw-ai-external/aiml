@@ -34,7 +34,6 @@
     "ohm-js": "^17.1.0",
     "remark-mdx-frontmatter": "^5.0.0",
     "ts-morph": "^21.0.1",
-    "unified-aiml": "workspace:*",
     "uuid": "^11.1.0",
     "xml-formatter": "^3.6.2",
     "xml-js": "^1.6.11",

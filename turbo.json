@@ -17,30 +17,6 @@
       "dependsOn": ["^@aiml/shared#build", "^unified-aiml#build"],
       "outputs": ["dist/**"]
     },
-    "@aiml/unified-aiml#build": {
-      "dependsOn": [
-        "^micromark-extension-aiml-jsx#build",
-        "^mdast-util-aiml#build",
-        "^mdast-util-aiml-jsx#build",
-        "^unified-aiml#build",
-        "^micromark-extension-aimljs#build"
-      ],
-      "outputs": ["dist/**", "lib/**", "index.js", "index.d.ts"]
-    },
-    "mdast-util-aiml-jsx#build": {
-      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
-      "outputs": ["lib/**", "index.js", "index.d.ts"]
-    },
-    "micromark-extension-aimljs#build": {
-      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
-      "outputs": ["lib/**", "index.js", "index.d.ts"]
-    },
-    "micromark-extension-aiml-jsx#build": {
-      "outputs": ["lib/**", "index.js", "index.d.ts"]
-    },
-    "mdast-util-aiml#build": {
-      "outputs": ["lib/**", "index.js", "index.d.ts"]
-    },
 
     "landing-page#dev": {
       "outputs": [".source/**", ".next/**"]
@@ -49,13 +25,6 @@
       "outputs": [".next/**"]
     },
     "aiml-ui#build": {
-      "dependsOn": [
-        "^unified-aiml#build",
-        "^micromark-extension-aiml-jsx#build",
-        "^micromark-extension-aimljs#build",
-        "^mdast-util-aiml#build",
-        "^mdast-util-aiml-jsx#build"
-      ],
       "outputs": [".next/**"]
     },
     "@aiml/language-server#typecheck": {
@@ -86,16 +55,7 @@
       "dependsOn": ["^@aiml/shared#build", "^@aiml/parser#build", "^@aiml/runtime#build"],
       "outputs": ["dist/**"]
     },
-    "@aiml/unified-aiml#typecheck": {
-      "dependsOn": [
-        "^micromark-extension-aiml-jsx#build",
-        "^micromark-extension-aimljs#build",
-        "^mdast-util-aiml#build",
-        "^mdast-util-aiml-jsx#build",
-        "^unified-aiml#build"
-      ],
-      "outputs": ["dist/**"]
-    },
+
     "landing-page#build": {
       "outputs": [".source/**", ".next/**"]
     },
@@ -113,21 +73,12 @@
       "persistent": true
     },
     "@aiml/parser#dev": {
-      "dependsOn": ["^unified-aiml#build"],
       "persistent": true,
       "outputs": ["dist/**"]
     },
     "@aiml/parser#test": {
-      "dependsOn": ["^@aiml/shared#build", "^unified-aiml#build"],
+      "dependsOn": ["^@aiml/shared#build"],
       "persistent": true,
-      "outputs": ["dist/**"]
-    },
-    "micromark-extension-aiml-js#test": {
-      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
-      "outputs": ["dist/**"]
-    },
-    "mdast-util-aiml-jsx#test": {
-      "dependsOn": ["^micromark-extension-aiml-jsx#build"],
       "outputs": ["dist/**"]
     },
     "@aiml/aiml-ui#dev": {
@@ -146,13 +97,6 @@
     },
 
     "test": {
-      "dependsOn": [
-        "micromark-extension-aiml-jsx#build",
-        "micromark-extension-aimljs#build",
-        "mdast-util-aiml#build",
-        "mdast-util-aiml-jsx#build",
-        "unified-aiml#build"
-      ],
       "cache": false
     },
     "typecheck": {

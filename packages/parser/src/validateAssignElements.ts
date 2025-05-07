@@ -1,6 +1,6 @@
 import { type Diagnostic, DiagnosticSeverity } from "@aiml/shared";
 import { ValueType } from "@aiml/shared";
-import { type AIMLASTNode } from "./ast/aiml/aiml.js";
+import type { AIMLASTNode } from "./ast/aiml/aiml.js";
 
 interface FieldDefinition {
   type: ValueType | string;
