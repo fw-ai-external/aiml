@@ -2,42 +2,48 @@
 // https://marketplace.cursorapi.com/items?itemName=fantasy.vscode-ohm
 AIML {
   Document    = Frontmatter? Node*
-  Node        = Element | Comment | Expression | Text
+  Node        = Import | Element | Comment | Expression | Text
 
-  SafeAnyChar = ~("<" &TagName | "</" &TagName | "<" &ContentTagName | "</" &ContentTagName | "<!--" | "{" | "---") any
+  Frontmatter = "---" FrontmatterContent "---"
+  FrontmatterContent = (~"---" any)*
+
+
+  Import       = ImportES
+  ImportES     = "import" importVariable "from" ("'" ModuleName "'" | "\"" ModuleName "\"") ";"?
+  // ImportPython = "from" ModuleName "import" importVariable
+  importVariable = letter (letter | digit | "_")*
+  ModuleName   = (letter | digit | "_" | "." | "/")+
+
   Text        = SafeAnyChar+  -- text
-
-  ContentAnyChar = ~("</" &ContentTagName) any
   TextContent = ContentAnyChar+ -- textContent
 
   Expression  = ~"/*" "{" ExprContent "}"
   ExprContent = (~"}" (Expression | QuotedString | any))*
-  QuotedString = "'" (~"'" any)* "'"
-                | "\"" (~"\"" any)* "\""
+
   Comment     = "<!--" (~"-->" any)* "-->" -- htmlComment
               | "{/*" (~"*/" any)* "*/}" -- jsxComment
-
-
 
   Element     = SelfClosingElement     -- selfClosingElement
               | NormalElement          -- normalElement
               | ContentElement  -- contentElement
               | FragmentElement -- fragmentElement
-
+  TagName     = TAG_NAMES // replace this with the list of element names via .replaceAll() after importing the grammar
+  Prop        = (letter | digit | "_")* "=" (String | Expression)
   SelfClosingElement = "<" ~ContentTagName &TagName TagName Prop* "/>"
   NormalElement      = "<" ~ContentTagName &TagName TagName Prop* ">" Node* "</" TagName ">"
   ContentElement     = "<" &ContentTagName ContentTagName Prop* ">" (~ClosingContentTag TextContent)* ClosingContentTag
   FragmentElement    = "<>" (~("</>") any)* "</>"
 
-  Prop        = (letter | digit | "_")* "=" (String | Expression)
 
-  TagName     = TAG_NAMES // replace this with the list of element names via .replaceAll() after importing the grammar
+  SafeAnyChar = ~( "<" &TagName | "</" &TagName | "<" &ContentTagName | "</" &ContentTagName | "<!--" | "{/*" | "{" | "---") any
+  ContentAnyChar = ~("</" &ContentTagName) any
   ContentTagName     = CONTENT_TAG_NAMES
   ClosingContentTag = "</" &ContentTagName ContentTagName ">"
 
-  Frontmatter = "---" FrontmatterContent "---"
-  FrontmatterContent = (~"---" any)*
 
+
+  QuotedString = "'" (~"'" any)* "'"
+                | "\"" (~"\"" any)* "\""
   String      = "'" (~"'" any)* "'" // single quoted string
               | "\"" (~"\"" any)* "\"" // double quoted string
 }

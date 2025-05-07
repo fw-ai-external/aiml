@@ -506,6 +506,126 @@ tildeNull: ~
   });
 });
 
+describe("Imports", () => {
+  test("parsing ES import with single quotes", () => {
+    const source = `import foo from 'bar';
+    import foo from 'bar';
+
+    hi
+    `;
+    const sourceLines = source.split("\n");
+    const result = parseAIML(source);
+
+    expect(result).toBeDefined();
+
+    expect(result).toHaveLength(3);
+    expect(result[0].type).toBe("Import");
+    expect(result[0].children?.[0]?.type).toBe("ImportVariable");
+    expect(result[0].children?.[0]?.content).toBe("foo"); // variable imported
+    expect(result[0].children?.[1]?.type).toBe("ModuleName");
+    expect(result[0].children?.[1]?.content).toBe("bar"); // module name
+    // Check position info
+    expect(result[0].lineStart).toBe(1);
+    expect(result[0].columnStart).toBe(1);
+    expect(result[0].lineEnd).toBe(1);
+    // expect(result[0].columnEnd).toBe(5);
+  });
+
+  test("parsing ES import with double quotes", () => {
+    const source = 'import foo from "bar"';
+    const result = parseAIML(source);
+
+    expect(result).toBeDefined();
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("Import");
+    expect(result[0].children?.[0]?.type).toBe("ImportVariable");
+    expect(result[0].children?.[0]?.content).toBe("foo"); // variable imported
+    expect(result[0].children?.[1]?.type).toBe("ModuleName");
+    expect(result[0].children?.[1]?.content).toBe("bar"); // module name
+    // Check position info
+    expect(result[0].lineStart).toBe(1);
+    expect(result[0].columnStart).toBe(1);
+    expect(result[0].lineEnd).toBe(1);
+    // expect(result[0].columnEnd).toBe(source.length + 1);
+  });
+
+  test.skip("parsing Python import", () => {
+    const source = "from foo import bar";
+    const result = parseAIML(source);
+
+    expect(result).toBeDefined();
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("Import");
+    expect(result[0].children?.[0]?.type).toBe("ImportVariable");
+    expect(result[0].children?.[0]?.content).toBe("bar"); // variable imported
+    expect(result[0].children?.[1]?.type).toBe("ModuleName");
+    expect(result[0].children?.[1]?.content).toBe("foo"); // module name
+    // Check position info
+    expect(result[0].lineStart).toBe(1);
+    expect(result[0].columnStart).toBe(1);
+    expect(result[0].lineEnd).toBe(1);
+    expect(result[0].columnEnd).toBe(source.length + 1);
+  });
+
+  test.skip("parsing multiple import statements", () => {
+    const source = `import first from 'module_one'
+from module_two import second
+import third from "module_three"`;
+    const result = parseAIML(source);
+
+    expect(result).toBeDefined();
+    expect(result).toHaveLength(3);
+
+    expect(result[0].type).toBe("Import");
+    expect(result[0].name).toBe("first");
+    expect(result[0].content).toBe("module_one");
+    expect(result[0].lineStart).toBe(1);
+    expect(result[0].columnStart).toBe(1);
+
+    expect(result[1].type).toBe("Import");
+    expect(result[1].name).toBe("second");
+    expect(result[1].content).toBe("module_two");
+    expect(result[1].lineStart).toBe(2);
+    expect(result[1].columnStart).toBe(1);
+
+    expect(result[2].type).toBe("Import");
+    expect(result[2].name).toBe("third");
+    expect(result[2].content).toBe("module_three");
+    expect(result[2].lineStart).toBe(3);
+    expect(result[2].columnStart).toBe(1);
+  });
+
+  test("parsing imports followed by other content", () => {
+    const source = `import foo from 'bar'
+Hello World
+<ai model="test">Test</ai>`;
+    const result = parseAIML(source);
+
+    expect(result).toBeDefined();
+    expect(result).toHaveLength(3); // Import, Text, AIMLElement
+    expect(result[0].type).toBe("Import");
+    expect(result[0].children?.[0]?.type).toBe("ImportVariable");
+    expect(result[0].children?.[0]?.content).toBe("foo");
+    expect(result[0].children?.[1]?.type).toBe("ModuleName");
+    expect(result[0].children?.[1]?.content).toBe("bar");
+    expect(result[0].lineStart).toBe(1);
+
+    expect(result[1].type).toBe("Text");
+    expect(
+      typeof result[1].content === "string"
+        ? result[1].content?.trim()
+        : result[1].content
+    ).toBe("Hello World");
+    // expect(result[1].lineStart).toBe(2);
+
+    expect(result[2].type).toBe("AIMLElement");
+    expect(result[2].attributes?.[0]?.content).toBe("ai"); // TagName
+    expect(result[2].attributes?.[1]?.name).toBe("model");
+    expect(result[2].attributes?.[1]?.content).toBe("test");
+    // expect(result[2].lineStart).toBe(3);
+  });
+});
+
 describe("Comments", () => {
   test("parsing HTML-style comments", () => {
     const source = "Text before <!-- This is a comment --> text after";

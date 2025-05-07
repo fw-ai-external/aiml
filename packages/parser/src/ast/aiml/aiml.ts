@@ -46,6 +46,29 @@ const AIMLNode = (
   };
 };
 
+const ImportNode = (
+  importVariable: string,
+  moduleName: string,
+  position: Position
+): AIMLASTNode => {
+  return {
+    type: "Import",
+    children: [
+      {
+        type: "ImportVariable",
+        content: importVariable,
+        ...position,
+      },
+      {
+        type: "ModuleName",
+        content: moduleName,
+        ...position,
+      },
+    ],
+    ...position,
+  };
+};
+
 const PropNode = (
   name: string,
   value: string | AIMLASTNode,
@@ -177,10 +200,10 @@ export function parseAIML(sourceString: string): AIMLASTNode[] {
       _iter(this: ohm.Node, ...children) {
         return children.map((c) => c.blocks());
       },
-      Document(this: ohm.Node, a, b) {
+      Document(this: ohm.Node, frontmatter, nodes) {
         return [
-          ...a.children.map((c) => c.blocks()),
-          ...b.children.map((c) => c.blocks()),
+          ...frontmatter.children.map((c) => c.blocks()),
+          ...nodes.children.map((c) => c.blocks()),
         ];
       },
 
@@ -188,6 +211,25 @@ export function parseAIML(sourceString: string): AIMLASTNode[] {
         const sourcePos = getNodePosition(this);
         const yamlContent = content.sourceString;
         return FrontmatterNode(yamlContent, sourcePos);
+      },
+
+      ImportES(
+        this: ohm.Node,
+        importKeyword,
+        importVariable,
+        fromKeyword,
+        openQuote,
+        moduleName,
+        closeQuote,
+        semicolon
+      ) {
+        const sourcePos = getNodePosition(this);
+        console.log(sourcePos);
+        return ImportNode(
+          importVariable.sourceString,
+          moduleName.sourceString,
+          sourcePos
+        );
       },
 
       Comment_htmlComment(this: ohm.Node, open, content, close) {
