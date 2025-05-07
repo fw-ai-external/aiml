@@ -3,19 +3,12 @@ import {
   DiagnosticSeverity,
   type Diagnostic,
 } from "@aiml/shared";
-import remarkGfm from "remark-gfm";
-import unifiedAiml from "unified-aiml";
-import remarkMdxFrontmatter from "remark-mdx-frontmatter";
-import remarkParse from "remark-parse";
-import { unified } from "unified";
-import { VFile } from "vfile";
 import type { Point } from "unist";
-
 import type { MDXToAIMLOptions } from "../types.js";
 import { ObjectSet } from "@aiml/shared";
-import type { Root } from "mdast";
 import { extractErrorLocation } from "../utils/helpers.js";
-import { getLineInfo } from "acorn";
+import type { AIMLASTNode } from "../ast/aiml/aiml.js";
+import { parseAIML } from "../ast/aiml/aiml.js";
 
 /**
  * Main parsing function with iterative error correction
@@ -24,23 +17,14 @@ export function safeParse(
   content: string,
   options: MDXToAIMLOptions
 ): {
-  ast: Root;
+  ast: AIMLASTNode[];
   diagnostics: Set<Diagnostic>;
 } {
-  const { filePath, maxIterations = 10, files, generateIds = true } = options;
   const diagnostics: Set<Diagnostic> = new ObjectSet<Diagnostic>([], "message");
 
-  // Create MDX processor
-  const mdxProcessor = unified()
-    .use(remarkParse)
-    .use(remarkGfm)
-    .use(remarkMdxFrontmatter, { name: "frontmatter" })
-    .use(unifiedAiml);
-
-  let ast: Root | undefined;
+  let ast: AIMLASTNode[] | undefined;
   try {
-    const file = new VFile({ value: content, path: filePath });
-    ast = mdxProcessor.parse(file);
+    ast = parseAIML(content);
 
     // Add typo warnings
     const typoDiagnostics = warnOnPotentialTagTypos(content);
@@ -54,8 +38,7 @@ export function safeParse(
     // Extract error location
     const errorLoc = extractErrorLocation(error, content);
     // Get the line information for the error location
-    const lineInfo = getLineInfo(content, errorLoc?.start ?? 0);
-    if (!errorLoc || !lineInfo) {
+    if (!errorLoc) {
       diagnostics.add({
         message: `Failed to parse prompt: ${error}`,
         severity: DiagnosticSeverity.Error,
