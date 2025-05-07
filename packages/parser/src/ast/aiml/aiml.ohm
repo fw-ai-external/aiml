@@ -1,3 +1,5 @@
+// make life easier with this extension:
+// https://marketplace.cursorapi.com/items?itemName=fantasy.vscode-ohm
 AIML {
   Document    = Frontmatter? Node*
   Node        = Element | Comment | Expression | Text
