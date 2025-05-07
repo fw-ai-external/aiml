@@ -1,6 +1,6 @@
 import { type Diagnostic, DiagnosticSeverity } from "@aiml/shared";
 import { ValueType } from "@aiml/shared";
-import { visit } from "unist-util-visit";
+import { type AIMLASTNode } from "./ast/aiml/aiml.js";
 
 interface FieldDefinition {
   type: ValueType | string;
@@ -15,17 +15,59 @@ interface Datamodel {
   [scope: string]: Record<string, FieldDefinition>;
 }
 
+// Helper to get tag name from AIMLElement attributes
+function getTagName(node: AIMLASTNode): string | undefined {
+  if (node.type === "AIMLElement" && node.attributes) {
+    const tagNameNode = node.attributes.find((attr) => attr.type === "TagName");
+    return tagNameNode?.content as string | undefined;
+  }
+  return undefined;
+}
+
+// Helper to get attributes from AIMLElement
+function getElementAttributes(node: AIMLASTNode): Record<string, any> {
+  const attrs: Record<string, any> = {};
+  if (node.type === "AIMLElement" && node.attributes) {
+    node.attributes.forEach((attr) => {
+      if (attr.type === "Prop" && attr.name) {
+        attrs[attr.name] = attr.content ?? true; // Handle boolean attributes
+      }
+    });
+  }
+  return attrs;
+}
+
+// Custom visitor function
+function visitAIMLNodes(
+  nodes: AIMLASTNode | AIMLASTNode[] | undefined,
+  visitor: (node: AIMLASTNode) => void
+) {
+  if (!nodes) {
+    return;
+  }
+  const nodeList = Array.isArray(nodes) ? nodes : [nodes];
+  for (const node of nodeList) {
+    visitor(node);
+    if (node.children) {
+      visitAIMLNodes(node.children, visitor);
+    }
+    // Also visit attributes if they are AIMLASTNodes (though typically Props are simple)
+    // For now, assuming attributes don't contain deeply nested visitable structures relevant here.
+  }
+}
+
 // TODO: do this based on the final Element Tree not the AST
 // TODO: This should be part of a larger flow that also checks expressions and scripts for type safety
 export function validateAssignElements(
-  ast: any,
+  ast: AIMLASTNode[],
   datamodel: Datamodel
 ): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
 
-  visit(ast, "element", (node) => {
-    if (node.tag === "assign") {
-      const { location, expr } = node.attributes || {};
+  visitAIMLNodes(ast, (node) => {
+    if (node.type === "AIMLElement" && getTagName(node) === "assign") {
+      const attributes = getElementAttributes(node);
+      const { location, expr } = attributes;
 
       if (!location) {
         diagnostics.push(
@@ -79,7 +121,7 @@ export function validateAssignElements(
         );
       }
 
-      if (expr && fieldDef.type) {
+      if (expr && typeof expr === "string" && fieldDef.type) {
         try {
           const inferredType = inferExpressionType(expr);
           if (inferredType && !isTypeCompatible(inferredType, fieldDef.type)) {
@@ -180,22 +222,23 @@ function isInScope(
   return !!datamodel.root?.[variableId];
 }
 
-export function buildDatamodelFromAST(ast: any): Datamodel {
+export function buildDatamodelFromAST(ast: AIMLASTNode[]): Datamodel {
   const datamodel: Datamodel = {};
 
-  visit(ast, "element", (node) => {
-    if (node.tag === "data") {
+  visitAIMLNodes(ast, (node) => {
+    if (node.type === "AIMLElement" && getTagName(node) === "data") {
+      const attributes = getElementAttributes(node);
       const {
         id,
         type,
         readonly,
         fromRequest,
         default: defaultValue,
-      } = node.attributes || {};
+      } = attributes;
       const parentStateId = findParentStateId(node);
       const scope = parentStateId ? `root.${parentStateId}` : "root";
 
-      if (id) {
+      if (id && typeof id === "string") {
         if (!datamodel[scope]) datamodel[scope] = {};
 
         datamodel[scope][id] = {

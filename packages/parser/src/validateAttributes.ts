@@ -1,9 +1,9 @@
 import type { Diagnostic } from "@aiml/shared";
 import { DiagnosticSeverity, allElementConfigs } from "@aiml/shared";
 import { fromError } from "zod-validation-error";
-import { getPosition } from "../utils/helpers.js";
+import { getPosition } from "./utils/helpers.js";
 import * as acorn from "acorn";
-import { extractTextFromNode } from "../utils/text-extraction.js";
+import { extractTextFromNode } from "./utils/text-extraction.js";
 // @ts-expect-error no types
 import { Python3Parser } from "dt-python-parser";
 

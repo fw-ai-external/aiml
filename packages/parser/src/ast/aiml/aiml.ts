@@ -2,6 +2,7 @@ import * as ohm from "ohm-js";
 import * as yaml from "js-yaml";
 // @ts-expect-error - This is a workaround to allow the grammar to be imported as a string
 import aimlGrammar from "./aiml.ohm" with { type: "text" };
+import { allElementConfigs } from "@aiml/shared";
 
 // Position type to represent source code location
 type Position = {
@@ -11,8 +12,26 @@ type Position = {
   columnEnd: number;
 };
 export type AIMLASTNode = {
-  type: string;
-  contentType?: "string" | "expression";
+  type:
+    | "Text"
+    | "Comment"
+    | "AIMLElement"
+    | "Import"
+    | "Prop"
+    | "Expression"
+    | "Frontmatter"
+    | "FrontmatterPair"
+    | "TagName"
+    | "ImportVariable"
+    | "ModuleName";
+  contentType?:
+    | "string"
+    | "expression"
+    | "boolean"
+    | "number"
+    | "object"
+    | "array"
+    | "function";
   content?: string | number | boolean | null;
   children?: AIMLASTNode[];
   name?: string;
@@ -177,8 +196,10 @@ const FrontmatterNode = (content: string, position: Position): AIMLASTNode => {
   }
 };
 
-const elementNames = ["state", "ai"];
-const specialElements = ["prompt", "script"];
+const elementNames = Object.keys(allElementConfigs).filter(
+  (e) => e !== "script"
+);
+const specialElements = ["script"];
 
 export function parseAIML(sourceString: string): AIMLASTNode[] {
   const parser = {

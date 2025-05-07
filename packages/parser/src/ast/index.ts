@@ -4,7 +4,6 @@ import {
   type Diagnostic,
 } from "@aiml/shared";
 import type { Point } from "unist";
-import type { MDXToAIMLOptions } from "../types.js";
 import { ObjectSet } from "@aiml/shared";
 import { extractErrorLocation } from "../utils/helpers.js";
 import type { AIMLASTNode } from "../ast/aiml/aiml.js";
@@ -13,10 +12,7 @@ import { parseAIML } from "../ast/aiml/aiml.js";
 /**
  * Main parsing function with iterative error correction
  */
-export function safeParse(
-  content: string,
-  options: MDXToAIMLOptions
-): {
+export function stringToAST(content: string): {
   ast: AIMLASTNode[];
   diagnostics: Set<Diagnostic>;
 } {
@@ -55,52 +51,39 @@ export function safeParse(
       });
 
       return {
-        ast: {
-          type: "root",
-          children: [
-            {
-              type: "paragraph",
-              children: [
-                {
-                  type: "text",
-                  value: content,
-                },
-              ],
-            },
-          ],
-        },
+        ast: ast ?? [
+          {
+            type: "Text",
+            content: content,
+            lineStart: 1,
+            columnStart: 1,
+            lineEnd: content.split("\n").length,
+            columnEnd:
+              content.split("\n")[content.split("\n").length - 1].length + 1,
+          },
+        ],
         diagnostics,
       };
     }
 
-    const codeWithError = content.split("\n")[lineInfo.line - 1].trim();
-
     // Add diagnostic for this specific line
     diagnostics.add({
-      message: `${(error as any).message.replace(" with acorn", "")} \`${codeWithError}\``,
+      message: (error as any).message,
       severity: DiagnosticSeverity.Error,
       code: "AIML010",
       source: "aiml-parser",
       range: {
-        start: { line: lineInfo.line, column: 1 },
+        start: { line: errorLoc.start, column: 1 },
         end: {
-          line: lineInfo.line,
-          column: lineInfo.column + 1,
+          line: errorLoc.end,
+          column: errorLoc.end + 1,
         },
       },
     });
   }
 
   return {
-    ast: ast ?? {
-      type: "root",
-      children: [
-        {
-          type: "paragraph",
-          children: [],
-        },
-      ],
-    },
+    ast: ast ?? [],
     diagnostics,
   };
 }

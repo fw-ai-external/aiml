@@ -1,11 +1,10 @@
 import type {
   CommentNode,
-  Diagnostic,
   SerializedBaseElement,
   ElementType,
   ElementSubType,
 } from "@aiml/shared";
-import { generateKey } from "../utils/helpers.js";
+import { generateKey } from "./utils/helpers.js";
 import { convertParagraphToLlmNode } from "./astToElementTree.js";
 
 /**
@@ -16,8 +15,7 @@ import { convertParagraphToLlmNode } from "./astToElementTree.js";
  * - Creates a workflow element if one doesn't exist
  */
 export function healInvalidElementTree(
-  nodes: SerializedBaseElement[],
-  diagnostics: Set<Diagnostic>
+  nodes: SerializedBaseElement[]
 ): SerializedBaseElement[] {
   const rootLevelNodes: SerializedBaseElement[] = [];
   const comments: CommentNode[] = [];
@@ -333,8 +331,7 @@ export function assignCommentsToElement(
  * @returns Healed nodes
  */
 export function healFlowOrError(
-  nodes: SerializedBaseElement[],
-  diagnostics: Set<Diagnostic>
+  nodes: SerializedBaseElement[]
 ): SerializedBaseElement[] {
   // Get the workflow node (should be the first node after processFinalStructure)
   const workflowNode = nodes[0]?.tag === "workflow" ? nodes[0] : null;
@@ -879,8 +876,7 @@ function isStateDescendantOf(
  * to ensure all states get proper transitions
  */
 export function addAllTransitions(
-  nodes: SerializedBaseElement[],
-  diagnostics: Set<Diagnostic>
+  nodes: SerializedBaseElement[]
 ): SerializedBaseElement[] {
   const workflowNode = nodes[0];
   if (

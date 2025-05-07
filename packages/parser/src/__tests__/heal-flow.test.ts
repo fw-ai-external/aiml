@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { parseMDXToAIML } from "..";
+import { parse } from "..";
 
 describe("healFlowOrError Phase Tests", () => {
   // Helper function to log state tree for debugging
@@ -29,7 +29,8 @@ describe("healFlowOrError Phase Tests", () => {
 </workflow>
     `;
 
-    const result = await parseMDXToAIML(input);
+    const result = await parse(input);
+    console.log(result);
     expect(result.nodes).toBeArrayOfSize(1);
 
     const workflow = result.nodes[0];
@@ -63,7 +64,7 @@ describe("healFlowOrError Phase Tests", () => {
 </workflow>
     `;
 
-    const result = await parseMDXToAIML(input);
+    const result = await parse(input);
     const workflow = result.nodes[0];
     // Find the first state
     const firstState = workflow.children?.find(
@@ -92,7 +93,7 @@ describe("healFlowOrError Phase Tests", () => {
 </workflow>
     `;
 
-    const result = await parseMDXToAIML(input);
+    const result = await parse(input);
     const workflow = result.nodes[0];
 
     // Find the last state
@@ -137,7 +138,7 @@ describe("healFlowOrError Phase Tests", () => {
 </workflow>
     `;
 
-    const result = await parseMDXToAIML(input);
+    const result = await parse(input);
     const workflow = result.nodes[0];
 
     // Find the parent state
@@ -175,7 +176,7 @@ describe("healFlowOrError Phase Tests", () => {
 </workflow>
     `;
 
-    const result = await parseMDXToAIML(input);
+    const result = await parse(input);
     const workflow = result.nodes[0];
 
     // Find parent1 state
@@ -216,7 +217,7 @@ describe("healFlowOrError Phase Tests", () => {
 </workflow>
     `;
 
-    const result = await parseMDXToAIML(input);
+    const result = await parse(input);
     const workflow = result.nodes[0];
 
     // Navigate to the deeply nested child state
@@ -257,7 +258,7 @@ describe("healFlowOrError Phase Tests", () => {
 </workflow>
     `;
 
-    const result = await parseMDXToAIML(input);
+    const result = await parse(input);
     const workflow = result.nodes[0];
 
     // Find state1
@@ -290,7 +291,7 @@ describe("healFlowOrError Phase Tests", () => {
 </workflow>
     `;
 
-    const result = await parseMDXToAIML(input);
+    const result = await parse(input);
     const workflow = result.nodes[0];
 
     // Find state1

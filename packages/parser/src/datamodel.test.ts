@@ -1,9 +1,9 @@
 import { describe, it, expect } from "bun:test";
-import { parseMDXToAIML } from "./index.js";
+import { parse } from "./index.js";
 
 describe("parser datamodel tests", () => {
   it("should return empty datamodel for empty input", async () => {
-    const result = await parseMDXToAIML("");
+    const result = await parse("");
     expect(result.datamodel).toEqual({});
   });
 
@@ -13,7 +13,7 @@ describe("parser datamodel tests", () => {
 <data id="user" type="string">John Doe</data>
 <data id="age" type="number">30</data>
     `;
-    const result = await parseMDXToAIML(mdx);
+    const result = await parse(mdx);
 
     expect(result.datamodel).toEqual({
       root: {
@@ -48,7 +48,7 @@ describe("parser datamodel tests", () => {
   </state>
 </state>
     `;
-    const result = await parseMDXToAIML(mdx);
+    const result = await parse(mdx);
 
     expect(result.datamodel).toEqual({
       "root.auth": {
@@ -87,7 +87,7 @@ describe("parser datamodel tests", () => {
   </state>
 </state>
     `;
-    const result = await parseMDXToAIML(mdx);
+    const result = await parse(mdx);
 
     expect(result.datamodel).toEqual({
       root: {
@@ -118,12 +118,12 @@ describe("parser datamodel tests", () => {
   it.skip("should handle error cases with empty datamodel", async () => {
     // Invalid MDX that will cause parse error
     const mdx = "<invalid>content";
-    const result = await parseMDXToAIML(mdx);
+    const result = await parse(mdx);
 
     // Instead of checking exact AST structure, verify key properties
     expect(result.nodes).toHaveLength(1);
     const workflow = result.nodes[0];
-    expect(workflow.type).toBe("element");
+    // expect(workflow.type).toBe("element");
     expect(workflow.tag).toBe("workflow");
     expect(workflow.attributes?.id).toBe("workflow-root");
 

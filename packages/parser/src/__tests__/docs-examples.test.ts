@@ -1,7 +1,7 @@
 import { describe, test, expect } from "bun:test";
 import fs from "node:fs";
 import path from "node:path";
-import { parseMDXToAIML } from "../index.js"; // Use correct exported function name
+import { parse } from "../index.js"; // Use correct exported function name
 import { DiagnosticSeverity } from "@aiml/shared";
 const examplesDir = path.resolve(__dirname, "../../../../examples"); // Adjust path as needed
 
@@ -38,7 +38,7 @@ describe("All AIML examples for docs", () => {
       "utf-8"
     );
 
-    const { nodes, diagnostics } = await parseMDXToAIML(aimlContent);
+    const { nodes, diagnostics } = await parse(aimlContent);
 
     // Ensure no parsing errors occurred
     expect(
@@ -61,7 +61,7 @@ describe("All AIML examples for docs", () => {
       "utf-8"
     );
 
-    const { nodes, diagnostics } = await parseMDXToAIML(aimlContent);
+    const { nodes, diagnostics } = await parse(aimlContent);
 
     // Ensure no parsing errors occurred
     expect(
@@ -84,7 +84,7 @@ describe("All AIML examples for docs", () => {
       "utf-8"
     );
 
-    const { nodes, diagnostics } = await parseMDXToAIML(aimlContent);
+    const { nodes, diagnostics } = await parse(aimlContent);
 
     // Ensure no parsing errors occurred
     expect(
@@ -107,7 +107,7 @@ describe("All AIML examples for docs", () => {
       "utf-8"
     );
 
-    const { nodes, diagnostics } = await parseMDXToAIML(aimlContent);
+    const { nodes, diagnostics } = await parse(aimlContent);
 
     // Ensure no parsing errors occurred
     expect(
@@ -130,7 +130,7 @@ describe("All AIML examples for docs", () => {
       "utf-8"
     );
 
-    const { nodes, diagnostics } = await parseMDXToAIML(aimlContent);
+    const { nodes, diagnostics } = await parse(aimlContent);
 
     // Ensure no parsing errors occurred
     expect(
@@ -153,7 +153,7 @@ describe("All AIML examples for docs", () => {
       "utf-8"
     );
 
-    const { nodes, diagnostics } = await parseMDXToAIML(aimlContent);
+    const { nodes, diagnostics } = await parse(aimlContent);
 
     // Ensure no parsing errors occurred
     expect(
@@ -176,7 +176,7 @@ describe("All AIML examples for docs", () => {
       "utf-8"
     );
 
-    const { nodes, diagnostics } = await parseMDXToAIML(aimlContent);
+    const { nodes, diagnostics } = await parse(aimlContent);
 
     // Ensure no parsing errors occurred
     expect(
@@ -199,7 +199,7 @@ describe("All AIML examples for docs", () => {
       "utf-8"
     );
 
-    const { nodes, diagnostics } = await parseMDXToAIML(aimlContent);
+    const { nodes, diagnostics } = await parse(aimlContent);
 
     // Ensure no parsing errors occurred
     expect(
@@ -222,7 +222,7 @@ describe("All AIML examples for docs", () => {
       "utf-8"
     );
 
-    const { nodes, diagnostics } = await parseMDXToAIML(aimlContent);
+    const { nodes, diagnostics } = await parse(aimlContent);
 
     // Ensure no parsing errors occurred
     expect(

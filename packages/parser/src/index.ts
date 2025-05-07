@@ -1,13 +1,13 @@
 import type { MDXToAIMLOptions, MDXParseResult } from "./types.js";
 import { VFile } from "vfile";
 import { DiagnosticSeverity } from "@aiml/shared";
-import { safeParse } from "./safeParse/index.js";
-import { transformToAIMLNodes } from "./safeParse/astToElementTree.js";
+import { transformToAIMLNodes } from "./astToElementTree.js";
 import {
   addAllTransitions,
   healFlowOrError,
   healInvalidElementTree,
-} from "./safeParse/healInvalidElementTree.js";
+} from "./healInvalidElementTree.js";
+import { stringToAST } from "./ast/index.js";
 
 /**
  * Parse MDX content into AIML nodes with diagnostics
@@ -15,7 +15,7 @@ import {
  * @param options Parsing options
  * @returns Parse result with nodes and diagnostics
  */
-export function parseMDXToAIML(
+export function parse(
   content: string,
   options: MDXToAIMLOptions = {
     maxIterations: 10,
@@ -53,38 +53,74 @@ export async function parseMDXFilesToAIML(
 
   try {
     // Parse the main file, providing all files for import resolution
-    const result = await safeParse(mainFile.value as string, {
-      ...options,
-      filePath: mainFile.path,
-      files,
-    });
+    const { ast, diagnostics: astDiagnostics } = await stringToAST(
+      mainFile.value as string
+    );
+
+    if (ast.length === 0) {
+      if (astDiagnostics.size > 0) {
+        return {
+          nodes: [],
+          diagnostics: [
+            {
+              message: "Failed to parse AIML",
+              severity: DiagnosticSeverity.Error,
+              code: "AIML005",
+              source: "aiml-parser",
+              range: {
+                start: { line: 1, column: 1 },
+                end: { line: 1, column: 1 },
+              },
+            },
+          ],
+          datamodel: {},
+        };
+      }
+
+      return {
+        nodes: [],
+        diagnostics: Array.from(astDiagnostics),
+        datamodel: {},
+      };
+    }
 
     // Transform the AST to AIML nodes and datamodel
     const {
       nodes: intermediateNodes,
       diagnostics: transformDiagnostics,
       datamodel,
-    } = transformToAIMLNodes(result.ast, options, result.diagnostics);
+    } = transformToAIMLNodes(ast, options);
+
+    console.log("intermediateNodes", intermediateNodes);
+    console.log("transformDiagnostics", transformDiagnostics);
+
+    if (intermediateNodes.length === 0) {
+      return {
+        nodes: [],
+        diagnostics: [
+          ...Array.from(astDiagnostics),
+          ...Array.from(transformDiagnostics),
+        ],
+        datamodel: {},
+      };
+    }
 
     // Process the intermediate nodes into a final SerializedBaseElement tree
     // that's ready for hydration by the runtime
-    const finalNodes = healInvalidElementTree(
-      intermediateNodes,
-      transformDiagnostics
-    );
+    const finalNodes = healInvalidElementTree(intermediateNodes);
 
     // Apply the healFlowOrError phase to ensure proper workflow structure and transitions
-    const healedNodes = healFlowOrError(finalNodes, transformDiagnostics);
+    const healedNodes = healFlowOrError(finalNodes);
 
     // Apply addAllTransitions to ensure all states have proper transitions
-    const nodesWithTransitions = addAllTransitions(
-      healedNodes,
-      transformDiagnostics
-    );
+    const nodesWithTransitions = addAllTransitions(healedNodes);
 
     return {
       nodes: nodesWithTransitions,
-      diagnostics: Array.from(result.diagnostics),
+      diagnostics: [
+        ...Array.from(astDiagnostics),
+        ...Array.from(transformDiagnostics),
+      ],
       datamodel,
     };
   } catch (error) {
