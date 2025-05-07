@@ -299,54 +299,209 @@ Line 2
   });
 });
 describe("Frontmatter", () => {
-  test("basics with position info", () => {
+  test("basic key-value frontmatter", () => {
     const source = `---
-key1=value1
+title: Hi, World!
 ---
 
 <ai attr={foo.test}>Hello</ai>`;
     const result = parseMarkdown(source);
 
     expect(result).toBeDefined();
-
     expect(result[0].type).toBe("Frontmatter");
-    expect(result[0].children[0].type).toBe("FrontmatterPair");
-    expect(result[0].children[0].name).toBe("key1");
-    expect(result[0].children[0].value).toBe("value1");
+    expect(result[0].children).toHaveLength(1);
 
-    // Check frontmatter position info
+    const titlePair = result[0].children[0];
+    expect(titlePair.type).toBe("FrontmatterPair");
+    expect(titlePair.name).toBe("title");
+    expect(titlePair.content).toBe("Hi, World!");
+
+    // Check position info
     expect(result[0].lineStart).toBe(1);
     expect(result[0].columnStart).toBe(1);
     expect(result[0].lineEnd).toBe(3);
     expect(result[0].columnEnd).toBe(4);
-
-    // Check frontmatter pair position (actual implementation details may vary)
-    expect(result[0].children[0].lineStart).toBeDefined();
-    expect(result[0].children[0].columnStart).toBeDefined();
-
-    // Check for AIMLElement - the exact position can vary based on parser implementation
-    const aiNode = result.find((node) => node.type === "AIMLElement");
-    expect(aiNode).toBeDefined();
-    expect(aiNode!.lineStart).toBeDefined();
-    expect(aiNode!.columnStart).toBeDefined();
-    expect(aiNode!.lineEnd).toBeDefined();
-    expect(aiNode!.columnEnd).toBeDefined();
   });
 
-  test.skip("multiple frontmatter pairs", () => {
+  test("array values in frontmatter", () => {
     const source = `---
-key1=value1
-key2=value2
-
-
-<ai attr={foo.test}>Hello</ai>`;
+tags:
+  - JavaScript
+  - TypeScript
+  - React
+---`;
     const result = parseMarkdown(source);
 
     expect(result).toBeDefined();
+    expect(result[0].type).toBe("Frontmatter");
+    expect(result[0].children).toHaveLength(1);
 
-    expect(result[0].attributes[1].content).toBe("foo.test");
+    const tagsPair = result[0].children[0];
+    expect(tagsPair.type).toBe("FrontmatterPair");
+    expect(tagsPair.name).toBe("tags");
+    // For arrays, we expect a JSON string representation
+    expect(tagsPair.content).toMatch(/\["JavaScript","TypeScript","React"\]/);
+  });
 
-    expect(result[0].children[0].attributes[1].content).toBe("bar.test");
-    expect(result[0].children[0].children[0].content).toBe("<Hello />");
+  test("nested objects in frontmatter", () => {
+    const source = `---
+project:
+  name: MyProject
+  version: 1.0.0
+  dependencies:
+    - name: react
+      version: ^18.0.0
+    - name: typescript
+      version: ^5.0.0
+---`;
+    const result = parseMarkdown(source);
+
+    expect(result).toBeDefined();
+    expect(result[0].type).toBe("Frontmatter");
+    expect(result[0].children).toHaveLength(1);
+
+    const projectPair = result[0].children[0];
+    expect(projectPair.type).toBe("FrontmatterPair");
+    expect(projectPair.name).toBe("project");
+
+    // Check that the value is a JSON string containing the nested structure
+    const projectValue = projectPair.content;
+    expect(typeof projectValue).toBe("string");
+    expect(projectValue).toContain("name");
+    expect(projectValue).toContain("MyProject");
+    expect(projectValue).toContain("version");
+    expect(projectValue).toContain("1.0.0");
+    expect(projectValue).toContain("dependencies");
+
+    // Parse the JSON string to verify the structure
+    const parsedValue = JSON.parse(projectValue as string);
+    expect(parsedValue.name).toBe("MyProject");
+    expect(parsedValue.version).toBe("1.0.0");
+    expect(parsedValue.dependencies).toHaveLength(2);
+    expect(parsedValue.dependencies[0].name).toBe("react");
+    expect(parsedValue.dependencies[0].version).toBe("^18.0.0");
+  });
+
+  test("block scalar literals", () => {
+    const source = `---
+description: |
+  This is a multi-line
+  description that preserves
+  newlines and formatting.
+---`;
+    const result = parseMarkdown(source);
+
+    expect(result).toBeDefined();
+    expect(result[0].type).toBe("Frontmatter");
+    expect(result[0].children).toHaveLength(1);
+
+    const descPair = result[0].children[0];
+    expect(descPair.type).toBe("FrontmatterPair");
+    expect(descPair.name).toBe("description");
+    // js-yaml preserves the newlines in block scalar literals
+    expect(descPair.content).toBe(
+      "This is a multi-line\ndescription that preserves\nnewlines and formatting.\n"
+    );
+  });
+
+  test("block scalar folded", () => {
+    const source = `---
+description: >
+  This is a multi-line
+  description that folds
+  newlines into spaces.
+---`;
+    const result = parseMarkdown(source);
+
+    expect(result).toBeDefined();
+    expect(result[0].type).toBe("Frontmatter");
+    expect(result[0].children).toHaveLength(1);
+
+    const descPair = result[0].children[0];
+    expect(descPair.type).toBe("FrontmatterPair");
+    expect(descPair.name).toBe("description");
+    // js-yaml replaces newlines with spaces in folded block scalars
+    expect(descPair.content).toBe(
+      "This is a multi-line description that folds newlines into spaces.\n"
+    );
+  });
+
+  test("flow style collections", () => {
+    const source = `---
+numbers: [1, 2, 3]
+mapping: { name: test, value: 42 }
+---`;
+    const result = parseMarkdown(source);
+
+    expect(result).toBeDefined();
+    expect(result[0].type).toBe("Frontmatter");
+    expect(result[0].children).toHaveLength(2);
+
+    // Check array
+    const numbersPair = result[0].children[0];
+    expect(numbersPair.type).toBe("FrontmatterPair");
+    expect(numbersPair.name).toBe("numbers");
+    expect(numbersPair.content).toMatch(/\[1,2,3\]/);
+
+    // Check mapping
+    const mappingPair = result[0].children[1];
+    expect(mappingPair.type).toBe("FrontmatterPair");
+    expect(mappingPair.name).toBe("mapping");
+
+    const mappingValue = JSON.parse(mappingPair.content as string);
+    expect(mappingValue.name).toBe("test");
+    expect(mappingValue.content).toBe(42);
+  });
+
+  test("various scalar types", () => {
+    const source = `---
+string: simple string
+quoted: "quoted string"
+number: 42
+float: 3.14
+boolean: true
+nullValue: null
+tildeNull: ~
+---`;
+    const result = parseMarkdown(source);
+
+    expect(result).toBeDefined();
+    expect(result[0].type).toBe("Frontmatter");
+    expect(result[0].children).toHaveLength(7);
+
+    // Check string
+    expect(result[0].children[0].type).toBe("FrontmatterPair");
+    expect(result[0].children[0].name).toBe("string");
+    expect(result[0].children[0].content).toBe("simple string");
+
+    // Check quoted string
+    expect(result[0].children[1].type).toBe("FrontmatterPair");
+    expect(result[0].children[1].name).toBe("quoted");
+    expect(result[0].children[1].content).toBe("quoted string");
+
+    // Check number
+    expect(result[0].children[2].type).toBe("FrontmatterPair");
+    expect(result[0].children[2].name).toBe("number");
+    expect(result[0].children[2].content).toBe("42"); // String representation
+
+    // Check float
+    expect(result[0].children[3].type).toBe("FrontmatterPair");
+    expect(result[0].children[3].name).toBe("float");
+    expect(result[0].children[3].content).toBe("3.14"); // String representation
+
+    // Check boolean
+    expect(result[0].children[4].type).toBe("FrontmatterPair");
+    expect(result[0].children[4].name).toBe("boolean");
+    expect(result[0].children[4].content).toBe("true"); // String representation
+
+    // Check null
+    expect(result[0].children[5].type).toBe("FrontmatterPair");
+    expect(result[0].children[5].name).toBe("nullValue");
+    expect(result[0].children[5].content).toBe("null"); // String representation
+
+    // Check tilde null
+    expect(result[0].children[6].type).toBe("FrontmatterPair");
+    expect(result[0].children[6].name).toBe("tildeNull");
+    expect(result[0].children[6].content).toBe("null"); // String representation
   });
 });

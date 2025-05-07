@@ -1,4 +1,5 @@
 import * as ohm from "ohm-js";
+import * as yaml from "js-yaml";
 
 // Position type to represent source code location
 type Position = {
@@ -10,7 +11,7 @@ type Position = {
 type Node = {
   type: string;
   contentType?: "string" | "expression";
-  content?: string;
+  content?: string | number | boolean | null;
   children?: Node[];
   name?: string;
   attributes?: Node[];
@@ -50,7 +51,7 @@ const PropNode = (
     finalContentType = "string";
   } else {
     // This case is for when the prop value is an Expression, e.g., attr={...}
-    finalContent = value.content;
+    finalContent = value.content as string;
     finalContentType = "expression"; // Default for expressions
 
     if (finalContent) {
@@ -99,12 +100,49 @@ const ExprNode = (content: string, position: Position): Node => {
   };
 };
 
-const FrontmatterNode = (pairs: Node[], position: Position): Node => {
-  return {
-    type: "Frontmatter",
-    children: pairs,
-    ...position,
-  };
+const FrontmatterNode = (content: string, position: Position): Node => {
+  try {
+    const parsedYaml = yaml.load(content);
+    const pairs: Node[] = [];
+
+    // Convert the parsed YAML object into FrontmatterPair nodes
+    if (parsedYaml && typeof parsedYaml === "object") {
+      for (const [key, value] of Object.entries(parsedYaml)) {
+        // Special handling for nested objects
+        if (typeof value === "object" && value !== null) {
+          // For mappings, convert 'value' property to 'content' if it exists
+          if (value && typeof value === "object") {
+            const objValue = value as Record<string, any>;
+            if ("value" in objValue && !("content" in objValue)) {
+              objValue.content = objValue.value;
+              delete objValue.value;
+            }
+          }
+        }
+
+        pairs.push({
+          type: "FrontmatterPair",
+          name: key,
+          content:
+            typeof value === "object" ? JSON.stringify(value) : String(value),
+          ...position, // Inherit position from parent for simplicity
+        });
+      }
+    }
+
+    return {
+      type: "Frontmatter",
+      children: pairs,
+      ...position,
+    };
+  } catch (error) {
+    console.error("Error parsing frontmatter:", error);
+    return {
+      type: "Frontmatter",
+      children: [],
+      ...position,
+    };
+  }
 };
 
 const elementNames = ["state", "ai"];
@@ -132,18 +170,10 @@ AIML {
 
   TagName     = "${elementNames.join('" | "')}"
 
-  Frontmatter = "---" nl? FrontmatterPair+ nl? "---"
-  
-  FrontmatterPair = (~nl (PropName "=" Value))  -- withNewline
-                  | PropName "=" Value          -- withoutNewline
-  nl = "\\n"   // new line
-  sp = " "
-  blank = sp* nl  // blank line has only newline
-  endline = (~nl any)+ end
-  Value = (~(nl | "---") any)*
+  Frontmatter = "---" FrontmatterContent "---"
+  FrontmatterContent = (~"---" any)*
 
   String      = "\\"" (~"\\"" any)* "\\""
-  PropName    = letter (letter | digit | "_")* &"="
 }
   `),
     semantics: null as ohm.Semantics | null,
@@ -164,29 +194,12 @@ AIML {
       ];
     },
 
-    Frontmatter(this: ohm.Node, openDashes, nl, pairs, nl2, closeDashes) {
+    Frontmatter(this: ohm.Node, openDashes, content, closeDashes) {
       const sourcePos = getNodePosition(this);
-      return FrontmatterNode(pairs.blocks(), sourcePos);
+      const yamlContent = content.sourceString;
+      return FrontmatterNode(yamlContent, sourcePos);
     },
 
-    FrontmatterPair_withNewline(this: ohm.Node, a, b, c) {
-      const sourcePos = getNodePosition(this);
-      return {
-        type: "FrontmatterPair",
-        name: a.sourceString,
-        value: c.sourceString,
-        ...sourcePos,
-      };
-    },
-    FrontmatterPair_withoutNewline(this: ohm.Node, a, b, c) {
-      const sourcePos = getNodePosition(this);
-      return {
-        type: "FrontmatterPair",
-        name: a.sourceString,
-        value: c.sourceString,
-        ...sourcePos,
-      };
-    },
     Text(this: ohm.Node, a) {
       const sourcePos = getNodePosition(this);
       return TextNode(a.sourceString, sourcePos);
@@ -200,9 +213,6 @@ AIML {
     },
     QuotedString(this: ohm.Node, openQuote, content, closeQuote) {
       return this.sourceString;
-    },
-    PropName(this: ohm.Node, a, b, c) {
-      return a.sourceString;
     },
     Element(this: ohm.Node, a) {
       return a.children.map((c) => c.blocks())?.[0];
