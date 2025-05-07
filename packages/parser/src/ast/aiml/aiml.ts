@@ -1,5 +1,7 @@
 import * as ohm from "ohm-js";
 import * as yaml from "js-yaml";
+// @ts-expect-error - This is a workaround to allow the grammar to be imported as a string
+import aimlGrammar from "./aiml.ohm" with { type: "text" };
 
 // Position type to represent source code location
 type Position = {
@@ -157,52 +159,11 @@ const specialElements = ["prompt", "script"];
 
 export function parseAIML(sourceString: string): AIMLASTNode[] {
   const parser = {
-    grammar: ohm.grammar(`
-AIML {
-  Document    = Frontmatter? Node*
-  Node        = Element | Comment | Expression | Text
-
-  SafeAnyChar = ~("<" &TagName | "</" &TagName | "<" &ContentTagName | "</" &ContentTagName | "<!--" | "{" | "---") any
-  Text        = SafeAnyChar+  -- text
-
-  ContentAnyChar = ~("</" &ContentTagName) any
-  TextContent = ContentAnyChar+ -- textContent
-
-  Expression  = ~"/*" "{" ExprContent "}"
-  ExprContent = (~"}" (Expression | QuotedString | any))*
-  QuotedString = "\\"" (~"\\"" any)* "\\""
-                | "'" (~"'" any)* "'"
-  Comment     = "<!--" (~"-->" any)* "-->" -- htmlComment
-              | "{/*" (~"*/" any)* "*/}" -- jsxComment
-
-
-
-  Element     = SelfClosingElement     -- selfClosingElement
-              | NormalElement          -- normalElement
-              | ContentElement  -- contentElement
-              | FragmentElement -- fragmentElement
-
-  SelfClosingElement = "<" ~ContentTagName &TagName TagName Prop* "/>"
-  NormalElement      = "<" ~ContentTagName &TagName TagName Prop* ">" Node* "</" TagName ">"
-  ContentElement     = "<" &ContentTagName ContentTagName Prop* ">" (~ClosingContentTag TextContent)* ClosingContentTag
-  FragmentElement    = "<>" (~("</>") any)* "</>"
-
-  Prop        = (letter | digit | "_")* "=" (String | Expression)
-
-  TagName     = "${elementNames.join('" | "')}"
-  ContentTagName     = "${specialElements.join('" | "')}"
-  ClosingContentTag = "</" &ContentTagName ContentTagName ">"
-
-  Frontmatter = "---" FrontmatterContent "---"
-  FrontmatterContent = (~"---" any)*
-
-  String      = "\\"\\"\\"" (~"\\"\\"\\"" any)* "\\"\\"\\"" // Python style double quote multi-line string
-              | "\\"\\"\\"" (~"\\"\\"\\"" any)* "\\"\\"\\"" // Python style single quote multi-line string
-              | "\\"" (~"\\"" any)* "\\"" // double quoted string
-              | "'" (~"'" any)* "'" // single quoted string
-              
-}
-  `),
+    grammar: ohm.grammar(
+      aimlGrammar
+        .replaceAll("CONTENT_TAG_NAMES", `"${specialElements.join('" | "')}"`)
+        .replaceAll("TAG_NAMES", `"${elementNames.join('" | "')}"`)
+    ),
     semantics: null as ohm.Semantics | null,
   };
 

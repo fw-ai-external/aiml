@@ -1,0 +1,42 @@
+AIML {
+  Document    = Frontmatter? Node*
+  Node        = Element | Comment | Expression | Text
+
+  SafeAnyChar = ~("<" &TagName | "</" &TagName | "<" &ContentTagName | "</" &ContentTagName | "<!--" | "{" | "---") any
+  Text        = SafeAnyChar+  -- text
+
+  ContentAnyChar = ~("</" &ContentTagName) any
+  TextContent = ContentAnyChar+ -- textContent
+
+  Expression  = ~"/*" "{" ExprContent "}"
+  ExprContent = (~"}" (Expression | QuotedString | any))*
+  QuotedString = "'" (~"'" any)* "'"
+                | "\"" (~"\"" any)* "\""
+  Comment     = "<!--" (~"-->" any)* "-->" -- htmlComment
+              | "{/*" (~"*/" any)* "*/}" -- jsxComment
+
+
+
+  Element     = SelfClosingElement     -- selfClosingElement
+              | NormalElement          -- normalElement
+              | ContentElement  -- contentElement
+              | FragmentElement -- fragmentElement
+
+  SelfClosingElement = "<" ~ContentTagName &TagName TagName Prop* "/>"
+  NormalElement      = "<" ~ContentTagName &TagName TagName Prop* ">" Node* "</" TagName ">"
+  ContentElement     = "<" &ContentTagName ContentTagName Prop* ">" (~ClosingContentTag TextContent)* ClosingContentTag
+  FragmentElement    = "<>" (~("</>") any)* "</>"
+
+  Prop        = (letter | digit | "_")* "=" (String | Expression)
+
+  TagName     = TAG_NAMES // replace this with the list of element names via .replaceAll() after importing the grammar
+  ContentTagName     = CONTENT_TAG_NAMES
+  ClosingContentTag = "</" &ContentTagName ContentTagName ">"
+
+  Frontmatter = "---" FrontmatterContent "---"
+  FrontmatterContent = (~"---" any)*
+
+  String      = "'" (~"'" any)* "'" // single quoted string
+              | "\"" (~"\"" any)* "\"" // double quoted string
+}
+  
