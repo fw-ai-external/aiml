@@ -14,7 +14,6 @@ export const Script = createElementDefinition({
 
     if (!content) {
       console.log(`script element children: ${JSON.stringify(children)}`);
-      console.log(`script element ctx: ${JSON.stringify(await ctx.serialize())}`);
       throw new Error("Script element requires inline content");
     }
 

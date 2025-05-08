@@ -240,12 +240,9 @@ const FrontmatterNode = (content: string, position: Position): AIMLASTNode => {
 };
 
 // For testing purposes, explicitly include 'ai' as a valid tag
-const elementNames = [
-  ...Object.keys(allElementConfigs).filter(
-    (e) => e !== "script" && e !== "prompt"
-  ),
-  "ai",
-];
+const elementNames = Object.keys(allElementConfigs).filter(
+  (e) => e !== "script" && e !== "prompt"
+);
 // Special elements are ones with special parsing rules
 const specialElements = ["script", "prompt"];
 

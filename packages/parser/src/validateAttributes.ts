@@ -50,7 +50,6 @@ export function validateAttributes(
   const propsSchema = config.propsSchema;
 
   if (propsSchema) {
-    console.log(`propsSchema--: ${JSON.stringify(propsSchema)}`);
     // Validate the attributes against the schema
     const result = propsSchema.safeParse(attributes);
 

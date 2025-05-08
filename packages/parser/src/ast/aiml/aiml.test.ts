@@ -93,7 +93,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing AIML tags", () => {
-    const source = '<ai attr="value">Hello</ai>';
+    const source = '<llm attr="value">Hello</ai>';
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -118,12 +118,12 @@ describe("AIML elements", () => {
 
     // "Hello" should be between the opening and closing tags
     expect(result[0].children?.[0]?.lineStart).toBe(1);
-    const openTagEnd = '<ai attr="value">'.length + 1;
+    const openTagEnd = '<llm attr="value">'.length + 1;
     expect(result[0].children?.[0]?.columnStart).toBe(openTagEnd);
   });
 
   test("parsing numbers", () => {
-    const source = "<ai attr={123}>Hello</ai>";
+    const source = "<llm attr={123}>Hello</ai>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -133,7 +133,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing fat arrow functions", () => {
-    const source = "<ai attr={(foo) => 'Hello'}>Hello</ai>";
+    const source = "<llm attr={(foo) => 'Hello'}>Hello</ai>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -143,7 +143,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing fat arrow functions with a bracketed body", () => {
-    const source = `<ai attr={(foo) => {
+    const source = `<llm attr={(foo) => {
     console.log('Hello')
     return 'Hello'
 }}>Hello</ai>`;
@@ -159,7 +159,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing arrays", () => {
-    const source = "<ai attr={[1, 2, 3]}>Hello</ai>";
+    const source = "<llm attr={[1, 2, 3]}>Hello</ai>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -169,7 +169,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing expressions strings with a single quote as a string", () => {
-    const source = "<ai attr={'Hello'}>Hello</ai>";
+    const source = "<llm attr={'Hello'}>Hello</ai>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -179,14 +179,14 @@ describe("AIML elements", () => {
   });
 
   test("parsing expressions strings with a double quote as a string", () => {
-    const source = '<ai attr={"Hello"}>Hello</ai>';
+    const source = '<llm attr={"Hello"}>Hello</ai>';
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
   });
 
   test("parsing expressions strings with templated strings as an expression", () => {
-    const source = "<ai attr={`Hello ${'world'}`}>Hello</ai>";
+    const source = "<llm attr={`Hello ${'world'}`}>Hello</ai>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -196,7 +196,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing expressions strings with a closing bracket in the value", () => {
-    const source = `<ai attr={"}"}>Hello</ai>`;
+    const source = `<llm attr={"}"}>Hello</ai>`;
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -206,7 +206,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing objects", () => {
-    const source = "<ai attr={{foo: 'bar'}}>Hello</ai>";
+    const source = "<llm attr={{foo: 'bar'}}>Hello</ai>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -216,7 +216,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing variables in expressions", () => {
-    const source = "<ai attr={foo.test}>Hello</ai>";
+    const source = "<llm attr={foo.test}>Hello</ai>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -226,7 +226,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing nested AIML tags", () => {
-    const source = "<ai attr={foo.test} ><ai attr={bar.test}>Hello</ai></ai>";
+    const source = "<llm attr={foo.test} ><llm attr={bar.test}>Hello</ai></ai>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -239,7 +239,7 @@ describe("AIML elements", () => {
 
   test("parsing nested AIML tags with xml text content", () => {
     const source =
-      "<ai attr={foo.test}><ai attr={bar.test}><Hello /></ai></ai>";
+      "<llm attr={foo.test}><llm attr={bar.test}><Hello /></ai></ai>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -251,7 +251,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing nested AIML tags with position info", () => {
-    const source = "<ai attr={foo.test} ><ai attr={bar.test}>Hello</ai></ai>";
+    const source = "<llm attr={foo.test} ><llm attr={bar.test}>Hello</ai></ai>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -273,7 +273,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing multiline AIML content", () => {
-    const source = `<ai attr="test">
+    const source = `<llm attr="test">
 Line 1
 Line 2
 </ai>`;
@@ -304,7 +304,7 @@ describe("Frontmatter", () => {
 title: Hi, World!
 ---
 
-<ai attr={foo.test}>Hello</ai>`;
+<llm attr={foo.test}>Hello</ai>`;
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -598,7 +598,7 @@ import third from "module_three"`;
   test("parsing imports followed by other content", () => {
     const source = `import foo from 'bar'
 Hello World
-<ai model="test">Test</ai>`;
+<llm model="test">Test</ai>`;
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -707,7 +707,7 @@ describe("Comments", () => {
   });
 
   test("comments within AIML elements", () => {
-    const source = `<ai attr="value">
+    const source = `<llm attr="value">
       <!-- Comment inside AIML element -->
       Text content
     </ai>`;
@@ -728,7 +728,7 @@ describe("Comments", () => {
   });
 
   test("JSX comments with expressions nearby", () => {
-    const source = `<ai attr={value}>
+    const source = `<llm attr={value}>
       {/* JSX comment */}
       {expression}
     </ai>`;
@@ -749,7 +749,7 @@ describe("Comments", () => {
 // as their content is intended to be a value only
 describe("Value based tags", () => {
   test("AIML tags inside prompt tags are treated as text", () => {
-    const source = "<prompt><ai attr='value'>Hello</ai></prompt>";
+    const source = "<prompt><llm attr='value'>Hello</ai></prompt>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -760,8 +760,22 @@ describe("Value based tags", () => {
     expect(result[0].children?.length).toBe(1);
     expect(result[0].children?.[0]?.type).toBe("Text");
     expect(result[0].children?.[0]?.content).toBe(
-      "<ai attr='value'>Hello</ai>"
+      "<llm attr='value'>Hello</ai>"
     );
+  });
+
+  test("content inside script tags are treated as text", () => {
+    const source = "<script>const code = 0 < 1;</script>";
+    const result = parseAIML(source);
+
+    expect(result).toBeDefined();
+    expect(result[0].type).toBe("AIMLElement");
+    expect(result[0].attributes?.[0]?.content).toBe("script");
+
+    // The content should be a single text node containing the raw AIML tag
+    expect(result[0].children?.length).toBe(1);
+    expect(result[0].children?.[0]?.type).toBe("Text");
+    expect(result[0].children?.[0]?.content).toBe("const code = 0 < 1;");
   });
 
   test("JSX expressions inside prompt tags are treated as text", () => {
@@ -782,7 +796,7 @@ describe("Value based tags", () => {
 
   test("Mixed syntax inside prompt tags is treated as text", () => {
     const source = `<prompt>
-<ai model="gpt-4">
+<llm model="gpt-4">
   Some text with {expressions}
   \`\`\`js
   const code = true;
@@ -798,7 +812,7 @@ describe("Value based tags", () => {
     // The content should be a single text node containing all the mixed syntax
     expect(result[0].children?.length).toBe(1);
     expect(result[0].children?.[0]?.type).toBe("Text");
-    expect(result[0].children?.[0]?.content).toContain('<ai model="gpt-4">');
+    expect(result[0].children?.[0]?.content).toContain('<llm model="gpt-4">');
     expect(result[0].children?.[0]?.content).toContain("{expressions}");
     expect(result[0].children?.[0]?.content).toContain("```js");
     expect(result[0].children?.[0]?.content).toContain("const code = true;");

@@ -50,7 +50,6 @@ export const createElementDefinition = <
     type,
     subType,
     validateProps: (props: Props) => {
-      console.log(`propsSchema--+: ${JSON.stringify(propsSchema)}`);
       const result = propsSchema.safeParse(props);
       if (!result.success) {
         throw new Error(

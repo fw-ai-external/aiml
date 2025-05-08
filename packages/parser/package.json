@@ -18,7 +18,7 @@
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint .",
-    "test": "bun test ./src/**/*.test.ts ./src/*.test.ts"
+    "test": "bun test **/*.test.ts"
   },
   "dependencies": {
     "@aiml/shared": "workspace:*",
