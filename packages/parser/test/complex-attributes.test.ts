@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { VFile } from "vfile";
-import { parseMDXFilesToAIML } from "../src";
+import { parseFilesToAIMLNodes } from "../src";
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -17,7 +17,7 @@ describe("Complex Attribute Expressions Integration Test", () => {
       value: mdxContent,
     });
 
-    const result = await parseMDXFilesToAIML([testFile], {
+    const result = await parseFilesToAIMLNodes([testFile], {
       filePath: "complex-attributes.mdx",
       files: [],
     });

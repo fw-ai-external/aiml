@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { VFile } from "vfile";
-import { parseMDXFilesToAIML } from "../../index";
+import { parseFilesToAIMLNodes } from "../../index";
 
 describe("If/Else Parsing", () => {
   it("should parse a workflow with nested if/else conditionals", async () => {
@@ -29,7 +29,7 @@ describe("If/Else Parsing", () => {
       console.log("Starting test for if/else workflow parsing...");
 
       // Parse the file
-      const result = await parseMDXFilesToAIML([testFile], {
+      const result = await parseFilesToAIMLNodes([testFile], {
         filePath: "if-else-workflow.aiml",
         preserveCustomTags: true,
       });

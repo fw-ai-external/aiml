@@ -27,7 +27,7 @@ export function parse(
       path: options.filePath || "index.aiml",
     }),
   ];
-  return parseMDXFilesToAIML(files, options);
+  return parseFilesToAIMLNodes(files, options);
 }
 
 /**
@@ -37,7 +37,7 @@ export function parse(
  * @param options Parsing options
  * @returns Parse result with nodes and diagnostics
  */
-export async function parseMDXFilesToAIML(
+export async function parseFilesToAIMLNodes(
   files: VFile[],
   options: MDXToAIMLOptions = {
     maxIterations: 10,
@@ -127,7 +127,7 @@ export async function parseMDXFilesToAIML(
       nodes: [],
       diagnostics: [
         {
-          message: `Error parsing multiple files: ${errorMessage}`,
+          message: `Error parsing AIML prompt: ${errorMessage}`,
           severity: DiagnosticSeverity.Error,
           code: "AIML005",
           source: "aiml-parser",

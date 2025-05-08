@@ -66,7 +66,7 @@ flowchart TD
     C --> |Intermediate Nodes| E[processFinalStructure]
     E --> |Final Structure| F[healFlowOrError]
     F --> |Healed Nodes| G[Final AIML Nodes]
-    H[VFile Array] --> I[parseMDXFilesToAIML]
+    H[VFile Array] --> I[parseFilesToAIMLNodes]
     I --> |Multiple Files| J[parse]
     J --> B
 
@@ -124,7 +124,7 @@ const result = await parse(mdxContent, {
 For multiple files with imports:
 
 ```typescript
-import { parseMDXFilesToAIML } from "@aiml/parser";
+import { parseFilesToAIMLNodes } from "@aiml/parser";
 
-const result = await parseMDXFilesToAIML(files);
+const result = await parseFilesToAIMLNodes(files);
 ```

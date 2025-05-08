@@ -307,7 +307,7 @@ export function astToElementTree(
 
     if (!nodeConfig) {
       diagnostics.add({
-        message: `No configuration found for element <${tagName}>.`,
+        message: `No configuration found for element <${tagName}>. Supported elements: ${JSON.stringify(Object.keys(allElementConfigs))}`,
         severity: DiagnosticSeverity.Error,
         code: "AIML016",
         source: "aiml-parser",
