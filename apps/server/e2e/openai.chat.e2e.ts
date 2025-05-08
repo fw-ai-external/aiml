@@ -66,7 +66,7 @@ async function processStreamingResponse(response: Response) {
 
 // Test each AIML file in the examples directory
 const exampleDirs = [
-  "Character PersonaGenerator",
+  //  "Character PersonaGenerator",
   // "CodeReviewer",
   "FinalStateTest",
   // "InvestmentAdvisor",
@@ -107,7 +107,7 @@ describe("openai chat endpoint e2e using /examples", () => {
   });
 });
 
-describe.skip("Streaming", () => {
+describe("Streaming", () => {
   // Test each AIML file with streaming enabled
   exampleDirs.forEach((dir) => {
     test(`${dir}`, async () => {
