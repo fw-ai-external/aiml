@@ -43,15 +43,15 @@ import TestingTools from "./testingtools.js"
     <data id="repositoryUrl" type="string">{ctx.workflowInput.repositoryUrl}</data>
     <data id="pullRequestId" type="string">{ctx.workflowInput.pullRequestId}</data>
     <data id="reviewDepth" type="string">{ctx.workflowInput.reviewDepth || "standard"}</data>
-    <data id="focusAreas" type="array">{ctx.workflowInput.focusAreas || []}</data>
+    <data id="focusAreas" type="json">{ctx.workflowInput.focusAreas || []}</data>
     <data id="codeFiles" type="json" value={{}} />
     <data id="diffStats" type="json" value={{}} />
-    <data id="securityFindings" type="array" value={[]} />
-    <data id="qualityIssues" type="array" value={[]} />
-    <data id="performanceIssues" type="array" value={[]} />
+    <data id="securityFindings" type="json" value={[]} />
+    <data id="qualityIssues" type="json" value={[]} />
+    <data id="performanceIssues" type="json" value={[]} />
     <data id="testCoverage" type="json" value={{}} />
     <data id="reviewSummary" type="string" value={""} />
-    <data id="recommendations" type="array" value={[]} />
+    <data id="recommendations" type="json" value={[]} />
     <data id="reviewComments" type="json" value={{}} />
   </datamodel>
 

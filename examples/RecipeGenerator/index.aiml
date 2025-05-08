@@ -21,7 +21,7 @@ inputSchema:
       type: string
       description: Preferred cuisine style
     cookingTime:
-      type: integer
+      type: number
       description: Maximum cooking time in minutes
 root: true
 ---
@@ -56,32 +56,32 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
 
 <workflow runInOrder={true}>
     <datamodel>
-    <data id="ingredients" type="array">{ctx => ctx.workflowInput.ingredients}</data>
-    <data id="dietaryRestrictions" type="array">{ctx => ctx.workflowInput.dietaryRestrictions || []}</data>
+    <data id="ingredients" type="json">{ctx => ctx.workflowInput.ingredients}</data>
+    <data id="dietaryRestrictions" type="json">{ctx => ctx.workflowInput.dietaryRestrictions || []}</data>
     <data id="mealType" type="string">{ctx => ctx.workflowInput.mealType}</data>
     <data id="cuisinePreference" type="string">{ctx => ctx.workflowInput.cuisinePreference || ""}</data>
-    <data id="cookingTime" type="integer">{ctx => ctx.workflowInput.cookingTime || 60}</data>
-    <data id="filteredIngredients" type="array" value={[]} />
+    <data id="cookingTime" type="number">{ctx => ctx.workflowInput.cookingTime || 60}</data>
+    <data id="filteredIngredients" type="json" value={[]} />
     <data id="recipeType" type="string" value={""} />
     <data id="recipeTitle" type="string" value={""} />
-    <data id="recipeIngredients" type="array" value={[]} schema={{
+    <data id="recipeIngredients" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
-    <data id="prepSteps" type="array" value={[]} schema={{
+    <data id="prepSteps" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
-    <data id="cookingSteps" type="array" value={[]} schema={{
+    <data id="cookingSteps" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
     <data id="totalTime" type="json" value={{}} />
-    <data id="tips" type="array" value={[]} schema={{
+    <data id="tips" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
-    <data id="variations" type="array" value={[]} schema={{
+    <data id="variations" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />

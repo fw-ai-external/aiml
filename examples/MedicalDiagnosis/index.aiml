@@ -9,10 +9,10 @@ inputSchema:
         type: string
       description: List of symptoms the patient is experiencing
     duration:
-      type: integer
+      type: number
       description: Duration of symptoms in days
     patientAge:
-      type: integer
+      type: number
       description: Age of the patient in years
     patientGender:
       type: string
@@ -42,14 +42,14 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
 
 <workflow initial="emergencyCheck">
   <datamodel>
-    <data id="symptoms" type="array" schema={{
+    <data id="symptoms" type="json" schema={{
         type: "array",
         items: { type: "string" }
     }}>{ctx => ctx.workflowInput.symptoms}</data>
-    <data id="duration" type="integer">{ctx => ctx.workflowInput.duration}</data>
-    <data id="patientAge" type="integer">{ctx => ctx.workflowInput.patientAge}</data>
+    <data id="duration" type="number">{ctx => ctx.workflowInput.duration}</data>
+    <data id="patientAge" type="number">{ctx => ctx.workflowInput.patientAge}</data>
     <data id="patientGender" type="string">{ctx => ctx.workflowInput.patientGender}</data>
-    <data id="medicalHistory" type="array" schema={{
+    <data id="medicalHistory" type="json" schema={{
         type: "array",
         items: { type: "string" }
     }}>{ctx => ctx.workflowInput.medicalHistory}</data>
@@ -68,7 +68,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
         },
         required: ["respiratory", "cardiovascular", "gastrointestinal", "neurological", "musculoskeletal", "dermatological", "general"]
     }} />
-    <data id="potentialDiagnoses" type="array" value={[]} schema={{
+    <data id="potentialDiagnoses" type="json" value={[]} schema={{
         type: "array",
         items: { type: "object", properties: {
           diagnosis: { type: "string" },
@@ -78,7 +78,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
         }
     }} />
     <data id="diagnosticReasoning" type="string" value={""} />
-    <data id="recommendations" type="array" value={[]} schema={{
+    <data id="recommendations" type="json" value={[]} schema={{
         type: "array",
         items: { type: "object", properties: {
           type: { type: "string" },

@@ -10,7 +10,7 @@ inputSchema:
       type: string
       description: Character archetype (e.g., hero, villain, mentor, sidekick)
     complexity:
-      type: integer
+      type: number
       minimum: 1
       maximum: 5
       default: 3
@@ -49,32 +49,32 @@ or developers can immediately use in their creative projects.
     <datamodel>
     <data id="genre" type="string">{ctx => ctx.workflowInput.genre}</data>
     <data id="archetype" type="string">{ctx => ctx.workflowInput.archetype}</data>
-    <data id="complexity" type="integer">{ctx => ctx.workflowInput.complexity || 3}</data>
+    <data id="complexity" type="number">{ctx => ctx.workflowInput.complexity || 3}</data>
     <data id="characterName" type="string" value={""} />
-    <data id="personalityTraits" type="array" value={[]} schema={{
+    <data id="personalityTraits" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
     <data id="backstory" type="string" value={""} />
     <data id="appearance" type="string" value={""} />
-    <data id="motivations" type="array" value={[]} schema={{
+    <data id="motivations" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
-    <data id="flaws" type="array" value={[]} schema={{
+    <data id="flaws" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
-    <data id="strengths" type="array" value={[]} schema={{
+    <data id="strengths" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
-    <data id="relationships" type="array" value={[]} schema={{
+    <data id="relationships" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
     <data id="characterVoice" type="string" value={""} />
-    <data id="plotHooks" type="array" value={[]} schema={{
+    <data id="plotHooks" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
