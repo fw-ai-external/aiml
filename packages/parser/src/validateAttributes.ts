@@ -3,7 +3,6 @@ import { DiagnosticSeverity, allElementConfigs } from "@aiml/shared";
 import { fromError } from "zod-validation-error";
 import { getPosition } from "./utils/helpers.js";
 import * as acorn from "acorn";
-import { extractTextFromNode } from "./utils/text-extraction.js";
 // @ts-expect-error no types
 import { Python3Parser } from "dt-python-parser";
 
@@ -71,7 +70,9 @@ export function validateAttributes(
   }
 
   if (normalizedTag === "script") {
-    const code = attributes.content || extractTextFromNode(node);
+    const code =
+      attributes.content ||
+      node.children?.map((child) => child.content).join("");
     const language = attributes.language || "javascript";
 
     if (!code) {

@@ -93,7 +93,7 @@ describe("openai chat endpoint e2e using /examples", () => {
         const body = await response.text();
         expect(
           response.status,
-          `Expected status code 200, but receved ${response.status} and a body of ${body}`
+          `For the example aiml found at "examples/${aimlPath}", the expected status code is 200, but receved ${response.status} and a body of ${body}`
         ).toBe(200);
 
         const data = JSON.parse(body);
@@ -124,10 +124,14 @@ describe("Streaming", () => {
         true
       );
 
-      expect(
-        response.status,
-        `Expected status code 200, but receved ${response.status}}`
-      ).toBe(200);
+      if (response.status !== 200) {
+        const body = await response.text();
+        expect(
+          response.status,
+          `For the example aiml found at "examples/${aimlPath}", the expected status code is 200, but receved ${response.status} and a body of ${body}`
+        ).toBe(200);
+      }
+
       expect(response.headers.get("content-type")).toContain(
         "text/event-stream"
       );

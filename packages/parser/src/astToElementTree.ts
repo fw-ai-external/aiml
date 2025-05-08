@@ -52,6 +52,7 @@ export function processAttributes(
         result[attr.name!] = true;
         continue;
       }
+
       switch (attr.contentType) {
         case "string":
           result[attr.name!] = attr.content;
@@ -64,20 +65,11 @@ export function processAttributes(
           result[attr.name!] = Boolean(attr.content);
           break;
         case "number":
-          result[attr.name!] = Number(attr.content);
+          result[attr.name!] = attr.content;
           break;
         case "object":
         case "array":
-          try {
-            result[attr.name!] = JSON.parse(attr.content as string);
-          } catch (e) {
-            console.error(
-              "Failed to parse JSON attribute content:",
-              attr.content,
-              e
-            );
-            result[attr.name!] = attr.content;
-          }
+          result[attr.name!] = attr.content;
           break;
         case "function":
           result[attr.name!] = `::FUNCTION::${attr.content}`;

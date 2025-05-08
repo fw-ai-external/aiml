@@ -128,8 +128,8 @@ describe("AIML elements", () => {
 
     expect(result).toBeDefined();
 
-    expect(result[0].attributes?.[1]?.content).toBe("123");
-    expect(result[0].attributes?.[1]?.contentType).toBe("expression");
+    expect(result[0].attributes?.[1]?.content).toBe(123);
+    expect(result[0].attributes?.[1]?.contentType).toBe("number");
   });
 
   test("parsing fat arrow functions", () => {
@@ -164,8 +164,8 @@ describe("AIML elements", () => {
 
     expect(result).toBeDefined();
 
-    expect(result[0].attributes?.[1]?.content).toBe("[1, 2, 3]");
-    expect(result[0].attributes?.[1]?.contentType).toBe("expression");
+    expect(result[0].attributes?.[1]?.content).toEqual([1, 2, 3]);
+    expect(result[0].attributes?.[1]?.contentType).toBe("array");
   });
 
   test("parsing expressions strings with a single quote as a string", () => {
@@ -211,7 +211,7 @@ describe("AIML elements", () => {
 
     expect(result).toBeDefined();
 
-    expect(result[0].attributes?.[1]?.content).toBe("{foo: 'bar'}");
+    expect(result[0].attributes?.[1]?.content).toEqual({ foo: "bar" });
     expect(result[0].attributes?.[1]?.contentType).toBe("expression");
   });
 
