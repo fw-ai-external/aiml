@@ -1,6 +1,6 @@
-import { safeParse } from "../src/safeParse";
 import { DiagnosticSeverity } from "@aiml/shared";
 import { describe, it, expect } from "bun:test";
+import { parse } from "../src";
 
 // Sample Complex AIML
 const originalAiml = `
@@ -178,15 +178,15 @@ Respond with an explanation of the error if the response is invalid or not allow
 `;
 
 describe("AIML Parser - Drive-Thru Example", () => {
-  it("should identify parsing issues in the original AIML", () => {
-    const { ast, diagnostics } = safeParse(originalAiml, {
+  it("should identify parsing issues in the original AIML", async () => {
+    const { nodes, diagnostics } = await parse(originalAiml, {
       filePath: "drive-thru.aiml.mdx",
       generateIds: true,
     });
 
     // Check that AST is generated
-    expect(ast).toBeDefined();
-    expect(ast.type).toBe("root");
+    expect(nodes).toBeDefined();
+    expect(nodes.length).toBeGreaterThan(0);
 
     // Log diagnostics for debugging
     console.log("Original AIML Diagnostics:", Array.from(diagnostics));

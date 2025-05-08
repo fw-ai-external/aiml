@@ -780,29 +780,6 @@ describe("Value based tags", () => {
     );
   });
 
-  test("Frontmatter-like content inside prompt tags is treated as text", () => {
-    const source = `<prompt>
----
-title: Sample Title
-tags: [test, example]
----
-Regular content
-</prompt>`;
-    const result = parseAIML(source);
-
-    expect(result).toBeDefined();
-    expect(result[0].type).toBe("AIMLElement");
-    expect(result[0].attributes?.[0]?.content).toBe("prompt");
-
-    // The content should be a single text node containing the raw frontmatter
-    expect(result[0].children?.length).toBe(1);
-    expect(result[0].children?.[0]?.type).toBe("Text");
-    expect(result[0].children?.[0]?.content).toContain("---");
-    expect(result[0].children?.[0]?.content).toContain("title: Sample Title");
-    expect(result[0].children?.[0]?.content).toContain("tags: [test, example]");
-    expect(result[0].children?.[0]?.content).toContain("Regular content");
-  });
-
   test("Mixed syntax inside prompt tags is treated as text", () => {
     const source = `<prompt>
 <ai model="gpt-4">

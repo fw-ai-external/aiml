@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { parseMDXToAIML } from "@aiml/parser";
+import { parse } from "@aiml/parser";
 import { Workflow, hydreateElementTree } from "@aiml/runtime";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -198,7 +198,7 @@ export async function POST(
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    const ast = await parseMDXToAIML(body.prompt);
+    const ast = await parse(body.prompt);
 
     const { elementTree, diagnostics } = hydreateElementTree(
       ast.nodes,

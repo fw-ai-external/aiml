@@ -11,7 +11,7 @@ inputSchema:
       enum: ["low", "medium", "high"]
       description: The risk tolerance of the investor
     timeHorizon:
-      type: integer
+      type: number
       description: Investment time horizon in years
     initialInvestment:
       type: number
@@ -40,7 +40,7 @@ individual steps without affecting the entire process.
   <datamodel>
     <data id="investmentGoal" type="string">{ctx => ctx.workflowInput.investmentGoal}</data>
     <data id="riskTolerance" type="string">{ctx => ctx.workflowInput.riskTolerance}</data>
-    <data id="timeHorizon" type="integer">{ctx => ctx.workflowInput.timeHorizon}</data>
+    <data id="timeHorizon" type="number">{ctx => ctx.workflowInput.timeHorizon}</data>
     <data id="initialInvestment" type="number">{ctx => ctx.workflowInput.initialInvestment}</data>
     <data id="profile" type="json" value={{}} />
     <data id="assetAllocation" type="json" value={{}} schema={{

@@ -115,7 +115,10 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[3]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly`
+      `The ${exampleDirs[3]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+        .filter((d) => d.severity === DiagnosticSeverity.Error)
+        .map((d) => d.message)
+        .join(", ")} errors`
     ).toHaveLength(0);
 
     expect(
@@ -138,7 +141,10 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[4]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly`
+      `The ${exampleDirs[4]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+        .filter((d) => d.severity === DiagnosticSeverity.Error)
+        .map((d) => d.message)
+        .join(", ")} errors`
     ).toHaveLength(0);
 
     expect(
@@ -161,7 +167,10 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[5]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly`
+      `The ${exampleDirs[5]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+        .filter((d) => d.severity === DiagnosticSeverity.Error)
+        .map((d) => d.message)
+        .join(", ")} errors`
     ).toHaveLength(0);
 
     // expect(
@@ -184,7 +193,10 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[6]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly`
+      `The ${exampleDirs[6]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+        .filter((d) => d.severity === DiagnosticSeverity.Error)
+        .map((d) => d.message)
+        .join(", ")} errors`
     ).toHaveLength(0);
 
     // expect(
@@ -207,7 +219,10 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[7]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly`
+      `The ${exampleDirs[7]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+        .filter((d) => d.severity === DiagnosticSeverity.Error)
+        .map((d) => d.message)
+        .join(", ")} errors`
     ).toHaveLength(0);
 
     expect(
@@ -230,7 +245,10 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[8]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly`
+      `The ${exampleDirs[8]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+        .filter((d) => d.severity === DiagnosticSeverity.Error)
+        .map((d) => d.message)
+        .join(", ")} errors`
     ).toHaveLength(0);
 
     expect(

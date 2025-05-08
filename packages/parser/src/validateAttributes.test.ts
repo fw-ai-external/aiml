@@ -222,7 +222,7 @@ describe("validateAttributes", () => {
 
   test("validates llm element with required model attribute", () => {
     const attributes = {
-      model: "accounts/fireworks/models/llama-v3-7b",
+      model: "accounts/fireworks/models/llama-v3p1-70b-instruct",
       instructions: "Some instructions",
     };
 

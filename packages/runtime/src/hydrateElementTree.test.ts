@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { parseMDXFilesToAIML, parseMDXToAIML } from "@aiml/parser";
+import { parseMDXFilesToAIML, parse } from "@aiml/parser";
 import type { SerializedBaseElement } from "@aiml/shared";
 import { VFile } from "vfile";
 import type { BaseElement } from "./elements";
@@ -88,7 +88,7 @@ describe("Healing parsed results", () => {
     Hi there!
     `;
 
-    const result = await parseMDXToAIML(input);
+    const result = await parse(input);
     const healed = hydreateElementTree(
       result.nodes,
       new Set(result.diagnostics)

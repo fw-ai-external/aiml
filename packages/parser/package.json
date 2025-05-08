@@ -13,8 +13,8 @@
     }
   },
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint .",
@@ -45,6 +45,8 @@
     "@swc/core": "^1.11.7",
     "@types/uuid": "^10.0.0",
     "@types/xml-formatter": "^2.1.1",
+    "rollup-plugin-string-import": "^1.2.5",
+    "tsdown": "^0.11.1",
     "typescript": "^5.3.3"
   }
 }

@@ -101,17 +101,19 @@ export function convertParagraphToLlmNode(
 ): SerializedBaseElement {
   let promptText = "";
 
-  // if (paragraphNode.children) {
-  //   for (const child of paragraphNode.children) {
-  //     if (child.astSourceType === "text") {
-  //       promptText += (child as import("@aiml/shared").TextNode).value;
-  //     } else if (child.astSourceType === "expression") {
-  //       promptText += `\${${(child as import("@aiml/shared").ExpressionNode).value}}`;
-  //     } else {
-  //       console.warn(`${child.astSourceType} - ${child.value}`);
-  //     }
-  //   }
-  // }
+  if (paragraphNode.children) {
+    for (const child of paragraphNode.children) {
+      if (child.astSourceType === "text") {
+        promptText += (child as import("@aiml/shared").TextNode).value;
+      } else if (child.astSourceType === "expression") {
+        promptText += `\${${(child as import("@aiml/shared").ExpressionNode).value}}`;
+      } else {
+        console.warn(`${child.astSourceType} - ${child.value}`);
+      }
+    }
+  } else {
+    promptText = paragraphNode.value as string;
+  }
 
   return {
     astSourceType: "element",
@@ -122,7 +124,7 @@ export function convertParagraphToLlmNode(
     scope,
     attributes: {
       prompt: "${input}",
-      instructions: paragraphNode.value,
+      instructions: promptText,
       model: "accounts/fireworks/models/llama-v3p1-8b-instruct",
     },
     children: [],
@@ -301,6 +303,7 @@ export function astToElementTree(
         end: { line: lineEnd, column: columnEnd },
       },
     };
+
     validateAttributes(
       mockNodeForValidation as any,
       processedAttributes,

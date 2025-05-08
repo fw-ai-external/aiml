@@ -3,7 +3,7 @@ Try and decide based on the user's input if they love football or basketball.
 If you cant decide, Just say you love them anyway
 
 <state id="Option_1" description="This is option 1, pick it if you love football">
-    <llm>
+    <llm model="accounts/fireworks/models/llama-v3p1-70b-instruct">
         <prompt>
             Say FOOOOOOOTBALLLLLLL!!!!
         </prompt>
@@ -12,7 +12,7 @@ If you cant decide, Just say you love them anyway
 </state>
 
 <state id="Option_2" description="This is option 2, pick it if you love basketball">
-    <llm>
+    <llm model="accounts/fireworks/models/llama-v3p1-70b-instruct">
         <prompt>
             Say BASKETBALLLLLLLL!!!!
         </prompt>

@@ -7,9 +7,6 @@ describe("healFlowOrError Phase Tests", () => {
     if (!element) return;
 
     const spacing = " ".repeat(indent * 2);
-    console.log(
-      `${spacing}${element.tag || element.type} ${element.attributes?.id || ""}`
-    );
 
     if (element.children) {
       for (const child of element.children) {
@@ -30,7 +27,7 @@ describe("healFlowOrError Phase Tests", () => {
     `;
 
     const result = await parse(input);
-    console.log(result);
+
     expect(result.nodes).toBeArrayOfSize(1);
 
     const workflow = result.nodes[0];

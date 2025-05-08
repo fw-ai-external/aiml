@@ -14,7 +14,7 @@
       "outputs": ["dist/**"]
     },
     "@aiml/parser#build": {
-      "dependsOn": ["^@aiml/shared#build", "^unified-aiml#build"],
+      "dependsOn": ["^@aiml/shared#build"],
       "outputs": ["dist/**"]
     },
 
@@ -48,7 +48,7 @@
       "outputs": ["dist/**"]
     },
     "@aiml/parser#typecheck": {
-      "dependsOn": ["^@aiml/shared#build", "^unified-aiml#build"],
+      "dependsOn": ["^@aiml/shared#build"],
       "outputs": ["dist/**"]
     },
     "server#typecheck": {

@@ -1,5 +1,721 @@
 // Bun Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`All AIML examples for docs Ensure FinalStateTest is parsed correctly 1`] = `
+[
+  {
+    "astSourceType": "element",
+    "attributes": {
+      "description": "Tests that the final state is always present and leaf nodes transition to it",
+      "id": "main",
+      "name": "FinalStateTest",
+    },
+    "children": [
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "start",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "model": "accounts/fireworks/models/llama-v3p1-70b-instruct",
+            },
+            "children": [
+              {
+                "astSourceType": "element",
+                "attributes": {},
+                "children": [
+                  {
+                    "astSourceType": "text",
+                    "columnEnd": 311,
+                    "columnStart": 175,
+                    "key": "aiml-4",
+                    "lineEnd": 2,
+                    "lineStart": 2,
+                    "scope": [
+                      "root",
+                      "start",
+                    ],
+                    "value": 
+"This is the start state. It should automatically transition to the final state
+        because it doesn't have any explicit transitions."
+,
+                  },
+                ],
+                "columnEnd": 252,
+                "columnStart": 83,
+                "key": "aiml-5",
+                "lineEnd": 4,
+                "lineStart": 4,
+                "scope": [
+                  "root",
+                  "start",
+                ],
+                "subType": undefined,
+                "tag": "prompt",
+                "type": "param",
+              },
+            ],
+            "columnEnd": 177,
+            "columnStart": 1,
+            "key": "aiml-6",
+            "lineEnd": 6,
+            "lineStart": 4,
+            "scope": [
+              "root",
+              "start",
+            ],
+            "subType": "model",
+            "tag": "llm",
+            "type": "action",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "another_state",
+            },
+            "children": [],
+            "columnEnd": 154,
+            "columnStart": 42,
+            "key": "aiml-20",
+            "lineEnd": 8,
+            "lineStart": 4,
+            "parentId": "start",
+            "scope": [
+              "root",
+            ],
+            "subType": "action",
+            "tag": "transition",
+            "type": "action",
+          },
+        ],
+        "columnEnd": 154,
+        "columnStart": 42,
+        "key": "aiml-7",
+        "lineEnd": 8,
+        "lineStart": 4,
+        "scope": [
+          "root",
+        ],
+        "subType": "other",
+        "tag": "state",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "another_state",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "model": "accounts/fireworks/models/llama-v3p1-70b-instruct",
+            },
+            "children": [
+              {
+                "astSourceType": "element",
+                "attributes": {},
+                "children": [
+                  {
+                    "astSourceType": "text",
+                    "columnEnd": 590,
+                    "columnStart": 482,
+                    "key": "aiml-8",
+                    "lineEnd": 2,
+                    "lineStart": 2,
+                    "scope": [
+                      "root",
+                      "another_state",
+                    ],
+                    "value": 
+"This state has an explicit transition so it should not automatically 
+        transition to the final state."
+,
+                  },
+                ],
+                "columnEnd": 550,
+                "columnStart": 409,
+                "key": "aiml-9",
+                "lineEnd": 4,
+                "lineStart": 4,
+                "scope": [
+                  "root",
+                  "another_state",
+                ],
+                "subType": undefined,
+                "tag": "prompt",
+                "type": "param",
+              },
+            ],
+            "columnEnd": 475,
+            "columnStart": 253,
+            "key": "aiml-10",
+            "lineEnd": 6,
+            "lineStart": 6,
+            "scope": [
+              "root",
+              "another_state",
+            ],
+            "subType": "model",
+            "tag": "llm",
+            "type": "action",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "third_state",
+            },
+            "children": [],
+            "columnEnd": 727,
+            "columnStart": 692,
+            "key": "aiml-11",
+            "lineEnd": 1,
+            "lineStart": 1,
+            "scope": [
+              "root",
+              "another_state",
+            ],
+            "subType": "transition",
+            "tag": "transition",
+            "type": "action",
+          },
+        ],
+        "columnEnd": 444,
+        "columnStart": 140,
+        "key": "aiml-12",
+        "lineEnd": 9,
+        "lineStart": 9,
+        "scope": [
+          "root",
+        ],
+        "subType": "other",
+        "tag": "state",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "third_state",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "model": "accounts/fireworks/models/llama-v3p1-70b-instruct",
+            },
+            "children": [
+              {
+                "astSourceType": "element",
+                "attributes": {},
+                "children": [
+                  {
+                    "astSourceType": "text",
+                    "columnEnd": 912,
+                    "columnStart": 799,
+                    "key": "aiml-13",
+                    "lineEnd": 2,
+                    "lineStart": 2,
+                    "scope": [
+                      "root",
+                      "third_state",
+                    ],
+                    "value": 
+"This is the third state. It's also a leaf node, so it should
+        automatically transition to the final state."
+,
+                  },
+                ],
+                "columnEnd": 858,
+                "columnStart": 712,
+                "key": "aiml-14",
+                "lineEnd": 4,
+                "lineStart": 4,
+                "scope": [
+                  "root",
+                  "third_state",
+                ],
+                "subType": undefined,
+                "tag": "prompt",
+                "type": "param",
+              },
+            ],
+            "columnEnd": 783,
+            "columnStart": 556,
+            "key": "aiml-15",
+            "lineEnd": 6,
+            "lineStart": 6,
+            "scope": [
+              "root",
+              "third_state",
+            ],
+            "subType": "model",
+            "tag": "llm",
+            "type": "action",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "final",
+            },
+            "children": [],
+            "columnEnd": 754,
+            "columnStart": 487,
+            "key": "aiml-21",
+            "lineEnd": 8,
+            "lineStart": 8,
+            "parentId": "third_state",
+            "scope": [
+              "root",
+            ],
+            "subType": "action",
+            "tag": "transition",
+            "type": "action",
+          },
+        ],
+        "columnEnd": 754,
+        "columnStart": 487,
+        "key": "aiml-16",
+        "lineEnd": 8,
+        "lineStart": 8,
+        "scope": [
+          "root",
+        ],
+        "subType": "other",
+        "tag": "state",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "final",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "final",
+            },
+            "children": [],
+            "columnEnd": 132,
+            "columnStart": 11,
+            "key": "aiml-22",
+            "lineEnd": 31,
+            "lineStart": 4,
+            "parentId": "final",
+            "scope": [
+              "root",
+              "final",
+            ],
+            "subType": "action",
+            "tag": "transition",
+            "type": "state",
+          },
+        ],
+        "columnEnd": 132,
+        "columnStart": 11,
+        "key": "aiml-18",
+        "lineEnd": 31,
+        "lineStart": 4,
+        "parentId": undefined,
+        "scope": [
+          "root",
+          "final",
+        ],
+        "subType": "output",
+        "tag": "final",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "error",
+        },
+        "children": [],
+        "columnEnd": 132,
+        "columnStart": 11,
+        "key": "aiml-19",
+        "lineEnd": 31,
+        "lineStart": 4,
+        "parentId": "main",
+        "scope": [
+          "root",
+          "error",
+        ],
+        "subType": "state",
+        "tag": "state",
+        "type": "state",
+      },
+    ],
+    "columnEnd": 132,
+    "columnStart": 11,
+    "key": "aiml-17",
+    "lineEnd": 31,
+    "lineStart": 4,
+    "scope": [
+      "root",
+    ],
+    "subType": "user-input",
+    "tag": "workflow",
+    "type": "state",
+  },
+]
+`;
+
+exports[`All AIML examples for docs Ensure InvestmentAdvisor is parsed correctly 1`] = `
+[
+  {
+    "astSourceType": "element",
+    "attributes": {
+      "initial": "profileAssessment",
+      "inputSchema": "{"type":"object","properties":{"investmentGoal":{"type":"string","description":"The financial goal of the investment"},"riskTolerance":{"type":"string","enum":["low","medium","high"],"description":"The risk tolerance of the investor"},"timeHorizon":{"type":"number","description":"Investment time horizon in years"},"initialInvestment":{"type":"number","description":"Initial investment amount in USD"}}}",
+      "name": "InvestmentAdvisor",
+      "root": "true",
+    },
+    "children": [
+      {
+        "astSourceType": "element",
+        "attributes": {},
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "id": "investmentGoal",
+              "type": "string",
+            },
+            "children": [
+              {
+                "astSourceType": "expression",
+                "columnEnd": 1566,
+                "columnStart": 1525,
+                "key": "aiml-32",
+                "lineEnd": 1,
+                "lineStart": 1,
+                "scope": [
+                  "root",
+                ],
+                "value": "{ctx => ctx.workflowInput.investmentGoal}",
+              },
+            ],
+            "columnEnd": 1573,
+            "columnStart": 1485,
+            "key": "aiml-33",
+            "lineEnd": 1,
+            "lineStart": 1,
+            "scope": [
+              "root",
+            ],
+            "subType": "datamodel",
+            "tag": "data",
+            "type": "param",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "id": "riskTolerance",
+              "type": "string",
+            },
+            "children": [
+              {
+                "astSourceType": "expression",
+                "columnEnd": 1657,
+                "columnStart": 1617,
+                "key": "aiml-34",
+                "lineEnd": 1,
+                "lineStart": 1,
+                "scope": [
+                  "root",
+                ],
+                "value": "{ctx => ctx.workflowInput.riskTolerance}",
+              },
+            ],
+            "columnEnd": 1664,
+            "columnStart": 1578,
+            "key": "aiml-35",
+            "lineEnd": 1,
+            "lineStart": 1,
+            "scope": [
+              "root",
+            ],
+            "subType": "datamodel",
+            "tag": "data",
+            "type": "param",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "id": "timeHorizon",
+              "type": "number",
+            },
+            "children": [
+              {
+                "astSourceType": "expression",
+                "columnEnd": 1744,
+                "columnStart": 1706,
+                "key": "aiml-36",
+                "lineEnd": 1,
+                "lineStart": 1,
+                "scope": [
+                  "root",
+                ],
+                "value": "{ctx => ctx.workflowInput.timeHorizon}",
+              },
+            ],
+            "columnEnd": 1751,
+            "columnStart": 1669,
+            "key": "aiml-37",
+            "lineEnd": 1,
+            "lineStart": 1,
+            "scope": [
+              "root",
+            ],
+            "subType": "datamodel",
+            "tag": "data",
+            "type": "param",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "id": "initialInvestment",
+              "type": "number",
+            },
+            "children": [
+              {
+                "astSourceType": "expression",
+                "columnEnd": 1843,
+                "columnStart": 1799,
+                "key": "aiml-38",
+                "lineEnd": 1,
+                "lineStart": 1,
+                "scope": [
+                  "root",
+                ],
+                "value": "{ctx => ctx.workflowInput.initialInvestment}",
+              },
+            ],
+            "columnEnd": 1850,
+            "columnStart": 1756,
+            "key": "aiml-39",
+            "lineEnd": 1,
+            "lineStart": 1,
+            "scope": [
+              "root",
+            ],
+            "subType": "datamodel",
+            "tag": "data",
+            "type": "param",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "id": "profile",
+              "type": "json",
+              "value": "::FUNCTION-EXPRESSION::(context) => { const ctx = context; return {}}",
+            },
+            "children": [],
+            "columnEnd": 1899,
+            "columnStart": 1855,
+            "key": "aiml-40",
+            "lineEnd": 1,
+            "lineStart": 1,
+            "scope": [
+              "root",
+            ],
+            "subType": "datamodel",
+            "tag": "data",
+            "type": "param",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "id": "assetAllocation",
+              "schema": 
+"::FUNCTION-EXPRESSION::(context) => { const ctx = context; return {
+      type: "object",
+      properties: {
+        stocks: { type: "number" },
+        bonds: { type: "number" },
+        cash: { type: "number" }
+      },
+      required: ["stocks", "bonds", "cash"]
+    }}"
+,
+              "type": "json",
+              "value": "::FUNCTION-EXPRESSION::(context) => { const ctx = context; return {}}",
+            },
+            "children": [],
+            "columnEnd": 1913,
+            "columnStart": 1645,
+            "key": "aiml-41",
+            "lineEnd": 9,
+            "lineStart": 9,
+            "scope": [
+              "root",
+            ],
+            "subType": "datamodel",
+            "tag": "data",
+            "type": "param",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "id": "portfolioRecommendation",
+              "schema": 
+"::FUNCTION-EXPRESSION::(context) => { const ctx = context; return {
+      type: "object",
+      properties: {
+        stocks: { type: "number" },
+        bonds: { type: "number" },
+        cash: { type: "number" }
+      },
+      required: ["stocks", "bonds", "cash"]
+    }}"
+,
+              "type": "json",
+              "value": "::FUNCTION-EXPRESSION::(context) => { const ctx = context; return {}}",
+            },
+            "children": [],
+            "columnEnd": 2186,
+            "columnStart": 1910,
+            "key": "aiml-42",
+            "lineEnd": 9,
+            "lineStart": 9,
+            "scope": [
+              "root",
+            ],
+            "subType": "datamodel",
+            "tag": "data",
+            "type": "param",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "id": "marketAnalysis",
+              "type": "string",
+              "value": true,
+            },
+            "children": [],
+            "columnEnd": 2511,
+            "columnStart": 2458,
+            "key": "aiml-43",
+            "lineEnd": 1,
+            "lineStart": 1,
+            "scope": [
+              "root",
+            ],
+            "subType": "datamodel",
+            "tag": "data",
+            "type": "param",
+          },
+        ],
+        "columnEnd": 1483,
+        "columnStart": 426,
+        "key": "aiml-44",
+        "lineEnd": 26,
+        "lineStart": 26,
+        "scope": [
+          "root",
+        ],
+        "subType": "datamodel",
+        "tag": "datamodel",
+        "type": "param",
+      },
+      {
+        "astSourceType": "text",
+        "columnEnd": 2557,
+        "columnStart": 2435,
+        "key": "aiml-45",
+        "lineEnd": 5,
+        "lineStart": 5,
+        "scope": [
+          "root",
+        ],
+        "value": 
+"<ProfileAssessment />
+  <MarketAnalysis />
+  <AssetAllocation />
+  <PortfolioRecommendation />
+  <PresentRecommendation />"
+,
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "final",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "final",
+            },
+            "children": [],
+            "columnEnd": 1439,
+            "columnStart": 203,
+            "key": "aiml-49",
+            "lineEnd": 34,
+            "lineStart": 34,
+            "parentId": "final",
+            "scope": [
+              "root",
+              "final",
+            ],
+            "subType": "action",
+            "tag": "transition",
+            "type": "state",
+          },
+        ],
+        "columnEnd": 1439,
+        "columnStart": 203,
+        "key": "aiml-47",
+        "lineEnd": 34,
+        "lineStart": 34,
+        "parentId": undefined,
+        "scope": [
+          "root",
+          "final",
+        ],
+        "subType": "output",
+        "tag": "final",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "error",
+        },
+        "children": [],
+        "columnEnd": 1439,
+        "columnStart": 203,
+        "key": "aiml-48",
+        "lineEnd": 34,
+        "lineStart": 34,
+        "parentId": undefined,
+        "scope": [
+          "root",
+          "error",
+        ],
+        "subType": "state",
+        "tag": "state",
+        "type": "state",
+      },
+    ],
+    "columnEnd": 1439,
+    "columnStart": 203,
+    "key": "aiml-46",
+    "lineEnd": 34,
+    "lineStart": 34,
+    "scope": [
+      "root",
+    ],
+    "subType": "user-input",
+    "tag": "workflow",
+    "type": "state",
+  },
+]
+`;
+
 exports[`All AIML examples for docs Ensure JustPrompt is parsed correctly 1`] = `
 [
   {
@@ -431,6 +1147,372 @@ Wrap your thoughts in"
     "columnEnd": 1,
     "columnStart": 1,
     "key": "aiml-68",
+    "lineEnd": 1,
+    "lineStart": 1,
+    "scope": [
+      "root",
+    ],
+    "subType": "human-input",
+    "tag": "workflow",
+    "type": "state",
+  },
+]
+`;
+
+exports[`All AIML examples for docs Ensure SimpleRouter is parsed correctly 1`] = `
+[
+  {
+    "astSourceType": "element",
+    "attributes": {
+      "id": "workflow-root",
+      "initial": "root-state-0",
+    },
+    "children": [
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "final",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "root-state-0",
+            },
+            "children": [],
+            "columnEnd": 1,
+            "columnStart": 1,
+            "key": "aiml-93",
+            "lineEnd": 1,
+            "lineStart": 1,
+            "parentId": "final",
+            "scope": [
+              "root",
+              "final",
+            ],
+            "subType": "action",
+            "tag": "transition",
+            "type": "action",
+          },
+        ],
+        "columnEnd": 1,
+        "columnStart": 1,
+        "key": "aiml-89",
+        "lineEnd": 1,
+        "lineStart": 1,
+        "parentId": undefined,
+        "scope": [
+          "root",
+          "final",
+        ],
+        "subType": "output",
+        "tag": "final",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "root-state-0",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "instructions": 
+"You are a helpful assistant that can answer questions and help with tasks.
+Try and decide based on the user's input if they love football or basketball.
+If you cant decide, Just say you love them anyway"
+,
+              "model": "accounts/fireworks/models/llama-v3p1-8b-instruct",
+              "prompt": "\${input}",
+            },
+            "children": [],
+            "columnEnd": 50,
+            "columnStart": 1,
+            "key": "aiml-90",
+            "lineEnd": 3,
+            "lineStart": 1,
+            "parentId": undefined,
+            "scope": [
+              "root",
+              "root-state-0",
+            ],
+            "subType": "model",
+            "tag": "llm",
+            "type": "action",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "Option_1",
+            },
+            "children": [],
+            "columnEnd": 50,
+            "columnStart": 1,
+            "key": "aiml-94",
+            "lineEnd": 3,
+            "lineStart": 1,
+            "parentId": "root-state-0",
+            "scope": [
+              "root",
+              "root-state-0",
+            ],
+            "subType": "action",
+            "tag": "transition",
+            "type": "action",
+          },
+        ],
+        "columnEnd": 50,
+        "columnStart": 1,
+        "key": "aiml-91",
+        "lineEnd": 3,
+        "lineStart": 1,
+        "parentId": undefined,
+        "scope": [
+          "root",
+          "root-state-0",
+        ],
+        "subType": "state",
+        "tag": "state",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "description": "This is option 1, pick it if you love football",
+          "id": "Option_1",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "model": "accounts/fireworks/models/llama-v3p1-70b-instruct",
+            },
+            "children": [
+              {
+                "astSourceType": "element",
+                "attributes": {},
+                "children": [
+                  {
+                    "astSourceType": "text",
+                    "columnEnd": 411,
+                    "columnStart": 385,
+                    "key": "aiml-77",
+                    "lineEnd": 1,
+                    "lineStart": 1,
+                    "scope": [
+                      "Option_1",
+                    ],
+                    "value": "Say FOOOOOOOTBALLLLLLL!!!!",
+                  },
+                ],
+                "columnEnd": 381,
+                "columnStart": 316,
+                "key": "aiml-78",
+                "lineEnd": 3,
+                "lineStart": 3,
+                "scope": [
+                  "Option_1",
+                ],
+                "subType": undefined,
+                "tag": "prompt",
+                "type": "param",
+              },
+            ],
+            "columnEnd": 302,
+            "columnStart": 154,
+            "key": "aiml-79",
+            "lineEnd": 5,
+            "lineStart": 5,
+            "scope": [
+              "Option_1",
+            ],
+            "subType": "model",
+            "tag": "llm",
+            "type": "action",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "end",
+            },
+            "children": [],
+            "columnEnd": 472,
+            "columnStart": 445,
+            "key": "aiml-80",
+            "lineEnd": 1,
+            "lineStart": 1,
+            "scope": [
+              "Option_1",
+            ],
+            "subType": "transition",
+            "tag": "transition",
+            "type": "action",
+          },
+        ],
+        "columnEnd": 213,
+        "columnStart": 37,
+        "key": "aiml-81",
+        "lineEnd": 8,
+        "lineStart": 4,
+        "parentId": undefined,
+        "scope": [
+          "root",
+        ],
+        "subType": "other",
+        "tag": "state",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "description": "This is option 2, pick it if you love basketball",
+          "id": "Option_2",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "model": "accounts/fireworks/models/llama-v3p1-70b-instruct",
+            },
+            "children": [
+              {
+                "astSourceType": "element",
+                "attributes": {},
+                "children": [
+                  {
+                    "astSourceType": "text",
+                    "columnEnd": 689,
+                    "columnStart": 665,
+                    "key": "aiml-82",
+                    "lineEnd": 1,
+                    "lineStart": 1,
+                    "scope": [
+                      "Option_2",
+                    ],
+                    "value": "Say BASKETBALLLLLLLL!!!!",
+                  },
+                ],
+                "columnEnd": 661,
+                "columnStart": 598,
+                "key": "aiml-83",
+                "lineEnd": 3,
+                "lineStart": 3,
+                "scope": [
+                  "Option_2",
+                ],
+                "subType": undefined,
+                "tag": "prompt",
+                "type": "param",
+              },
+            ],
+            "columnEnd": 582,
+            "columnStart": 436,
+            "key": "aiml-84",
+            "lineEnd": 5,
+            "lineStart": 5,
+            "scope": [
+              "Option_2",
+            ],
+            "subType": "model",
+            "tag": "llm",
+            "type": "action",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "end",
+            },
+            "children": [],
+            "columnEnd": 750,
+            "columnStart": 723,
+            "key": "aiml-85",
+            "lineEnd": 1,
+            "lineStart": 1,
+            "scope": [
+              "Option_2",
+            ],
+            "subType": "transition",
+            "tag": "transition",
+            "type": "action",
+          },
+        ],
+        "columnEnd": 491,
+        "columnStart": 215,
+        "key": "aiml-86",
+        "lineEnd": 8,
+        "lineStart": 8,
+        "parentId": undefined,
+        "scope": [
+          "root",
+        ],
+        "subType": "other",
+        "tag": "state",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "end",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "final",
+            },
+            "children": [],
+            "columnEnd": 779,
+            "columnStart": 761,
+            "key": "aiml-95",
+            "lineEnd": 1,
+            "lineStart": 1,
+            "parentId": "end",
+            "scope": [
+              "root",
+            ],
+            "subType": "action",
+            "tag": "transition",
+            "type": "state",
+          },
+        ],
+        "columnEnd": 779,
+        "columnStart": 761,
+        "key": "aiml-87",
+        "lineEnd": 1,
+        "lineStart": 1,
+        "parentId": undefined,
+        "scope": [
+          "root",
+        ],
+        "subType": "output",
+        "tag": "final",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "error",
+        },
+        "children": [],
+        "columnEnd": 1,
+        "columnStart": 1,
+        "key": "aiml-92",
+        "lineEnd": 1,
+        "lineStart": 1,
+        "parentId": "workflow-root",
+        "scope": [
+          "root",
+          "error",
+        ],
+        "subType": "state",
+        "tag": "state",
+        "type": "state",
+      },
+    ],
+    "columnEnd": 1,
+    "columnStart": 1,
+    "key": "aiml-88",
     "lineEnd": 1,
     "lineStart": 1,
     "scope": [
