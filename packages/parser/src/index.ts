@@ -91,9 +91,6 @@ export async function parseMDXFilesToAIML(
       datamodel,
     } = transformToAIMLNodes(ast, options);
 
-    console.log("intermediateNodes", intermediateNodes);
-    console.log("transformDiagnostics", transformDiagnostics);
-
     if (intermediateNodes.length === 0) {
       return {
         nodes: [],

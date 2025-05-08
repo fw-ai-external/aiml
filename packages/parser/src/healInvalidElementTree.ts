@@ -30,7 +30,7 @@ export function healInvalidElementTree(
       rootLevelNodes.push(node);
     } else if (node.astSourceType === "comment") {
       comments.push(node as CommentNode);
-    } else if (node.astSourceType === "paragraph") {
+    } else if (node.astSourceType === "text") {
       rootLevelParagraphs.push(node);
     } else if (node.tag === "workflow") {
       workflowNode = node;

@@ -245,7 +245,7 @@ export function parseAIML(sourceString: string): AIMLASTNode[] {
         semicolon
       ) {
         const sourcePos = getNodePosition(this);
-        console.log(sourcePos);
+
         return ImportNode(
           importVariable.sourceString,
           moduleName.sourceString,

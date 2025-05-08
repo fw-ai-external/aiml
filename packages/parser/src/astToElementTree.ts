@@ -101,15 +101,17 @@ export function convertParagraphToLlmNode(
 ): SerializedBaseElement {
   let promptText = "";
 
-  if (paragraphNode.children) {
-    for (const child of paragraphNode.children) {
-      if (child.astSourceType === "text") {
-        promptText += (child as import("@aiml/shared").TextNode).value;
-      } else if (child.astSourceType === "expression") {
-        promptText += `\${${(child as import("@aiml/shared").ExpressionNode).value}}`;
-      }
-    }
-  }
+  // if (paragraphNode.children) {
+  //   for (const child of paragraphNode.children) {
+  //     if (child.astSourceType === "text") {
+  //       promptText += (child as import("@aiml/shared").TextNode).value;
+  //     } else if (child.astSourceType === "expression") {
+  //       promptText += `\${${(child as import("@aiml/shared").ExpressionNode).value}}`;
+  //     } else {
+  //       console.warn(`${child.astSourceType} - ${child.value}`);
+  //     }
+  //   }
+  // }
 
   return {
     astSourceType: "element",
@@ -120,7 +122,7 @@ export function convertParagraphToLlmNode(
     scope,
     attributes: {
       prompt: "${input}",
-      instructions: promptText,
+      instructions: paragraphNode.value,
       model: "accounts/fireworks/models/llama-v3p1-8b-instruct",
     },
     children: [],

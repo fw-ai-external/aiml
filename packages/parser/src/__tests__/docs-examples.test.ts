@@ -89,7 +89,10 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[2]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly`
+      `The ${exampleDirs[2]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+        .filter((d) => d.severity === DiagnosticSeverity.Error)
+        .map((d) => d.message)
+        .join(", ")} errors`
     ).toHaveLength(0);
 
     expect(
