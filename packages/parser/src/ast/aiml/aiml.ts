@@ -133,6 +133,7 @@ const PropNode = (
       ) {
         // For cases like attr={'Hello'} which should result in content="Hello" (string type)
         finalContent = exprContent.slice(1, -1);
+        finalContentType = "string";
       }
       // Check if content is a numeric literal
       else if (/^-?\d+(\.\d+)?$/.test(exprContent)) {

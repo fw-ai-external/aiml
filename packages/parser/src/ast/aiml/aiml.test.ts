@@ -212,7 +212,7 @@ describe("AIML elements", () => {
     expect(result).toBeDefined();
 
     expect(result[0].attributes?.[1]?.content).toEqual({ foo: "bar" });
-    expect(result[0].attributes?.[1]?.contentType).toBe("expression");
+    expect(result[0].attributes?.[1]?.contentType).toBe("object");
   });
 
   test("parsing variables in expressions", () => {
