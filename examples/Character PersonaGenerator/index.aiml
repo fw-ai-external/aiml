@@ -95,7 +95,7 @@ or developers can immediately use in their creative projects.
 
         </llm>
         <assign location="characterName" value={(ctx) => ctx.lastElement.output.trim()} />
-        <log value={(ctx) => 'Generated character name: ' + ctx.datamodel.characterName} />
+        <log expr={(ctx) => 'Generated character name: ' + ctx.datamodel.characterName} />
     </state>
 
     <state id="definePersonality" description="Define the character's personality traits">
@@ -152,7 +152,7 @@ or developers can immediately use in their creative projects.
         ctx.datamodel.personalityTraits = selectedTraits;
 
         `}</script>
-        <log value={(ctx) => 'Defined ' + ctx.datamodel.personalityTraits.length + ' personality traits'} />
+        <log expr={(ctx) => 'Defined ' + ctx.datamodel.personalityTraits.length + ' personality traits'} />
     </state>
 
     <state id="createBackstory" description="Create a backstory that explains the character's development">
@@ -207,7 +207,7 @@ or developers can immediately use in their creative projects.
 
         </llm>
         <assign location="backstory" value={(ctx) => ctx.lastElement.output.trim()} />
-        <log value={(ctx) => 'Created backstory of ' + ctx.datamodel.backstory.split(' ').length + ' words'} />
+        <log expr={(ctx) => 'Created backstory of ' + ctx.datamodel.backstory.split(' ').length + ' words'} />
     </state>
 
     <state id="describeAppearance" description="Describe the character's physical appearance">
@@ -232,7 +232,7 @@ or developers can immediately use in their creative projects.
 
         </llm>
         <assign location="appearance" value={(ctx) => ctx.lastElement.output.trim()} />
-        <log value={(ctx) => 'Created appearance description of ' + ctx.datamodel.appearance.split(' ').length + ' words'} />
+        <log expr={(ctx) => 'Created appearance description of ' + ctx.datamodel.appearance.split(' ').length + ' words'} />
     </state>
 
     <state id="defineMotivationsAndTraits" description="Define the character's motivations, flaws, and strengths">
@@ -275,7 +275,7 @@ or developers can immediately use in their creative projects.
             ctx.datamodel.strengths = ["Resourceful", "Determined"];
         }
         `}</script>
-        <log value={(ctx) => 'Defined ' + ctx.datamodel.motivations.length + ' motivations, ' + 
+        <log expr={(ctx) => 'Defined ' + ctx.datamodel.motivations.length + ' motivations, ' + 
                     ctx.datamodel.flaws.length + ' flaws, and ' + 
                     ctx.datamodel.strengths.length + ' strengths'} />
     </state>
@@ -328,7 +328,7 @@ or developers can immediately use in their creative projects.
             ];
         }
         `}</script>
-        <log value={(ctx) => 'Created ' + ctx.datamodel.relationships.length + ' character relationships'} />
+        <log expr={(ctx) => 'Created ' + ctx.datamodel.relationships.length + ' character relationships'} />
     </state>
 
     <state id="developCharacterVoice" description="Develop a distinctive voice with speech patterns">
@@ -360,7 +360,7 @@ or developers can immediately use in their creative projects.
 
         </llm>
         <assign location="characterVoice" value={(ctx) => ctx.lastElement.output.trim()} />
-        <log value={(ctx) => 'Developed character voice description of ' + ctx.datamodel.characterVoice.split(' ').length + ' words'} />
+        <log expr={(ctx) => 'Developed character voice description of ' + ctx.datamodel.characterVoice.split(' ').length + ' words'} />
     </state>
 
     <state id="generatePlotHooks" description="Generate story plot hooks that involve this character">
@@ -426,7 +426,7 @@ or developers can immediately use in their creative projects.
         <assign location="plotHooks" value={(ctx) => ctx.lastElement.output.plotHooks} />
         <assign location="finalCharacterPersona" value={(ctx) => ctx.lastElement.output.finalCharacterPersona} />
         
-        <log value={(ctx) => 'Generated ' + ctx.datamodel.plotHooks.length + ' plot hooks'} />
+        <log expr={(ctx) => 'Generated ' + ctx.datamodel.plotHooks.length + ' plot hooks'} />
     </state>
 
     <final id="assembleCharacterPersona" />

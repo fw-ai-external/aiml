@@ -119,7 +119,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             }
         }
         `}</script>
-        <log value={(ctx) => 'Filtered ingredients: ' + ctx.datamodel.filteredIngredients.join(', ')} />
+        <log expr={(ctx) => 'Filtered ingredients: ' + ctx.datamodel.filteredIngredients.join(', ')} />
     </state>
 
     <state id="determineRecipeType" description="Determine the type of recipe based on ingredients and meal type">
@@ -147,7 +147,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
         </llm>
         <assign location="recipeType" value={(ctx) => ctx.lastElement.output.trim()} />
 
-        <log value={(ctx) => 'Determined recipe type: ' + ctx.datamodel.recipeType} />
+        <log expr={(ctx) => 'Determined recipe type: ' + ctx.datamodel.recipeType} />
     </state>
 
     <state id="createRecipeTitle" description="Create an appealing title for the recipe">
@@ -168,7 +168,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
         </llm>
         <assign location="recipeTitle" value={(ctx) => ctx.lastElement.output.trim()} />
 
-        <log value={(ctx) => 'Created recipe title: ' + ctx.datamodel.recipeTitle} />
+        <log expr={(ctx) => 'Created recipe title: ' + ctx.datamodel.recipeTitle} />
     </state>
 
     <state id="determineIngredients" description="Determine exact ingredients and quantities for the recipe">
@@ -211,7 +211,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             }));
         }
         `}</script>
-        <log value={(ctx) => 'Determined ' + ctx.datamodel.recipeIngredients.length + ' ingredients with quantities'} />
+        <log expr={(ctx) => 'Determined ' + ctx.datamodel.recipeIngredients.length + ' ingredients with quantities'} />
     </state>
 
     <state id="createPrepSteps" description="Create preparation steps for the recipe">
@@ -253,7 +253,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             ];
         }
         `}</script>
-        <log value={(ctx) => 'Created ' + ctx.datamodel.prepSteps.length + ' preparation steps'} />
+        <log expr={(ctx) => 'Created ' + ctx.datamodel.prepSteps.length + ' preparation steps'} />
     </state>
 
     <state id="createCookingSteps" description="Create cooking steps for the recipe">
@@ -363,7 +363,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             };
         }
         `}</script>
-        <log value={(ctx) => 'Calculated nutritional information'} />
+        <log expr={(ctx) => 'Calculated nutritional information'} />
     </state>
 
     <state id="calculateTimes" description="Calculate preparation and cooking times">
@@ -383,7 +383,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             total: totalTimeCalc
         };
         `}</script>
-        <log value={(ctx) => 'Calculated times: Prep=' + ctx.datamodel.totalTime.prep + 'm, Cooking=' + ctx.datamodel.totalTime.cooking + 'm, Total=' + ctx.datamodel.totalTime.total + 'm'} />
+        <log expr={(ctx) => 'Calculated times: Prep=' + ctx.datamodel.totalTime.prep + 'm, Cooking=' + ctx.datamodel.totalTime.cooking + 'm, Total=' + ctx.datamodel.totalTime.total + 'm'} />
     </state>
 
     <state id="generateTipsAndVariations" description="Generate cooking tips and recipe variations">
@@ -456,7 +456,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
         <assign location="variations" value={(ctx) => ctx.scriptResults.variations} />
         <assign location="finalRecipe" value={(ctx) => ctx.scriptResults.finalRecipe} />
         
-        <log value={(ctx) => 'Generated ' + ctx.datamodel.tips.length + ' tips and ' + ctx.datamodel.variations.length + ' variations'} />
+        <log expr={(ctx) => 'Generated ' + ctx.datamodel.tips.length + ' tips and ' + ctx.datamodel.variations.length + ' variations'} />
     </state>
 
     <final id="assembleRecipe" />

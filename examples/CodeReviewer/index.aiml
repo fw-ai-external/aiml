@@ -78,7 +78,7 @@ import TestingTools from "./testingtools.js"
       }
     `}</script>
       
-    <log value={(ctx) => 'Fetched ' + ctx.datamodel.diffStats.filesChanged + ' files with ' + ctx.datamodel.diffStats.additions + ' additions and ' + ctx.datamodel.diffStats.deletions + ' deletions'} />
+    <log expr={(ctx) => 'Fetched ' + ctx.datamodel.diffStats.filesChanged + ' files with ' + ctx.datamodel.diffStats.additions + ' additions and ' + ctx.datamodel.diffStats.deletions + ' deletions'} />
     <transition target="securityAnalysis" />
   </state>
 
@@ -130,7 +130,7 @@ import TestingTools from "./testingtools.js"
           }
         }
       `}</script>
-      <log value={(ctx) => 'Security analysis complete. Found ' + ctx.datamodel.securityFindings.length + ' potential issues'} />
+      <log expr={(ctx) => 'Security analysis complete. Found ' + ctx.datamodel.securityFindings.length + ' potential issues'} />
       <transition target="codeQualityAnalysis" />
   </state>
 
@@ -178,7 +178,7 @@ import TestingTools from "./testingtools.js"
           }
         }
       `}</script>
-      <log value={(ctx) => 'Code quality analysis complete. Found ' + ctx.datamodel.qualityIssues.length + ' issues'} />
+      <log expr={(ctx) => 'Code quality analysis complete. Found ' + ctx.datamodel.qualityIssues.length + ' issues'} />
       <transition target="performanceAnalysis" />
   </state>
 
@@ -236,7 +236,7 @@ import TestingTools from "./testingtools.js"
           }
         }
       `}</script>
-      <log value={(ctx) => 'Performance analysis complete. Found ' + ctx.datamodel.performanceIssues.length + ' issues'} />
+      <log expr={(ctx) => 'Performance analysis complete. Found ' + ctx.datamodel.performanceIssues.length + ' issues'} />
       <transition target="testCoverageAnalysis" />
   </state>
 
@@ -263,7 +263,7 @@ import TestingTools from "./testingtools.js"
         };
       }
     `}</script>
-    <log value={(ctx) => 'Test coverage analysis complete. Overall coverage: ' + (ctx.datamodel.testCoverage.overall || 0) + '%'} />
+    <log expr={(ctx) => 'Test coverage analysis complete. Overall coverage: ' + (ctx.datamodel.testCoverage.overall || 0) + '%'} />
     <transition target="synthesizeFindings" />
   </state>
 
@@ -380,7 +380,7 @@ import TestingTools from "./testingtools.js"
           ];
         }
       `}</script>
-      <log value={(ctx) => 'Generated ' + ctx.datamodel.recommendations.length + ' recommendations'} />
+      <log expr={(ctx) => 'Generated ' + ctx.datamodel.recommendations.length + ' recommendations'} />
       <transition target="generateFileComments" />
   </state>
 
@@ -445,7 +445,7 @@ import TestingTools from "./testingtools.js"
           }
         `}</script>
       </forEach>
-      <log value={(ctx) => 'Generated comments for ' + Object.keys(ctx.datamodel.reviewComments).length + ' files'} />
+      <log expr={(ctx) => 'Generated comments for ' + Object.keys(ctx.datamodel.reviewComments).length + ' files'} />
       
       <script>{`
         // Prepare the final code review object that will be automatically sent when reaching the final state

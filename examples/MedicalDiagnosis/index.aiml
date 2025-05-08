@@ -137,7 +137,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
       <assign location="isEmergency" value={(ctx) => ctx.lastElement.output.isEmergency} />
       <assign location="emergencyReason" value={(ctx) => ctx.lastElement.output.emergencyReason} />
       
-      <log value={(ctx) => 'Emergency check completed: ' + (ctx.datamodel.isEmergency ? 'YES - ' + ctx.datamodel.emergencyReason : 'No')} />
+      <log expr={(ctx) => 'Emergency check completed: ' + (ctx.datamodel.isEmergency ? 'YES - ' + ctx.datamodel.emergencyReason : 'No')} />
     
       <transition cond={(ctx) => ctx.datamodel.isEmergency} target="emergencyResponse" />
       <transition target="symptomAnalysis" />
@@ -200,7 +200,7 @@ import EmergencySymptoms from "./EmergencySymptoms.json"
       
       <assign location="symptomGroups" value={(ctx) => ctx.lastElement.output.symptomGroups} />
       
-      <log value={(ctx) => 'Symptom analysis complete. Identified ' + Object.keys(ctx.datamodel.symptomGroups).length + ' affected body systems'} />
+      <log expr={(ctx) => 'Symptom analysis complete. Identified ' + Object.keys(ctx.datamodel.symptomGroups).length + ' affected body systems'} />
       <transition target="generateDiagnoses" />
   </state>
 

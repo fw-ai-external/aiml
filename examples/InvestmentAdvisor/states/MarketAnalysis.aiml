@@ -21,6 +21,6 @@ It generates a market analysis relevant to the investor's profile using an LLM.
     </prompt>
   </llm>
   <assign location="marketAnalysis" value={(ctx) => ctx.lastElement.output} />
-  <log value="Market analysis completed" />
+  <log expr="Market analysis completed" />
   <transition target="assetAllocation" />
 </state> 

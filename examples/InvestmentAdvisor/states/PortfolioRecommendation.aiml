@@ -53,6 +53,6 @@ It generates detailed investment portfolio recommendations based on investor pro
       };
     }
   `}</script>
-  <log value="Portfolio recommendation completed" />
+  <log expr="Portfolio recommendation completed" />
   <transition target="prepareRecommendation" />
 </state> 
