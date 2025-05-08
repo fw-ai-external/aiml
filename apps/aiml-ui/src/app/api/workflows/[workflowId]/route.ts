@@ -228,7 +228,7 @@ export async function POST(
     let workflow: Workflow<any, any> | undefined;
     if (elementTree) {
       workflow = new Workflow(elementTree, {
-        scopedDataModels: ast.parseFilesToAIMLNodes || {},
+        scopedDataModels: ast.datamodel || {},
         fieldValues: body.datamodel?.fieldValues || {},
       });
     }
