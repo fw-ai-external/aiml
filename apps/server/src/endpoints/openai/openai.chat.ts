@@ -195,6 +195,7 @@ export const openaiChat = createRouteconfig({
     try {
       elementTree = hydreateElementTree(ast.nodes, new Set(ast.diagnostics));
     } catch (error) {
+      console.error("error", error);
       return c.json(
         {
           error:

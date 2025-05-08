@@ -268,7 +268,7 @@ import TestingTools from "./testingtools.js"
   </state>
 
   <state id="synthesizeFindings">
-      <llm model="gpt-4o" temperature={0.1}>
+      <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.1}>
         <prompt>
           You are a professional code reviewer who specializes in providing actionable feedback. 
           Based on the following findings from automated analysis tools, generate a concise but 
@@ -319,7 +319,7 @@ import TestingTools from "./testingtools.js"
   </state>
 
   <state id="generateRecommendations">
-      <llm model="gpt-4o" temperature={0.2}>
+      <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.2}>
         <prompt>
           Based on the analysis of this pull request, generate specific, actionable recommendations 
           to address the identified issues. Focus on clear steps that would help remediate both 
@@ -392,7 +392,7 @@ import TestingTools from "./testingtools.js"
           ctx.datamodel.currentFile = file;
         `}</script>
         
-        <llm model="gpt-4o" temperature={0.3}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.3}>
           <prompt>
             Review the following code file changes:
             

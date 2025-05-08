@@ -8,7 +8,7 @@ It generates detailed investment portfolio recommendations based on investor pro
 */}
 
 <state id="portfolioRecommendation">
-  <llm model="gpt-4o" temperature={0.1}>
+  <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.1}>
     <prompt>
       Create a detailed investment portfolio recommendation with specific investment vehicles based on:
       

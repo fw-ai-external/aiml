@@ -82,7 +82,7 @@ or developers can immediately use in their creative projects.
     </datamodel>
 
     <state id="generateName" description="Generate a character name appropriate for the genre and archetype">
-        <llm model="gpt-4o" temperature={0.7}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.7}>
         <prompt>
             Generate a character name appropriate for the {ctx.datamodel.genre} genre and {ctx.datamodel.archetype} archetype.
             The name should feel authentic to the genre while being memorable and pronounceable.
@@ -188,32 +188,32 @@ or developers can immediately use in their creative projects.
         `}
         </script>
     
-        <llm model="gpt-4o" temperature={0.6}>
-        <prompt>
-            Create a backstory for {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
-            
-            Their personality traits include: {ctx.datamodel.personalityTraits.join(", ")}.
-            
-            Use this template as inspiration: {ctx.datamodel.backstoryTemplate}
-            
-            Include these elements: {ctx.datamodel.backstoryElements.join(", ")}
-            
-            The backstory should:
-            - Explain how the character developed their personality traits
-            - Have a complexity level of {ctx.datamodel.complexity}/5 (higher means more nuanced with conflicting elements)
-            - Contain approximately {200 + (ctx.datamodel.complexity * 100)} words
-            - Feel authentic to the {ctx.datamodel.genre} genre
-            - Provide hooks for character motivations and relationships
-            
-            Write the backstory as a cohesive narrative paragraph (or paragraphs for higher complexity).
-        </prompt>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.6}>
+            <prompt>
+                Create a backstory for {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
+                
+                Their personality traits include: {ctx.datamodel.personalityTraits.join(", ")}.
+                
+                Use this template as inspiration: {ctx.datamodel.backstoryTemplate}
+                
+                Include these elements: {ctx.datamodel.backstoryElements.join(", ")}
+                
+                The backstory should:
+                - Explain how the character developed their personality traits
+                - Have a complexity level of {ctx.datamodel.complexity}/5 (higher means more nuanced with conflicting elements)
+                - Contain approximately {200 + (ctx.datamodel.complexity * 100)} words
+                - Feel authentic to the {ctx.datamodel.genre} genre
+                - Provide hooks for character motivations and relationships
+                
+                Write the backstory as a cohesive narrative paragraph (or paragraphs for higher complexity).
+            </prompt>
         </llm>
         <assign location="backstory" value={(ctx) => ctx.lastElement.output.trim()} />
         <log expr={(ctx) => 'Created backstory of ' + ctx.datamodel.backstory.split(' ').length + ' words'} />
     </state>
 
     <state id="describeAppearance" description="Describe the character's physical appearance">
-        <llm model="gpt-4o" temperature={0.5}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.5}>
         <prompt>
             Describe the physical appearance of {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
             
@@ -237,7 +237,7 @@ or developers can immediately use in their creative projects.
     </state>
 
     <state id="defineMotivationsAndTraits" description="Define the character's motivations, flaws, and strengths">
-        <llm model="gpt-4o" temperature={0.4}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.4}>
         <prompt>
             Based on {ctx.datamodel.characterName}'s personality traits and backstory, define their:
             
@@ -281,7 +281,7 @@ or developers can immediately use in their creative projects.
     </state>
 
     <state id="createRelationships" description="Define key relationships that shaped the character">
-        <llm model="gpt-4o" temperature={0.6}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.6}>
         <prompt>
             Create {Math.max(2, ctx.datamodel.complexity)} key relationships that have shaped {ctx.datamodel.characterName}'s life.
             
@@ -331,7 +331,7 @@ or developers can immediately use in their creative projects.
     </state>
 
     <state id="developCharacterVoice" description="Develop a distinctive voice with speech patterns">
-        <llm model="gpt-4o" temperature={0.5}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.5}>
         <prompt>
             Develop a distinctive voice and speech pattern for {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
             
@@ -362,7 +362,7 @@ or developers can immediately use in their creative projects.
     </state>
 
     <state id="generatePlotHooks" description="Generate story plot hooks that involve this character">
-        <llm model="gpt-4o" temperature={0.7}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.7}>
         <prompt>
             Create 3-5 engaging plot hooks or story prompts featuring this character:
             

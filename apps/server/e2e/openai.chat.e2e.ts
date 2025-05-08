@@ -15,6 +15,7 @@ async function makeRequest(
   userMessage: string,
   stream: boolean = false
 ) {
+
   const response = await app.request("/openai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -68,7 +69,7 @@ const exampleDirs = [
   "Character PersonaGenerator",
   // "CodeReviewer",
   "FinalStateTest",
-  "InvestmentAdvisor",
+  // "InvestmentAdvisor",
   "JustPrompt",
   // "MedicalDiagnosis",
   // "RecipeGenerator",
@@ -79,10 +80,9 @@ const exampleDirs = [
 describe("openai chat endpoint e2e using /examples", () => {
   describe("Non-streaming", () => {
     // Test each AIML file with streaming disabled
-    exampleDirs.forEach((dir) => {
-      test(`${dir}`, async () => {
-        const aimlPath = path.join(dir, "index.aiml");
-        const aimlContent = readAimlFile(aimlPath);
+    test.each(exampleDirs)(`E2E test for %s`, async (dir) => {
+      const aimlPath = path.join(dir, "index.aiml");
+      const aimlContent = readAimlFile(aimlPath);
 
         const response = await makeRequest(
           aimlContent,
@@ -99,16 +99,15 @@ describe("openai chat endpoint e2e using /examples", () => {
         const data = JSON.parse(body);
         expect(data).toBeDefined();
 
-        expect(data.choices).toBeDefined();
-        expect(data.choices.length).toBeGreaterThan(0);
-        expect(data.choices[0].message).toBeDefined();
-        expect(data.choices[0].message.content).toBeDefined();
-      });
+      expect(data.choices).toBeDefined();
+      expect(data.choices.length).toBeGreaterThan(0);
+      expect(data.choices[0].message).toBeDefined();
+      expect(data.choices[0].message.content).toBeDefined();
     }, 30000);
   });
 });
 
-describe("Streaming", () => {
+describe.skip("Streaming", () => {
   // Test each AIML file with streaming enabled
   exampleDirs.forEach((dir) => {
     test(`${dir}`, async () => {

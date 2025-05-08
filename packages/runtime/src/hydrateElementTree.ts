@@ -137,9 +137,12 @@ export function getElementClassByTagName<
   Tag extends Exclude<keyof typeof allElements, "BaseElement">,
 >(tagName: Tag): ReturnType<typeof createElementDefinition> {
   const normalizedTagName = tagName.toLowerCase();
-  const matchingKey = Object.keys(allElements).find(
-    (key) => key.toLowerCase() === normalizedTagName
-  );
+  // TODO: Remove this custom tags added here once we have a proper way to handle elements exposing custom child tags as attributes in a more dynamic way
+  const matchingKey = [
+    ...Object.keys(allElements),
+    "prompt",
+    "instructions",
+  ].find((key) => key.toLowerCase() === normalizedTagName);
   if (!matchingKey) {
     throw new Error("Invalid tagName " + tagName);
   }

@@ -34,7 +34,7 @@ function createMockWorkflowData(): SerializedBaseElement[] {
               subType: "model",
               attributes: {
                 prompt: "Hello world",
-                model: "gpt-4o", // Ensure model is provided
+                model: "accounts/fireworks/models/llama-v3p1-8b-instruct", // Ensure model is provided
               },
               children: [],
               lineStart: 1,

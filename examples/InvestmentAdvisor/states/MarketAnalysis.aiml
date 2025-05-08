@@ -8,7 +8,7 @@ It generates a market analysis relevant to the investor's profile using an LLM.
 */}
 
 <state id="marketAnalysis">
-  <llm model="gpt-4o" temperature={0.2}>
+  <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.2}>
     <prompt>
       Generate a concise market analysis relevant to an investor with the following profile:
       - Investment Goal: {ctx.datamodel.investmentGoal}

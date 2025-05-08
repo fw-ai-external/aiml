@@ -123,7 +123,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
     </state>
 
     <state id="determineRecipeType" description="Determine the type of recipe based on ingredients and meal type">
-        <llm model="gpt-4o" temperature={0.4}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.4}>
         <prompt>
             Based on these available ingredients:
             {ctx.datamodel.filteredIngredients.join(', ')}
@@ -151,7 +151,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
     </state>
 
     <state id="createRecipeTitle" description="Create an appealing title for the recipe">
-        <llm model="gpt-4o" temperature={0.6}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.6}>
         <prompt>
             Create an appealing and descriptive title for this recipe:
             
@@ -172,7 +172,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
     </state>
 
     <state id="determineIngredients" description="Determine exact ingredients and quantities for the recipe">
-        <llm model="gpt-4o" temperature={0.3}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.3}>
         <prompt>
             Create a detailed ingredients list for: {ctx.datamodel.recipeTitle} ({ctx.datamodel.recipeType})
             
@@ -215,7 +215,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
     </state>
 
     <state id="createPrepSteps" description="Create preparation steps for the recipe">
-        <llm model="gpt-4o" temperature={0.3}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.3}>
         <prompt>
             Create detailed preparation steps for: {ctx.datamodel.recipeTitle}
             
@@ -257,7 +257,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
     </state>
 
     <state id="createCookingSteps" description="Create cooking steps for the recipe">
-        <llm model="gpt-4o" temperature={0.3}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.3}>
         <prompt>
             Create detailed cooking instructions for: {ctx.datamodel.recipeTitle}
             
@@ -387,7 +387,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
     </state>
 
     <state id="generateTipsAndVariations" description="Generate cooking tips and recipe variations">
-        <llm model="gpt-4o" temperature={0.5}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.5}>
         <prompt>
             Generate helpful cooking tips and variations for: {ctx.datamodel.recipeTitle}
             
