@@ -43,6 +43,7 @@
     "@aiml/tsconfig": "workspace:*",
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.11.7",
+    "@types/js-yaml": "^4.0.9",
     "@types/uuid": "^10.0.0",
     "@types/xml-formatter": "^2.1.1",
     "rollup-plugin-string-import": "^1.2.5",
