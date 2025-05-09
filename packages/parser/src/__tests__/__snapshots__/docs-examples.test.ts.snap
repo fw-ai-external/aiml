@@ -86,7 +86,7 @@ Wrap your thoughts in"
 "::FUNCTION-EXPRESSION::(context) => { const ctx = context; return ({lastElement}) => \`Your thoughts on the conversation so far... \${lastElement.output}
     Based on your thoughts, respond to the users request\`}"
 ,
-              "model": "account/fireworks/model/qwen-2.5-32b",
+              "model": "accounts/fireworks/models/qwen3-30b-a3b",
               "prompt": "::FUNCTION-EXPRESSION::(context) => { const ctx = context; return ({userInput}) => userInput.message}",
             },
             "children": [],
