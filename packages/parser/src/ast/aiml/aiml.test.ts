@@ -93,13 +93,13 @@ describe("AIML elements", () => {
   });
 
   test("parsing AIML tags", () => {
-    const source = '<llm attr="value">Hello</ai>';
+    const source = '<llm attr="value">Hello</llm>';
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
     expect(result[0].type).toBe("AIMLElement");
     expect(result[0].attributes?.[0]?.type).toBe("TagName");
-    expect(result[0].attributes?.[0]?.content).toBe("ai");
+    expect(result[0].attributes?.[0]?.content).toBe("llm");
     expect(result[0].attributes?.[1]?.type).toBe("Prop");
     expect(result[0].attributes?.[1]?.name).toBe("attr");
     expect(result[0].attributes?.[1]?.content).toBe("value");
@@ -123,7 +123,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing numbers", () => {
-    const source = "<llm attr={123}>Hello</ai>";
+    const source = "<llm attr={123}>Hello</llm>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -133,7 +133,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing fat arrow functions", () => {
-    const source = "<llm attr={(foo) => 'Hello'}>Hello</ai>";
+    const source = "<llm attr={(foo) => 'Hello'}>Hello</llm>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -142,11 +142,24 @@ describe("AIML elements", () => {
     expect(result[0].attributes?.[1]?.contentType).toBe("expression");
   });
 
+  test("parsing far arrows that return an expression", () => {
+    const source =
+      "<llm prompt={({userInput}) => userInput.message}>Hello</llm>";
+    const result = parseAIML(source);
+
+    expect(result).toBeDefined();
+
+    expect(result[0].attributes?.[1]?.content).toBe(
+      "({userInput}) => userInput.message"
+    );
+    expect(result[0].attributes?.[1]?.contentType).toBe("expression");
+  });
+
   test("parsing fat arrow functions with a bracketed body", () => {
     const source = `<llm attr={(foo) => {
     console.log('Hello')
     return 'Hello'
-}}>Hello</ai>`;
+}}>Hello</llm>`;
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -159,7 +172,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing arrays", () => {
-    const source = "<llm attr={[1, 2, 3]}>Hello</ai>";
+    const source = "<llm attr={[1, 2, 3]}>Hello</llm>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -169,7 +182,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing expressions strings with a single quote as a string", () => {
-    const source = "<llm attr={'Hello'}>Hello</ai>";
+    const source = "<llm attr={'Hello'}>Hello</llm>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -179,14 +192,14 @@ describe("AIML elements", () => {
   });
 
   test("parsing expressions strings with a double quote as a string", () => {
-    const source = '<llm attr={"Hello"}>Hello</ai>';
+    const source = '<llm attr={"Hello"}>Hello</llm>';
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
   });
 
   test("parsing expressions strings with templated strings as an expression", () => {
-    const source = "<llm attr={`Hello ${'world'}`}>Hello</ai>";
+    const source = "<llm attr={`Hello ${'world'}`}>Hello</llm>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -196,7 +209,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing expressions strings with a closing bracket in the value", () => {
-    const source = `<llm attr={"}"}>Hello</ai>`;
+    const source = `<llm attr={"}"}>Hello</llm>`;
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -206,7 +219,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing objects", () => {
-    const source = "<llm attr={{foo: 'bar'}}>Hello</ai>";
+    const source = "<llm attr={{foo: 'bar'}}>Hello</llm>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -216,7 +229,7 @@ describe("AIML elements", () => {
   });
 
   test("parsing variables in expressions", () => {
-    const source = "<llm attr={foo.test}>Hello</ai>";
+    const source = "<llm attr={foo.test}>Hello</llm>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -226,7 +239,8 @@ describe("AIML elements", () => {
   });
 
   test("parsing nested AIML tags", () => {
-    const source = "<llm attr={foo.test} ><llm attr={bar.test}>Hello</ai></ai>";
+    const source =
+      "<llm attr={foo.test} ><llm attr={bar.test}>Hello</llm></llm>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -239,7 +253,7 @@ describe("AIML elements", () => {
 
   test("parsing nested AIML tags with xml text content", () => {
     const source =
-      "<llm attr={foo.test}><llm attr={bar.test}><Hello /></ai></ai>";
+      "<llm attr={foo.test}><llm attr={bar.test}><Hello /></llm></llm>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -251,7 +265,8 @@ describe("AIML elements", () => {
   });
 
   test("parsing nested AIML tags with position info", () => {
-    const source = "<llm attr={foo.test} ><llm attr={bar.test}>Hello</ai></ai>";
+    const source =
+      "<llm attr={foo.test} ><llm attr={bar.test}>Hello</llm></llm>";
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -276,14 +291,14 @@ describe("AIML elements", () => {
     const source = `<llm attr="test">
 Line 1
 Line 2
-</ai>`;
+</llm>`;
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
     expect(result[0].lineStart).toBe(1);
     expect(result[0].columnStart).toBe(1);
     expect(result[0].lineEnd).toBe(4);
-    expect(result[0].columnEnd).toBe(6);
+    expect(result[0].columnEnd).toBe(7);
 
     // Check child nodes line numbers
     // First child is "Line 1\nLine 2\n"
@@ -304,7 +319,7 @@ describe("Frontmatter", () => {
 title: Hi, World!
 ---
 
-<llm attr={foo.test}>Hello</ai>`;
+<llm attr={foo.test}>Hello</llm>`;
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -598,7 +613,7 @@ import third from "module_three"`;
   test("parsing imports followed by other content", () => {
     const source = `import foo from 'bar'
 Hello World
-<llm model="test">Test</ai>`;
+<llm model="test">Test</llm>`;
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -619,7 +634,7 @@ Hello World
     // expect(result[1].lineStart).toBe(2);
 
     expect(result[2].type).toBe("AIMLElement");
-    expect(result[2].attributes?.[0]?.content).toBe("ai"); // TagName
+    expect(result[2].attributes?.[0]?.content).toBe("llm"); // TagName
     expect(result[2].attributes?.[1]?.name).toBe("model");
     expect(result[2].attributes?.[1]?.content).toBe("test");
     // expect(result[2].lineStart).toBe(3);
@@ -710,7 +725,7 @@ describe("Comments", () => {
     const source = `<llm attr="value">
       <!-- Comment inside AIML element -->
       Text content
-    </ai>`;
+    </llm>`;
     const result = parseAIML(source);
 
     expect(result).toBeDefined();
@@ -731,7 +746,7 @@ describe("Comments", () => {
     const source = `<llm attr={value}>
       {/* JSX comment */}
       {expression}
-    </ai>`;
+    </llm>`;
     const result = parseAIML(source);
 
     expect(result).toBeDefined();

@@ -14,12 +14,7 @@ Wrap your thoughts in
 {/* 
 Then we get the actual response as a second llm call to a smaller, cheaper, faster model
 */}
-<llm model="account/fireworks/model/qwen-2.5-32b">
-    <instructions>
-        {({lastElement}) => `Your thoughts on the conversation so far... ${lastElement.output}`}
-        Based on your thoughts, respond to the users request.
-    </instructions>
-    <prompt>
-        {({userInput}) => userInput.message}
-    </prompt>
+<llm model="account/fireworks/model/qwen-2.5-32b" instructions={({lastElement}) => `Your thoughts on the conversation so far... ${lastElement.output}
+    Based on your thoughts, respond to the users request`}
+    prompt={({userInput}) => userInput.message}>
 </llm>

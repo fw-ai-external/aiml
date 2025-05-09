@@ -99,7 +99,10 @@ describe("openai chat endpoint e2e using /examples", () => {
         const data = JSON.parse(body);
         expect(data).toBeDefined();
 
-      expect(data.choices).toBeDefined();
+      if (!data.choices) {
+        expect(data.choices, `For the example aiml found at "examples/${aimlPath}", the expected .choices is defined, but receved ${JSON.stringify(data)}`).toBeDefined();
+      }
+
       expect(data.choices.length).toBeGreaterThan(0);
       expect(data.choices[0].message).toBeDefined();
       expect(data.choices[0].message.content).toBeDefined();
