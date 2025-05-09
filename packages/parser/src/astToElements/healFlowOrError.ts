@@ -1,333 +1,15 @@
 import type {
-  CommentNode,
   SerializedBaseElement,
   ElementType,
   ElementSubType,
 } from "@aiml/shared";
-import { generateKey } from "./utils/helpers.js";
-import { convertParagraphToLlmNode } from "./astToElementTree.js";
-
-/**
- * Process the intermediate nodes into a final structure ready for hydration
- * - Handles root-level paragraphs, converting them to LLM elements wrapped in state elements
- * - Processes and assigns comments
- * - Ensures proper parent-child relationships
- * - Creates a workflow element if one doesn't exist
- */
-export function healInvalidElementTree(
-  nodes: SerializedBaseElement[]
-): SerializedBaseElement[] {
-  const rootLevelNodes: SerializedBaseElement[] = [];
-  const comments: CommentNode[] = [];
-  const rootLevelParagraphs: SerializedBaseElement[] = [];
-  let headerNode: SerializedBaseElement | undefined;
-  let workflowNode: SerializedBaseElement | undefined;
-
-  // First pass: categorize nodes
-  for (const node of nodes) {
-    if (node.astSourceType === "header") {
-      headerNode = node;
-      rootLevelNodes.push(node);
-    } else if (node.astSourceType === "comment") {
-      comments.push(node as CommentNode);
-    } else if (node.astSourceType === "text") {
-      rootLevelParagraphs.push(node);
-    } else if (node.tag === "workflow") {
-      workflowNode = node;
-      rootLevelNodes.push(node);
-    } else {
-      rootLevelNodes.push(node);
-    }
-  }
-
-  // Create workflow node if one doesn't exist
-  if (!workflowNode) {
-    workflowNode = {
-      astSourceType: "element",
-      tag: "workflow",
-      key: generateKey(),
-      type: "state" as ElementType,
-      scope: ["root"],
-      subType: "human-input" as ElementSubType,
-      attributes: {},
-      children: [],
-      lineStart: 1,
-      lineEnd: 1,
-      columnStart: 1,
-      columnEnd: 1,
-    };
-
-    if (!workflowNode.attributes) {
-      workflowNode.attributes = {};
-    }
-    workflowNode.attributes.id = "workflow-root";
-    rootLevelNodes.push(workflowNode);
-  }
-
-  // Check if workflow has a final element; if not, add one
-  let hasFinalElement = false;
-  if (workflowNode.children) {
-    hasFinalElement = workflowNode.children.some(
-      (child) => child.astSourceType === "element" && child.subType === "output"
-    );
-  }
-
-  if (!hasFinalElement && workflowNode) {
-    // Create a final element with a unique ID
-    const finalElement: SerializedBaseElement = {
-      astSourceType: "element",
-      tag: "final",
-      key: generateKey(),
-      type: "state" as ElementType,
-      subType: "output" as ElementSubType,
-      attributes: {
-        id: "final",
-      },
-      scope: ["root", "final"],
-      children: [],
-      lineStart: workflowNode.lineStart,
-      lineEnd: workflowNode.lineEnd,
-      columnStart: workflowNode.columnStart,
-      columnEnd: workflowNode.columnEnd,
-    };
-
-    // Add the final element to the workflow
-    if (workflowNode.children) {
-      workflowNode.children.push(finalElement);
-    } else {
-      workflowNode.children = [finalElement];
-    }
-
-    // Set parent reference
-    finalElement.parentId = workflowNode.id;
-  }
-
-  // Process root level paragraphs by converting them to LLM elements wrapped in state elements
-  if (rootLevelParagraphs.length > 0) {
-    for (const [index, paragraph] of rootLevelParagraphs.entries()) {
-      const stateId = `root-state-${index}`;
-      const scope: string[] = ["root", stateId];
-
-      // Convert paragraph to LLM element
-      const llmElement = convertParagraphToLlmNode(paragraph, scope);
-
-      // Create state element to wrap the LLM element
-      const stateElement: SerializedBaseElement = {
-        astSourceType: "element",
-        tag: "state",
-        type: "state" as ElementType,
-        key: generateKey(),
-        subType: "state" as ElementSubType,
-        attributes: {
-          id: stateId,
-        },
-        scope,
-        children: [llmElement],
-        lineStart: paragraph.lineStart,
-        lineEnd: paragraph.lineEnd,
-        columnStart: paragraph.columnStart,
-        columnEnd: paragraph.columnEnd,
-      };
-
-      // Set parent reference
-      llmElement.parentId = stateElement.id;
-
-      // Add state element to workflow's children
-      if (workflowNode && workflowNode.children) {
-        workflowNode.children.push(stateElement);
-        stateElement.parentId = workflowNode.id;
-      }
-    }
-  }
-
-  // Add non-paragraph, non-header nodes to workflow
-  for (const node of rootLevelNodes) {
-    if (
-      node !== workflowNode &&
-      node !== headerNode &&
-      node.astSourceType === "element"
-    ) {
-      // Handle action elements that aren't already part of a state
-      if (node.subType === ("action" as ElementSubType)) {
-        // Check if it already has a state ancestor
-        let hasStateAncestor = false;
-        let currentParentId = node.parentId;
-
-        // Find parent nodes recursively by their IDs
-        const findParentNode = (
-          parentId: string
-        ): SerializedBaseElement | undefined => {
-          // Check if the parent is the workflow node
-          if (
-            workflowNode &&
-            workflowNode.attributes &&
-            workflowNode.attributes.id === parentId
-          ) {
-            return workflowNode;
-          }
-
-          // Search through all nodes to find the one with matching ID
-          for (const rootNode of rootLevelNodes) {
-            // Check if current node is the parent
-            if (rootNode.attributes && rootNode.attributes.id === parentId) {
-              return rootNode;
-            }
-
-            // Check in children recursively
-            if (rootNode.children) {
-              const queue = [...rootNode.children];
-              while (queue.length > 0) {
-                const current = queue.shift() as SerializedBaseElement;
-                if (current.attributes && current.attributes.id === parentId) {
-                  return current;
-                }
-                if (current.children) {
-                  queue.push(...current.children);
-                }
-              }
-            }
-          }
-
-          return undefined;
-        };
-
-        let parentNode: SerializedBaseElement | undefined;
-        while (currentParentId) {
-          parentNode = findParentNode(currentParentId);
-          if (!parentNode) break;
-
-          if (parentNode.subType === ("state" as ElementSubType)) {
-            hasStateAncestor = true;
-            break;
-          }
-          currentParentId = parentNode.parentId;
-        }
-
-        if (!hasStateAncestor && workflowNode) {
-          // Wrap action in a state
-          const stateElement: SerializedBaseElement = {
-            astSourceType: "element",
-            type: "state" as ElementType,
-            key: generateKey(),
-            tag: "state",
-            subType: "state" as ElementSubType,
-            scope: [...(parentNode?.scope || ["root"]), `state-${node.key}`],
-            attributes: {
-              id: `state-${node.key}`,
-            },
-            children: [node],
-            lineStart: node.lineStart,
-            lineEnd: node.lineEnd,
-            columnStart: node.columnStart,
-            columnEnd: node.columnEnd,
-          };
-
-          // Set parent reference
-          node.parentId = stateElement.id;
-
-          // Add to workflow's children
-          if (workflowNode.children) {
-            workflowNode.children.push(stateElement);
-            stateElement.parentId = workflowNode.id;
-          }
-        } else if (!node.parentId && workflowNode && workflowNode.children) {
-          // Add directly to workflow if no parent
-          workflowNode.children.push(node);
-          node.parentId = workflowNode.id;
-        }
-      } else if (!node.parentId && workflowNode && workflowNode.children) {
-        // Add non-action element directly to workflow if no parent
-        workflowNode.children.push(node);
-        node.parentId = workflowNode.id;
-      }
-    }
-  }
-
-  // Process header information
-  if (
-    headerNode &&
-    headerNode.children &&
-    workflowNode &&
-    workflowNode.attributes
-  ) {
-    for (const field of headerNode.children) {
-      if (
-        field.astSourceType === "headerField" &&
-        field.id &&
-        field.value !== undefined
-      ) {
-        workflowNode.attributes[field.id] = field.value;
-      }
-    }
-  }
-
-  // Assign comments to elements
-  if (comments.length > 0 && workflowNode) {
-    assignCommentsToElement(workflowNode, comments);
-  }
-
-  // If this is an auto-created workflow, set the initial state to the first state element
-  if (
-    workflowNode &&
-    workflowNode.children &&
-    workflowNode.children.length > 0 &&
-    workflowNode.attributes
-  ) {
-    const firstState = workflowNode.children.find(
-      (child) => child.subType === ("state" as ElementSubType)
-    );
-
-    if (
-      firstState &&
-      firstState.attributes &&
-      firstState.attributes.id &&
-      !workflowNode.attributes.initial
-    ) {
-      workflowNode.attributes.initial = firstState.attributes.id;
-    }
-  }
-
-  // Return the final array with the workflow as the main element
-  return [workflowNode];
-}
-
-/**
- * Assign comments to elements based on their position in the document
- */
-export function assignCommentsToElement(
-  element: SerializedBaseElement,
-  remainingComments: CommentNode[]
-): void {
-  const elementComments: CommentNode[] = [];
-  const otherComments: CommentNode[] = [];
-
-  for (const comment of remainingComments) {
-    if (comment.lineEnd <= element.lineStart) {
-      elementComments.push(comment);
-    } else {
-      otherComments.push(comment);
-    }
-  }
-
-  if (elementComments.length > 0) {
-    element.comments = elementComments;
-  }
-
-  if (element.children) {
-    for (const child of element.children) {
-      if (child.astSourceType === "element") {
-        assignCommentsToElement(child, otherComments);
-      }
-    }
-  }
-}
+import { generateKey } from "../utils/helpers.js";
 
 /**
  * Heal the workflow structure by ensuring final and error states exist,
  * and all states have proper transitions according to a set of rules.
  *
  * @param nodes Array of SerializedBaseElement nodes
- * @param diagnostics Array to collect diagnostics
  * @returns Healed nodes
  */
 export function healFlowOrError(
@@ -409,6 +91,47 @@ export function healFlowOrError(
       errorState = newErrorState;
     } else {
       console.log("Error state already exists");
+    }
+
+    // Find any non-state elements directly under workflow and wrap them in states
+    const nonStateElements = workflowNode.children.filter(
+      (child) =>
+        child.astSourceType === "element" &&
+        child.type !== "state" &&
+        child.type !== "param" // Skip datamodel elements
+    );
+
+    // Process each non-state element
+    for (let i = 0; i < nonStateElements.length; i++) {
+      const element = nonStateElements[i];
+      const elementIndex = workflowNode.children.indexOf(element);
+
+      if (elementIndex !== -1) {
+        // Create a wrapper state
+        const wrapperState: SerializedBaseElement = {
+          astSourceType: "element",
+          type: "state" as ElementType,
+          key: generateKey(),
+          tag: "state",
+          subType: "state" as ElementSubType,
+          attributes: {
+            id: `auto_wrapping_state_${generateKey()}`,
+          },
+          scope: ["root", `auto_wrapping_state_${i}`],
+          children: [element], // Add the non-state element as a child
+          lineStart: element.lineStart,
+          lineEnd: element.lineEnd,
+          columnStart: element.columnStart,
+          columnEnd: element.columnEnd,
+          parentId: workflowNode.attributes?.id as string,
+        };
+
+        // Update the element's parentId
+        element.parentId = wrapperState.attributes?.id as string;
+
+        // Replace the element with the wrapper state in the workflow
+        workflowNode.children[elementIndex] = wrapperState;
+      }
     }
 
     // Find all direct child states of the workflow
@@ -543,6 +266,36 @@ export function healFlowOrError(
         processStateAndChildren(child, workflowNode, finalElement);
       }
     }
+  }
+
+  // Sort children in workflow node to ensure proper order:
+  // 1. Params first
+  // 2. Regular states (not error or output)
+  // 3. Output states (final)
+  // 4. Error state last
+  if (workflowNode && workflowNode.children) {
+    workflowNode.children.sort((a, b) => {
+      // Params come first
+      if (a.tag === "param" && b.tag !== "param") return -1;
+      if (a.tag !== "param" && b.tag === "param") return 1;
+
+      // Error state comes last
+      if (a.attributes?.id === "error") return 1;
+      if (b.attributes?.id === "error") return -1;
+
+      // Final/output states come second to last
+      if (a.tag === "final" || a.subType === "output") {
+        if (b.attributes?.id === "error") return -1;
+        return 1;
+      }
+      if (b.tag === "final" || b.subType === "output") {
+        if (a.attributes?.id === "error") return 1;
+        return -1;
+      }
+
+      // Regular states maintain their order
+      return 0;
+    });
   }
 
   return nodes;
@@ -881,7 +634,7 @@ export function addAllTransitions(
   const workflowNode = nodes[0];
   if (
     !workflowNode ||
-    workflowNode.subType !== "user-input" ||
+    workflowNode.subType !== "human-input" ||
     !workflowNode.children
   ) {
     return nodes;

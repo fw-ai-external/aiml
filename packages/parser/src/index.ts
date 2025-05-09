@@ -3,10 +3,10 @@ import { VFile } from "vfile";
 import { DiagnosticSeverity } from "@aiml/shared";
 import { transformToAIMLNodes } from "./astToElementTree.js";
 import {
-  addAllTransitions,
+  astToElements,
   healFlowOrError,
-  healInvalidElementTree,
-} from "./healInvalidElementTree.js";
+  addAllTransitions,
+} from "./astToElements/index.js";
 import { stringToAST } from "./ast/index.js";
 
 /**
@@ -104,7 +104,7 @@ export async function parseFilesToAIMLNodes(
 
     // Process the intermediate nodes into a final SerializedBaseElement tree
     // that's ready for hydration by the runtime
-    const finalNodes = healInvalidElementTree(intermediateNodes);
+    const finalNodes = astToElements(intermediateNodes);
 
     // Apply the healFlowOrError phase to ensure proper workflow structure and transitions
     const healedNodes = healFlowOrError(finalNodes);

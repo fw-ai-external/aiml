@@ -58,6 +58,9 @@ export function processAttributes(
           result[attr.name!] = attr.content;
           break;
         case "expression":
+          // This is a string or any non-function value that makes use of expression syntax to access variables
+          // We need to wrap it in a function so that it can be evaluated in the context of the current state
+          // This MIGHT go away in the future and evaluate the expression directly at the initial request time with only access to those variables... we will see...
           result[attr.name!] =
             `::FUNCTION-EXPRESSION::(context) => { const ctx = context; return ${attr.content}}`;
           break;
