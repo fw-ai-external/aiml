@@ -21,7 +21,7 @@ inputSchema:
       type: string
       description: Preferred cuisine style
     cookingTime:
-      type: integer
+      type: number
       description: Maximum cooking time in minutes
 root: true
 ---
@@ -56,32 +56,32 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
 
 <workflow runInOrder={true}>
     <datamodel>
-    <data id="ingredients" type="array">{ctx => ctx.workflowInput.ingredients}</data>
-    <data id="dietaryRestrictions" type="array">{ctx => ctx.workflowInput.dietaryRestrictions || []}</data>
+    <data id="ingredients" type="json">{ctx => ctx.workflowInput.ingredients}</data>
+    <data id="dietaryRestrictions" type="json">{ctx => ctx.workflowInput.dietaryRestrictions || []}</data>
     <data id="mealType" type="string">{ctx => ctx.workflowInput.mealType}</data>
     <data id="cuisinePreference" type="string">{ctx => ctx.workflowInput.cuisinePreference || ""}</data>
-    <data id="cookingTime" type="integer">{ctx => ctx.workflowInput.cookingTime || 60}</data>
-    <data id="filteredIngredients" type="array" value={[]} />
+    <data id="cookingTime" type="number">{ctx => ctx.workflowInput.cookingTime || 60}</data>
+    <data id="filteredIngredients" type="json" value={[]} />
     <data id="recipeType" type="string" value={""} />
     <data id="recipeTitle" type="string" value={""} />
-    <data id="recipeIngredients" type="array" value={[]} schema={{
+    <data id="recipeIngredients" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
-    <data id="prepSteps" type="array" value={[]} schema={{
+    <data id="prepSteps" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
-    <data id="cookingSteps" type="array" value={[]} schema={{
+    <data id="cookingSteps" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
     <data id="totalTime" type="json" value={{}} />
-    <data id="tips" type="array" value={[]} schema={{
+    <data id="tips" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
-    <data id="variations" type="array" value={[]} schema={{
+    <data id="variations" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
@@ -119,11 +119,11 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             }
         }
         `}</script>
-        <log value={(ctx) => 'Filtered ingredients: ' + ctx.datamodel.filteredIngredients.join(', ')} />
+        <log expr={(ctx) => 'Filtered ingredients: ' + ctx.datamodel.filteredIngredients.join(', ')} />
     </state>
 
     <state id="determineRecipeType" description="Determine the type of recipe based on ingredients and meal type">
-        <llm model="gpt-4o" temperature={0.4}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.4}>
         <prompt>
             Based on these available ingredients:
             {ctx.datamodel.filteredIngredients.join(', ')}
@@ -147,11 +147,11 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
         </llm>
         <assign location="recipeType" value={(ctx) => ctx.lastElement.output.trim()} />
 
-        <log value={(ctx) => 'Determined recipe type: ' + ctx.datamodel.recipeType} />
+        <log expr={(ctx) => 'Determined recipe type: ' + ctx.datamodel.recipeType} />
     </state>
 
     <state id="createRecipeTitle" description="Create an appealing title for the recipe">
-        <llm model="gpt-4o" temperature={0.6}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.6}>
         <prompt>
             Create an appealing and descriptive title for this recipe:
             
@@ -168,11 +168,11 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
         </llm>
         <assign location="recipeTitle" value={(ctx) => ctx.lastElement.output.trim()} />
 
-        <log value={(ctx) => 'Created recipe title: ' + ctx.datamodel.recipeTitle} />
+        <log expr={(ctx) => 'Created recipe title: ' + ctx.datamodel.recipeTitle} />
     </state>
 
     <state id="determineIngredients" description="Determine exact ingredients and quantities for the recipe">
-        <llm model="gpt-4o" temperature={0.3}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.3}>
         <prompt>
             Create a detailed ingredients list for: {ctx.datamodel.recipeTitle} ({ctx.datamodel.recipeType})
             
@@ -211,11 +211,11 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             }));
         }
         `}</script>
-        <log value={(ctx) => 'Determined ' + ctx.datamodel.recipeIngredients.length + ' ingredients with quantities'} />
+        <log expr={(ctx) => 'Determined ' + ctx.datamodel.recipeIngredients.length + ' ingredients with quantities'} />
     </state>
 
     <state id="createPrepSteps" description="Create preparation steps for the recipe">
-        <llm model="gpt-4o" temperature={0.3}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.3}>
         <prompt>
             Create detailed preparation steps for: {ctx.datamodel.recipeTitle}
             
@@ -253,11 +253,11 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             ];
         }
         `}</script>
-        <log value={(ctx) => 'Created ' + ctx.datamodel.prepSteps.length + ' preparation steps'} />
+        <log expr={(ctx) => 'Created ' + ctx.datamodel.prepSteps.length + ' preparation steps'} />
     </state>
 
     <state id="createCookingSteps" description="Create cooking steps for the recipe">
-        <llm model="gpt-4o" temperature={0.3}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.3}>
         <prompt>
             Create detailed cooking instructions for: {ctx.datamodel.recipeTitle}
             
@@ -363,7 +363,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             };
         }
         `}</script>
-        <log value={(ctx) => 'Calculated nutritional information'} />
+        <log expr={(ctx) => 'Calculated nutritional information'} />
     </state>
 
     <state id="calculateTimes" description="Calculate preparation and cooking times">
@@ -383,11 +383,11 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
             total: totalTimeCalc
         };
         `}</script>
-        <log value={(ctx) => 'Calculated times: Prep=' + ctx.datamodel.totalTime.prep + 'm, Cooking=' + ctx.datamodel.totalTime.cooking + 'm, Total=' + ctx.datamodel.totalTime.total + 'm'} />
+        <log expr={(ctx) => 'Calculated times: Prep=' + ctx.datamodel.totalTime.prep + 'm, Cooking=' + ctx.datamodel.totalTime.cooking + 'm, Total=' + ctx.datamodel.totalTime.total + 'm'} />
     </state>
 
     <state id="generateTipsAndVariations" description="Generate cooking tips and recipe variations">
-        <llm model="gpt-4o" temperature={0.5}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.5}>
         <prompt>
             Generate helpful cooking tips and variations for: {ctx.datamodel.recipeTitle}
             
@@ -456,7 +456,7 @@ The final recipe should be comprehensive, realistic, and adaptable to different 
         <assign location="variations" value={(ctx) => ctx.scriptResults.variations} />
         <assign location="finalRecipe" value={(ctx) => ctx.scriptResults.finalRecipe} />
         
-        <log value={(ctx) => 'Generated ' + ctx.datamodel.tips.length + ' tips and ' + ctx.datamodel.variations.length + ' variations'} />
+        <log expr={(ctx) => 'Generated ' + ctx.datamodel.tips.length + ' tips and ' + ctx.datamodel.variations.length + ' variations'} />
     </state>
 
     <final id="assembleRecipe" />

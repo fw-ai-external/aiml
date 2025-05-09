@@ -15,6 +15,6 @@ It categorizes the investor based on their time horizon, investment capacity, an
                             ctx.datamodel.investmentGoal.toLowerCase().includes("education") ? "education" : 
                             ctx.datamodel.investmentGoal.toLowerCase().includes("house") ? "major purchase" : "growth";
     `}</script>
-    <log value={(ctx) => 'Investor profile assessed: ' + JSON.stringify(ctx.datamodel.profile)} />
+    <log expr={(ctx) => 'Investor profile assessed: ' + JSON.stringify(ctx.datamodel.profile)} />
   <transition target="marketAnalysis" />
 </state> 

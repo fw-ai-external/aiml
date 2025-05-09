@@ -10,7 +10,7 @@ inputSchema:
       type: string
       description: Character archetype (e.g., hero, villain, mentor, sidekick)
     complexity:
-      type: integer
+      type: number
       minimum: 1
       maximum: 5
       default: 3
@@ -49,39 +49,40 @@ or developers can immediately use in their creative projects.
     <datamodel>
     <data id="genre" type="string">{ctx => ctx.workflowInput.genre}</data>
     <data id="archetype" type="string">{ctx => ctx.workflowInput.archetype}</data>
-    <data id="complexity" type="integer">{ctx => ctx.workflowInput.complexity || 3}</data>
+    <data id="complexity" type="number">{ctx => ctx.workflowInput.complexity || 3}</data>
     <data id="characterName" type="string" value={""} />
-    <data id="personalityTraits" type="array" value={[]} schema={{
+    <data id="personalityTraits" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
     <data id="backstory" type="string" value={""} />
     <data id="appearance" type="string" value={""} />
-    <data id="motivations" type="array" value={[]} schema={{
+    <data id="motivations" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
-    <data id="flaws" type="array" value={[]} schema={{
+    <data id="flaws" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
-    <data id="strengths" type="array" value={[]} schema={{
+    <data id="strengths" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
-    <data id="relationships" type="array" value={[]} schema={{
+    <data id="relationships" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
     <data id="characterVoice" type="string" value={""} />
-    <data id="plotHooks" type="array" value={[]} schema={{
+    <data id="plotHooks" type="json" value={[]} schema={{
         type: "array",
         items: { type: "string" }
     }} />
+    <data id="finalCharacterPersona" type="json" value={{}} />
     </datamodel>
 
     <state id="generateName" description="Generate a character name appropriate for the genre and archetype">
-        <llm model="gpt-4o" temperature={0.7}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.7}>
         <prompt>
             Generate a character name appropriate for the {ctx.datamodel.genre} genre and {ctx.datamodel.archetype} archetype.
             The name should feel authentic to the genre while being memorable and pronounceable.
@@ -92,14 +93,14 @@ or developers can immediately use in their creative projects.
             
             Return just the name without explanation or additional text.
         </prompt>
-
         </llm>
         <assign location="characterName" value={(ctx) => ctx.lastElement.output.trim()} />
-        <log value={(ctx) => 'Generated character name: ' + ctx.datamodel.characterName} />
+        <log expr={(ctx) => 'Generated character name: ' + ctx.datamodel.characterName} />
     </state>
 
     <state id="definePersonality" description="Define the character's personality traits">
-        <script>{`
+        <script>
+        {`
         // Load appropriate personality traits based on archetype
         const traitsData = JSON.parse(PersonalityTraits);
         let archetypeTraits = traitsData[ctx.datamodel.archetype] || traitsData.default;
@@ -150,13 +151,14 @@ or developers can immediately use in their creative projects.
         }
         
         ctx.datamodel.personalityTraits = selectedTraits;
-
-        `}</script>
-        <log value={(ctx) => 'Defined ' + ctx.datamodel.personalityTraits.length + ' personality traits'} />
+        `}
+        </script>
+        <log expr={(ctx) => 'Defined ' + ctx.datamodel.personalityTraits.length + ' personality traits'} />
     </state>
 
     <state id="createBackstory" description="Create a backstory that explains the character's development">
-        <script>{`
+        <script>
+        {`
         // Get backstory template based on genre and archetype
         const backstoryTemplates = JSON.parse(BackstoryTemplates);
         
@@ -183,35 +185,35 @@ or developers can immediately use in their creative projects.
         // Prepare context for backstory generation
         ctx.datamodel.backstoryTemplate = template ? template.template : "A character with an intriguing past";
         ctx.datamodel.backstoryElements = template ? template.elements : ["childhood", "defining moment", "motivation"];
-        `}</script>
+        `}
+        </script>
     
-        <llm model="gpt-4o" temperature={0.6}>
-        <prompt>
-            Create a backstory for {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
-            
-            Their personality traits include: {ctx.datamodel.personalityTraits.join(", ")}.
-            
-            Use this template as inspiration: {ctx.datamodel.backstoryTemplate}
-            
-            Include these elements: {ctx.datamodel.backstoryElements.join(", ")}
-            
-            The backstory should:
-            - Explain how the character developed their personality traits
-            - Have a complexity level of {ctx.datamodel.complexity}/5 (higher means more nuanced with conflicting elements)
-            - Contain approximately {200 + (ctx.datamodel.complexity * 100)} words
-            - Feel authentic to the {ctx.datamodel.genre} genre
-            - Provide hooks for character motivations and relationships
-            
-            Write the backstory as a cohesive narrative paragraph (or paragraphs for higher complexity).
-        </prompt>
-
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.6}>
+            <prompt>
+                Create a backstory for {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
+                
+                Their personality traits include: {ctx.datamodel.personalityTraits.join(", ")}.
+                
+                Use this template as inspiration: {ctx.datamodel.backstoryTemplate}
+                
+                Include these elements: {ctx.datamodel.backstoryElements.join(", ")}
+                
+                The backstory should:
+                - Explain how the character developed their personality traits
+                - Have a complexity level of {ctx.datamodel.complexity}/5 (higher means more nuanced with conflicting elements)
+                - Contain approximately {200 + (ctx.datamodel.complexity * 100)} words
+                - Feel authentic to the {ctx.datamodel.genre} genre
+                - Provide hooks for character motivations and relationships
+                
+                Write the backstory as a cohesive narrative paragraph (or paragraphs for higher complexity).
+            </prompt>
         </llm>
         <assign location="backstory" value={(ctx) => ctx.lastElement.output.trim()} />
-        <log value={(ctx) => 'Created backstory of ' + ctx.datamodel.backstory.split(' ').length + ' words'} />
+        <log expr={(ctx) => 'Created backstory of ' + ctx.datamodel.backstory.split(' ').length + ' words'} />
     </state>
 
     <state id="describeAppearance" description="Describe the character's physical appearance">
-        <llm model="gpt-4o" temperature={0.5}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.5}>
         <prompt>
             Describe the physical appearance of {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
             
@@ -229,14 +231,13 @@ or developers can immediately use in their creative projects.
             
             Focus on visual elements that a reader, player, or audience would notice about the character.
         </prompt>
-
         </llm>
         <assign location="appearance" value={(ctx) => ctx.lastElement.output.trim()} />
-        <log value={(ctx) => 'Created appearance description of ' + ctx.datamodel.appearance.split(' ').length + ' words'} />
+        <log expr={(ctx) => 'Created appearance description of ' + ctx.datamodel.appearance.split(' ').length + ' words'} />
     </state>
 
     <state id="defineMotivationsAndTraits" description="Define the character's motivations, flaws, and strengths">
-        <llm model="gpt-4o" temperature={0.4}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.4}>
         <prompt>
             Based on {ctx.datamodel.characterName}'s personality traits and backstory, define their:
             
@@ -259,29 +260,28 @@ or developers can immediately use in their creative projects.
             Respond with a JSON object containing arrays for "motivations", "flaws", and "strengths".
             Each item should be a phrase with a brief explanation.
         </prompt>
-
         </llm>
-        <script>{`
-        try {
-            const parsedTraits = JSON.parse(ctx.lastElement.output);
-            ctx.datamodel.motivations = parsedTraits.motivations || [];
-            ctx.datamodel.flaws = parsedTraits.flaws || [];
-            ctx.datamodel.strengths = parsedTraits.strengths || [];
-        } catch (e) {
-            ctx.log("Error parsing traits: " + e.message);
-            // Default values if parsing fails
-            ctx.datamodel.motivations = ["Seek purpose"];
-            ctx.datamodel.flaws = ["Reluctant to trust others", "Impulsive under pressure"];
-            ctx.datamodel.strengths = ["Resourceful", "Determined"];
-        }
-        `}</script>
-        <log value={(ctx) => 'Defined ' + ctx.datamodel.motivations.length + ' motivations, ' + 
+        <script>
+            try {
+                const parsedTraits = JSON.parse(ctx.lastElement.output);
+                ctx.datamodel.motivations = parsedTraits.motivations || [];
+                ctx.datamodel.flaws = parsedTraits.flaws || [];
+                ctx.datamodel.strengths = parsedTraits.strengths || [];
+            } catch (e) {
+                ctx.log("Error parsing traits: " + e.message);
+                // Default values if parsing fails
+                ctx.datamodel.motivations = ["Seek purpose"];
+                ctx.datamodel.flaws = ["Reluctant to trust others", "Impulsive under pressure"];
+                ctx.datamodel.strengths = ["Resourceful", "Determined"];
+            }
+        </script>
+        <log expr={(ctx) => 'Defined ' + ctx.datamodel.motivations.length + ' motivations, ' + 
                     ctx.datamodel.flaws.length + ' flaws, and ' + 
                     ctx.datamodel.strengths.length + ' strengths'} />
     </state>
 
     <state id="createRelationships" description="Define key relationships that shaped the character">
-        <llm model="gpt-4o" temperature={0.6}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.6}>
         <prompt>
             Create {Math.max(2, ctx.datamodel.complexity)} key relationships that have shaped {ctx.datamodel.characterName}'s life.
             
@@ -301,9 +301,8 @@ or developers can immediately use in their creative projects.
             - "description": Brief description of the relationship and its impact
             - "status": Current status (e.g., "close ally", "estranged", "deceased", "rival")
         </prompt>
-
         </llm>
-        <script>{`
+        <script>
         try {
             ctx.datamodel.relationships = JSON.parse(ctx.lastElement.output);
             if (!Array.isArray(ctx.datamodel.relationships)) {
@@ -327,12 +326,12 @@ or developers can immediately use in their creative projects.
             }
             ];
         }
-        `}</script>
-        <log value={(ctx) => 'Created ' + ctx.datamodel.relationships.length + ' character relationships'} />
+        </script>
+        <log expr={(ctx) => 'Created ' + ctx.datamodel.relationships.length + ' character relationships'} />
     </state>
 
     <state id="developCharacterVoice" description="Develop a distinctive voice with speech patterns">
-        <llm model="gpt-4o" temperature={0.5}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.5}>
         <prompt>
             Develop a distinctive voice and speech pattern for {ctx.datamodel.characterName}, a {ctx.datamodel.archetype} in a {ctx.datamodel.genre} setting.
             
@@ -357,14 +356,13 @@ or developers can immediately use in their creative projects.
             
             Each dialogue sample should clearly demonstrate the distinctive elements of their speech pattern.
         </prompt>
-
         </llm>
         <assign location="characterVoice" value={(ctx) => ctx.lastElement.output.trim()} />
-        <log value={(ctx) => 'Developed character voice description of ' + ctx.datamodel.characterVoice.split(' ').length + ' words'} />
+        <log expr={(ctx) => 'Developed character voice description of ' + ctx.datamodel.characterVoice.split(' ').length + ' words'} />
     </state>
 
     <state id="generatePlotHooks" description="Generate story plot hooks that involve this character">
-        <llm model="gpt-4o" temperature={0.7}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.7}>
         <prompt>
             Create 3-5 engaging plot hooks or story prompts featuring this character:
             
@@ -385,7 +383,7 @@ or developers can immediately use in their creative projects.
             Format as a JSON array of strings.
         </prompt>
         </llm>
-        <script>{`
+        <script>
             let plotHooks = [];
             try {
                 plotHooks = JSON.parse(ctx.lastElement.output);
@@ -400,7 +398,7 @@ or developers can immediately use in their creative projects.
             }
             
             // Prepare the final character persona object
-            const finalCharacterPersona = {
+            const characterPersona = {
                 "name": ctx.datamodel.characterName,
                 "genre": ctx.datamodel.genre,
                 "archetype": ctx.datamodel.archetype,
@@ -416,17 +414,11 @@ or developers can immediately use in their creative projects.
                 "plotHooks": plotHooks
             };
             
-            // Store the results to be assigned to the datamodel
-            return {
-                plotHooks,
-                finalCharacterPersona
-            };
-        `}</script>
-        
-        <assign location="plotHooks" value={(ctx) => ctx.lastElement.output.plotHooks} />
-        <assign location="finalCharacterPersona" value={(ctx) => ctx.lastElement.output.finalCharacterPersona} />
-        
-        <log value={(ctx) => 'Generated ' + ctx.datamodel.plotHooks.length + ' plot hooks'} />
+            // Assign to datamodel
+            ctx.datamodel.plotHooks = plotHooks;
+            ctx.datamodel.finalCharacterPersona = characterPersona;
+        </script>
+        <log expr={(ctx) => 'Generated ' + ctx.datamodel.plotHooks.length + ' plot hooks'} />
     </state>
 
     <final id="assembleCharacterPersona" />

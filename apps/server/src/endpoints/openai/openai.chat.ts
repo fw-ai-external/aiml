@@ -4,7 +4,7 @@ import {
   chatCompletionStreamResponseSchema,
 } from "@/types/openai/chatZod";
 import { Workflow, hydreateElementTree } from "@aiml/runtime";
-import { parseMDXToAIML } from "@aiml/parser";
+import { parse } from "@aiml/parser";
 import { DiagnosticSeverity, type Diagnostic } from "@aiml/shared";
 import { z } from "@hono/zod-openapi";
 import { createRouteconfig } from "@/lib/route";
@@ -165,7 +165,7 @@ export const openaiChat = createRouteconfig({
       );
     }
 
-    const ast = await parseMDXToAIML(aimlPrompt).catch((error: Error) => {
+    const ast = await parse(aimlPrompt).catch((error: Error) => {
       c.json(
         {
           error: "Could not parse AIML prompt. Invalid AIML syntax.",
@@ -195,6 +195,7 @@ export const openaiChat = createRouteconfig({
     try {
       elementTree = hydreateElementTree(ast.nodes, new Set(ast.diagnostics));
     } catch (error) {
+      console.error("error", error);
       return c.json(
         {
           error:

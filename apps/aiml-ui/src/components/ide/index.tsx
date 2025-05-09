@@ -5,9 +5,8 @@ import Editor from "@codingame/monaco-editor-react";
 // @ts-expect-error no types on @codingame/monaco-editor-wrapper
 import { initialize } from "@codingame/monaco-editor-wrapper";
 import type { IStandaloneCodeEditor } from "@codingame/monaco-vscode-api/vscode/vs/editor/standalone/browser/standaloneCodeEditor";
-import { type Diagnostic, DiagnosticSeverity } from "@aiml/shared";
-import { MarkerSeverity } from "monaco-editor";
-import { useRef } from "react";
+import type { Diagnostic } from "@aiml/shared";
+import React, { useRef } from "react";
 import { useEffect, useState } from "react";
 
 // This should only be initialized once
@@ -27,7 +26,7 @@ const CodeEditorLoadingSkeleton = () => (
   </div>
 );
 
-export function CodeEditor({
+export const CodeEditor = React.memo(function CodeEditor({
   value,
   onChange,
   diagnostics,
@@ -74,10 +73,11 @@ export function CodeEditor({
   if (!isReady) {
     return <CodeEditorLoadingSkeleton />;
   }
-
   return (
     <div ref={editorRef} className="h-[95%] w-full rounded-xl">
+      {diagnostics.length > 0 ? diagnostics[0].message : "No diagnostics"}
       <Editor
+        key="editor"
         ref={monacoRef as any}
         height={editorHeight}
         options={{
@@ -89,41 +89,40 @@ export function CodeEditor({
           showFoldingControls: "never",
           scrollBeyondLastLine: false,
         }}
-        markers={diagnostics.map((diagnostic) => ({
-          code: diagnostic.code,
-          severity: (() => {
-            switch (diagnostic.severity) {
-              case DiagnosticSeverity.Error:
-                return MarkerSeverity.Error;
-              case DiagnosticSeverity.Warning:
-                return MarkerSeverity.Warning;
-              case DiagnosticSeverity.Information:
-                return MarkerSeverity.Info;
-              case DiagnosticSeverity.Hint:
-                return MarkerSeverity.Hint;
-              default:
-                return MarkerSeverity.Info;
-            }
-          })(),
-          startLineNumber: diagnostic.range.start.line,
-          endLineNumber: diagnostic.range.end.line,
-          startColumn: diagnostic.range.start.column,
-          endColumn: diagnostic.range.end.column,
-          message: diagnostic.message,
-          source: diagnostic.source,
-        }))}
-        // markers={[
-        //   {
-        //     code: "test",
-        //     severity: MarkerSeverity.Error,
-        //     startLineNumber: 1,
-        //     endLineNumber: 1,
-        //     startColumn: 1,
-        //     endColumn: 1,
-        //     message: "Test here",
-        //   },
-        // ]}
-        programmingLanguage="mdx"
+        // markers={diagnostics
+        //   .filter((diagnostic, index, self) => 
+        //     index === self.findIndex(d => 
+        //       d.code === diagnostic.code && 
+        //       d.range.start.line === diagnostic.range.start.line && 
+        //       d.range.start.column === diagnostic.range.start.column && 
+        //       d.range.end.line === diagnostic.range.end.line && 
+        //       d.range.end.column === diagnostic.range.end.column
+        //     )
+        //   )
+        //   .map((diagnostic) => ({
+        //     code: diagnostic.code,
+        //     severity: (() => {
+        //       switch (diagnostic.severity) {
+        //         case DiagnosticSeverity.Error:
+        //           return MarkerSeverity.Error;
+        //         case DiagnosticSeverity.Warning:
+        //           return MarkerSeverity.Warning;
+        //         case DiagnosticSeverity.Information:
+        //           return MarkerSeverity.Info;
+        //         case DiagnosticSeverity.Hint:
+        //           return MarkerSeverity.Hint;
+        //         default:
+        //           return MarkerSeverity.Info;
+        //       }
+        //     })(),
+        //     startLineNumber: diagnostic.range.start.line,
+        //     endLineNumber: diagnostic.range.end.line,
+        //     startColumn: diagnostic.range.start.column,
+        //     endColumn: diagnostic.range.end.column,
+        //     message: diagnostic.message,
+        //     source: diagnostic.source,
+        //   }))}
+        markers={[]}
         value={value}
         onChange={(value) => {
           onChange(value);
@@ -131,4 +130,4 @@ export function CodeEditor({
       />
     </div>
   );
-}
+});

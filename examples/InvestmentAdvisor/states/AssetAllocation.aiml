@@ -49,6 +49,6 @@ It calculates appropriate asset allocation percentages based on the investor's r
     ctx.datamodel.assetAllocation[key] = Math.round((ctx.datamodel.assetAllocation[key] / sum) * 100);
     });
 `}</script>
-<log value={(ctx) => 'Asset allocation completed: ' + JSON.stringify(ctx.datamodel.assetAllocation)} />
+<log expr={(ctx) => 'Asset allocation completed: ' + JSON.stringify(ctx.datamodel.assetAllocation)} />
   <transition target="portfolioRecommendation" />
 </state> 

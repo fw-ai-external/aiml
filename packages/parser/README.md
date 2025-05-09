@@ -66,8 +66,8 @@ flowchart TD
     C --> |Intermediate Nodes| E[processFinalStructure]
     E --> |Final Structure| F[healFlowOrError]
     F --> |Healed Nodes| G[Final AIML Nodes]
-    H[VFile Array] --> I[parseMDXFilesToAIML]
-    I --> |Multiple Files| J[parseMDXToAIML]
+    H[VFile Array] --> I[parseFilesToAIMLNodes]
+    I --> |Multiple Files| J[parse]
     J --> B
 
     subgraph "transform-nodes.ts"
@@ -111,9 +111,9 @@ The `healFlowOrError` phase ensures:
 ## Usage
 
 ```typescript
-import { parseMDXToAIML } from "@aiml/parser";
+import { parse } from "@aiml/parser";
 
-const result = await parseMDXToAIML(mdxContent, {
+const result = await parse(mdxContent, {
   filePath: "myfile.aiml",
   generateIds: true,
 });
@@ -124,7 +124,7 @@ const result = await parseMDXToAIML(mdxContent, {
 For multiple files with imports:
 
 ```typescript
-import { parseMDXFilesToAIML } from "@aiml/parser";
+import { parseFilesToAIMLNodes } from "@aiml/parser";
 
-const result = await parseMDXFilesToAIML(files);
+const result = await parseFilesToAIMLNodes(files);
 ```

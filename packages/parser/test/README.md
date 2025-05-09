@@ -68,7 +68,7 @@ This document outlines the proper syntax for AIML files to work with the parser.
 <workflow>
   <state id="generateResponse">
     <llm
-        model="gpt-4o"
+        model="accounts/fireworks/models/llama-v3p1-8b-instruct"
         prompt="What would you like to order?"
         temperature="0.7"
     />

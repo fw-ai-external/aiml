@@ -43,15 +43,15 @@ import TestingTools from "./testingtools.js"
     <data id="repositoryUrl" type="string">{ctx.workflowInput.repositoryUrl}</data>
     <data id="pullRequestId" type="string">{ctx.workflowInput.pullRequestId}</data>
     <data id="reviewDepth" type="string">{ctx.workflowInput.reviewDepth || "standard"}</data>
-    <data id="focusAreas" type="array">{ctx.workflowInput.focusAreas || []}</data>
+    <data id="focusAreas" type="json">{ctx.workflowInput.focusAreas || []}</data>
     <data id="codeFiles" type="json" value={{}} />
     <data id="diffStats" type="json" value={{}} />
-    <data id="securityFindings" type="array" value={[]} />
-    <data id="qualityIssues" type="array" value={[]} />
-    <data id="performanceIssues" type="array" value={[]} />
+    <data id="securityFindings" type="json" value={[]} />
+    <data id="qualityIssues" type="json" value={[]} />
+    <data id="performanceIssues" type="json" value={[]} />
     <data id="testCoverage" type="json" value={{}} />
     <data id="reviewSummary" type="string" value={""} />
-    <data id="recommendations" type="array" value={[]} />
+    <data id="recommendations" type="json" value={[]} />
     <data id="reviewComments" type="json" value={{}} />
   </datamodel>
 
@@ -78,7 +78,7 @@ import TestingTools from "./testingtools.js"
       }
     `}</script>
       
-    <log value={(ctx) => 'Fetched ' + ctx.datamodel.diffStats.filesChanged + ' files with ' + ctx.datamodel.diffStats.additions + ' additions and ' + ctx.datamodel.diffStats.deletions + ' deletions'} />
+    <log expr={(ctx) => 'Fetched ' + ctx.datamodel.diffStats.filesChanged + ' files with ' + ctx.datamodel.diffStats.additions + ' additions and ' + ctx.datamodel.diffStats.deletions + ' deletions'} />
     <transition target="securityAnalysis" />
   </state>
 
@@ -130,7 +130,7 @@ import TestingTools from "./testingtools.js"
           }
         }
       `}</script>
-      <log value={(ctx) => 'Security analysis complete. Found ' + ctx.datamodel.securityFindings.length + ' potential issues'} />
+      <log expr={(ctx) => 'Security analysis complete. Found ' + ctx.datamodel.securityFindings.length + ' potential issues'} />
       <transition target="codeQualityAnalysis" />
   </state>
 
@@ -178,7 +178,7 @@ import TestingTools from "./testingtools.js"
           }
         }
       `}</script>
-      <log value={(ctx) => 'Code quality analysis complete. Found ' + ctx.datamodel.qualityIssues.length + ' issues'} />
+      <log expr={(ctx) => 'Code quality analysis complete. Found ' + ctx.datamodel.qualityIssues.length + ' issues'} />
       <transition target="performanceAnalysis" />
   </state>
 
@@ -236,7 +236,7 @@ import TestingTools from "./testingtools.js"
           }
         }
       `}</script>
-      <log value={(ctx) => 'Performance analysis complete. Found ' + ctx.datamodel.performanceIssues.length + ' issues'} />
+      <log expr={(ctx) => 'Performance analysis complete. Found ' + ctx.datamodel.performanceIssues.length + ' issues'} />
       <transition target="testCoverageAnalysis" />
   </state>
 
@@ -263,12 +263,12 @@ import TestingTools from "./testingtools.js"
         };
       }
     `}</script>
-    <log value={(ctx) => 'Test coverage analysis complete. Overall coverage: ' + (ctx.datamodel.testCoverage.overall || 0) + '%'} />
+    <log expr={(ctx) => 'Test coverage analysis complete. Overall coverage: ' + (ctx.datamodel.testCoverage.overall || 0) + '%'} />
     <transition target="synthesizeFindings" />
   </state>
 
   <state id="synthesizeFindings">
-      <llm model="gpt-4o" temperature={0.1}>
+      <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.1}>
         <prompt>
           You are a professional code reviewer who specializes in providing actionable feedback. 
           Based on the following findings from automated analysis tools, generate a concise but 
@@ -319,7 +319,7 @@ import TestingTools from "./testingtools.js"
   </state>
 
   <state id="generateRecommendations">
-      <llm model="gpt-4o" temperature={0.2}>
+      <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.2}>
         <prompt>
           Based on the analysis of this pull request, generate specific, actionable recommendations 
           to address the identified issues. Focus on clear steps that would help remediate both 
@@ -380,7 +380,7 @@ import TestingTools from "./testingtools.js"
           ];
         }
       `}</script>
-      <log value={(ctx) => 'Generated ' + ctx.datamodel.recommendations.length + ' recommendations'} />
+      <log expr={(ctx) => 'Generated ' + ctx.datamodel.recommendations.length + ' recommendations'} />
       <transition target="generateFileComments" />
   </state>
 
@@ -392,7 +392,7 @@ import TestingTools from "./testingtools.js"
           ctx.datamodel.currentFile = file;
         `}</script>
         
-        <llm model="gpt-4o" temperature={0.3}>
+        <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.3}>
           <prompt>
             Review the following code file changes:
             
@@ -445,7 +445,7 @@ import TestingTools from "./testingtools.js"
           }
         `}</script>
       </forEach>
-      <log value={(ctx) => 'Generated comments for ' + Object.keys(ctx.datamodel.reviewComments).length + ' files'} />
+      <log expr={(ctx) => 'Generated comments for ' + Object.keys(ctx.datamodel.reviewComments).length + ' files'} />
       
       <script>{`
         // Prepare the final code review object that will be automatically sent when reaching the final state

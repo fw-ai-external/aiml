@@ -43,13 +43,12 @@ export function getProviderWithClient(
   const openaiModels = [
     "gpt-4o",
     "gpt-4o-mini",
-    "gpt-4-turbo",
-    "gpt-4",
-    "gpt-3.5-turbo",
-    "gpt-3.5-turbo-0125",
-    "gpt-3.5-turbo-0612",
     "o1-preview",
     "o1-mini",
+    "o3-mini",
+    "o3-preview",
+    "o4-mini",
+    "o4-preview",
   ];
   const anthropicModels = ["claude-3-5-sonnet-20240620"];
 

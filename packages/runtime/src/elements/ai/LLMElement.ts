@@ -14,9 +14,10 @@ export const LLM = createElementDefinition({
   allowedChildren: "text",
   async execute(ctx): Promise<ExecutionReturnType> {
     const { prompt: promptTemplate, instructions: systemTemplate } = ctx.props;
+
     const serializedCtx = await ctx.serialize();
     const prompt = await parseTemplateLiteral(
-      promptTemplate || "",
+      promptTemplate ?? "${input}",
       serializedCtx
     );
 
@@ -33,11 +34,11 @@ export const LLM = createElementDefinition({
             type: "grammar",
             grammar: ctx.props.grammar,
           }
-        : ctx.props.responseFormat?.type === "gbnf"
-          ? {
-              type: "gbnf",
-              grammar: "", // gbnf,
-            }
+        // : ctx.props.responseFormat?.type === "gbnf"
+        //   ? {
+        //       type: "gbnf",
+        //       grammar: "", // import gbnf grammar from gbnf rather than,
+        //     }
           : ctx.props.responseFormat,
       ctx.props.repetitionPenalty
     );

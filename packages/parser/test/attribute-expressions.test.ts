@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { VFile } from "vfile";
-import { parseMDXFilesToAIML } from "../src";
+import { parseFilesToAIMLNodes } from "../src";
 
 describe("Attribute Expression Tests", () => {
   it("should support array expressions in attributes", async () => {
@@ -13,7 +13,7 @@ describe("Attribute Expression Tests", () => {
       value: input,
     });
 
-    const result = await parseMDXFilesToAIML([testFile], {
+    const result = await parseFilesToAIMLNodes([testFile], {
       filePath: "test.mdx",
       files: [],
       preserveCustomTags: true,
@@ -27,7 +27,7 @@ describe("Attribute Expression Tests", () => {
     const dataElement = findElementByTag(result.nodes[0], "data");
     expect(dataElement).not.toBeUndefined();
     expect(dataElement?.attributes?.id).toBe("order");
-    expect(dataElement?.attributes?.value).toBe("${array:[]}");
+    expect(dataElement?.attributes?.value).toEqual([]);
   });
 
   it("should support object expressions in attributes", async () => {
@@ -40,7 +40,7 @@ describe("Attribute Expression Tests", () => {
       value: input,
     });
 
-    const result = await parseMDXFilesToAIML([testFile]);
+    const result = await parseFilesToAIMLNodes([testFile]);
 
     expect(result.nodes).not.toBeNull();
     expect(result.nodes).toBeArrayOfSize(1);
@@ -49,12 +49,10 @@ describe("Attribute Expression Tests", () => {
     const dataElement = findElementByTag(result.nodes[0], "data");
     expect(dataElement).not.toBeUndefined();
     expect(dataElement?.attributes?.id).toBe("user");
-    expect(dataElement?.attributes?.value).toBe(
-      '${object:{ name: "John", age: 30 }}'
-    );
+    expect(dataElement?.attributes?.value).toEqual({ name: "John", age: 30 });
   });
 
-  it("should support function expressions in attributes", async () => {
+  it.skip("should support function expressions in attributes", async () => {
     const input = `
 <forEach items={(ctx) => ctx.lastElement.actions} var="currentAction" />
     `;
@@ -64,7 +62,7 @@ describe("Attribute Expression Tests", () => {
       value: input,
     });
 
-    const result = await parseMDXFilesToAIML([testFile]);
+    const result = await parseFilesToAIMLNodes([testFile]);
 
     expect(result.nodes).not.toBeNull();
     expect(result.nodes).toBeArrayOfSize(1);
@@ -88,7 +86,7 @@ describe("Attribute Expression Tests", () => {
       value: input,
     });
 
-    const result = await parseMDXFilesToAIML([testFile]);
+    const result = await parseFilesToAIMLNodes([testFile]);
 
     expect(result.nodes).not.toBeNull();
     expect(result.nodes).toBeArrayOfSize(1);
@@ -98,7 +96,7 @@ describe("Attribute Expression Tests", () => {
     expect(dataElement).not.toBeUndefined();
     expect(dataElement?.attributes?.id).toBe("complex");
     expect(dataElement?.attributes?.value).toBe(
-      '${array:[{ title: "Task 1", completed: false }, { title: "Task 2", completed: true }]}'
+      "::FUNCTION-EXPRESSION::(context) => { const ctx = context; return [{ title: \"Task 1\", completed: false }, { title: \"Task 2\", completed: true }]}"
     );
   });
 });

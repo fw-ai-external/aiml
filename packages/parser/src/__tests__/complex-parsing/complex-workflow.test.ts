@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { VFile } from "vfile";
-import { parseMDXFilesToAIML } from "../../index";
+import { parseFilesToAIMLNodes } from "../../index";
 
 describe("Complex Workflow Parsing", () => {
   it("should parse a workflow with datamodel and basic states", async () => {
@@ -33,7 +33,7 @@ describe("Complex Workflow Parsing", () => {
 
     try {
       // Parse the file
-      const result = await parseMDXFilesToAIML([testFile], {
+      const result = await parseFilesToAIMLNodes([testFile], {
         filePath: "simple-workflow.aiml",
         preserveCustomTags: true,
       });
@@ -120,7 +120,7 @@ describe("Complex Workflow Parsing", () => {
       console.log("Starting test for nested workflow parsing...");
 
       // Parse the file
-      const result = await parseMDXFilesToAIML([testFile], {
+      const result = await parseFilesToAIMLNodes([testFile], {
         filePath: "nested-workflow.aiml",
         preserveCustomTags: true,
       });

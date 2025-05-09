@@ -13,24 +13,25 @@
     }
   },
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint .",
-    "test": "bun test ./src/**/*.test.ts ./src/*.test.ts"
+    "test": "bun test **/*.test.ts"
   },
   "dependencies": {
     "@aiml/shared": "workspace:*",
-    "unified-aiml": "workspace:*",
     "@mdx-js/typescript-plugin": "^0.0.8",
     "acorn": "^8.14.1",
     "ajv": "^8.17.1",
     "arktype": "^2.1.0",
     "dt-python-parser": "^0.9.0",
     "js-sourcemap": "^0.0.6",
+    "js-yaml": "^4.1.0",
     "magic-string": "^0.30.17",
     "mdast": "^3.0.0",
+    "ohm-js": "^17.1.0",
     "remark-mdx-frontmatter": "^5.0.0",
     "ts-morph": "^21.0.1",
     "uuid": "^11.1.0",
@@ -42,8 +43,11 @@
     "@aiml/tsconfig": "workspace:*",
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.11.7",
+    "@types/js-yaml": "^4.0.9",
     "@types/uuid": "^10.0.0",
     "@types/xml-formatter": "^2.1.1",
+    "rollup-plugin-string-import": "^1.2.5",
+    "tsdown": "^0.11.1",
     "typescript": "^5.3.3"
   }
 }

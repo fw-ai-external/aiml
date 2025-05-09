@@ -32,7 +32,6 @@ async function resolveAssignValue(
       throw error;
     }
   }
-  console.log("resolveAssignValue", ctx);
 
   // Otherwise use the input value
   const inputValue = await ctx.input.value();

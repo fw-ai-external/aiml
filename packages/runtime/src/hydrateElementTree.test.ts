@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { parseMDXFilesToAIML, parseMDXToAIML } from "@aiml/parser";
+import { parseFilesToAIMLNodes, parse } from "@aiml/parser";
 import type { SerializedBaseElement } from "@aiml/shared";
 import { VFile } from "vfile";
 import type { BaseElement } from "./elements";
@@ -34,7 +34,7 @@ function createMockWorkflowData(): SerializedBaseElement[] {
               subType: "model",
               attributes: {
                 prompt: "Hello world",
-                model: "gpt-4o", // Ensure model is provided
+                model: "accounts/fireworks/models/llama-v3p1-8b-instruct", // Ensure model is provided
               },
               children: [],
               lineStart: 1,
@@ -88,7 +88,7 @@ describe("Healing parsed results", () => {
     Hi there!
     `;
 
-    const result = await parseMDXToAIML(input);
+    const result = await parse(input);
     const healed = hydreateElementTree(
       result.nodes,
       new Set(result.diagnostics)
@@ -112,7 +112,7 @@ describe("Healing parsed results", () => {
       const content = readFileSync(filePath, "utf-8");
       const file = new VFile({ path: filePath, value: content });
 
-      const result = await parseMDXFilesToAIML([file]);
+      const result = await parseFilesToAIMLNodes([file]);
 
       // If parsing succeeded but returned no nodes, use mock data
       const nodes =
@@ -148,7 +148,7 @@ describe("Healing parsed results", () => {
       const content = readFileSync(filePath, "utf-8");
       const file = new VFile({ path: filePath, value: content });
 
-      const result = await parseMDXFilesToAIML([file]);
+      const result = await parseFilesToAIMLNodes([file]);
 
       // If parsing succeeded but returned no nodes, use mock data
       const nodes =
@@ -184,7 +184,7 @@ describe("Healing parsed results", () => {
       const content = readFileSync(filePath, "utf-8");
       const file = new VFile({ path: filePath, value: content });
 
-      const result = await parseMDXFilesToAIML([file]);
+      const result = await parseFilesToAIMLNodes([file]);
 
       // If parsing succeeded but returned no nodes, use mock data
       const nodes =

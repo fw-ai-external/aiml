@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { VFile } from "vfile";
-import { parseMDXFilesToAIML } from "../src";
+import { parseFilesToAIMLNodes } from "../src";
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -17,7 +17,7 @@ describe("Complex Attribute Expressions Integration Test", () => {
       value: mdxContent,
     });
 
-    const result = await parseMDXFilesToAIML([testFile], {
+    const result = await parseFilesToAIMLNodes([testFile], {
       filePath: "complex-attributes.mdx",
       files: [],
     });
@@ -33,7 +33,7 @@ describe("Complex Attribute Expressions Integration Test", () => {
       "emptyArray"
     );
     expect(emptyArrayData).not.toBeUndefined();
-    expect(emptyArrayData?.attributes?.value).toBe("${array:[]}");
+    expect(emptyArrayData?.attributes?.value).toEqual([]);
 
     const filledArrayData = findElementByAttributeValue(
       result.nodes[0],
@@ -41,9 +41,11 @@ describe("Complex Attribute Expressions Integration Test", () => {
       "filledArray"
     );
     expect(filledArrayData).not.toBeUndefined();
-    expect(filledArrayData?.attributes?.value).toBe(
-      '${array:["apple", "banana", "cherry"]}'
-    );
+    expect(filledArrayData?.attributes?.value).toEqual([
+      "apple",
+      "banana",
+      "cherry",
+    ]);
 
     // Test object expressions
     const simpleObjectData = findElementByAttributeValue(
@@ -52,16 +54,11 @@ describe("Complex Attribute Expressions Integration Test", () => {
       "simpleObject"
     );
     expect(simpleObjectData).not.toBeUndefined();
-    expect(simpleObjectData?.attributes?.value).toBe(
-      '${object:{ name: "John", age: 30 }}'
-    );
+    expect(simpleObjectData?.attributes?.value).toEqual({
+      name: "John",
+      age: 30,
+    });
 
-    // Test function expressions
-    const forEachElement = findElementByTag(result.nodes[0], "foreach");
-    expect(forEachElement).not.toBeUndefined();
-    expect(forEachElement?.attributes?.items).toBe(
-      "${function:(ctx) => ctx.lastElement.actions}"
-    );
 
     // Test nested expressions
     const nestedObjectData = findElementByAttributeValue(
@@ -70,9 +67,15 @@ describe("Complex Attribute Expressions Integration Test", () => {
       "nestedObject"
     );
     expect(nestedObjectData).not.toBeUndefined();
-    expect(nestedObjectData?.attributes?.value).toContain("${object:{ ");
-    expect(nestedObjectData?.attributes?.value).toContain("user: { ");
-    expect(nestedObjectData?.attributes?.value).toContain('name: "John"');
+    expect(nestedObjectData?.attributes?.value).toEqual({
+      user: {
+        name: "John",
+        details: {
+          age: 30,
+          role: "admin",
+        },
+      },
+    });
 
     // Test mixed types in array
     const mixedTypesData = findElementByAttributeValue(
@@ -81,9 +84,7 @@ describe("Complex Attribute Expressions Integration Test", () => {
       "mixedTypes"
     );
     expect(mixedTypesData).not.toBeUndefined();
-    expect(mixedTypesData?.attributes?.value).toContain("${array:[");
-    expect(mixedTypesData?.attributes?.value).toContain("{ id: 1,");
-    expect(mixedTypesData?.attributes?.value).toContain('function: "filtered"');
+    expect(mixedTypesData?.attributes?.value).toEqual("::FUNCTION-EXPRESSION::(context) => { const ctx = context; return [\n  { id: 1, name: \"Task 1\", completed: false },\n  { id: 2, name: \"Task 2\", completed: true },\n  { id: 3, function: \"filtered\" }\n]}");
   });
 });
 

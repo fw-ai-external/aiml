@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { VFile } from "vfile";
-import { parseMDXFilesToAIML } from ".";
+import { parseFilesToAIMLNodes } from ".";
 
 describe("AIML Parsing Tests", () => {
   describe("Basic AIML Parsing", () => {
@@ -12,7 +12,7 @@ describe("AIML Parsing Tests", () => {
         value: input,
       });
 
-      const result = await parseMDXFilesToAIML([testFile], {
+      const result = await parseFilesToAIMLNodes([testFile], {
         filePath: "test.mdx",
         files: [],
         preserveCustomTags: true,
@@ -73,7 +73,7 @@ Some text here with {userInput.message.content}
         value: input,
       });
 
-      const result = await parseMDXFilesToAIML([testFile]);
+      const result = await parseFilesToAIMLNodes([testFile]);
 
       expect(result.nodes).not.toBeNull();
 
@@ -132,7 +132,7 @@ target="end" />
         value: input,
       });
 
-      const result = await parseMDXFilesToAIML([testFile]);
+      const result = await parseFilesToAIMLNodes([testFile]);
       expect(result.nodes).not.toBeNull();
 
       // Enable the expectations now that we have a proper implementation
@@ -212,8 +212,8 @@ Some text here because why not
         value: mainFile,
       });
 
-      // Parse the files using parseMDXFilesToAIML
-      const result = await parseMDXFilesToAIML([mainVFile, importedVFile], {
+      // Parse the files using parseFilesToAIMLNodes
+      const result = await parseFilesToAIMLNodes([mainVFile, importedVFile], {
         filePath: "main-workflow.aiml",
         files: [importedVFile],
         preserveCustomTags: true,
@@ -285,7 +285,7 @@ Third paragraph (should be merged with above due to blank line).
         value: input,
       });
 
-      const result = await parseMDXFilesToAIML([testFile]);
+      const result = await parseFilesToAIMLNodes([testFile]);
       expect(result.nodes).not.toBeNull();
 
       // We should have a single workflow node

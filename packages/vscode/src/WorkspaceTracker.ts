@@ -2,7 +2,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 import os from "os";
-import { globby, type Options as GlobbyOptions } from "globby";
+import globby from "globby";
 import { arePathsEqual } from "./utils/path";
 
 const cwd = vscode.workspace.workspaceFolders
@@ -196,7 +196,7 @@ export class WorkspaceTracker {
    *   - Potential for loops if symbolic links reference back to parent (we could use followSymlinks: false but that may not be ideal for some projects and it's pointless if they're not using symlinks wrong)
    *   - Timeout mechanism prevents infinite loops
    */
-  private async globbyLevelByLevel(limit: number, options?: GlobbyOptions) {
+  private async globbyLevelByLevel(limit: number, options?: globby.GlobbyOptions) {
     let results: Set<string> = new Set();
     let queue: string[] = ["*"];
 

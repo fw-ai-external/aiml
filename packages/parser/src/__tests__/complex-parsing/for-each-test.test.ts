@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { VFile } from "vfile";
-import { parseMDXFilesToAIML } from "../../index";
+import { parseFilesToAIMLNodes } from "../../index";
 
 describe("ForEach Parsing", () => {
   it("should parse a workflow with state containing forEach text", async () => {
@@ -28,7 +28,7 @@ describe("ForEach Parsing", () => {
       console.log("Starting test for forEach workflow parsing...");
 
       // Parse the file
-      const result = await parseMDXFilesToAIML([testFile], {
+      const result = await parseFilesToAIMLNodes([testFile], {
         filePath: "for-each-workflow.aiml",
         preserveCustomTags: true,
       });

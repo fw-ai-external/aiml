@@ -9,9 +9,11 @@ export const Script = createElementDefinition({
 
   async execute(ctx, children): Promise<ExecutionReturnType> {
     const { src } = ctx.props;
+
     const content = children[0]?.toString();
 
     if (!content) {
+      console.log(`script element children: ${JSON.stringify(children)}`);
       throw new Error("Script element requires inline content");
     }
 

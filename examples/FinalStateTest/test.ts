@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 import { VFile } from "vfile";
-import { parseMDXFilesToAIML } from "../../packages/parser/src";
+import { parseFilesToAIMLNodes } from "../../packages/parser/src";
 
 // Helper function to print a simplified view of the execution graph
 function printGraph(node: any, indent = 0) {
@@ -27,7 +27,7 @@ async function testFinalStateAddition() {
 
   // Parse the file
   const file = new VFile({ path: aimlPath, value: content });
-  const result = await parseMDXFilesToAIML([file]);
+  const result = await parseFilesToAIMLNodes([file]);
 
   // Check if a final element was added automatically
   const workflow = result.nodes[0];

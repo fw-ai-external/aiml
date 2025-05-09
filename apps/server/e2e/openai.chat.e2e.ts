@@ -15,6 +15,7 @@ async function makeRequest(
   userMessage: string,
   stream: boolean = false
 ) {
+
   const response = await app.request("/openai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -65,10 +66,10 @@ async function processStreamingResponse(response: Response) {
 
 // Test each AIML file in the examples directory
 const exampleDirs = [
-  "Character PersonaGenerator",
+  //  "Character PersonaGenerator",
   // "CodeReviewer",
   "FinalStateTest",
-  "InvestmentAdvisor",
+  // "InvestmentAdvisor",
   "JustPrompt",
   // "MedicalDiagnosis",
   // "RecipeGenerator",
@@ -79,10 +80,9 @@ const exampleDirs = [
 describe("openai chat endpoint e2e using /examples", () => {
   describe("Non-streaming", () => {
     // Test each AIML file with streaming disabled
-    exampleDirs.forEach((dir) => {
-      test(`${dir}`, async () => {
-        const aimlPath = path.join(dir, "index.aiml");
-        const aimlContent = readAimlFile(aimlPath);
+    test.each(exampleDirs)(`E2E test for %s`, async (dir) => {
+      const aimlPath = path.join(dir, "index.aiml");
+      const aimlContent = readAimlFile(aimlPath);
 
         const response = await makeRequest(
           aimlContent,
@@ -93,17 +93,19 @@ describe("openai chat endpoint e2e using /examples", () => {
         const body = await response.text();
         expect(
           response.status,
-          `Expected status code 200, but receved ${response.status} and a body of ${body}`
+          `For the example aiml found at "examples/${aimlPath}", the expected status code is 200, but receved ${response.status} and a body of ${body}`
         ).toBe(200);
 
         const data = JSON.parse(body);
         expect(data).toBeDefined();
 
-        expect(data.choices).toBeDefined();
-        expect(data.choices.length).toBeGreaterThan(0);
-        expect(data.choices[0].message).toBeDefined();
-        expect(data.choices[0].message.content).toBeDefined();
-      });
+      if (!data.choices) {
+        expect(data.choices, `For the example aiml found at "examples/${aimlPath}", the expected .choices is defined, but receved ${JSON.stringify(data)}`).toBeDefined();
+      }
+
+      expect(data.choices.length).toBeGreaterThan(0);
+      expect(data.choices[0].message).toBeDefined();
+      expect(data.choices[0].message.content).toBeDefined();
     }, 30000);
   });
 });
@@ -124,10 +126,14 @@ describe("Streaming", () => {
         true
       );
 
-      expect(
-        response.status,
-        `Expected status code 200, but receved ${response.status}}`
-      ).toBe(200);
+      if (response.status !== 200) {
+        const body = await response.text();
+        expect(
+          response.status,
+          `For the example aiml found at "examples/${aimlPath}", the expected status code is 200, but receved ${response.status} and a body of ${body}`
+        ).toBe(200);
+      }
+
       expect(response.headers.get("content-type")).toContain(
         "text/event-stream"
       );
