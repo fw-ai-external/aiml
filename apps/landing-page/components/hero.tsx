@@ -47,7 +47,9 @@ export default function Hero() {
               variant="outline"
               className="rounded-full border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors"
             >
-              View on GitHub
+              <Link href="https://github.com/fw-ai-external/aiml">
+                View on GitHub <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </div>
