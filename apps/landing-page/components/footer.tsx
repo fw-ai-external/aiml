@@ -24,7 +24,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="#"
+                  href="/docs"
                   className="text-sm text-gray-600 hover:text-emerald-500"
                 >
                   Documentation
@@ -32,7 +32,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/docs/elements"
                   className="text-sm text-gray-600 hover:text-emerald-500"
                 >
                   API Reference
@@ -48,7 +48,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="#"
+                  href="https://github.com/fw-ai-external/aiml"
                   className="text-sm text-gray-600 hover:text-emerald-500"
                 >
                   GitHub
@@ -56,18 +56,20 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="https://discord.com/channels/1137072072808472616/1371878063079428176"
                   className="text-sm text-gray-600 hover:text-emerald-500"
+                  target="_blank"
                 >
                   Discord
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="https://x.com/AIML_lang"
+                  target="_blank"
                   className="text-sm text-gray-600 hover:text-emerald-500"
                 >
-                  Twitter
+                  X
                 </Link>
               </li>
             </ul>

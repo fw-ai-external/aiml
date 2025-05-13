@@ -30,7 +30,7 @@ export default function Header() {
               Docs
             </Link>
             <Link
-              href="https://discord.gg/fireworks"
+              href="https://discord.com/channels/1137072072808472616/1371878063079428176"
               target="_blank"
               className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-emerald-500 transition-colors"
             >
@@ -40,7 +40,7 @@ export default function Header() {
           </nav>
 
           <Button
-            className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full transition-colors"
+            className="bg-black hover:bg-black/80 text-white rounded-full transition-colors"
             asChild
           >
             <Link
@@ -49,7 +49,7 @@ export default function Header() {
               className="flex items-center gap-2"
             >
               <Github className="h-4 w-4" />
-              View on Github
+              Star on Github
             </Link>
           </Button>
 
@@ -80,7 +80,7 @@ export default function Header() {
               Docs
             </Link>
             <Link
-              href="https://discord.gg/fireworks"
+              href="https://discord.com/channels/1137072072808472616/1371878063079428176"
               target="_blank"
               className="flex items-center gap-2 text-lg font-medium hover:text-emerald-500 transition-colors"
               onClick={() => setIsMenuOpen(false)}
