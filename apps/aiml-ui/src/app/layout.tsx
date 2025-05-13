@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { Layout } from '@/components/layout';
-import './globals.css';
+import { Layout } from "@/components/layout";
+import "./globals.css";
+import { GoogleTagManager } from "@next/third-parties/google";
 
 export default function RootLayout({
   children,
@@ -10,6 +11,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <GoogleTagManager gtmId="GTM-XYZGTM-M38TSS9H" />
+
       <body>
         <Layout>{children}</Layout>
       </body>

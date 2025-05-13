@@ -34,6 +34,7 @@
     "@anthropic-ai/sdk": "^0.39.0",
     "@changesets/cli": "^2.29.2",
     "@mastra/core": "^0.6.0",
+    "@next/third-parties": "^15.3.2",
     "boxen": "^8.0.1",
     "chalk": "^4.1.2",
     "cli-table3": "^0.6.5",
