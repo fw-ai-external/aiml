@@ -15,7 +15,7 @@
     "clean": "rm -rf node_modules && turbo run clean",
     "test": "turbo run test --concurrency=5",
     "validate": "bun run build && bun test",
-    "initial-setup": "turbo run db:generate && turbo run db:migrate",
+    "initial-setup": "dotenv -- turbo run db:generate && turbo run db:migrate",
     "e2e": "turbo run e2e",
     "bunp-version": "bun changeset version",
     "release": "bun run build --filter=!landing-page && bun run deploy",
