@@ -1,0 +1,104 @@
+name: Publish VSCode Extension
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (if not provided, will use version from package.json)"
+        required: false
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - "packages/vscode/**"
+      - ".changeset/**"
+      - ".github/workflows/publish-vscode-extension.yml"
+
+jobs:
+  publish:
+    name: Publish VSCode Extension
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache turbo build setup
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build extension
+        run: bun run build --filter=vscode-aiml
+
+      # Check if there are any changesets that affect the VSCode extension
+      - name: Check for VSCode extension changes
+        id: check-changes
+        run: |
+          if [ -n "$(find .changeset -name "*.md" -type f -exec grep -l "vscode-aiml" {} \;)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Apply changesets if there are any that affect the VSCode extension
+      - name: Apply Changesets
+        if: steps.check-changes.outputs.has_changes == 'true'
+        uses: changesets/action@v1
+        with:
+          version: bun run bunp-version
+          commit: "[ci] version vscode extension"
+          title: "[ci] version vscode extension"
+          publish: echo "Skipping publish step, will be done separately"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package extension
+        working-directory: packages/vscode
+        run: bun run package
+
+      - name: Extract version
+        id: package-version
+        working-directory: packages/vscode
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish to VS Marketplace
+        working-directory: packages/vscode
+        run: |
+          echo "Publishing version ${{ steps.package-version.outputs.version }} to VS Marketplace"
+
+          # Publish to VS Marketplace
+          npx @vscode/vsce publish --no-dependencies -p ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+        env:
+          VSCODE_MARKETPLACE_TOKEN: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: packages/vscode/vscode-aiml-*.vsix
+          name: VSCode Extension v${{ steps.package-version.outputs.version }}
+          tag_name: vscode-v${{ steps.package-version.outputs.version }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,21 @@
+{
+  "name": "aiml-lsp-server",
+  "description": "AIML Language Server Protocol Server",
+  "version": "1.0.0",
+  "author": "Fireworks AI",
+  "license": "MIT",
+  "engines": {
+    "node": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fw-ai-external/aiml"
+  },
+  "dependencies": {
+    "@aiml/parser": "workspace:*",
+    "@aiml/shared": "workspace:*",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.11"
+  },
+  "scripts": {}
+}

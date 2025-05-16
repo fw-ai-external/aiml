@@ -1,23 +1,27 @@
 {
   "name": "vscode-aiml",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "displayName": "AIML",
   "description": "Language support for AIML",
   "categories": ["Programming Languages"],
   "license": "MIT",
-  "private": true,
+  "publisher": "aiml",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fireworks-ai/vscode-aiml"
+  },
   "engines": {
     "vscode": "^1.96.0"
   },
-  "main": "dist/extension.js",
-  "keywords": ["aiml", "aiml"],
-  "icon": "assets/aiml.png",
+  "main": "./client/out/extension",
+  "keywords": ["aiml", "fireworks", "agents", "llms", "llm", "components", "elements", "vscode", "extension"],
+  "icon": "assets/aiml.jpg",
   "scripts": {
-    "dev": "bun ./script/build.ts --watch",
-    "build": "bun ./script/build.ts",
+    "dev": "bun run build --watch",
+    "build": "tsc -b",
     "package": "vsce package --no-dependencies",
     "publish": "vsce publish --no-dependencies",
-    "vscode:prepublish": "bun ./script/build.ts",
+    "vscode:prepublish": "bun run build",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint .",
     "clean": "rm -rf node_modules && rm -rf dist"
@@ -29,42 +33,39 @@
     "@types/vscode": "1.96.0",
     "@volar/language-server": "~2.4.0",
     "@volar/vscode": "~2.4.0",
+    "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.2.0",
     "esbuild": "^0.24.0",
     "ovsx": "^0.10.0"
   },
+  "dependencies": {
+    "@aiml/shared": "workspace:*",
+    "@aiml/parser": "workspace:*"
+  },
   "galleryBanner": {
-    "color": "#fcb32c",
+    "color": "#00bc7d",
     "theme": "light"
   },
   "contributes": {
-    "breakpoints": [
-      {
-        "language": "aiml"
-      }
-    ],
-    "configuration": [
-      {
-        "title": "AIML",
-        "properties": {
-          "aiml.server.enable": {
-            "type": "boolean",
-            "default": true,
-            "description": "Enable experimental IntelliSense support for MDX files."
-          },
-          "aiml.trace.server.verbosity": {
-            "enum": ["off", "messages", "compact", "verbose"],
-            "default": "off",
-            "description": "Trace AIML language server requests in the output console."
-          },
-          "aiml.trace.server.format": {
-            "enum": ["text", "json"],
-            "default": "text",
-            "description": "How to format traced AIML language server requests."
-          }
+    "configuration": {
+      "type": "object",
+      "title": "AIML Language Server configuration",
+      "properties": {
+        "languageServerExample.maxNumberOfProblems": {
+          "scope": "resource",
+          "type": "number",
+          "default": 100,
+          "description": "Controls the maximum number of problems produced by the server."
+        },
+        "languageServerExample.trace.server": {
+          "scope": "window",
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server."
         }
       }
-    ],
+    },
     "languages": [
       {
         "id": "aiml",
@@ -77,81 +78,15 @@
         }
       }
     ],
-    "jsonValidation": [
-      {
-        "fileMatch": ["tsconfig.json", "tsconfig.*.json", "tsconfig-*.json", "jsconfig.json", "jsconfig.*.json"],
-        "url": "./tsconfig.schema.json"
-      }
-    ],
-    "commands": [
-      {
-        "command": "aiml.toggleDelete",
-        "title": "Toggle Delete",
-        "category": "AIML"
-      },
-      {
-        "command": "aiml.toggleEmphasis",
-        "title": "Toggle Emphasis",
-        "category": "AIML"
-      },
-      {
-        "command": "aiml.toggleInlineCode",
-        "title": "Toggle Inline Code",
-        "category": "AIML"
-      },
-      {
-        "command": "aiml.toggleStrong",
-        "title": "Toggle Strong",
-        "category": "AIML"
-      }
-    ],
-    "menus": {
-      "editor/context": [
-        {
-          "command": "aiml.toggleDelete",
-          "when": "editorTextFocus && !editorReadonly && editorLangId == aiml",
-          "group": "1_modification"
-        },
-        {
-          "command": "aiml.toggleEmphasis",
-          "when": "editorTextFocus && !editorReadonly && editorLangId == aiml",
-          "group": "1_modification"
-        },
-        {
-          "command": "aiml.toggleInlineCode",
-          "when": "editorTextFocus && !editorReadonly && editorLangId == aiml",
-          "group": "1_modification"
-        },
-        {
-          "command": "aiml.toggleStrong",
-          "when": "editorTextFocus && !editorReadonly && editorLangId == aiml",
-          "group": "1_modification"
-        }
-      ]
-    },
     "grammars": [
       {
         "language": "aiml",
         "scopeName": "source.aiml",
-        "path": "./syntaxes/source.aiml.tmLanguage",
-        "#1": "note: the below list maps TextMate scopes to VS Code Language IDs (<https://code.visualstudio.com/docs/languages/identifiers>), which does not affect syntax highlighting, but affects for example how comments work.",
-        "#2": "note: `graphql`, `kotlin`, `toml` have no names in that list, but do work with the most popular extension.",
-        "#3": "note: we map to JSX-enabled flavors of `js` and `ts`",
-        "#4": "note: I have no clue how to test `vbnet` (visual basic), I cannot find extensions",
+        "path": "./syntaxes/aiml.tmLanguage.json",
         "embeddedLanguages": {
           "meta.embedded.json": "json",
-          "meta.embedded.md": "markdown",
-          "meta.embedded.mdx": "mdx",
           "meta.embedded.python": "python",
           "meta.embedded.js": "javascript"
-        }
-      },
-      {
-        "scopeName": "source.aiml.codeblock",
-        "path": "./syntaxes/aiml.tmLanguage.json",
-        "injectTo": ["text.html.markdown"],
-        "embeddedLanguages": {
-          "meta.embedded.block.aiml": "aiml"
         }
       }
     ]

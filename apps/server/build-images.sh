@@ -4,6 +4,10 @@ set -e
 # Default IMAGE_TAG from VERSION file if not provided
 if [ -z "$IMAGE_TAG" ]; then
     IMAGE_TAG=$(node -e "console.log(require('./package.json').version)")
+    if [ "$IMAGE_TAG" == "undefined" ]; then
+        echo "Error: Could not determine version from package.json" >&2
+        exit 1
+    fi
 fi
 
 if [ -z "$DEPLOY_MODE" ]; then
@@ -27,14 +31,16 @@ docker_build() {
     echo "Building Docker images..."
     # docker build -t "${GCP_IMAGE}" -t "${AWS_IMAGE}" -t "${OCI_IMAGE}" .
     
+    cd ../..
     # Check if docker buildx is being used
     if docker buildx version &>/dev/null; then
         echo "Using Docker Buildx..."
-        docker buildx build --load -t "${OCI_IMAGE}" --build-arg DEPLOY_MODE="${DEPLOY_MODE}" .
+        docker buildx build --load -t "${OCI_IMAGE}" --platform linux/amd64 --build-arg DEPLOY_MODE="${DEPLOY_MODE}" -f ./apps/server/Dockerfile .
     else
         echo "Using standard Docker build..."
-        docker build -t "${OCI_IMAGE}" --build-arg DEPLOY_MODE="${DEPLOY_MODE}" .
+        docker build -t "${OCI_IMAGE}"--platform linux/amd64 --build-arg DEPLOY_MODE="${DEPLOY_MODE}" -f ./apps/server/Dockerfile .
     fi
+    cd -
 }
 
 # Function to push Docker images

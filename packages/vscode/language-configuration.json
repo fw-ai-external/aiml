@@ -1,8 +1,8 @@
 {
   "comments": {
-    "blockComment": ["{/*", "*/}"]
+    "blockComment": ["{/*", "*/}"],
   },
-  "brackets": [["{", "}"], ["[", "]"], ["(", ")"]],
+  "brackets": [["{", "}"], ["[", "]"], ["(", ")"], ["<", ">"]],
   "autoClosingPairs": [
     ["{", "}"],
     ["[", "]"],
@@ -23,8 +23,13 @@
       "notIn": ["string"]
     },
     {
-      "open": "/*",
-      "close": "*/",
+      "open": "{/*",
+      "close": "*/}",
+      "notIn": ["string"]
+    },
+    {
+      "open": "<!--",
+      "close": "-->",
       "notIn": ["string"]
     }
   ],
@@ -45,5 +50,14 @@
       "start": "^\\s*{/*\\s*#?region\\b.**/}",
       "end": "^\\s*{/*\\s*#?endregion\\b.**/}"
     }
-  }
+  },
+  "onEnterRules": [
+    {
+      "beforeText": "<([_:\\w][_:\\w-.\\d]*)([^/>]*(?!/)>)[^<]*$",
+      "afterText": "^\\s*</([_:\\w][_:\\w-.\\d]*)\\s*>",
+      "action": {
+        "indent": "indent"
+      }
+    }
+  ]
 }

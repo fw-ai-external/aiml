@@ -27,10 +27,6 @@
     "aiml-ui#build": {
       "outputs": [".next/**"]
     },
-    "@aiml/language-server#typecheck": {
-      "dependsOn": ["^@aiml/parser#build", "^@aiml/shared#build"],
-      "outputs": ["dist/**"]
-    },
     "@aiml/aiml-ui#typecheck": {
       "dependsOn": ["^@aiml/parser#build", "^@aiml/shared#build", "^@aiml/runtime#build"],
       "outputs": ["dist/**"]

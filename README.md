@@ -85,7 +85,7 @@ A comprehensive toolset for working with AIML based workflows, both familiar, ye
 ### VSCode Extension
 
 ```bash
-cd apps/vscode-plugin
+cd packages/vscode
 bun run dev        # Watch mode for development
 bun run test       # Run tests
 bun run package    # Build VSIX package
@@ -99,7 +99,6 @@ bun run package    # Build VSIX package
 │   ├── aiml-ui/            # Web-based management UI (Next.js)
 │   ├── landing-page/       # Project landing page (Next.js)
 │   ├── server/             # API server (Hono)
-│   └── vscode-plugin/      # (deprecated) VSCode extension
 ├── packages/
 │   ├── language-server/    # Language server implementation for IDE extensions
 │   ├── parser/             # AIML prompt parser
