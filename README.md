@@ -94,19 +94,16 @@ bun run package    # Build VSIX package
 ## Project Structure
 
 ```
-.
+AIML
 ├── apps/
 │   ├── aiml-ui/            # Web-based management UI (Next.js)
 │   ├── landing-page/       # Project landing page (Next.js)
-│   ├── server/             # API server (Hono)
+│   └── server/             # API server (Hono)
 ├── packages/
-│   ├── language-server/    # Language server implementation for IDE extensions
 │   ├── parser/             # AIML prompt parser
 │   ├── runtime/            # Runtime execution engine
 │   ├── shared/             # Shared utilities and base components
-│   ├── test-tmp/           # Temporary files for testing
 │   ├── tsconfig/           # Shared TypeScript configurations
-│   ├── vscode/             # VSCode extension
-|   └-- ...others/          # Forks of MDX parser plugins for MD to tweak them for AIML
+│   └-─ vscode/             # VSCode extension
 └── turbo.json              # Turborepo configuration
 ```
