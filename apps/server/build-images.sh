@@ -35,10 +35,10 @@ docker_build() {
     # Check if docker buildx is being used
     if docker buildx version &>/dev/null; then
         echo "Using Docker Buildx..."
-        docker buildx build --load -t "${OCI_IMAGE}" --build-arg DEPLOY_MODE="${DEPLOY_MODE}" -f ./apps/server/Dockerfile .
+        docker buildx build --load -t "${OCI_IMAGE}" --platform linux/amd64 --build-arg DEPLOY_MODE="${DEPLOY_MODE}" -f ./apps/server/Dockerfile .
     else
         echo "Using standard Docker build..."
-        docker build -t "${OCI_IMAGE}" --build-arg DEPLOY_MODE="${DEPLOY_MODE}" -f ./apps/server/Dockerfile .
+        docker build -t "${OCI_IMAGE}"--platform linux/amd64 --build-arg DEPLOY_MODE="${DEPLOY_MODE}" -f ./apps/server/Dockerfile .
     fi
     cd -
 }

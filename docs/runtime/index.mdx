@@ -13,8 +13,6 @@ This section provides technical documentation for integrating AIML into your pro
 # Install core packages
 npm install @aiml/parser @aiml/runtime
 
-# Optional: Install IDE support
-npm install -D @aiml/language-server
 ```
 
 ## Parser
@@ -192,28 +190,6 @@ for await (const chunk of stream) {
     // Handle each chunk of the response
     console.log(chunk.text);
 }
-```
-
-## Language Server
-
-The AIML Language Server provides IDE features like syntax highlighting and autocompletion:
-
-```typescript
-import { createLanguageServer } from '@aiml/language-server';
-
-const server = createLanguageServer({
-    // Custom element definitions for autocompletion
-    elements: customElements,
-    
-    // Validation settings
-    validation: {
-        validateAttributes: true,
-        validateChildren: true
-    }
-});
-
-// Start the server
-server.listen();
 ```
 
 ## Best Practices
