@@ -1,1 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M20.3,16.5l-3.9,3.9-4-3.9,1.1-1.1,2.1,2.1V11.8h1.5v5.8l2.1-2.1ZM3.5,15.7l2.7,2.7L9,15.7v4.4h1.5V12L6.2,16.3,2,12v8.1H3.5Z M28.8,20l-3.1-3.1L22.6,20l-1-1.1,3.1-3.1-3.2-3.2,1.1-1,3.1,3.2,3.2-3.2,1.1,1-3.2,3.2,3.1,3.1Z" fill="#f9ac00"/></svg>
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Define gradient based on the green #00bc7d -->
+  <defs>
+    <linearGradient id="tagGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00bc7d" />
+      <stop offset="30%" stop-color="#00d2a0" />
+      <stop offset="60%" stop-color="#00bc7d" />
+      <stop offset="80%" stop-color="#009c68" />
+      <stop offset="100%" stop-color="#00bc7d" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Single unified path with improved proportions -->
+  <path d="M73,35 Q68,35 65,40 L35,95 Q31,100 35,105 L65,160 Q68,165 73,165 L55,165 Q45,165 40,160 L10,105 Q6,100 10,95 L40,40 Q45,35 55,35 Z
+           M127,35 Q132,35 135,40 L165,95 Q169,100 165,105 L135,160 Q132,165 127,165 L145,165 Q155,165 160,160 L190,105 Q194,100 190,95 L160,40 Q155,35 145,35 Z
+           M127,35 Q120,35 118,38 L75,162 Q73,165 77,165 L95,165 Q100,165 102,162 L145,38 Q147,35 138,35 Z" 
+        fill="url(#tagGradient)" stroke="none" />
+</svg>

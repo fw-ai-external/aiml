@@ -1,15 +1,5 @@
-# VS Code Plugin Application Rules (fireagent-plugin-vscode)
-
-## Critical Rules
-
-*   (TODO: Add rules specific to the vscode-plugin application, e.g., VS Code API usage, command registration, view contribution points, language client setup)
-
-## Examples
-
-<example>
-  // (TODO: Add a valid example of applying a rule)
-</example>
-
-<example type="invalid">
-  // (TODO: Add an invalid example)
-</example> 
+---
+description: 
+globs: 
+alwaysApply: false
+---

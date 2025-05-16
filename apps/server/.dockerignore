@@ -6,5 +6,4 @@ dist
 docs/
 **/aiml-ui
 **/landing-page
-**/vscode-plugin
 **/vscode

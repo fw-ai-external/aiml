@@ -1,10 +1,11 @@
 {
   "name": "vscode-aiml",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "displayName": "AIML",
   "description": "Language support for AIML",
   "categories": ["Programming Languages"],
   "license": "MIT",
+  "publisher": "aiml",
   "repository": {
     "type": "git",
     "url": "https://github.com/fireworks-ai/vscode-aiml"
@@ -14,7 +15,7 @@
   },
   "main": "./client/out/extension",
   "keywords": ["aiml", "fireworks", "agents", "llms", "llm", "components", "elements", "vscode", "extension"],
-  "icon": "assets/aiml.png",
+  "icon": "assets/aiml.jpg",
   "scripts": {
     "dev": "bun run build --watch",
     "build": "tsc -b",
@@ -42,7 +43,7 @@
     "@aiml/parser": "workspace:*"
   },
   "galleryBanner": {
-    "color": "#fcb32c",
+    "color": "#00bc7d",
     "theme": "light"
   },
   "contributes": {

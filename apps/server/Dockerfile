@@ -47,7 +47,7 @@ RUN proto --version
 # RUN proto use -vvv
 # RUN echo "Proto environment setup complete. PATH=$PATH" && env | grep PROTO
 # Run bun install separately
-RUN bun install --filter '!aiml-ui' --filter '!landing-page' --filter '!vscode-plugin' --filter '!vscode'
+RUN bun install --filter '!aiml-ui' --filter '!landing-page' --filter '!vscode'
 
 # Build the application
 RUN bun run build -- --filter=server...
