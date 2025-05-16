@@ -22,7 +22,8 @@
   },
   "dependencies": {
     "acorn": "^8.14.1",
-    "ai": "^4.1.63"
+    "ai": "^4.1.63",
+    "@rollup/rollup-linux-arm64-gnu": "^4.40.2"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

@@ -1,10 +1,15 @@
 {
-  "exclude": ["out"],
-  "extends": "@aiml/tsconfig/library.json",
+  "exclude": ["out", "./node_modules", "../../node_modules/*", ".vscode-test"],
   "compilerOptions": {
-    "module": "preserve",
-    "moduleResolution": "bundler",
+    "module": "commonjs",
+    "target": "es2020",
+    "lib": ["es2020", "dom"],
     "noEmit": true,
-    "skipLibCheck": true
-  }
+    "rootDir": "src",
+    "skipLibCheck": true,
+    "outDir": "out",
+    "esModuleInterop": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./client" }, { "path": "./server" }]
 }
