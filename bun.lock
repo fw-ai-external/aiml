@@ -327,7 +327,7 @@
     },
     "packages/vscode": {
       "name": "vscode-aiml",
-      "version": "0.0.1",
+      "version": "0.0.4",
       "dependencies": {
         "@aiml/parser": "workspace:*",
         "@aiml/shared": "workspace:*",
