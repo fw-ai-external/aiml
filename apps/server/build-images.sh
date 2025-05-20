@@ -46,6 +46,7 @@ docker_build() {
 # Function to push Docker images
 docker_push() {
     echo "Pushing Docker images..."
+    
     # No need to build again as we already build in the deploy case
     docker image push "${OCI_IMAGE}"
     # docker image push "${AWS_IMAGE}"

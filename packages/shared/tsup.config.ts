@@ -1,7 +1,7 @@
-import baseConfig from '../tsconfig/tsup.config.base';
+import baseConfig from "../tsconfig/tsup.config.base";
 
 export default {
   ...baseConfig,
   // Disable dts generation in tsup, we'll use tsc for that
-  entry: ['src/index.ts'],
+  entry: ["src/index.ts"],
 };
