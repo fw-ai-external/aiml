@@ -74,6 +74,10 @@ jobs:
     needs: [lint, typecheck, test] # Run only if the above jobs succeed
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Build image
         run: bun run deploy
         env:
