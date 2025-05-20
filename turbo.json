@@ -1,6 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env.*local", "**/.env"],
+  "globalEnv": ["OCI_AUTH_TOKEN", "OCI_USER"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

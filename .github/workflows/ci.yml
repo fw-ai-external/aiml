@@ -88,11 +88,10 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Build image
-        run: bun run deploy -- -p ${{ secrets.OCI_AUTH_TOKEN}}
+        run: bun run deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEPLOY_MODE: "production"
-          #   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           OCI_AUTH_TOKEN: ${{ secrets.OCI_AUTH_TOKEN }}
           OCI_USER: ${{ secrets.OCI_USER }}
   e2e:
