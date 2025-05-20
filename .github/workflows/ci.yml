@@ -91,7 +91,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: us-chicago-1.ocir.io
-          username: ${{ secrets.OCI_USER }}
+          username: axhaeqbjwexc/${{ secrets.OCI_USER }}
           password: ${{ secrets.OCI_AUTH_TOKEN }}
       - name: Build image
         run: bun run deploy
