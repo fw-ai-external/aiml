@@ -68,6 +68,20 @@ jobs:
         run: bun run build
       - name: Run Test
         run: bun run test
+
+  image:
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test] # Run only if the above jobs succeed
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: bun run deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_MODE: "production"
+          #   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          OCI_AUTH_TOKEN: ${{ secrets.OCI_AUTH_TOKEN }}
+          OCI_USER: ${{ secrets.OCI_USER }}
   e2e:
     runs-on: ubuntu-latest
     needs: [lint, typecheck, test] # Run only if the above jobs succeed
@@ -86,6 +100,7 @@ jobs:
           bun-version: latest
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
       - name: Run E2E Tests
         run: bun run e2e
         env:
