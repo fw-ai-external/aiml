@@ -4,5 +4,4 @@ export default {
   ...baseConfig,
   // Disable dts generation in tsup, we'll use tsc for that
   entry: ["src/index.ts"],
-  dts: false,
 };
