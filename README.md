@@ -40,7 +40,7 @@ A comprehensive toolset for working with AIML based workflows, both familiar, ye
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) (v1.1.42 or higher)
+- [Bun](https://bun.sh/docs/cli/install) (v1.1.42 or higher)
 - [Node.js](https://nodejs.org) (for VSCode extension development)
 - [PostgreSQL](https://www.postgresql.org) (for the API server)
 - [VSCode](https://code.visualstudio.com) (for extension development)
@@ -62,14 +62,24 @@ A comprehensive toolset for working with AIML based workflows, both familiar, ye
 
 3. Set up environment variables:
 
-   ```bash
-   cp .env.example .env.local
-   ```
+These need to be set via your environment or using .env files. If using .env files, you will need to do so in the project root as well as in `/apps/server`
 
-   Edit `.env.development` with your credentials:
+```bash
+cp .env.example .env && cd apps/server && cp .env.example .env
+```
 
-   - `FIREWORKS_API_KEY`: Fireworks API key for tests
-   - `DATABASE_URL` PostgreSQL database credentials (for the API server)
+Edit both `.env` files with your credentials:
+
+```
+# Get your Fireworks API key from https://fireworks.ai/settings/users/api-keys
+FIREWORKS_API_KEY=<API KEY HERE>
+
+# Use the URL of your Postgres database
+# You can use a local Postgres database by installing Postgres locally
+# == OR ==
+#Using a cloud based Postgres database such as Neon https://neon.tech
+DATABASE_URL=postgresql://postgres:postgres@0.0.0.0:5432/aiml-server
+```
 
 4. Run database migrations:
 
