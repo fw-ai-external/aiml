@@ -38,14 +38,18 @@ A comprehensive toolset for working with AIML based workflows, both familiar, ye
   - Performance bottleneck identification
   - Error rate monitoring and alerting
 
-## Prerequisites
+## Getting Started
+
+To use AIML you dont need to do anything except call an AIML enabled LLM API Such as [Fireworks OpenAI compattible Chat API](https://aiml.fireworks.ai/docs/using-with-fireworks). See the docs [here](https://aiml.fireworks.ai/docs/using-with-fireworks) to get started with using AIML!
+
+### Using AIML with a provider that does not yet support AIML
+
+### Prerequisites
 
 - [Bun](https://bun.sh/docs/cli/install) (v1.1.42 or higher)
 - [Node.js](https://nodejs.org) (for VSCode extension development)
 - [PostgreSQL](https://www.postgresql.org) (for the API server)
 - [VSCode](https://code.visualstudio.com) (for extension development)
-
-## Getting Started
 
 1. Clone the repository:
 
@@ -65,15 +69,12 @@ A comprehensive toolset for working with AIML based workflows, both familiar, ye
 These need to be set via your environment or using .env files. If using .env files, you will need to do so in the project root as well as in `/apps/server`
 
 ```bash
-cp .env.example .env && cd apps/server && cp .env.example .env
+cp .env.example .env && cp apps/server/.env.example apps/server/.env
 ```
 
 Edit both `.env` files with your credentials:
 
 ```
-# Get your Fireworks API key from https://fireworks.ai/settings/users/api-keys
-FIREWORKS_API_KEY=<API KEY HERE>
-
 # Use the URL of your Postgres database
 # You can use a local Postgres database by installing Postgres locally
 # == OR ==
@@ -92,28 +93,6 @@ DATABASE_URL=postgresql://postgres:postgres@0.0.0.0:5432/aiml-server
    bun run dev
    ```
 
-### VSCode Extension
+## AIML support in your IDE
 
-```bash
-cd packages/vscode
-bun run dev        # Watch mode for development
-bun run test       # Run tests
-bun run package    # Build VSIX package
-```
-
-## Project Structure
-
-```
-AIML
-├── apps/
-│   ├── aiml-ui/            # Web-based management UI (Next.js)
-│   ├── landing-page/       # Project landing page (Next.js)
-│   └── server/             # API server (Hono)
-├── packages/
-│   ├── parser/             # AIML prompt parser
-│   ├── runtime/            # Runtime execution engine
-│   ├── shared/             # Shared utilities and base components
-│   ├── tsconfig/           # Shared TypeScript configurations
-│   └-─ vscode/             # VSCode extension
-└── turbo.json              # Turborepo configuration
-```
+To get AIML syntax highlighting, auto-complete and more! Check out our [IDE plugin docs](https://aiml.fireworks.ai/docs/editor-plugins)
