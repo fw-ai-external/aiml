@@ -44,7 +44,7 @@ To use AIML you dont need to do anything except call an AIML enabled LLM API Suc
 
 ### Using AIML with a provider that does not yet support AIML
 
-### Prerequisites
+_Prerequisites_
 
 - [Bun](https://bun.sh/docs/cli/install) (v1.1.42 or higher)
 - [Node.js](https://nodejs.org) (for VSCode extension development)
