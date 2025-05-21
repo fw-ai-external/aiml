@@ -1,0 +1,60 @@
+---
+title: Deploy an AIML Server
+description: Learn how to deploy your own AIML server for running AIML agents
+---
+import { Banner } from 'fumadocs-ui/components/banner';
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+
+# Deploy an AIML Server
+
+This guide will walk you through deploying your own AIML server to run AIML agents in your infrastructure.
+
+## Prerequisites
+
+Before you begin, you'll need:
+
+- [Bun](https://bun.sh/docs/cli/install) (v1.1.42 or higher)
+- [PostgreSQL](https://www.postgresql.org) (v14 or higher)
+
+## Local Deployment
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/fw-ai-external/aiml.git
+   cd aiml
+   ```
+
+2. Install dependencies:
+   ```bash
+   bun install --filter '!aiml-ui' --filter '!landing-page' --filter '!vscode'
+   ```
+
+3. Create a `.env` file in the `apps/server` directory:
+   ```bash
+   cp apps/server/.env.example apps/server/.env
+   ```
+
+4. Edit the `.env` file with your Fireworks API key and database URL:
+   ```
+   DATABASE_URL=postgresql://username:password@hostname:port/database
+   ```
+
+5. Run the server:
+   ```bash
+   cd apps/server
+   bun run build
+   bun run initial-setup
+   bun run start
+   ```
+
+The server will be available at `http://localhost:3000` by default.
+
+## Health Monitoring
+
+The AIML server provides health endpoints:
+
+- `/health`: Basic health check
+
+You can use these endpoints with monitoring tools like Prometheus, Datadog, or cloud provider monitoring services.
+
+
