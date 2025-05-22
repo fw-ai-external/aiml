@@ -99,3 +99,4 @@ tasks/
 **/.claude/settings.local.json
 
 **/out/
+*.vsix

@@ -51,18 +51,30 @@
       "type": "object",
       "title": "AIML Language Server configuration",
       "properties": {
-        "languageServerExample.maxNumberOfProblems": {
+        "aiml.maxNumberOfProblems": {
           "scope": "resource",
           "type": "number",
           "default": 100,
           "description": "Controls the maximum number of problems produced by the server."
         },
-        "languageServerExample.trace.server": {
+        "aiml.trace.server": {
           "scope": "window",
           "type": "string",
           "enum": ["off", "messages", "verbose"],
           "default": "off",
           "description": "Traces the communication between VS Code and the language server."
+        },
+        "aiml.enableCodeLens": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "description": "Enable CodeLens for AIML workflows."
+        },
+        "aiml.enableHover": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "description": "Enable hover information for AIML elements."
         }
       }
     },
@@ -86,8 +98,15 @@
         "embeddedLanguages": {
           "meta.embedded.json": "json",
           "meta.embedded.python": "python",
-          "meta.embedded.js": "javascript"
+          "meta.embedded.javascript": "javascript",
+          "meta.embedded.yaml": "yaml"
         }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "aiml",
+        "path": "./snippets/aiml.json"
       }
     ]
   }
