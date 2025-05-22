@@ -48,6 +48,7 @@
     "@types/xml-formatter": "^2.1.1",
     "rollup-plugin-string-import": "^1.2.5",
     "tsdown": "^0.11.1",
+    "tsup": "^8.0.0",
     "typescript": "^5.3.3"
   }
 }

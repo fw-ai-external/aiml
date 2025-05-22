@@ -1,5 +1,56 @@
 ---
-description: 
-globs: 
+description: Rules for developing and maintaining the VSCode AIML extension. Apply when working on VSCode extension features, language server protocol implementation, syntax highlighting, or resolving extension loading issues. Critical for ensuring proper build pipeline, dependency management, and extension packaging.
+globs: packages/vscode/**/*
 alwaysApply: false
 ---
+
+# VSCode AIML Extension Development Rules
+
+## Critical Rules
+
+- **Always ensure dependencies are built before compiling the extension**: Run `bun run build` on `@aiml/parser` and `@aiml/shared` packages before building the VSCode extension
+- **Build both client and server components**: The extension requires both `packages/vscode/client/out/extension.js` and `packages/vscode/server/out/server.js` to function
+- **Install workspace dependencies from root**: Use `bun install` from the project root to resolve workspace dependencies before building individual components
+- **Compile client and server separately if needed**: Use `npx tsc` in both `packages/vscode/client` and `packages/vscode/server` directories
+- **Force rebuild when compilation seems cached**: Use `rm -f tsconfig.tsbuildinfo && npx tsc --build --force` to clear build cache
+- **Verify compilation output**: Check that the required `.js` files exist in `out/` directories before testing the extension
+- **Use proper entry points**: Main package.json should point to `./client/out/extension` and server should be at `./server/out/server.js`
+- **Package with --no-dependencies flag**: Use `npx vsce package --no-dependencies` to avoid dependency validation issues in monorepo structure
+
+## Extension Structure
+
+- **Client**: Contains VSCode extension activation logic and UI integration
+- **Server**: Implements Language Server Protocol for AIML syntax highlighting, completion, and diagnostics
+- **Shared Dependencies**: Requires built `@aiml/parser` and `@aiml/shared` packages
+
+## Build Order
+
+1. Build workspace dependencies: `cd packages/parser && bun run build`
+2. Build shared package: `cd packages/shared && bun run build`
+3. Install VSCode extension dependencies: `cd packages/vscode && bun install`
+4. Build client: `cd packages/vscode/client && npx tsc`
+5. Build server: `cd packages/vscode/server && npx tsc`
+6. Verify output files exist in respective `out/` directories
+
+## Examples
+
+<example>
+  // Proper build sequence when extension fails to load
+  bun install  // Install workspace dependencies from root
+  cd packages/parser && bun run build
+  cd packages/shared && bun run build
+  cd packages/vscode && bun install
+  cd packages/vscode/client && npx tsc
+  cd packages/vscode/server && npx tsc
+  
+  // Verify compilation
+  find packages/vscode -name "*.js" | grep -E "(client|server)/out"
+</example>
+
+<example type="invalid">
+  // Don't try to build extension without dependencies
+  cd packages/vscode/client && npx tsc  // Will fail if @aiml/parser not built
+  
+  // Don't assume compilation worked without verification
+  // Always check that out/extension.js and out/server.js exist
+</example>

@@ -210,39 +210,50 @@ export function isAtAttributePosition(
  * Improved element stack tracking with proper self-closing tag handling
  */
 function buildElementStack(text: string, offset: number): string[] {
-  const elementStack: string[] = [];
-  let i = 0;
+  try {
+    const elementStack: string[] = [];
+    let i = 0;
 
-  while (i < offset) {
-    const openBracket = text.indexOf("<", i);
-    if (openBracket === -1 || openBracket >= offset) break;
+    while (i < offset) {
+      const openBracket = text.indexOf("<", i);
+      if (openBracket === -1 || openBracket >= offset) break;
 
-    const closeBracket = text.indexOf(">", openBracket);
-    if (closeBracket === -1) break;
+      const closeBracket = text.indexOf(">", openBracket);
+      if (closeBracket === -1) break;
 
-    const tagContent = text.substring(openBracket + 1, closeBracket);
+      try {
+        const tagContent = text.substring(openBracket + 1, closeBracket);
 
-    if (tagContent.startsWith("/")) {
-      // Closing tag
-      const tagName = tagContent.substring(1).trim();
-      const lastIndex = elementStack.lastIndexOf(tagName);
-      if (lastIndex !== -1) {
-        elementStack.splice(lastIndex, 1);
+        if (tagContent.startsWith("/")) {
+          // Closing tag
+          const tagName = tagContent.substring(1).trim();
+          const lastIndex = elementStack.lastIndexOf(tagName);
+          if (lastIndex !== -1) {
+            elementStack.splice(lastIndex, 1);
+          }
+        } else if (tagContent.endsWith("/") || isSelfClosingTag(tagContent)) {
+          // Self-closing tag - don't add to stack
+        } else {
+          // Opening tag
+          const tagName = tagContent.split(/\s/)[0];
+          if (tagName) {
+            elementStack.push(tagName);
+          }
+        }
+      } catch (tagError) {
+        console.error(
+          `Error processing tag at position ${openBracket}: ${tagError}`
+        );
       }
-    } else if (tagContent.endsWith("/") || isSelfClosingTag(tagContent)) {
-      // Self-closing tag - don't add to stack
-    } else {
-      // Opening tag
-      const tagName = tagContent.split(/\s/)[0];
-      if (tagName) {
-        elementStack.push(tagName);
-      }
+
+      i = closeBracket + 1;
     }
 
-    i = closeBracket + 1;
+    return elementStack;
+  } catch (error) {
+    console.error(`Error building element stack: ${error}`);
+    return []; // Return empty stack on error
   }
-
-  return elementStack;
 }
 
 /**
@@ -261,63 +272,81 @@ function analyzeCompletionContext(
   document: TextDocument,
   position: Position
 ): CompletionContext {
-  const text = document.getText();
-  const offset = document.offsetAt(position);
+  try {
+    const text = document.getText();
+    const offset = document.offsetAt(position);
 
-  // Build element stack using improved algorithm
-  const parentElements = buildElementStack(text, offset);
+    // Build element stack using improved algorithm
+    const parentElements = buildElementStack(text, offset);
 
-  // Check if we're inside an element tag
-  const lastOpenBracket = text.lastIndexOf("<", offset);
-  const nextCloseBracket = text.indexOf(">", lastOpenBracket);
-  const isInElement =
-    lastOpenBracket !== -1 &&
-    (nextCloseBracket === -1 || nextCloseBracket >= offset);
+    // Check if we're inside an element tag
+    const lastOpenBracket = text.lastIndexOf("<", offset);
+    const nextCloseBracket = text.indexOf(">", lastOpenBracket);
+    const isInElement =
+      lastOpenBracket !== -1 &&
+      (nextCloseBracket === -1 || nextCloseBracket >= offset);
 
-  // Check if we're inside a JavaScript expression
-  const lastOpenBrace = text.lastIndexOf("{", offset);
-  const nextCloseBrace = text.indexOf("}", lastOpenBrace);
-  const isInExpression =
-    lastOpenBrace !== -1 &&
-    lastOpenBrace > lastOpenBracket &&
-    (nextCloseBrace === -1 || nextCloseBrace >= offset);
+    // Check if we're inside a JavaScript expression
+    const lastOpenBrace = text.lastIndexOf("{", offset);
+    const nextCloseBrace = text.indexOf("}", lastOpenBrace);
+    const isInExpression =
+      lastOpenBrace !== -1 &&
+      lastOpenBrace > lastOpenBracket &&
+      (nextCloseBrace === -1 || nextCloseBrace >= offset);
 
-  let elementName: string | undefined;
-  let isInAttribute = false;
-  let isInAttributeValue = false;
-  let attributeName: string | undefined;
+    let elementName: string | undefined;
+    let isInAttribute = false;
+    let isInAttributeValue = false;
+    let attributeName: string | undefined;
 
-  if (isInElement && lastOpenBracket !== -1) {
-    const tagContent = text.substring(lastOpenBracket + 1, offset);
-    const elementMatch = tagContent.match(/^(\w+)/);
-    elementName = elementMatch?.[1];
+    if (isInElement && lastOpenBracket !== -1) {
+      try {
+        const tagContent = text.substring(lastOpenBracket + 1, offset);
+        const elementMatch = tagContent.match(/^(\w+)/);
+        elementName = elementMatch?.[1];
 
-    // Check if we're in an attribute position
-    const afterElementName = tagContent.substring(elementName?.length || 0);
-    isInAttribute = /^\s+\w*$/.test(afterElementName);
+        // Check if we're in an attribute position
+        const afterElementName = tagContent.substring(elementName?.length || 0);
+        isInAttribute = /^\s+\w*$/.test(afterElementName);
 
-    // Check if we're in an attribute value
-    const attributeValueMatch = afterElementName.match(
-      /\s+(\w+)\s*=\s*["']?([^"']*)?$/
-    );
-    if (attributeValueMatch) {
-      isInAttributeValue = true;
-      attributeName = attributeValueMatch[1];
+        // Check if we're in an attribute value
+        const attributeValueMatch = afterElementName.match(
+          /\s+(\w+)\s*=\s*["']?([^"']*)?$/
+        );
+        if (attributeValueMatch) {
+          isInAttributeValue = true;
+          attributeName = attributeValueMatch[1];
+        }
+      } catch (innerError) {
+        console.error(`Error analyzing tag content: ${innerError}`);
+      }
     }
-  }
 
-  return {
-    isInElement,
-    isInAttribute,
-    isInAttributeValue,
-    isInExpression,
-    elementName,
-    attributeName,
-    isInWorkflow:
-      parentElements.includes("workflow") || parentElements.includes("scxml"),
-    isInState: parentElements.includes("state"),
-    parentElements,
-  };
+    return {
+      isInElement,
+      isInAttribute,
+      isInAttributeValue,
+      isInExpression,
+      elementName,
+      attributeName,
+      isInWorkflow:
+        parentElements.includes("workflow") || parentElements.includes("scxml"),
+      isInState: parentElements.includes("state"),
+      parentElements,
+    };
+  } catch (error) {
+    console.error(`Error analyzing completion context: ${error}`);
+    // Return a default context that won't crash the server
+    return {
+      isInElement: false,
+      isInAttribute: false,
+      isInAttributeValue: false,
+      isInExpression: false,
+      isInWorkflow: false,
+      isInState: false,
+      parentElements: [],
+    };
+  }
 }
 
 /**
@@ -549,29 +578,40 @@ export function provideCompletionItems(
   document: TextDocument,
   position: Position
 ): CompletionItem[] {
-  const context = analyzeCompletionContext(document, position);
+  try {
+    const context = analyzeCompletionContext(document, position);
 
-  if (context.isInExpression) {
-    // Inside a JavaScript expression - suggest AIML expressions
-    return getExpressionCompletions();
-  } else if (
-    context.isInAttributeValue &&
-    context.elementName &&
-    context.attributeName
-  ) {
-    // Suggest attribute values
-    return getAttributeValueCompletions(
-      context.elementName,
+    if (context.isInExpression) {
+      // Inside a JavaScript expression - suggest AIML expressions
+      return getExpressionCompletions();
+    } else if (
+      context.isInAttributeValue &&
+      context.elementName &&
       context.attributeName
-    );
-  } else if (context.isInAttribute && context.elementName) {
-    // Suggest attributes for the current element
-    return getAttributeCompletions(context.elementName);
-  } else if (!context.isInElement) {
-    // Suggest element tags
-    return getElementCompletions(context);
-  }
+    ) {
+      // Suggest attribute values
+      return getAttributeValueCompletions(
+        context.elementName,
+        context.attributeName
+      );
+    } else if (context.isInAttribute && context.elementName) {
+      // Suggest attributes for the current element
+      return getAttributeCompletions(context.elementName);
+    } else if (!context.isInElement) {
+      // Suggest element tags
+      return getElementCompletions(context);
+    }
 
-  // Default fallback
-  return getElementCompletions(context);
+    // Default fallback
+    return getElementCompletions(context);
+  } catch (error) {
+    // Log error but don't crash the server
+    console.error(
+      `Error providing completion items: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    // Return empty array to avoid crashing
+    return [];
+  }
 }

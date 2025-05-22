@@ -67,7 +67,7 @@ import TestingTools from "./testingtools.js"
       <param name="prId" value={(ctx) => ctx.datamodel.pullRequestId} />
     </toolcall>
       
-    <script>
+    <script language="javascript">
       try {
         const result = ctx.lastElement.output;
         ctx.datamodel.codeFiles = result.files;

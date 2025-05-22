@@ -3,10 +3,8 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import {
-  createConnection,
   TextDocuments,
   type Diagnostic,
-  ProposedFeatures,
   type InitializeParams,
   DidChangeConfigurationNotification,
   type CompletionItem,
@@ -22,16 +20,88 @@ import {
   type WorkspaceSymbol,
   SymbolKind,
   type DocumentSymbol,
+  type SemanticTokensParams,
+  type Connection,
+} from "vscode-languageserver";
+
+import {
+  createConnection,
+  IPCMessageReader,
+  IPCMessageWriter,
 } from "vscode-languageserver/node";
 
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { parse } from "@aiml/parser";
 import { allElementConfigs } from "@aiml/shared";
 import { provideCompletionItems } from "./completion-provider";
+import {
+  extractSemanticTokens,
+  SEMANTIC_TOKEN_LEGEND,
+} from "./semantic-highlighting";
+
+// Dynamic import for ESM parser
+let parseFunction: any = null;
+async function getParser() {
+  try {
+    if (!parseFunction) {
+      connection?.console.log("Importing @aiml/parser module...");
+      const parserModule = await import("@aiml/parser");
+      parseFunction = parserModule.parse;
+      connection?.console.log("Successfully imported @aiml/parser module");
+    }
+    return parseFunction;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    connection?.console.error(
+      `Failed to import parser module: ${errorMessage}`
+    );
+    connection?.console.error(
+      `Stack trace: ${error instanceof Error ? error.stack : "No stack trace"}`
+    );
+    throw error;
+  }
+}
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
-const connection = createConnection(ProposedFeatures.all);
+// Define connection with proper type
+let connection: Connection;
+try {
+  console.log("=== AIML Language Server Starting ===");
+  console.log(`Process PID: ${process.pid}`);
+  console.log(`Node version: ${process.version}`);
+  console.log(`Environment debug flag: ${process.env.AIML_SERVER_DEBUG}`);
+  console.log(`Current working directory: ${process.cwd()}`);
+  console.log(`Command line arguments: ${JSON.stringify(process.argv)}`);
+  console.log(`Memory usage: ${JSON.stringify(process.memoryUsage())}`);
+
+  console.log("Creating connection...");
+  connection = createConnection(
+    new IPCMessageReader(process),
+    new IPCMessageWriter(process)
+  );
+  console.log("✅ Server connection created successfully");
+
+  connection.console.log(
+    "✅ Server connection created and ready for initialization"
+  );
+} catch (error) {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorStack = error instanceof Error ? error.stack : "No stack trace";
+
+  console.error(`❌ Failed to create server connection: ${errorMessage}`);
+  console.error(`Stack trace: ${errorStack}`);
+
+  // Try to create a basic connection for error reporting
+  try {
+    const basicConnection = createConnection();
+    basicConnection.console.error(`Server startup failed: ${errorMessage}`);
+    basicConnection.console.error(`Stack trace: ${errorStack}`);
+  } catch (basicError) {
+    console.error("Failed to create even basic connection for error reporting");
+  }
+
+  throw error;
+}
 
 // Create a simple text document manager.
 const documents = new TextDocuments(TextDocument);
@@ -41,63 +111,111 @@ let hasWorkspaceFolderCapability = false;
 let hasDiagnosticRelatedInformationCapability = false;
 
 connection.onInitialize((params: InitializeParams) => {
-  const capabilities = params.capabilities;
+  try {
+    connection.console.log("Initializing language server...");
+    const capabilities = params.capabilities;
 
-  // Does the client support the `workspace/configuration` request?
-  // If not, we fall back using global settings.
-  hasConfigurationCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.configuration
-  );
-  hasWorkspaceFolderCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.workspaceFolders
-  );
-  hasDiagnosticRelatedInformationCapability = !!(
-    capabilities.textDocument &&
-    capabilities.textDocument.publishDiagnostics &&
-    capabilities.textDocument.publishDiagnostics.relatedInformation
-  );
+    // Does the client support the `workspace/configuration` request?
+    // If not, we fall back using global settings.
+    hasConfigurationCapability = !!(
+      capabilities.workspace && !!capabilities.workspace.configuration
+    );
+    hasWorkspaceFolderCapability = !!(
+      capabilities.workspace && !!capabilities.workspace.workspaceFolders
+    );
+    hasDiagnosticRelatedInformationCapability = !!(
+      capabilities.textDocument &&
+      capabilities.textDocument.publishDiagnostics &&
+      capabilities.textDocument.publishDiagnostics.relatedInformation
+    );
 
-  const result: InitializeResult = {
-    capabilities: {
-      textDocumentSync: TextDocumentSyncKind.Incremental,
-      // Tell the client that this server supports code completion.
-      completionProvider: {
-        resolveProvider: true,
-      },
-      diagnosticProvider: {
-        interFileDependencies: false,
-        workspaceDiagnostics: false,
-      },
-      // Add hover provider
-      hoverProvider: true,
-      // Add document symbol provider
-      documentSymbolProvider: true,
-      // Add workspace symbol provider
-      workspaceSymbolProvider: true,
-    },
-  };
-  if (hasWorkspaceFolderCapability) {
-    result.capabilities.workspace = {
-      workspaceFolders: {
-        supported: true,
+    connection.console.log(
+      `Configuration capability: ${hasConfigurationCapability}`
+    );
+    connection.console.log(
+      `Workspace folder capability: ${hasWorkspaceFolderCapability}`
+    );
+    connection.console.log(
+      `Diagnostic related info capability: ${hasDiagnosticRelatedInformationCapability}`
+    );
+
+    const result: InitializeResult = {
+      capabilities: {
+        textDocumentSync: TextDocumentSyncKind.Incremental,
+        // Tell the client that this server supports code completion.
+        completionProvider: {
+          resolveProvider: true,
+        },
+        diagnosticProvider: {
+          interFileDependencies: false,
+          workspaceDiagnostics: false,
+        },
+        // Add hover provider
+        hoverProvider: true,
+        // Add document symbol provider
+        documentSymbolProvider: true,
+        // Add workspace symbol provider
+        workspaceSymbolProvider: true,
+        // Add semantic tokens provider
+        semanticTokensProvider: {
+          legend: SEMANTIC_TOKEN_LEGEND,
+          full: true,
+        },
       },
     };
+    if (hasWorkspaceFolderCapability) {
+      result.capabilities.workspace = {
+        workspaceFolders: {
+          supported: true,
+        },
+      };
+    }
+    connection.console.log("Server initialization completed successfully");
+    return result;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    connection.console.error(`Error during initialization: ${errorMessage}`);
+    connection.console.error(
+      `Stack trace: ${error instanceof Error ? error.stack : "No stack trace"}`
+    );
+    throw error;
   }
-  return result;
 });
 
 connection.onInitialized(() => {
-  if (hasConfigurationCapability) {
-    // Register for all configuration changes.
-    connection.client.register(
-      DidChangeConfigurationNotification.type,
-      undefined
+  try {
+    connection.console.log("Server initialized, setting up event handlers...");
+
+    if (hasConfigurationCapability) {
+      // Register for all configuration changes.
+      connection.console.log("Registering for configuration changes...");
+      connection.client
+        .register(DidChangeConfigurationNotification.type, undefined)
+        .catch((error) => {
+          connection.console.error(
+            `Failed to register for configuration changes: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        });
+    }
+
+    if (hasWorkspaceFolderCapability) {
+      connection.console.log("Setting up workspace folder change handler...");
+      connection.workspace.onDidChangeWorkspaceFolders((_event: any) => {
+        connection.console.log("Workspace folder change event received.");
+      });
+    }
+
+    connection.console.log("Server initialization completed successfully");
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    connection.console.error(
+      `Error during server initialization: ${errorMessage}`
     );
-  }
-  if (hasWorkspaceFolderCapability) {
-    connection.workspace.onDidChangeWorkspaceFolders((_event) => {
-      connection.console.log("Workspace folder change event received.");
-    });
+    connection.console.error(
+      `Stack trace: ${error instanceof Error ? error.stack : "No stack trace"}`
+    );
   }
 });
 
@@ -115,17 +233,40 @@ let globalSettings: Settings = defaultSettings;
 // Cache the settings of all open documents
 const documentSettings = new Map<string, Thenable<Settings>>();
 
-connection.onDidChangeConfiguration((change) => {
-  if (hasConfigurationCapability) {
-    // Reset all cached document settings
-    documentSettings.clear();
-  } else {
-    globalSettings = change.settings.languageServerExample || defaultSettings;
+connection.onDidChangeConfiguration((change: any) => {
+  try {
+    connection.console.log("Configuration change detected");
+
+    if (hasConfigurationCapability) {
+      // Reset all cached document settings
+      connection.console.log("Clearing document settings cache");
+      documentSettings.clear();
+    } else {
+      connection.console.log("Updating global settings");
+      globalSettings = change.settings.languageServerExample || defaultSettings;
+    }
+
+    // Refresh the diagnostics since the `maxNumberOfProblems` could have changed.
+    connection.console.log("Refreshing diagnostics");
+    try {
+      connection.languages.diagnostics.refresh();
+      connection.console.log("Diagnostics refreshed successfully");
+    } catch (error: any) {
+      connection.console.error(
+        `Failed to refresh diagnostics: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    connection.console.error(
+      `Error handling configuration change: ${errorMessage}`
+    );
+    connection.console.error(
+      `Stack trace: ${error instanceof Error ? error.stack : "No stack trace"}`
+    );
   }
-  // Refresh the diagnostics since the `maxNumberOfProblems` could have changed.
-  // We could optimize things here and re-fetch the setting first can compare it
-  // to the existing setting, but this is out of scope for this example.
-  connection.languages.diagnostics.refresh();
 });
 
 function getDocumentSettings(resource: string): Thenable<Settings> {
@@ -181,40 +322,77 @@ async function validateTextDocument(
     // The validator creates diagnostics for all uppercase words length 2 and more
     const text = textDocument.getText();
 
-    const { diagnostics } = await parse(text);
+    try {
+      const parse = await getParser();
+      const { diagnostics } = await parse(text);
 
-    return diagnostics.map((diagnostic): Diagnostic => {
-      // Convert the parser's diagnostic to a valid LSP diagnostic
-      return {
-        message: diagnostic.message,
-        severity: mapSeverity(diagnostic.severity),
-        code: diagnostic.code,
-        source: diagnostic.source,
-        range: {
-          start: {
-            line: diagnostic.range.start.line,
-            character: diagnostic.range.start.column,
+      return diagnostics.map((diagnostic: any): Diagnostic => {
+        try {
+          // Convert the parser's diagnostic to a valid LSP diagnostic
+          return {
+            message: diagnostic.message,
+            severity: mapSeverity(diagnostic.severity),
+            code: diagnostic.code,
+            source: diagnostic.source,
+            range: {
+              start: {
+                line: diagnostic.range.start.line,
+                character: diagnostic.range.start.column,
+              },
+              end: {
+                line: diagnostic.range.end.line,
+                character: diagnostic.range.end.column,
+              },
+            },
+          };
+        } catch (diagnosticError) {
+          // If there's an error processing a specific diagnostic, log it and return a generic one
+          connection.console.error(
+            `Error processing diagnostic: ${diagnosticError}`
+          );
+          return {
+            message: "Error processing diagnostic",
+            severity: DiagnosticSeverity.Error,
+            range: {
+              start: { line: 0, character: 0 },
+              end: { line: 0, character: 0 },
+            },
+            source: "aiml-parser",
+          };
+        }
+      });
+    } catch (parseError) {
+      // Handle parser errors gracefully
+      const errorMessage =
+        parseError instanceof Error ? parseError.message : String(parseError);
+      connection.console.error(`Parse error: ${errorMessage}`);
+
+      return [
+        {
+          message: `Parse error: ${errorMessage}`,
+          severity: DiagnosticSeverity.Error,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 0 },
           },
-          end: {
-            line: diagnostic.range.end.line,
-            character: diagnostic.range.end.column,
-          },
+          source: "aiml-parser",
         },
-      };
-    });
+      ];
+    }
   } catch (error) {
-    // Handle parser errors gracefully
+    // Handle any other errors gracefully
     const errorMessage = error instanceof Error ? error.message : String(error);
+    connection.console.error(`Validation error: ${errorMessage}`);
 
     return [
       {
-        message: `Parse error: ${errorMessage}`,
+        message: `Validation error: ${errorMessage}`,
         severity: DiagnosticSeverity.Error,
         range: {
           start: { line: 0, character: 0 },
           end: { line: 0, character: 0 },
         },
-        source: "aiml-parser",
+        source: "aiml-validator",
       },
     ];
   }
@@ -242,28 +420,62 @@ connection.onDidChangeWatchedFiles((_change) => {
   connection.console.log("We received a file change event");
 });
 
+// Provide semantic tokens for syntax highlighting
+connection.languages.semanticTokens.on(async (params: SemanticTokensParams) => {
+  try {
+    const document = documents.get(params.textDocument.uri);
+    if (!document) {
+      return { data: [] };
+    }
+
+    return await extractSemanticTokens(document);
+  } catch (error) {
+    // Catch and log any errors to prevent server crashes
+    connection.console.error(
+      `Error in semantic tokens handler: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    // Return empty tokens instead of crashing
+    return { data: [] };
+  }
+});
+
 // This handler provides the completion items for AIML elements and attributes
 connection.onCompletion(
   (textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    // Add debug logging
-    connection.console.log(
-      `Completion requested at position: ${textDocumentPosition.position.line}:${textDocumentPosition.position.character}`
-    );
+    try {
+      // Add debug logging
+      connection.console.log(
+        `Completion requested at position: ${textDocumentPosition.position.line}:${textDocumentPosition.position.character}`
+      );
 
-    const document = documents.get(textDocumentPosition.textDocument.uri);
-    if (!document) {
-      connection.console.log("Document not found");
+      const document = documents.get(textDocumentPosition.textDocument.uri);
+      if (!document) {
+        connection.console.log("Document not found");
+        return [];
+      }
+
+      connection.console.log("Calling provideCompletionItems");
+      const completions = provideCompletionItems(
+        document,
+        textDocumentPosition.position
+      );
+      connection.console.log(
+        `Returning ${completions.length} completion items`
+      );
+
+      return completions;
+    } catch (error) {
+      // Catch and log any errors to prevent server crashes
+      connection.console.error(
+        `Error in completion handler: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+      // Return empty array instead of crashing
       return [];
     }
-
-    connection.console.log("Calling provideCompletionItems");
-    const completions = provideCompletionItems(
-      document,
-      textDocumentPosition.position
-    );
-    connection.console.log(`Returning ${completions.length} completion items`);
-
-    return completions;
   }
 );
 
@@ -279,23 +491,28 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 connection.onHover((params: TextDocumentPositionParams): Hover | null => {
   const document = documents.get(params.textDocument.uri);
   if (!document) {
+    connection.console.log("Hover: Document not found");
     return null;
   }
 
-  const text = document.getText();
-  const offset = document.offsetAt(params.position);
+  connection.console.log(
+    `Hover requested at position: ${params.position.line}:${params.position.character}`
+  );
 
   // Find element or attribute at cursor position
   const wordRange = getWordRangeAtPosition(document, params.position);
   if (!wordRange) {
+    connection.console.log("Hover: No word range found");
     return null;
   }
 
   const word = document.getText(wordRange);
+  connection.console.log(`Hover: Found word "${word}"`);
 
   // Check if it's an AIML element
   const elementDocs = getElementHoverInfo(word);
   if (elementDocs) {
+    connection.console.log(`Hover: Returning docs for "${word}"`);
     return {
       contents: {
         kind: MarkupKind.Markdown,
@@ -305,6 +522,7 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
     };
   }
 
+  connection.console.log(`Hover: No docs found for "${word}"`);
   return null;
 });
 
@@ -395,7 +613,57 @@ function getWordRangeAtPosition(
   const text = document.getText();
   const offset = document.offsetAt(position);
 
-  // Find word boundaries
+  // Check if we're inside an XML tag
+  let tagStart = -1;
+  let tagEnd = -1;
+
+  // Look backwards for opening tag
+  for (let i = offset; i >= 0; i--) {
+    if (text[i] === "<") {
+      tagStart = i;
+      break;
+    }
+    if (text[i] === ">") {
+      break; // We're not in a tag
+    }
+  }
+
+  // Look forwards for closing tag
+  for (let i = offset; i < text.length; i++) {
+    if (text[i] === ">") {
+      tagEnd = i;
+      break;
+    }
+    if (text[i] === "<") {
+      break; // We're not in a tag
+    }
+  }
+
+  // If we found a complete tag, extract the element name
+  if (tagStart !== -1 && tagEnd !== -1) {
+    const tagContent = text.substring(tagStart + 1, tagEnd);
+    const elementNameMatch = tagContent.match(/^\/?\s*([a-zA-Z][a-zA-Z0-9-]*)/);
+
+    if (elementNameMatch) {
+      const elementName = elementNameMatch[1];
+      const elementStart =
+        tagStart +
+        1 +
+        (elementNameMatch.index || 0) +
+        (elementNameMatch[0].length - elementName.length);
+      const elementEnd = elementStart + elementName.length;
+
+      // Check if cursor is within the element name
+      if (offset >= elementStart && offset <= elementEnd) {
+        return {
+          start: document.positionAt(elementStart),
+          end: document.positionAt(elementEnd),
+        };
+      }
+    }
+  }
+
+  // Fallback to word boundaries for other cases (attributes, etc.)
   let start = offset;
   let end = offset;
 
@@ -485,6 +753,40 @@ function getElementHoverInfo(elementName: string): string | null {
 - \`id\`: Unique identifier
 - \`name\`: Human-readable name
 - \`initial\`: Initial child state`,
+
+    llm: `**llm** - Executes a large language model call
+    
+**Type:** action
+
+**Attributes:**
+- \`model\`: The model to use (e.g., "gpt-4")
+- \`temperature\`: Sampling temperature (0.0-1.0)
+- \`max_tokens\`: Maximum tokens to generate`,
+
+    script: `**script** - Executes JavaScript or Python code
+    
+**Type:** action
+
+**Attributes:**
+- \`language\`: Programming language ("javascript" or "python")`,
+
+    data: `**data** - Defines a data variable in the datamodel
+    
+**Type:** data
+
+**Attributes:**
+- \`id\`: Variable identifier
+- \`type\`: Data type
+- \`value\`: Initial value`,
+
+    transition: `**transition** - Defines a state transition
+    
+**Type:** control
+
+**Attributes:**
+- \`target\`: Target state ID
+- \`event\`: Triggering event
+- \`cond\`: Condition expression`,
   };
 
   return fallbackDocs[elementName] || null;
