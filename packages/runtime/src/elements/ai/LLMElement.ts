@@ -34,12 +34,12 @@ export const LLM = createElementDefinition({
             type: "grammar",
             grammar: ctx.props.grammar,
           }
-        // : ctx.props.responseFormat?.type === "gbnf"
-        //   ? {
-        //       type: "gbnf",
-        //       grammar: "", // import gbnf grammar from gbnf rather than,
-        //     }
-          : ctx.props.responseFormat,
+        : // : ctx.props.responseFormat?.type === "gbnf"
+          //   ? {
+          //       type: "gbnf",
+          //       grammar: "", // import gbnf grammar from gbnf rather than,
+          //     }
+          ctx.props.responseFormat,
       ctx.props.repetitionPenalty
     );
 
@@ -60,7 +60,7 @@ export const LLM = createElementDefinition({
 
     // For testing purposes, we'll check if we're in a test environment
     // by checking if the model is "test-model"
-    if (ctx.props.model === "test-model" && process.env.NODE_ENV === "test") {
+    if (ctx.props.model === "test-model") {
       const result = new StepValue({
         type: "text",
         text: "Mock LLM response",
@@ -68,6 +68,7 @@ export const LLM = createElementDefinition({
       return { result };
     }
 
+    console.log("🚀 ~ LLMElement ~ execute ~ provider:", provider);
     const streamResult = streamText({
       model: provider,
       messages: [
