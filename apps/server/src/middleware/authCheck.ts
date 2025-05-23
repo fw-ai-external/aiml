@@ -4,10 +4,7 @@ import type { HonoRequest } from "hono";
 
 export const authCheckMiddleware = createMiddleware<ContextEnv>(
   async (context, next) => {
-    if (
-      process.env.ENVIRONMENT === "development" ||
-      process.env.ENVIRONMENT === "test"
-    ) {
+    if (process.env.ENVIRONMENT === "test") {
       context.set("user", {
         username: "fireworks",
         email: "fireworks@fireworks.ai",
@@ -19,6 +16,8 @@ export const authCheckMiddleware = createMiddleware<ContextEnv>(
         return context.json({ error: "Unauthorized" }, 401);
       }
       const apiKey = getApiKeyFromRequest(context.req);
+
+      console.log("🚀 ~ authCheckMiddleware ~ apiKey:", apiKey);
 
       if (!apiKey) {
         return context.json({ error: "Unauthorized" }, 401);

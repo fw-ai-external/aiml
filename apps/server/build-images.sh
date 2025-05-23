@@ -11,7 +11,7 @@ if [ -z "$IMAGE_TAG" ]; then
 fi
 
 if [ -z "$DEPLOY_MODE" ]; then
-    DEPLOY_MODE="development"
+    DEPLOY_MODE="production"
 fi
 
 # Repository and image definitions
