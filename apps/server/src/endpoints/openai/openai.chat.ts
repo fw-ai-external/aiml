@@ -10,7 +10,7 @@ import { z } from "@hono/zod-openapi";
 import { createRouteconfig } from "@/lib/route";
 export const openaiChat = createRouteconfig({
   method: "post",
-  path: "/openai/v1/chat/completions",
+  path: "/v1/chat/completions",
   request: {
     body: {
       content: {
@@ -137,14 +137,18 @@ export const openaiChat = createRouteconfig({
 
     const aimlPrompt =
       aimlSystemMessageIndex > -1
-        ? (jsonBody.messages?.[aimlSystemMessageIndex].content ??
-          (jsonBody.messages[aimlSystemMessageIndex].content as any)?.text)
+        ? jsonBody.messages?.[aimlSystemMessageIndex].content ??
+          (jsonBody.messages[aimlSystemMessageIndex].content as any)?.text
         : null;
 
     if (!aimlPrompt) {
       return c.json(
         {
-          error: `AIML based system message must have a key of "content" with the AIML prompt as it\'s value. But we receved: ${jsonBody.messages[aimlSystemMessageIndex] ? JSON.stringify(jsonBody.messages[aimlSystemMessageIndex]) : "No system messages at all"}`,
+          error: `AIML based system message must have a key of "content" with the AIML prompt as it\'s value. But we receved: ${
+            jsonBody.messages[aimlSystemMessageIndex]
+              ? JSON.stringify(jsonBody.messages[aimlSystemMessageIndex])
+              : "No system messages at all"
+          }`,
         },
         400
       );

@@ -90,7 +90,6 @@ export function getProviderWithClient(
       secrets?.system?.FIREWORKS_BASE_URL ??
       "https://api.fireworks.ai/inference/v1";
 
-    console.log("🚀 ~ getProviderWithClient ~ baseURL:", baseURL);
     // Define the fetch wrapper function
     const customFetch = async (
       input: RequestInfo | URL,
@@ -112,7 +111,6 @@ export function getProviderWithClient(
           body: JSON.stringify(originalRequest),
         };
       }
-      console.log("🚀 ~ customFetch ~ modifiedInit:", input, modifiedInit);
       // Call the original fetch
       return fetch(input, modifiedInit);
     };
