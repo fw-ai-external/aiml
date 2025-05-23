@@ -87,8 +87,8 @@ export default function Features() {
                   </svg>
                 </div>
                 <span className="text-sm text-gray-600">
-                  We've heard consistent feedback that frameworks like LangChain
-                  can be over-engineered with disconnected abstractions.
+                  We've heard consistent feedback that existing frameworks are
+                  often over-engineered with disconnected abstractions.
                 </span>
               </li>
               <li className="flex gap-3">
