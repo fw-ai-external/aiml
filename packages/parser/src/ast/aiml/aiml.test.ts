@@ -789,7 +789,7 @@ describe("Value based tags", () => {
 
     // The content should be a single text node containing the raw AIML tag
     expect(result[0].children?.length).toBe(1);
-    expect(result[0].children?.[0]?.type).toBe("Text");
+    expect(result[0].children?.[0]?.type).toBe("CodeJavascript");
     expect(result[0].children?.[0]?.content).toBe("const code = 0 < 1;");
   });
 
