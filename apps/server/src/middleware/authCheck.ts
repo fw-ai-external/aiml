@@ -17,8 +17,6 @@ export const authCheckMiddleware = createMiddleware<ContextEnv>(
       }
       const apiKey = getApiKeyFromRequest(context.req);
 
-      console.log("🚀 ~ authCheckMiddleware ~ apiKey:", apiKey);
-
       if (!apiKey) {
         return context.json({ error: "Unauthorized" }, 401);
       }

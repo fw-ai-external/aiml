@@ -68,7 +68,6 @@ export const LLM = createElementDefinition({
       return { result };
     }
 
-    console.log("🚀 ~ LLMElement ~ execute ~ provider:", provider);
     const streamResult = streamText({
       model: provider,
       messages: [
