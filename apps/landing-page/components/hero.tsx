@@ -52,7 +52,7 @@ export default function Hero() {
                 target="_blank"
                 className="whitespace-nowrap"
               >
-                View on GitHub <ArrowRight className="ml-2 h-4 w-4" />
+                View on GitHub
               </Link>
             </Button>
           </div>
