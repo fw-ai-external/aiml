@@ -22,8 +22,7 @@ export default function Hero() {
 
           <div className="space-y-4">
             <h1 className="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-3xl lg:text-4xl xl:text-6xl">
-              Build production-ready agents & AI workflows with nothing but
-              prompting
+              Build Deterministic AI Agents & Workflows via Prompting
             </h1>
           </div>
 
