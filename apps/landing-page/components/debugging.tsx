@@ -1,6 +1,3 @@
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
-
 export default function Debugging() {
   return (
     <section className="py-24 overflow-hidden">
@@ -127,17 +124,17 @@ export default function Debugging() {
                 </li>
               </ul>
 
-              <Link
+              {/* <Link
                 href="#"
                 className="inline-flex items-center text-emerald-600 font-medium hover:text-emerald-700"
               >
                 Explore debugging tools <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
+              </Link> */}
             </div>
           </div>
 
           <div className="md:w-1/2 relative">
-            <div
+            {/* <div
               className="w-full h-[500px] bg-white rounded-lg border shadow-lg overflow-hidden"
               style={{
                 transform:
@@ -280,9 +277,8 @@ export default function Debugging() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div>*/}
 
-            {/* Decorative elements */}
             <div className="absolute -bottom-6 -right-6 w-64 h-64 bg-gradient-to-br from-emerald-100 to-blue-100 rounded-full opacity-30 blur-3xl -z-10"></div>
             <div className="absolute -top-6 -left-6 w-48 h-48 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full opacity-30 blur-3xl -z-10"></div>
           </div>
