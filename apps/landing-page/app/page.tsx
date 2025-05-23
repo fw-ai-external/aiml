@@ -44,8 +44,14 @@ export default function Home() {
             >
               <circle cx="1" cy="1" r="1" />
             </svg>
-            Please note that AIML is still baking and is still under heavy
-            development.
+            Please note that AIML is not yet ready for production use.{" "}
+            <a
+              href="https://github.com/fw-ai-external/aiml/issues"
+              target="_blank"
+              className="text-emerald-500 font-bold underline"
+            >
+              Please report all issues or feedback.
+            </a>
           </p>
         </div>
         <div className="flex flex-1 justify-end"></div>

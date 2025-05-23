@@ -22,7 +22,7 @@ export default function ProductTeams() {
               AI experts and non-experts to collaborate more effectively.
             </p>
             <Link
-              href="#"
+              href="/docs/examples/simple-chat"
               className="inline-flex items-center text-emerald-600 font-medium hover:text-emerald-700"
             >
               Check out some examples <ArrowRight className="ml-1 h-4 w-4" />
