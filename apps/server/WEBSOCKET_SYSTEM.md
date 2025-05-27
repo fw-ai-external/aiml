@@ -78,6 +78,16 @@ interface WebSocketMessage {
 }
 ```
 
+#### Subscribe to All Events
+
+Subscribe to all events for the authenticated account (general events stream):
+
+```json
+{
+  "type": "subscribe_all"
+}
+```
+
 #### Unsubscribe
 
 ```json
@@ -123,6 +133,8 @@ interface WebSocketMessage {
 
 #### Subscription Confirmation
 
+For specific workflow subscription:
+
 ```json
 {
   "type": "subscribed",
@@ -131,6 +143,20 @@ interface WebSocketMessage {
     "accountId": "user-account-id",
     "connectionId": "connection-uuid",
     "timestamp": "2025-01-27T18:57:00.000Z"
+  }
+}
+```
+
+For general events subscription:
+
+```json
+{
+  "type": "subscribed_all",
+  "data": {
+    "accountId": "user-account-id",
+    "connectionId": "connection-uuid",
+    "timestamp": "2025-01-27T18:57:00.000Z",
+    "message": "Subscribed to all events for account"
   }
 }
 ```

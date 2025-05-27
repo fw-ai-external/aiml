@@ -125,6 +125,10 @@ export function handleWebSocketConnection(
         handleSubscribe(ws, message.data, accountId);
         break;
 
+      case "subscribe_all":
+        handleSubscribeAll(ws, accountId);
+        break;
+
       case "unsubscribe":
         handleUnsubscribe(ws);
         break;
@@ -195,6 +199,31 @@ export function handleWebSocketConnection(
           accountId,
           connectionId: currentConnectionId,
           timestamp: new Date().toISOString(),
+        },
+      })
+    );
+  }
+
+  /**
+   * Handle subscription to all events for an account
+   */
+  function handleSubscribeAll(ws: any, accountId: string) {
+    // Unsubscribe from previous connection if exists
+    if (currentConnectionId) {
+      eventBus.unsubscribe(currentConnectionId);
+    }
+
+    // Subscribe to all events for this account
+    currentConnectionId = eventBus.subscribeToAllEvents(accountId, ws, 0);
+
+    ws.send(
+      JSON.stringify({
+        type: "subscribed_all",
+        data: {
+          accountId,
+          connectionId: currentConnectionId,
+          timestamp: new Date().toISOString(),
+          message: "Subscribed to all events for account",
         },
       })
     );

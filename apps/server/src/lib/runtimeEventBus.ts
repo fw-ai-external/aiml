@@ -88,6 +88,27 @@ export class RuntimeEventBus {
   }
 
   /**
+   * Subscribe to all events for an account (general events stream)
+   */
+  public subscribeToAllEvents(
+    accountId: string,
+    ws: any,
+    lastReceivedSequenceNumber: number = 0
+  ): string {
+    const connectionId = `all_${accountId}_${Date.now()}_${++this
+      .connectionCounter}`;
+
+    this.connections.set(connectionId, {
+      ws,
+      accountId,
+      runId: "*", // Special marker for all events
+      lastReceivedSequenceNumber,
+    });
+
+    return connectionId;
+  }
+
+  /**
    * Unsubscribe a connection
    */
   public unsubscribe(connectionId: string): void {
@@ -132,8 +153,8 @@ export class RuntimeEventBus {
     // Send to all active connections for this runId and accountId
     for (const [connectionId, connection] of this.connections.entries()) {
       if (
-        connection.runId === event.runId &&
-        connection.accountId === event.accountId
+        connection.accountId === event.accountId &&
+        (connection.runId === event.runId || connection.runId === "*")
       ) {
         this.sendEventToConnection(connectionId, event);
         // Update the last received sequence number
