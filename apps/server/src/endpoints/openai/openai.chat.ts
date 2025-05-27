@@ -8,6 +8,7 @@ import { parse } from "@aiml/parser";
 import { DiagnosticSeverity, type Diagnostic } from "@aiml/shared";
 import { z } from "@hono/zod-openapi";
 import { createRouteconfig } from "@/lib/route";
+import { runtimeEventBus } from "@/lib/runtimeEventBus";
 export const openaiChat = createRouteconfig({
   method: "post",
   path: "/v1/chat/completions",
@@ -209,9 +210,25 @@ export const openaiChat = createRouteconfig({
       );
     }
 
-    const workflow = new Workflow(elementTree.elementTree!, {
-      scopedDataModels: ast.datamodel || {},
-      fieldValues: ast.datamodel?.fieldValues || {},
+    // Get user accountId for event tracking
+    const user = c.get("user");
+    const accountId = user?.accountId || "default";
+
+    const workflow = new Workflow(
+      elementTree.elementTree!,
+      {
+        scopedDataModels: ast.datamodel || {},
+        fieldValues: ast.datamodel?.fieldValues || {},
+      },
+      undefined,
+      accountId
+    );
+
+    // Subscribe to workflow events and forward them to the event bus
+    workflow.onEvent((event) => {
+      // Broadcast the event to all connected WebSocket clients
+      // The event already has runId and accountId set by the Workflow class
+      runtimeEventBus.broadcastEvent(event);
     });
 
     if (!cleanRequest.stream) {
