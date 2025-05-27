@@ -138,16 +138,24 @@ function extractScriptTags(
   text: string,
   document: TextDocument
 ): ScriptTagInfo[] {
+  console.log(`Extracting script tags from text: "${text}"`);
   const scriptTags: ScriptTagInfo[] = [];
 
   // Enhanced regex to capture script tags with optional lang/language attributes
-  const scriptRegex =
-    /<script(?:[^>]*\s(?:lang|language)\s*=\s*["']([^"']*)["'][^>]*)?>([^]*?)<\/script>/gi;
+  const scriptRegex = /<script(?:[^>]*?)>([^]*?)<\/script>/gi;
+
+  // Separate regex to extract language attribute if present
+  const langRegex = /(?:lang|language)\s*=\s*["']([^"']*)["']/i;
   let match: RegExpExecArray | null;
 
   while ((match = scriptRegex.exec(text)) !== null) {
-    const language = match[1] || "javascript"; // Default to JavaScript
-    const content = match[2];
+    console.log(`Found script tag match: ${match[0]}`);
+    const fullMatch = match[0];
+    const content = match[1];
+
+    // Extract language attribute if present
+    const langMatch = langRegex.exec(fullMatch);
+    const language = langMatch ? langMatch[1] : "javascript"; // Default to JavaScript
 
     const startPos = document.positionAt(match.index);
     const endPos = document.positionAt(match.index + match[0].length);
@@ -159,16 +167,20 @@ function extractScriptTags(
     const contentStartPos = document.positionAt(contentStart);
     const contentEndPos = document.positionAt(contentStart + content.length);
 
-    scriptTags.push({
+    const scriptTag = {
       startLine: startPos.line,
       endLine: endPos.line,
       language: normalizeLanguage(language),
       content: content.trim(),
       startChar: contentStartPos.character,
       endChar: contentEndPos.character,
-    });
+    };
+
+    console.log(`Created script tag:`, scriptTag);
+    scriptTags.push(scriptTag);
   }
 
+  console.log(`Extracted ${scriptTags.length} script tags`);
   return scriptTags;
 }
 
@@ -201,23 +213,44 @@ function highlightScriptTags(
   scriptTags: ScriptTagInfo[],
   builder: SemanticTokensBuilder
 ): void {
+  console.log(`Highlighting ${scriptTags.length} script tags`);
+
   for (const scriptTag of scriptTags) {
+    console.log(
+      `Processing script tag: language=${scriptTag.language}, content="${scriptTag.content}", startLine=${scriptTag.startLine}, endLine=${scriptTag.endLine}`
+    );
+
     const lines = scriptTag.content.split("\n");
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      const lineIndex = scriptTag.startLine + i + 1; // +1 to account for opening tag line
+      // For single-line script tags, content is on the same line as the opening tag
+      // For multi-line script tags, content starts on the line after the opening tag
+      const lineIndex =
+        scriptTag.startLine === scriptTag.endLine
+          ? scriptTag.startLine // Single-line: content is on the same line
+          : scriptTag.startLine + i + 1; // Multi-line: content starts on next line
+
+      // Calculate character offset for single-line script tags
+      const charOffset =
+        scriptTag.startLine === scriptTag.endLine && i === 0
+          ? scriptTag.startChar // Use the actual start position of content
+          : 0; // For multi-line, content starts at beginning of line
+
+      console.log(
+        `  Highlighting line ${i}: "${line}" on lineIndex ${lineIndex}, charOffset ${charOffset}`
+      );
 
       if (
         scriptTag.language === "javascript" ||
         scriptTag.language === "typescript"
       ) {
-        highlightJavaScriptLine(line, lineIndex, builder);
+        highlightJavaScriptLine(line, lineIndex, builder, charOffset);
       } else if (scriptTag.language === "python") {
-        highlightPythonLine(line, lineIndex, builder);
+        highlightPythonLine(line, lineIndex, builder, charOffset);
       } else {
         // Generic highlighting for unknown languages
-        highlightGenericCodeLine(line, lineIndex, builder);
+        highlightGenericCodeLine(line, lineIndex, builder, charOffset);
       }
     }
   }
@@ -229,9 +262,10 @@ function highlightScriptTags(
 function highlightJavaScriptLine(
   line: string,
   lineIndex: number,
-  builder: SemanticTokensBuilder
+  builder: SemanticTokensBuilder,
+  charOffset: number = 0
 ): void {
-  // JavaScript keywords
+  // JavaScript/TypeScript keywords
   const jsKeywords = [
     "const",
     "let",
@@ -266,6 +300,21 @@ function highlightJavaScriptLine(
     "async",
     "await",
     "yield",
+    // TypeScript-specific keywords
+    "interface",
+    "type",
+    "enum",
+    "namespace",
+    "module",
+    "declare",
+    "abstract",
+    "implements",
+    "private",
+    "protected",
+    "public",
+    "readonly",
+    "static",
+    "override",
   ];
 
   // Built-in objects and functions
@@ -295,19 +344,21 @@ function highlightJavaScriptLine(
     lineIndex,
     jsKeywords,
     SemanticTokenTypes.KEYWORD,
-    builder
+    builder,
+    charOffset
   );
   highlightKeywords(
     line,
     lineIndex,
     jsBuiltins,
     SemanticTokenTypes.FUNCTION,
-    builder
+    builder,
+    charOffset
   );
-  highlightStrings(line, lineIndex, builder);
-  highlightNumbers(line, lineIndex, builder);
-  highlightComments(line, lineIndex, builder);
-  highlightOperators(line, lineIndex, builder);
+  highlightStrings(line, lineIndex, builder, charOffset);
+  highlightNumbers(line, lineIndex, builder, charOffset);
+  highlightComments(line, lineIndex, builder, charOffset);
+  highlightOperators(line, lineIndex, builder, charOffset);
 }
 
 /**
@@ -316,7 +367,8 @@ function highlightJavaScriptLine(
 function highlightPythonLine(
   line: string,
   lineIndex: number,
-  builder: SemanticTokensBuilder
+  builder: SemanticTokensBuilder,
+  charOffset: number = 0
 ): void {
   // Python keywords
   const pythonKeywords = [
@@ -386,19 +438,21 @@ function highlightPythonLine(
     lineIndex,
     pythonKeywords,
     SemanticTokenTypes.KEYWORD,
-    builder
+    builder,
+    charOffset
   );
   highlightKeywords(
     line,
     lineIndex,
     pythonBuiltins,
     SemanticTokenTypes.FUNCTION,
-    builder
+    builder,
+    charOffset
   );
-  highlightStrings(line, lineIndex, builder);
-  highlightNumbers(line, lineIndex, builder);
-  highlightPythonComments(line, lineIndex, builder);
-  highlightOperators(line, lineIndex, builder);
+  highlightStrings(line, lineIndex, builder, charOffset);
+  highlightNumbers(line, lineIndex, builder, charOffset);
+  highlightPythonComments(line, lineIndex, builder, charOffset);
+  highlightOperators(line, lineIndex, builder, charOffset);
 }
 
 /**
@@ -407,11 +461,12 @@ function highlightPythonLine(
 function highlightGenericCodeLine(
   line: string,
   lineIndex: number,
-  builder: SemanticTokensBuilder
+  builder: SemanticTokensBuilder,
+  charOffset: number = 0
 ): void {
-  highlightStrings(line, lineIndex, builder);
-  highlightNumbers(line, lineIndex, builder);
-  highlightComments(line, lineIndex, builder);
+  highlightStrings(line, lineIndex, builder, charOffset);
+  highlightNumbers(line, lineIndex, builder, charOffset);
+  highlightComments(line, lineIndex, builder, charOffset);
 }
 
 /**
@@ -422,16 +477,26 @@ function highlightKeywords(
   lineIndex: number,
   keywords: string[],
   tokenType: SemanticTokenTypes,
-  builder: SemanticTokensBuilder
+  builder: SemanticTokensBuilder,
+  charOffset: number = 0
 ): void {
   for (const keyword of keywords) {
     const regex = new RegExp(`\\b${keyword}\\b`, "g");
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(line)) !== null) {
+      // Debug logging for script content
+      if (keyword === "const" || keyword === "interface" || keyword === "def") {
+        console.log(
+          `Found keyword "${keyword}" on line ${lineIndex} at position ${
+            match.index + charOffset
+          }`
+        );
+      }
+
       builder.push(
         lineIndex,
-        match.index,
+        match.index + charOffset,
         keyword.length,
         tokenType,
         1 << SemanticTokenModifiers.DECLARATION
@@ -446,7 +511,8 @@ function highlightKeywords(
 function highlightStrings(
   line: string,
   lineIndex: number,
-  builder: SemanticTokensBuilder
+  builder: SemanticTokensBuilder,
+  charOffset: number = 0
 ): void {
   // Single and double quoted strings
   const stringRegex = /(['"])(?:(?!\1)[^\\]|\\.)*/g;
@@ -455,7 +521,7 @@ function highlightStrings(
   while ((match = stringRegex.exec(line)) !== null) {
     builder.push(
       lineIndex,
-      match.index,
+      match.index + charOffset,
       match[0].length,
       SemanticTokenTypes.STRING,
       0
@@ -467,7 +533,7 @@ function highlightStrings(
   while ((match = templateRegex.exec(line)) !== null) {
     builder.push(
       lineIndex,
-      match.index,
+      match.index + charOffset,
       match[0].length,
       SemanticTokenTypes.STRING,
       0
@@ -481,7 +547,8 @@ function highlightStrings(
 function highlightNumbers(
   line: string,
   lineIndex: number,
-  builder: SemanticTokensBuilder
+  builder: SemanticTokensBuilder,
+  charOffset: number = 0
 ): void {
   const numberRegex = /\b\d+(\.\d+)?\b/g;
   let match: RegExpExecArray | null;
@@ -489,7 +556,7 @@ function highlightNumbers(
   while ((match = numberRegex.exec(line)) !== null) {
     builder.push(
       lineIndex,
-      match.index,
+      match.index + charOffset,
       match[0].length,
       SemanticTokenTypes.NUMBER,
       0
@@ -503,7 +570,8 @@ function highlightNumbers(
 function highlightComments(
   line: string,
   lineIndex: number,
-  builder: SemanticTokensBuilder
+  builder: SemanticTokensBuilder,
+  charOffset: number = 0
 ): void {
   // Single-line comments
   const commentMatch = line.match(/\/\/.*/);
@@ -511,7 +579,7 @@ function highlightComments(
     const startIndex = line.indexOf(commentMatch[0]);
     builder.push(
       lineIndex,
-      startIndex,
+      startIndex + charOffset,
       commentMatch[0].length,
       SemanticTokenTypes.COMMENT,
       1 << SemanticTokenModifiers.DOCUMENTATION
@@ -525,7 +593,7 @@ function highlightComments(
   while ((match = multiCommentRegex.exec(line)) !== null) {
     builder.push(
       lineIndex,
-      match.index,
+      match.index + charOffset,
       match[0].length,
       SemanticTokenTypes.COMMENT,
       1 << SemanticTokenModifiers.DOCUMENTATION
@@ -539,14 +607,15 @@ function highlightComments(
 function highlightPythonComments(
   line: string,
   lineIndex: number,
-  builder: SemanticTokensBuilder
+  builder: SemanticTokensBuilder,
+  charOffset: number = 0
 ): void {
   const commentMatch = line.match(/#.*/);
   if (commentMatch) {
     const startIndex = line.indexOf(commentMatch[0]);
     builder.push(
       lineIndex,
-      startIndex,
+      startIndex + charOffset,
       commentMatch[0].length,
       SemanticTokenTypes.COMMENT,
       1 << SemanticTokenModifiers.DOCUMENTATION
@@ -560,13 +629,20 @@ function highlightPythonComments(
 function highlightOperators(
   line: string,
   lineIndex: number,
-  builder: SemanticTokensBuilder
+  builder: SemanticTokensBuilder,
+  charOffset: number = 0
 ): void {
   const operatorRegex = /[+\-*/%=<>!&|^~?:]/g;
   let match: RegExpExecArray | null;
 
   while ((match = operatorRegex.exec(line)) !== null) {
-    builder.push(lineIndex, match.index, 1, SemanticTokenTypes.OPERATOR, 0);
+    builder.push(
+      lineIndex,
+      match.index + charOffset,
+      1,
+      SemanticTokenTypes.OPERATOR,
+      0
+    );
   }
 }
 
@@ -592,6 +668,9 @@ function extractTokensFromText(
       }
 
       try {
+        // Highlight AIML comments first (before expressions)
+        highlightAIMLComments(line, lineIndex, builder);
+
         // Highlight AIML elements
         highlightElements(line, lineIndex, builder);
 
@@ -600,9 +679,6 @@ function extractTokensFromText(
 
         // Highlight expressions
         highlightExpressions(line, lineIndex, builder);
-
-        // Highlight AIML comments
-        highlightAIMLComments(line, lineIndex, builder);
       } catch (lineError) {
         // Log error but continue processing other lines
         console.error(`Error highlighting line ${lineIndex}: ${lineError}`);
@@ -615,15 +691,20 @@ function extractTokensFromText(
 }
 
 /**
- * Check if a line is inside a script tag
+ * Check if a line is inside a script tag content (not the tag itself)
  */
 function isLineInScriptTag(
   lineIndex: number,
   scriptTags: ScriptTagInfo[]
 ): boolean {
-  return scriptTags.some(
-    (tag) => lineIndex >= tag.startLine && lineIndex <= tag.endLine
-  );
+  return scriptTags.some((tag) => {
+    // For single-line script tags, don't skip the line
+    if (tag.startLine === tag.endLine) {
+      return false;
+    }
+    // For multi-line script tags, skip only the content lines (not the opening/closing tag lines)
+    return lineIndex > tag.startLine && lineIndex < tag.endLine;
+  });
 }
 
 /**
@@ -853,5 +934,5 @@ function getElementTokenType(elementName: string): SemanticTokenTypes {
     param: SemanticTokenTypes.PARAMETER,
   };
 
-  return elementTypeMap[elementName] || SemanticTokenTypes.ENUM;
+  return elementTypeMap[elementName] ?? SemanticTokenTypes.ENUM;
 }

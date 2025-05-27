@@ -19,6 +19,8 @@
   "scripts": {
     "dev": "concurrently \"cd client && bun run dev\" \"cd server && bun run dev\"",
     "build": "cd client && bun run build && cd ../server && bun run build",
+    "test": "bun test server/src/",
+    "test:integration": "bun test client/src/integration-tests/**/*.test.ts",
     "package": "vsce package --no-dependencies",
     "publish": "vsce publish",
     "vscode:prepublish": "bun run build",

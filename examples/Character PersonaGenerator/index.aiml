@@ -100,7 +100,6 @@ or developers can immediately use in their creative projects.
 
     <state id="definePersonality" description="Define the character's personality traits">
         <script>
-        {`
         // Load appropriate personality traits based on archetype
         const traitsData = JSON.parse(PersonalityTraits);
         let archetypeTraits = traitsData[ctx.datamodel.archetype] || traitsData.default;
@@ -151,14 +150,12 @@ or developers can immediately use in their creative projects.
         }
         
         ctx.datamodel.personalityTraits = selectedTraits;
-        `}
         </script>
         <log expr={(ctx) => 'Defined ' + ctx.datamodel.personalityTraits.length + ' personality traits'} />
     </state>
 
     <state id="createBackstory" description="Create a backstory that explains the character's development">
         <script>
-        {`
         // Get backstory template based on genre and archetype
         const backstoryTemplates = JSON.parse(BackstoryTemplates);
         
@@ -185,7 +182,6 @@ or developers can immediately use in their creative projects.
         // Prepare context for backstory generation
         ctx.datamodel.backstoryTemplate = template ? template.template : "A character with an intriguing past";
         ctx.datamodel.backstoryElements = template ? template.elements : ["childhood", "defining moment", "motivation"];
-        `}
         </script>
     
         <llm model="accounts/fireworks/models/llama-v3p1-8b-instruct" temperature={0.6}>
