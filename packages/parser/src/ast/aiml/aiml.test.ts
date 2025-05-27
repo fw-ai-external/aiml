@@ -793,6 +793,20 @@ describe("Value based tags", () => {
     expect(result[0].children?.[0]?.content).toBe("const code = 0 < 1;");
   });
 
+  test("content inside script tags are treated as text even when brackets are used", () => {
+    const source = "<script>const obj = {a: 1, b: 2};</script>";
+    const result = parseAIML(source);
+
+    expect(result).toBeDefined();
+    expect(result[0].type).toBe("AIMLElement");
+    expect(result[0].attributes?.[0]?.content).toBe("script");
+
+    // The content should be a single text node containing the raw AIML tag
+    expect(result[0].children?.length).toBe(1);
+    expect(result[0].children?.[0]?.type).toBe("CodeJavascript");
+    expect(result[0].children?.[0]?.content).toBe("const obj = {a: 1, b: 2};");
+  });
+
   test("JSX expressions inside prompt tags are treated as text", () => {
     const source = "<prompt>{someVariable} {42} {true ? 'yes' : 'no'}</prompt>";
     const result = parseAIML(source);
