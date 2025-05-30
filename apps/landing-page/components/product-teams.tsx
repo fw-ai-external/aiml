@@ -75,7 +75,7 @@ export default function ProductTeams() {
               Still want to use code? No problem!
             </h3>
             <p className="text-gray-600 mb-8">
-              The AIML Runtime supports exicuting Javascript, or Python code
+              The AIML Runtime supports executing Javascript, or Python code
               inside script tags within your prompt within a secure sandboxed
               environment.
             </p>
