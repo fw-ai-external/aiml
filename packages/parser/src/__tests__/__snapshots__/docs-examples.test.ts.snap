@@ -1,250 +1,5 @@
 // Bun Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`All AIML examples for docs Ensure SimpleChain is parsed correctly 1`] = `
-[
-  {
-    "astSourceType": "element",
-    "attributes": {
-      "id": "workflow-root",
-      "initial": "root-state-0",
-      "model": "account/fireworks/model/deepseek-v3",
-    },
-    "children": [
-      {
-        "astSourceType": "element",
-        "attributes": {
-          "id": "root-state-0",
-        },
-        "children": [
-          {
-            "astSourceType": "element",
-            "attributes": {
-              "instructions": 
-"You are a helpful assistant that can answer questions and help with tasks.
-The user has made a request of you, just think outloud to yourself about how to respond.
-Wrap your thoughts in"
-,
-              "model": "accounts/fireworks/models/llama-v3p1-8b-instruct",
-              "prompt": "\${input}",
-            },
-            "children": [],
-            "columnEnd": 234,
-            "columnStart": 49,
-            "lineEnd": 3,
-            "lineStart": 3,
-            "parentId": "root-state-0",
-            "scope": [
-              "root",
-              "root-state-0",
-            ],
-            "subType": "model",
-            "tag": "llm",
-            "type": "action",
-          },
-          {
-            "astSourceType": "element",
-            "attributes": {
-              "target": "auto_wrapping_state_aiml-106",
-            },
-            "children": [],
-            "columnEnd": 234,
-            "columnStart": 49,
-            "lineEnd": 3,
-            "lineStart": 3,
-            "parentId": "root-state-0",
-            "scope": [
-              "root",
-              "root-state-0",
-            ],
-            "subType": "action",
-            "tag": "transition",
-            "type": "action",
-          },
-        ],
-        "columnEnd": 234,
-        "columnStart": 49,
-        "lineEnd": 3,
-        "lineStart": 3,
-        "scope": [
-          "root",
-          "root-state-0",
-        ],
-        "subType": "state",
-        "tag": "state",
-        "type": "state",
-      },
-      {
-        "astSourceType": "element",
-        "attributes": {
-          "id": "auto_wrapping_state_aiml-106",
-        },
-        "children": [
-          {
-            "astSourceType": "element",
-            "attributes": {
-              "instructions": 
-"::FUNCTION-EXPRESSION::(context) => { const ctx = context; return ({lastElement}) => \`Your thoughts on the conversation so far... \${lastElement.output}
-    Based on your thoughts, respond to the users request\`}"
-,
-              "model": "accounts/fireworks/models/qwen3-30b-a3b",
-              "prompt": "::FUNCTION-EXPRESSION::(context) => { const ctx = context; return ({userInput}) => userInput.message}",
-            },
-            "children": [],
-            "columnEnd": 505,
-            "columnStart": 241,
-            "lineEnd": 4,
-            "lineStart": 4,
-            "parentId": "auto_wrapping_state_aiml-106",
-            "scope": [
-              "root",
-            ],
-            "subType": "model",
-            "tag": "llm",
-            "type": "action",
-          },
-          {
-            "astSourceType": "element",
-            "attributes": {
-              "target": "final",
-            },
-            "children": [
-              {
-                "astSourceType": "element",
-                "attributes": {
-                  "target": "final",
-                },
-                "children": [
-                  {
-                    "astSourceType": "element",
-                    "attributes": {
-                      "target": "final",
-                    },
-                    "children": [],
-                    "columnEnd": 505,
-                    "columnStart": 241,
-                    "lineEnd": 4,
-                    "lineStart": 4,
-                    "scope": [
-                      "root",
-                      "auto_wrapping_state_0",
-                    ],
-                    "subType": "action",
-                    "tag": "transition",
-                    "type": "state",
-                  },
-                ],
-                "columnEnd": 505,
-                "columnStart": 241,
-                "lineEnd": 4,
-                "lineStart": 4,
-                "scope": [
-                  "root",
-                  "auto_wrapping_state_0",
-                ],
-                "subType": "action",
-                "tag": "transition",
-                "type": "state",
-              },
-            ],
-            "columnEnd": 505,
-            "columnStart": 241,
-            "lineEnd": 4,
-            "lineStart": 4,
-            "parentId": "auto_wrapping_state_aiml-106",
-            "scope": [
-              "root",
-              "auto_wrapping_state_0",
-            ],
-            "subType": "action",
-            "tag": "transition",
-            "type": "state",
-          },
-        ],
-        "columnEnd": 505,
-        "columnStart": 241,
-        "lineEnd": 4,
-        "lineStart": 4,
-        "parentId": "workflow-root",
-        "scope": [
-          "root",
-          "auto_wrapping_state_0",
-        ],
-        "subType": "state",
-        "tag": "state",
-        "type": "state",
-      },
-      {
-        "astSourceType": "element",
-        "attributes": {
-          "id": "final",
-        },
-        "children": [
-          {
-            "astSourceType": "element",
-            "attributes": {
-              "target": "root-state-0",
-            },
-            "children": [],
-            "columnEnd": 1,
-            "columnStart": 1,
-            "lineEnd": 1,
-            "lineStart": 1,
-            "parentId": "final",
-            "scope": [
-              "root",
-              "final",
-            ],
-            "subType": "action",
-            "tag": "transition",
-            "type": "action",
-          },
-        ],
-        "columnEnd": 1,
-        "columnStart": 1,
-        "lineEnd": 1,
-        "lineStart": 1,
-        "scope": [
-          "root",
-          "final",
-        ],
-        "subType": "output",
-        "tag": "final",
-        "type": "state",
-      },
-      {
-        "astSourceType": "element",
-        "attributes": {
-          "id": "error",
-        },
-        "children": [],
-        "columnEnd": 1,
-        "columnStart": 1,
-        "lineEnd": 1,
-        "lineStart": 1,
-        "parentId": "workflow-root",
-        "scope": [
-          "root",
-          "error",
-        ],
-        "subType": "state",
-        "tag": "state",
-        "type": "state",
-      },
-    ],
-    "columnEnd": 1,
-    "columnStart": 1,
-    "lineEnd": 1,
-    "lineStart": 1,
-    "scope": [
-      "root",
-    ],
-    "subType": "human-input",
-    "tag": "workflow",
-    "type": "state",
-  },
-]
-`;
-
 exports[`All AIML examples for docs Ensure FinalStateTest is parsed correctly 1`] = `
 [
   {
@@ -1006,6 +761,251 @@ It can even include tags that are not special, and it works just fine!
         "scope": [
           "root",
           "root-state-0",
+        ],
+        "subType": "state",
+        "tag": "state",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "final",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "root-state-0",
+            },
+            "children": [],
+            "columnEnd": 1,
+            "columnStart": 1,
+            "lineEnd": 1,
+            "lineStart": 1,
+            "parentId": "final",
+            "scope": [
+              "root",
+              "final",
+            ],
+            "subType": "action",
+            "tag": "transition",
+            "type": "action",
+          },
+        ],
+        "columnEnd": 1,
+        "columnStart": 1,
+        "lineEnd": 1,
+        "lineStart": 1,
+        "scope": [
+          "root",
+          "final",
+        ],
+        "subType": "output",
+        "tag": "final",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "error",
+        },
+        "children": [],
+        "columnEnd": 1,
+        "columnStart": 1,
+        "lineEnd": 1,
+        "lineStart": 1,
+        "parentId": "workflow-root",
+        "scope": [
+          "root",
+          "error",
+        ],
+        "subType": "state",
+        "tag": "state",
+        "type": "state",
+      },
+    ],
+    "columnEnd": 1,
+    "columnStart": 1,
+    "lineEnd": 1,
+    "lineStart": 1,
+    "scope": [
+      "root",
+    ],
+    "subType": "human-input",
+    "tag": "workflow",
+    "type": "state",
+  },
+]
+`;
+
+exports[`All AIML examples for docs Ensure SimpleChain is parsed correctly 1`] = `
+[
+  {
+    "astSourceType": "element",
+    "attributes": {
+      "id": "workflow-root",
+      "initial": "root-state-0",
+      "model": "account/fireworks/model/deepseek-v3",
+    },
+    "children": [
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "root-state-0",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "instructions": 
+"You are a helpful assistant that can answer questions and help with tasks.
+The user has made a request of you, just think outloud to yourself about how to respond.
+Wrap your thoughts in"
+,
+              "model": "accounts/fireworks/models/llama-v3p1-8b-instruct",
+              "prompt": "\${input}",
+            },
+            "children": [],
+            "columnEnd": 234,
+            "columnStart": 49,
+            "lineEnd": 3,
+            "lineStart": 3,
+            "parentId": "root-state-0",
+            "scope": [
+              "root",
+              "root-state-0",
+            ],
+            "subType": "model",
+            "tag": "llm",
+            "type": "action",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "auto_wrapping_state_aiml-NORMALIZED",
+            },
+            "children": [],
+            "columnEnd": 234,
+            "columnStart": 49,
+            "lineEnd": 3,
+            "lineStart": 3,
+            "parentId": "root-state-0",
+            "scope": [
+              "root",
+              "root-state-0",
+            ],
+            "subType": "action",
+            "tag": "transition",
+            "type": "action",
+          },
+        ],
+        "columnEnd": 234,
+        "columnStart": 49,
+        "lineEnd": 3,
+        "lineStart": 3,
+        "scope": [
+          "root",
+          "root-state-0",
+        ],
+        "subType": "state",
+        "tag": "state",
+        "type": "state",
+      },
+      {
+        "astSourceType": "element",
+        "attributes": {
+          "id": "auto_wrapping_state_aiml-NORMALIZED",
+        },
+        "children": [
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "instructions": 
+"::FUNCTION-EXPRESSION::(context) => { const ctx = context; return ({lastElement}) => \`Your thoughts on the conversation so far... \${lastElement.output}
+    Based on your thoughts, respond to the users request\`}"
+,
+              "model": "accounts/fireworks/models/qwen3-30b-a3b",
+              "prompt": "::FUNCTION-EXPRESSION::(context) => { const ctx = context; return ({userInput}) => userInput.message}",
+            },
+            "children": [],
+            "columnEnd": 505,
+            "columnStart": 238,
+            "lineEnd": 4,
+            "lineStart": 4,
+            "parentId": "auto_wrapping_state_aiml-NORMALIZED",
+            "scope": [
+              "root",
+            ],
+            "subType": "model",
+            "tag": "llm",
+            "type": "action",
+          },
+          {
+            "astSourceType": "element",
+            "attributes": {
+              "target": "final",
+            },
+            "children": [
+              {
+                "astSourceType": "element",
+                "attributes": {
+                  "target": "final",
+                },
+                "children": [
+                  {
+                    "astSourceType": "element",
+                    "attributes": {
+                      "target": "final",
+                    },
+                    "children": [],
+                    "columnEnd": 505,
+                    "columnStart": 238,
+                    "lineEnd": 4,
+                    "lineStart": 4,
+                    "scope": [
+                      "root",
+                      "auto_wrapping_state_0",
+                    ],
+                    "subType": "action",
+                    "tag": "transition",
+                    "type": "state",
+                  },
+                ],
+                "columnEnd": 505,
+                "columnStart": 238,
+                "lineEnd": 4,
+                "lineStart": 4,
+                "scope": [
+                  "root",
+                  "auto_wrapping_state_0",
+                ],
+                "subType": "action",
+                "tag": "transition",
+                "type": "state",
+              },
+            ],
+            "columnEnd": 505,
+            "columnStart": 238,
+            "lineEnd": 4,
+            "lineStart": 4,
+            "parentId": "auto_wrapping_state_aiml-NORMALIZED",
+            "scope": [
+              "root",
+              "auto_wrapping_state_0",
+            ],
+            "subType": "action",
+            "tag": "transition",
+            "type": "state",
+          },
+        ],
+        "columnEnd": 505,
+        "columnStart": 238,
+        "lineEnd": 4,
+        "lineStart": 4,
+        "parentId": "workflow-root",
+        "scope": [
+          "root",
+          "auto_wrapping_state_0",
         ],
         "subType": "state",
         "tag": "state",

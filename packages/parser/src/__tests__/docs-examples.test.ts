@@ -17,6 +17,23 @@ const exampleDirs = [
   "SimpleRouter",
 ];
 
+// Helper function to normalize nodes for snapshot testing
+const normalizeNodesForSnapshot = (nodes: any) => {
+  return JSON.parse(JSON.stringify(nodes), (key, value) => {
+    if (key === "key") {
+      return undefined;
+    }
+    // Normalize auto-generated state IDs to make snapshots deterministic
+    if (
+      typeof value === "string" &&
+      value.startsWith("auto_wrapping_state_aiml-")
+    ) {
+      return "auto_wrapping_state_aiml-NORMALIZED";
+    }
+    return value;
+  });
+};
+
 describe("All AIML examples for docs", () => {
   test("Ensure we have a test for every example", () => {
     expect(exampleDirs.length).toEqual(exampleDirs.length);
@@ -52,10 +69,7 @@ describe("All AIML examples for docs", () => {
     // ).toHaveLength(0);
 
     // Compare the resulting nodes (not AST) against a snapshot
-    // Remove all key/value pairs where the key name is "key" before matching snapshot
-    const nodesWithoutKeys = JSON.parse(JSON.stringify(nodes), (key, value) => {
-      return key === "key" ? undefined : value;
-    });
+    const nodesWithoutKeys = normalizeNodesForSnapshot(nodes);
     expect(nodesWithoutKeys).toMatchSnapshot();
   });
 
@@ -79,9 +93,7 @@ describe("All AIML examples for docs", () => {
     // ).toHaveLength(0);
 
     // Compare the resulting nodes (not AST) against a snapshot
-    const nodesWithoutKeys = JSON.parse(JSON.stringify(nodes), (key, value) => {
-      return key === "key" ? undefined : value;
-    });
+    const nodesWithoutKeys = normalizeNodesForSnapshot(nodes);
     expect(nodesWithoutKeys).toMatchSnapshot();
   });
 
@@ -96,7 +108,9 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[2]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+      `The ${
+        exampleDirs[2]
+      } directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
         .filter((d) => d.severity === DiagnosticSeverity.Error)
         .map((d) => d.message)
         .join(", ")} errors`
@@ -108,9 +122,7 @@ describe("All AIML examples for docs", () => {
     ).toHaveLength(0);
 
     // Compare the resulting nodes (not AST) against a snapshot
-    const nodesWithoutKeys = JSON.parse(JSON.stringify(nodes), (key, value) => {
-      return key === "key" ? undefined : value;
-    });
+    const nodesWithoutKeys = normalizeNodesForSnapshot(nodes);
     expect(nodesWithoutKeys).toMatchSnapshot();
   });
 
@@ -125,7 +137,9 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[3]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+      `The ${
+        exampleDirs[3]
+      } directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
         .filter((d) => d.severity === DiagnosticSeverity.Error)
         .map((d) => d.message)
         .join(", ")} errors`
@@ -137,9 +151,7 @@ describe("All AIML examples for docs", () => {
     ).toHaveLength(0);
 
     // Compare the resulting nodes (not AST) against a snapshot
-    const nodesWithoutKeys = JSON.parse(JSON.stringify(nodes), (key, value) => {
-      return key === "key" ? undefined : value;
-    });
+    const nodesWithoutKeys = normalizeNodesForSnapshot(nodes);
     expect(nodesWithoutKeys).toMatchSnapshot();
   });
 
@@ -154,7 +166,9 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[4]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+      `The ${
+        exampleDirs[4]
+      } directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
         .filter((d) => d.severity === DiagnosticSeverity.Error)
         .map((d) => d.message)
         .join(", ")} errors`
@@ -166,9 +180,7 @@ describe("All AIML examples for docs", () => {
     ).toHaveLength(0);
 
     // Compare the resulting nodes (not AST) against a snapshot
-    const nodesWithoutKeys = JSON.parse(JSON.stringify(nodes), (key, value) => {
-      return key === "key" ? undefined : value;
-    });
+    const nodesWithoutKeys = normalizeNodesForSnapshot(nodes);
     expect(nodesWithoutKeys).toMatchSnapshot();
   });
 
@@ -183,7 +195,9 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[5]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+      `The ${
+        exampleDirs[5]
+      } directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
         .filter((d) => d.severity === DiagnosticSeverity.Error)
         .map((d) => d.message)
         .join(", ")} errors`
@@ -195,9 +209,7 @@ describe("All AIML examples for docs", () => {
     // ).toHaveLength(0);
 
     // Compare the resulting nodes (not AST) against a snapshot
-    const nodesWithoutKeys = JSON.parse(JSON.stringify(nodes), (key, value) => {
-      return key === "key" ? undefined : value;
-    });
+    const nodesWithoutKeys = normalizeNodesForSnapshot(nodes);
     expect(nodesWithoutKeys).toMatchSnapshot();
   });
 
@@ -212,7 +224,9 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[6]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+      `The ${
+        exampleDirs[6]
+      } directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
         .filter((d) => d.severity === DiagnosticSeverity.Error)
         .map((d) => d.message)
         .join(", ")} errors`
@@ -224,9 +238,7 @@ describe("All AIML examples for docs", () => {
     // ).toHaveLength(0);
 
     // Compare the resulting nodes (not AST) against a snapshot
-    const nodesWithoutKeys = JSON.parse(JSON.stringify(nodes), (key, value) => {
-      return key === "key" ? undefined : value;
-    });
+    const nodesWithoutKeys = normalizeNodesForSnapshot(nodes);
     expect(nodesWithoutKeys).toMatchSnapshot();
   });
 
@@ -241,7 +253,9 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[7]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+      `The ${
+        exampleDirs[7]
+      } directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
         .filter((d) => d.severity === DiagnosticSeverity.Error)
         .map((d) => d.message)
         .join(", ")} errors`
@@ -253,9 +267,7 @@ describe("All AIML examples for docs", () => {
     ).toHaveLength(0);
 
     // Compare the resulting nodes (not AST) against a snapshot
-    const nodesWithoutKeys = JSON.parse(JSON.stringify(nodes), (key, value) => {
-      return key === "key" ? undefined : value;
-    });
+    const nodesWithoutKeys = normalizeNodesForSnapshot(nodes);
     expect(nodesWithoutKeys).toMatchSnapshot();
   });
 
@@ -270,7 +282,9 @@ describe("All AIML examples for docs", () => {
     // Ensure no parsing errors occurred
     expect(
       diagnostics.filter((d) => d.severity === DiagnosticSeverity.Error),
-      `The ${exampleDirs[8]} directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
+      `The ${
+        exampleDirs[8]
+      } directory should have no parsing errors, and should be able to be parsed into AIML cleanly. But got ${diagnostics
         .filter((d) => d.severity === DiagnosticSeverity.Error)
         .map((d) => d.message)
         .join(", ")} errors`
@@ -282,9 +296,7 @@ describe("All AIML examples for docs", () => {
     ).toHaveLength(0);
 
     // Compare the resulting nodes (not AST) against a snapshot
-    const nodesWithoutKeys = JSON.parse(JSON.stringify(nodes), (key, value) => {
-      return key === "key" ? undefined : value;
-    });
+    const nodesWithoutKeys = normalizeNodesForSnapshot(nodes);
     expect(nodesWithoutKeys).toMatchSnapshot();
   });
 });

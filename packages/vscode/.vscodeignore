@@ -9,6 +9,13 @@
 *.tsbuildinfo
 node_modules/**
 !node_modules/@mdx-js/typescript-plugin.js
+!node_modules/vscode-languageclient
+!node_modules/vscode-jsonrpc
+!node_modules/vscode-languageserver-protocol
+!node_modules/vscode-languageserver-types
+!node_modules/glob
 fixtures/
 packages/
 script/
+test/
+testFixtures/

@@ -26,14 +26,14 @@
     "aiml-import": {
       "patterns": [
         {
-          "match": "\\b(import)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s+(from)\\s+(['\"])([a-zA-Z0-9_./]+)(['\"])",
+          "match": "^\\s*(import)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s+(from)\\s+(['\"])([^'\"]+)(['\"])",
           "captures": {
             "1": { "name": "keyword.control.import.aiml" },
-            "2": { "name": "variable.other.aiml" },
+            "2": { "name": "variable.other.readwrite.alias.aiml" },
             "3": { "name": "keyword.control.from.aiml" },
-            "4": { "name": "string.quoted.aiml" },
-            "5": { "name": "string.quoted.aiml" },
-            "6": { "name": "string.quoted.aiml" }
+            "4": { "name": "punctuation.definition.string.begin.aiml" },
+            "5": { "name": "string.quoted.module.aiml" },
+            "6": { "name": "punctuation.definition.string.end.aiml" }
           }
         }
       ]
@@ -57,6 +57,46 @@
           ]
         },
         {
+          "begin": "(<)(script)\\b(?=(?:[^>]*\\s)?lang\\s*=\\s*['\"]python['\"][^>]*)(>)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.script.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "end": "(</)(script)(>)",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.script.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "contentName": "meta.embedded.python",
+          "patterns": [
+            {
+              "include": "source.python"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(script)\\b(?=(?:[^>]*\\s)?lang\\s*=\\s*['\"]javascript['\"][^>]*)(>)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.script.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "end": "(</)(script)(>)",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.script.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "contentName": "meta.embedded.javascript",
+          "patterns": [
+            {
+              "include": "source.javascript"
+            }
+          ]
+        },
+        {
           "begin": "(<)(script)\\b(?:[^>]*)(>)",
           "beginCaptures": {
             "1": { "name": "punctuation.definition.tag.begin.aiml" },
@@ -69,10 +109,90 @@
             "2": { "name": "entity.name.tag.script.aiml" },
             "3": { "name": "punctuation.definition.tag.end.aiml" }
           },
-          "contentName": "source.js.embedded.aiml",
+          "contentName": "meta.embedded.javascript",
           "patterns": [
             {
-              "include": "source.js"
+              "include": "source.javascript"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(workflow|scxml)\\b",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.workflow.aiml" }
+          },
+          "end": "(/>)|>",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "patterns": [
+            {
+              "include": "#aiml-element-attributes"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(state|parallel|final)\\b",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.state.aiml" }
+          },
+          "end": "(/>)|>",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "patterns": [
+            {
+              "include": "#aiml-element-attributes"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(llm|toolcall|prompt|instructions)\\b",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.ai.aiml" }
+          },
+          "end": "(/>)|>",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "patterns": [
+            {
+              "include": "#aiml-element-attributes"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(if|else|elseif|foreach|transition)\\b",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.control-flow.aiml" }
+          },
+          "end": "(/>)|>",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "patterns": [
+            {
+              "include": "#aiml-element-attributes"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(datamodel|data|assign)\\b",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.data.aiml" }
+          },
+          "end": "(/>)|>",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "patterns": [
+            {
+              "include": "#aiml-element-attributes"
             }
           ]
         },
@@ -89,6 +209,151 @@
           "patterns": [
             {
               "include": "#aiml-element-attributes"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(workflow|scxml)\\b(?:[^>]*)(>)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.workflow.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "end": "(</)(\\2)(>)",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.workflow.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "contentName": "meta.tag.content.aiml",
+          "patterns": [
+            {
+              "include": "#aiml-elements"
+            },
+            {
+              "include": "#aiml-comments"
+            },
+            {
+              "include": "#aiml-expressions"
+            },
+            {
+              "include": "#plain-text"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(state|parallel|final)\\b(?:[^>]*)(>)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.state.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "end": "(</)(\\2)(>)",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.state.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "contentName": "meta.tag.content.aiml",
+          "patterns": [
+            {
+              "include": "#aiml-elements"
+            },
+            {
+              "include": "#aiml-comments"
+            },
+            {
+              "include": "#aiml-expressions"
+            },
+            {
+              "include": "#plain-text"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(llm|toolcall|prompt|instructions)\\b(?:[^>]*)(>)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.ai.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "end": "(</)(\\2)(>)",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.ai.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "contentName": "meta.tag.content.aiml",
+          "patterns": [
+            {
+              "include": "#aiml-elements"
+            },
+            {
+              "include": "#aiml-comments"
+            },
+            {
+              "include": "#aiml-expressions"
+            },
+            {
+              "include": "#plain-text"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(if|else|elseif|foreach|transition)\\b(?:[^>]*)(>)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.control-flow.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "end": "(</)(\\2)(>)",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.control-flow.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "contentName": "meta.tag.content.aiml",
+          "patterns": [
+            {
+              "include": "#aiml-elements"
+            },
+            {
+              "include": "#aiml-comments"
+            },
+            {
+              "include": "#aiml-expressions"
+            },
+            {
+              "include": "#plain-text"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(datamodel|data|assign)\\b(?:[^>]*)(>)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.data.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "end": "(</)(\\2)(>)",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.tag.begin.aiml" },
+            "2": { "name": "entity.name.tag.data.aiml" },
+            "3": { "name": "punctuation.definition.tag.end.aiml" }
+          },
+          "contentName": "meta.tag.content.aiml",
+          "patterns": [
+            {
+              "include": "#aiml-elements"
+            },
+            {
+              "include": "#aiml-comments"
+            },
+            {
+              "include": "#aiml-expressions"
+            },
+            {
+              "include": "#plain-text"
             }
           ]
         },
@@ -226,7 +491,7 @@
           "include": "#aiml-expressions"
         },
         {
-          "include": "source.js"
+          "include": "source.javascript"
         }
       ]
     },

@@ -38,6 +38,7 @@ import SecurityRules from "./SecurityRules.json"
 import CodeQualityRules from "./CodeQualityRules.json"
 import TestingTools from "./testingtools.js"
 
+
 <workflow initial="fetchCode">
   <datamodel>
     <data id="repositoryUrl" type="string">{ctx.workflowInput.repositoryUrl}</data>
@@ -56,17 +57,17 @@ import TestingTools from "./testingtools.js"
   </datamodel>
 
   <state id="fetchCode">
-    <script>{`
+    <script>
       // Prepare for fetching code
       ctx.log("Preparing to fetch code from repository");
-    `}</script>
+    </script>
       
     <toolcall name="gitFetch">
       <param name="repoUrl" value={(ctx) => ctx.datamodel.repositoryUrl} />
       <param name="prId" value={(ctx) => ctx.datamodel.pullRequestId} />
     </toolcall>
       
-    <script>{`
+    <script language="javascript">
       try {
         const result = ctx.lastElement.output;
         ctx.datamodel.codeFiles = result.files;
@@ -76,18 +77,18 @@ import TestingTools from "./testingtools.js"
         ctx.datamodel.codeFiles = {};
         ctx.datamodel.diffStats = { additions: 0, deletions: 0, filesChanged: 0, error: true };
       }
-    `}</script>
+    </script>
       
     <log expr={(ctx) => 'Fetched ' + ctx.datamodel.diffStats.filesChanged + ' files with ' + ctx.datamodel.diffStats.additions + ' additions and ' + ctx.datamodel.diffStats.deletions + ' deletions'} />
     <transition target="securityAnalysis" />
   </state>
 
   <state id="securityAnalysis">
-      <script>{`
-        // Load security rules
-        const securityRules = JSON.parse(SecurityRules);
-        const filesToAnalyze = Object.entries(ctx.datamodel.codeFiles);
-        
+    <script>
+      // Load security rules
+      const securityRules = JSON.parse(SecurityRules);
+      const filesToAnalyze = Object.entries(ctx.datamodel.codeFiles);
+      
         // Filter security rules based on focus areas if specified
         let activeRules = securityRules;
         if (ctx.datamodel.focusAreas.length > 0) {
@@ -129,13 +130,13 @@ import TestingTools from "./testingtools.js"
             }
           }
         }
-      `}</script>
+    </script>
       <log expr={(ctx) => 'Security analysis complete. Found ' + ctx.datamodel.securityFindings.length + ' potential issues'} />
       <transition target="codeQualityAnalysis" />
   </state>
 
   <state id="codeQualityAnalysis">
-      <script>{`
+      <script>
         // Load code quality rules
         const qualityRules = JSON.parse(CodeQualityRules);
         const filesToAnalyze = Object.entries(ctx.datamodel.codeFiles);
@@ -177,7 +178,7 @@ import TestingTools from "./testingtools.js"
             }
           }
         }
-      `}</script>
+      </script>
       <log expr={(ctx) => 'Code quality analysis complete. Found ' + ctx.datamodel.qualityIssues.length + ' issues'} />
       <transition target="performanceAnalysis" />
   </state>

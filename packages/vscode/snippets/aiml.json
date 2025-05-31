@@ -1,0 +1,306 @@
+{
+  "AIML Workflow": {
+    "prefix": "workflow",
+    "body": [
+      "---",
+      "name: ${1:MyAgent}",
+      "model: accounts/fireworks/models/deepseek-v3",
+      "---",
+      "",
+      "${2:You are a helpful assistant.}",
+      "",
+      "<workflow id=\"${3:main}\" name=\"${4:Main Workflow}\">",
+      "    <datamodel>",
+      "        <data id=\"${5:userInput}\" type=\"string\" value=\"\" />",
+      "    </datamodel>",
+      "    ",
+      "    <state id=\"${6:start}\" initial=\"true\">",
+      "        <llm model=\"${7|accounts/fireworks/models/deepseek-v3,accounts/fireworks/models/llama-v3p1-8b-instruct,accounts/fireworks/models/qwen2-72b-instruct|}\">",
+      "            <prompt>{({userInput}) => userInput.message}</prompt>",
+      "        </llm>",
+      "        <transition target=\"${8:end}\" />",
+      "    </state>",
+      "    ",
+      "    <final id=\"${8:end}\" />",
+      "</workflow>"
+    ],
+    "description": "Create a basic AIML workflow structure"
+  },
+
+  "AIML State": {
+    "prefix": "state",
+    "body": [
+      "<state id=\"${1:stateName}\" name=\"${2:State Description}\">",
+      "    ${3:<!-- State content -->}",
+      "    <transition target=\"${4:nextState}\" />",
+      "</state>"
+    ],
+    "description": "Create an AIML state"
+  },
+
+  "LLM Call": {
+    "prefix": "llm",
+    "body": [
+      "<llm model=\"${1:accounts/fireworks/models/deepseek-v3}\" temperature=\"${2:0.7}\">",
+      "    <instructions>",
+      "        ${3:Provide instructions for the LLM}",
+      "    </instructions>",
+      "    <prompt>",
+      "        ${4:{({userInput}) => userInput.message}}",
+      "    </prompt>",
+      "</llm>"
+    ],
+    "description": "Create an LLM call with instructions and prompt"
+  },
+
+  "Script Block": {
+    "prefix": "script",
+    "body": ["<script language=\"${1|javascript,python|}\">", "${2:// Your code here}", "</script>"],
+    "description": "Create a script block with language selection"
+  },
+
+  "Conditional If": {
+    "prefix": "if",
+    "body": [
+      "<if cond=\"${1:({state}) => state.condition}\">",
+      "    ${2:<!-- Content when condition is true -->}",
+      "    <else>",
+      "        ${3:<!-- Content when condition is false -->}",
+      "    </else>",
+      "</if>"
+    ],
+    "description": "Create a conditional if-else block"
+  },
+
+  "For Each Loop": {
+    "prefix": "foreach",
+    "body": [
+      "<foreach array=\"${1:({state}) => state.items}\" item=\"${2:item}\" index=\"${3:index}\">",
+      "    ${4:<!-- Loop content -->}",
+      "</foreach>"
+    ],
+    "description": "Create a for-each loop"
+  },
+
+  "Data Model": {
+    "prefix": "datamodel",
+    "body": [
+      "<datamodel>",
+      "    <data id=\"${1:variableName}\" type=\"${2|string,number,boolean,object,array|}\" value=\"${3:initialValue}\" />",
+      "    ${4:<!-- Additional data variables -->}",
+      "</datamodel>"
+    ],
+    "description": "Create a data model with variables"
+  },
+
+  "Transition": {
+    "prefix": "transition",
+    "body": ["<transition target=\"${1:targetState}\" cond=\"${2:({state}) => state.condition}\" />"],
+    "description": "Create a state transition"
+  },
+
+  "Tool Call": {
+    "prefix": "toolcall",
+    "body": [
+      "<toolcall tool=\"${1:toolName}\" params=\"${2:{param1: 'value1'}}\">",
+      "    <script language=\"${3|javascript,python|}\">",
+      "        ${4:// Process tool call result}",
+      "        return result;",
+      "    </script>",
+      "</toolcall>"
+    ],
+    "description": "Create a tool call with result processing"
+  },
+
+  "Simple Chain": {
+    "prefix": "simplechain",
+    "body": [
+      "---",
+      "model: accounts/fireworks/models/deepseek-v3",
+      "---",
+      "",
+      "${1:You are a helpful assistant that thinks before responding.}",
+      "",
+      "<llm model=\"${2:accounts/fireworks/models/qwen3-30b-a3b}\" instructions=\"${3:Based on the previous analysis, provide a clear response}\" prompt=\"${4:{({userInput}) => userInput.message}}\" />"
+    ],
+    "description": "Create a simple two-step chain workflow"
+  },
+
+  "Character Persona": {
+    "prefix": "persona",
+    "body": [
+      "---",
+      "name: ${1:CharacterName}",
+      "inputSchema:",
+      "  type: object",
+      "  properties:",
+      "    character:",
+      "      type: string",
+      "      description: Character archetype",
+      "    personality:",
+      "      type: array",
+      "      description: Personality traits",
+      "---",
+      "",
+      "${2:You are a character generator that creates detailed personas.}",
+      "",
+      "<workflow>",
+      "    <state id=\"generate\">",
+      "        <llm>",
+      "            <instructions>",
+      "                Create a detailed character persona based on the provided archetype and traits.",
+      "                Include background, motivations, and distinctive characteristics.",
+      "            </instructions>",
+      "            <prompt>",
+      "                Character archetype: {({workflowInput}) => workflowInput.character}",
+      "                Personality traits: {({workflowInput}) => workflowInput.personality.join(', ')}",
+      "            </prompt>",
+      "        </llm>",
+      "    </state>",
+      "</workflow>"
+    ],
+    "description": "Create a character persona generator workflow"
+  },
+
+  "Basic Agent": {
+    "prefix": "agent",
+    "body": [
+      "---",
+      "name: ${1:AgentName}",
+      "model: accounts/fireworks/models/deepseek-v3",
+      "temperature: ${2:0.7}",
+      "maxTokens: ${3:1000}",
+      "---",
+      "",
+      "${4:You are a helpful assistant.}",
+      "",
+      "${0}"
+    ],
+    "description": "Create a basic AIML agent with frontmatter"
+  },
+
+  "AIML Expression": {
+    "prefix": "expr",
+    "body": ["{({${1|state,userInput,lastElement,workflowInput|}) => ${2:expression}}"],
+    "description": "Create an AIML expression for dynamic content"
+  },
+
+  "State with LLM": {
+    "prefix": "statellm",
+    "body": [
+      "<state id=\"${1:stateName}\">",
+      "    <llm model=\"${2|accounts/fireworks/models/deepseek-v3,accounts/fireworks/models/llama-v3p1-8b-instruct|}\" temperature=\"${3:0.7}\">",
+      "        <instructions>",
+      "            ${4:Provide instructions for the LLM}",
+      "        </instructions>",
+      "        <prompt>",
+      "            ${5:{({userInput}) => userInput.message}}",
+      "        </prompt>",
+      "    </llm>",
+      "    <transition target=\"${6:nextState}\" />",
+      "</state>"
+    ],
+    "description": "Create a state with an LLM call"
+  },
+
+  "Conditional State": {
+    "prefix": "stateif",
+    "body": [
+      "<state id=\"${1:stateName}\">",
+      "    <if cond=\"${2:({state}) => condition}\">",
+      "        ${3:<!-- Content when condition is true -->}",
+      "        <transition target=\"${4:trueState}\" />",
+      "    <else>",
+      "        ${5:<!-- Content when condition is false -->}",
+      "        <transition target=\"${6:falseState}\" />",
+      "    </else>",
+      "    </if>",
+      "</state>"
+    ],
+    "description": "Create a state with conditional logic"
+  },
+
+  "Multi-step Chain": {
+    "prefix": "chain",
+    "body": [
+      "---",
+      "name: ${1:ChainAgent}",
+      "model: accounts/fireworks/models/deepseek-v3",
+      "---",
+      "",
+      "${2:Step 1: Initial analysis}",
+      "",
+      "<llm model=\"accounts/fireworks/models/deepseek-v3\">",
+      "    <instructions>",
+      "        ${3:Analyze the user's request and identify key points.}",
+      "    </instructions>",
+      "    <prompt>",
+      "        {({userInput}) => userInput.message}",
+      "    </prompt>",
+      "</llm>",
+      "",
+      "${4:Step 2: Generate response based on analysis}",
+      "",
+      "<llm model=\"accounts/fireworks/models/deepseek-v3\">",
+      "    <instructions>",
+      "        Based on the previous analysis, provide a comprehensive response.",
+      "    </instructions>",
+      "    <prompt>",
+      "        Analysis: {({lastElement}) => lastElement.output}",
+      "        ",
+      "        User Question: {({userInput}) => userInput.message}",
+      "    </prompt>",
+      "</llm>"
+    ],
+    "description": "Create a multi-step reasoning chain"
+  },
+
+  "Tool Integration": {
+    "prefix": "tool",
+    "body": [
+      "<if cond=\"{({lastElement}) => lastElement.outputType === 'tool-call'}\">",
+      "    <toolcall tool=\"${1:toolName}\" params=\"{({lastElement}) => lastElement.output.params}\">",
+      "        <script language=\"${2|javascript,python|}\">",
+      "            ${3:// Process tool call and return result}",
+      "            return processedResult;",
+      "        </script>",
+      "    </toolcall>",
+      "</if>"
+    ],
+    "description": "Create a tool integration pattern"
+  },
+
+  "Error Handling": {
+    "prefix": "errorhandling",
+    "body": [
+      "<state id=\"${1:errorHandler}\">",
+      "    <onerror>",
+      "        <llm>",
+      "            <instructions>",
+      "                An error occurred. Please provide a helpful error message to the user.",
+      "            </instructions>",
+      "            <prompt>",
+      "                Error: {({error}) => error.message}",
+      "            </prompt>",
+      "        </llm>",
+      "    </onerror>",
+      "</state>"
+    ],
+    "description": "Create error handling for a state"
+  },
+
+  "Parallel Processing": {
+    "prefix": "parallel",
+    "body": [
+      "<parallel id=\"${1:parallelId}\">",
+      "    <state id=\"${2:branch1}\">",
+      "        ${3:<!-- First parallel branch -->}",
+      "    </state>",
+      "    <state id=\"${4:branch2}\">",
+      "        ${5:<!-- Second parallel branch -->}",
+      "    </state>",
+      "</parallel>"
+    ],
+    "description": "Create parallel processing states"
+  }
+}

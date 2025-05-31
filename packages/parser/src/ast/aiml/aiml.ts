@@ -23,7 +23,9 @@ export type AIMLASTNode = {
     | "FrontmatterPair"
     | "TagName"
     | "ImportVariable"
-    | "ModuleName";
+    | "ModuleName"
+    | "CodeJavascript"
+    | "CodePython";
   contentType?:
     | "string"
     | "expression"
@@ -51,6 +53,40 @@ const CommentNode = (content: string, position: Position): AIMLASTNode => ({
   children: undefined,
   ...position,
 });
+
+const CodeJavascriptNode = (content: string, position: Position): AIMLASTNode => ({
+  type: "CodeJavascript",
+  content: content,
+  children: undefined,
+  ...position,
+});
+
+const CodePythonNode = (content: string, position: Position): AIMLASTNode => ({
+  type: "CodePython",
+  content: content,
+  children: undefined,
+  ...position,
+});
+
+// Helper function to create the appropriate code node based on script type
+const createScriptContentNode = (content: string, attributes: AIMLASTNode[], position: Position): AIMLASTNode => {
+  // Look for the 'type' attribute to determine the script language
+  const typeAttr = attributes.find(attr => attr.name === "type");
+  const scriptType = typeAttr?.content as string;
+  
+  // Default to JavaScript if no type specified or type is 'javascript'/'js'
+  if (!scriptType || scriptType === "javascript" || scriptType === "js") {
+    return CodeJavascriptNode(content, position);
+  }
+  
+  // Create Python node if type is 'python' or 'py'
+  if (scriptType === "python" || scriptType === "py") {
+    return CodePythonNode(content, position);
+  }
+  
+  // Default to JavaScript for unknown types
+  return CodeJavascriptNode(content, position);
+};
 
 const AIMLNode = (
   attributes: AIMLASTNode[],
@@ -374,6 +410,22 @@ export function parseAIML(sourceString: string): AIMLASTNode[] {
         const attributes = propsNode.children.map((attr) => attr.blocks());
         const contentPos = getNodePosition(contentNode);
 
+        // Special handling for script tags
+        if (tagName === "script") {
+          return AIMLNode(
+            [
+              {
+                type: "TagName",
+                content: tagName,
+                ...tagNamePos,
+              },
+              ...attributes,
+            ],
+            [createScriptContentNode(contentNode.sourceString, attributes, contentPos)],
+            sourcePos
+          );
+        }
+
         return AIMLNode(
           [
             {
@@ -394,6 +446,35 @@ export function parseAIML(sourceString: string): AIMLASTNode[] {
 
         const attributes = d.children.map((attr) => attr.blocks());
         const children = f.blocks();
+
+        // Special handling for script tags
+        if (tagName === "script") {
+          // For script tags, convert text children to appropriate code nodes
+          const processedChildren = children.map((child: AIMLASTNode) => {
+            if (child.type === "Text") {
+              return createScriptContentNode(child.content as string, attributes, {
+                lineStart: child.lineStart,
+                columnStart: child.columnStart,
+                lineEnd: child.lineEnd,
+                columnEnd: child.columnEnd,
+              });
+            }
+            return child;
+          });
+
+          return AIMLNode(
+            [
+              {
+                type: "TagName",
+                content: tagName,
+                ...tagNamePos,
+              },
+              ...attributes,
+            ],
+            processedChildren,
+            sourcePos
+          );
+        }
 
         return AIMLNode(
           [

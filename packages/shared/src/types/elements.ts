@@ -143,7 +143,8 @@ export type ASTNodeType =
   | "header"
   | "expression"
   | "headerField"
-  | "field";
+  | "field"
+  | "code";
 
 /**
  * Base interface for all AIML nodes in the AST
@@ -162,6 +163,7 @@ export interface SerializedBaseElement {
   parentId?: string;
   scope: string[];
   value?: string | number | boolean;
+  language?: string; // For code nodes
   filePath?: string;
   namedImports?: string[];
   defaultImport?: string;
@@ -220,6 +222,15 @@ export interface TextNode extends SerializedBaseElement {
  */
 export interface ExpressionNode extends SerializedBaseElement {
   kind: "expression";
+  value: string;
+}
+
+/**
+ * Code node in the AIML AST
+ */
+export interface CodeBlock extends SerializedBaseElement {
+  kind: "code";
+  language: "javascript" | "python";
   value: string;
 }
 
@@ -308,7 +319,7 @@ export type ElementDefinition<
   PropSchema extends z.ZodObject<any> = z.ZodObject<any>,
   Props extends z.infer<PropSchema> = z.infer<PropSchema>,
   Result = any,
-  Tag extends (typeof aimlElements)[number] = (typeof aimlElements)[number],
+  Tag extends (typeof aimlElements)[number] = (typeof aimlElements)[number]
 > = {
   tag: Tag;
   type: ElementType;

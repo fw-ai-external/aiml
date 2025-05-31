@@ -17,5 +17,12 @@
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.11"
   },
-  "scripts": {}
+  "devDependencies": {
+    "tsup": "^8.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf out"
+  }
 }
