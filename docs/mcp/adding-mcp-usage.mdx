@@ -6,218 +6,291 @@ import { Banner } from 'fumadocs-ui/components/banner';
 import { Card, Cards } from 'fumadocs-ui/components/card';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
  
-<Banner className="bg-blue-500 text-white rounded-lg">Coming soon: This feature is not yet available. Please check back soon.</Banner>
 
-Multi-provider Context (MCP) integrations allow your Mastra application to interact with external services, APIs, or custom logic hosted elsewhere. These integrations are defined using the [`<tool>` element](/docs/elements/datamodel/tool) within your `<datamodel>`. 
+Model Context Protocol (MCP) integrations allow your AIML application to interact with external services, APIs, or custom logic hosted elsewhere. MCP tools can be integrated directly into your LLM elements, enabling AI models to access external capabilities.
 
-Once defined, MCP tools bridge the gap between your application's data model and its dynamic components:
+## Defining MCP Tools
 
-- **For `<script>` elements:** Exposed methods of the tool become directly callable.
-- **For `<llm>` elements:** The tool's capabilities can be made available to the language model.
+MCP tools are defined inline within the `tools` prop of an `<llm>` element. Each tool specifies its transport type and connection details:
 
-This allows you to encapsulate complex external interactions and make them easily accessible within your application flow.
+### Transport Types
 
-<Cards>
-  <Card
-    href="/docs/elements/datamodel/tool"
-    title="<tool> Element Reference"
-    description="View the detailed specification for the <tool> element, including props and basic syntax."
-  />
-</Cards>
+AIML supports two transport types for MCP connections:
 
-## Integration with LLM Elements
+1. **SSE (Server-Sent Events)**: For real-time streaming connections
+2. **Streamable HTTP**: For standard HTTP-based MCP servers
 
-For LLM elements, MCP tools can be added by referencing the tool ID in the `tools` prop. This allows the LLM to invoke the capabilities provided by the external service.
+### Tool Definition Structure
 
-```mdx {7}
-<datamodel>
-  <tool 
-    type="mcp"
-    id="weather"
-    url="https://mcp.composio.dev/weathermap/<your secure url>"
-  />
-</datamodel>
-
-<llm 
-  id="weatherAssistant"
-  tools={["weather"]}
+```mdx
+<llm
+  model="accounts/fireworks/models/llama-v3p1-8b-instruct"
+  tools={[
+    {
+      type: "mcp",
+      mcp: {
+        transport: "sse" | "streamable-http",
+        url: "https://your-mcp-server.com/endpoint",
+        headers: {
+          "Authorization": "Bearer token",
+          // Additional headers as needed
+        }
+      }
+    }
+  ]}
 >
-  Provide weather information for the specified location.
+  <!-- LLM content -->
 </llm>
 ```
 
-## Integration with Script Elements
 
-For script elements, MCP tools are available through the `ctx.tools` object within the script's execution context. You can access a specific tool using its ID as the key (e.g., `ctx.tools['weather']`) and call its exposed methods.
+## Examples
 
-<Tabs items={['Javascript', 'Python']}>
-<Tab value="Javascript">
+### Example 1: Weather Service with SSE Transport
+
 ```mdx
-<script>
-    // Access the weather tool methods
-    const forecast = await tools.weather.getForecast("New York");
-    
-    // Access the translator tool methods (assuming a 'translator' tool is defined)
-    // const translation = await ctx.tools['translator'].translate("Hello world", "es");
-    
-    return {
-      weatherData: forecast,
-      // translatedText: translation
-    };
-</script>
-```
-</Tab>
-<Tab value="Python">
-```mdx
-<script language="python"> 
-    # Access the weather tool methods
-    # Assuming 'tools' is an accessible object/dict and methods are async
-    forecast = await tools['weather'].getForecast("New York") 
-    
-    # Access the translator tool methods (assuming a 'translator' tool is defined)
-    # translation = await ctx.tools['translator'].translate("Hello world", "es")
-    
-    return {
-        "weatherData": forecast,
-        # "translatedText": translation
+<llm 
+  id="weatherAssistant"
+  model="accounts/fireworks/models/llama-v3p1-8b-instruct"
+  tools={[
+    {
+      type: "mcp",
+      mcp: {
+        transport: "sse",
+        url: "https://mcp.weatherservice.com/stream",
+        headers: {
+          "X-API-Key": "your-api-key"
+        }
+      }
     }
-</script>
+  ]}
+>
+  <prompt>
+    What's the weather like in ${location}?
+  </prompt>
+</llm>
 ```
-</Tab>
-</Tabs>
+
+### Example 2: Database Query Service with Streamable HTTP
+
+```mdx
+<llm
+  id="dataAnalyst"
+  model="claude-3"
+  tools={[
+    {
+      type: "mcp",
+      mcp: {
+        transport: "streamable-http",
+        url: "https://mcp.database.example.com/query"
+      }
+    }
+  ]}
+>
+  <instructions>
+    You are a data analyst assistant. Use the database tools to answer questions about company data.
+  </instructions>
+  <prompt>
+    ${userQuery}
+  </prompt>
+</llm>
+```
+
+### Example 3: Multiple MCP Tools
+
+You can combine multiple MCP tools in a single LLM element:
+
+```mdx
+<llm
+  id="researchAssistant"
+  model="accounts/fireworks/models/llama-v3p1-8b-instruct"
+  tools={[
+    {
+      type: "mcp",
+      mcp: {
+        transport: "sse",
+        url: "https://mcp.search.example.com/v1",
+        headers: {
+          "Authorization": "Bearer your-search-api-key"
+        }
+      }
+    },
+    {
+      type: "mcp",
+      mcp: {
+        transport: "streamable-http",
+        url: "https://mcp.knowledge.example.com/api"
+      }
+    },
+    {
+      type: "function",
+      function: {
+        name: "calculate",
+        description: "Perform basic calculations",
+        parameters: {
+          type: "object",
+          properties: {
+            expression: { type: "string" }
+          }
+        }
+      }
+    }
+  ]}
+>
+  <instructions>
+    You are a research assistant with access to search, knowledge base, and calculation tools.
+  </instructions>
+</llm>
+```
 
 ## Common Patterns
 
-1.  **API Integration**: Using a tool to fetch data from an external API and store it in the datamodel.
-    ```mdx
-    <datamodel>
-      <tool 
-        type="mcp"
-        id="crm"
-        url="https://api.crm.example.com"
-      />
-      
-      <data 
-        id="customer"
-        type="JSON"
-        value={null}
-      />
-    </datamodel>
-    ```
-    
-    <Tabs items={['Javascript', 'Python']}>
-    <Tab value="Javascript">
-    ```mdx
-    <script>
-      {async ({ctx, state}) => {
-        const customerId = state.params.id; // Assuming ID comes from context
-        state.customer = await ctx.tools['crm'].getCustomer(customerId);
-      }}
-    </script>
-    ```
-    </Tab>
-    <Tab value="Python">
-    ```mdx
-    <script lang="python">
-      # Assuming ctx and state are passed as dicts, and state is mutable
-      async def run(ctx, state): 
-          customer_id = state['params']['id'] # Nested dict access
-          state['customer'] = await ctx['tools']['crm'].getCustomer(customer_id)
-          # No explicit return needed if modifying state directly
-    </script>
-    ```
-    </Tab>
-    </Tabs>
+### 1. Weather Service Integration
 
-2.  **LLM with Multiple Tools**: Providing an LLM with access to several tools for more complex tasks.
-    ```mdx
-    <datamodel>
-      <tool 
-        type="mcp"
-        id="search"
-        url="https://api.search.example.com"
-      />
-      
-      <tool 
-        type="mcp"
-        id="database"
-        url="https://api.db.example.com"
-      />
-    </datamodel>
+Example of integrating a weather MCP service:
 
-    <llm
-      id="researchAssistant"
-      tools={["search", "database"]}
-    >
-      Research the topic and provide information from both search results and our database.
-    </llm>
-    ```
+```mdx
+<llm
+  model="accounts/fireworks/models/llama-v3p1-8b-instruct"
+  tools={[
+    {
+      type: "mcp",
+      mcp: {
+        transport: "sse",
+        url: "https://api.weather-mcp.com/v1/stream",
+        headers: {
+          "Authorization": "Bearer your-api-key-here"
+        }
+      }
+    }
+  ]}
+>
+  <!-- LLM content -->
+</llm>
+```
+
+### 2. Combining MCP with Traditional Function Tools
+
+Mix MCP tools with local function tools for hybrid capabilities:
+
+```mdx
+<llm
+  model="claude-3"
+  tools={[
+    // MCP tool for external data
+    {
+      type: "mcp",
+      mcp: {
+        transport: "streamable-http",
+        url: "https://api.external-service.com/v1"
+      }
+    },
+    // Local function tool
+    {
+      type: "function",
+      function: {
+        name: "processData",
+        description: "Process and transform data locally",
+        parameters: {
+          type: "object",
+          properties: {
+            data: { type: "array" },
+            operation: { type: "string" }
+          }
+        }
+      }
+    }
+  ]}
+>
+  <instructions>
+    Use the MCP tool to fetch data and the local function to process it.
+  </instructions>
+</llm>
+```
 
 ## Advanced Usage
 
-### Conditional Tool Loading for LLMs
+### Dynamic Tool Configuration
 
-You can dynamically determine which tools are available to an LLM based on the application state or user preferences.
+You can dynamically configure MCP tools based on runtime conditions:
 
-```mdx {14}
+```mdx
 <datamodel>
   <data 
-    id="userPreferences"
-    type="JSON"
-    value={{
-      enabledTools: ["weather", "news"]
-    }}
+    id="userTier"
+    type="STRING"
+    value="premium"
   />
-  
-  <tool type="mcp" id="weather" url="https://mcp.composio.dev/weathermap/<your secure url>" />
-  <tool type="mcp" id="news" url="https://mcp.news.example.com/<your secure url>" />
-  <tool type="mcp" id="calendar" url="https://mcp.calendar.example.com/<your secure url>" /> 
 </datamodel>
 
 <llm
   id="assistant"
-  tools={({state}) => state.userPreferences.enabledTools}
+  model="accounts/fireworks/models/llama-v3p1-8b-instruct"
+  tools={({state}) => {
+    const tools = [];
+    
+    // Basic tools for all users
+    tools.push({
+      type: "mcp",
+      mcp: {
+        transport: "sse",
+        url: "https://mcp.basic.example.com/api"
+      }
+    });
+    
+    // Premium tools
+    if (state.userTier === "premium") {
+      tools.push({
+        type: "mcp",
+        mcp: {
+          transport: "streamable-http",
+          url: "https://mcp.premium.example.com/api",
+          headers: {
+            "X-User-Tier": "premium"
+          }
+        }
+      });
+    }
+    
+    return tools;
+  }}
 >
-  I can help you with various information based on your preferences.
+  <instructions>
+    Assist the user based on their subscription tier.
+  </instructions>
 </llm>
 ```
 
-### Error Handling in Scripts
+### Error Handling
 
-When calling tool methods within scripts, implement standard error handling to manage potential issues with the external service.
+MCP connections may fail or timeout. The runtime automatically handles connection errors and will log them to the console. Tools that fail to connect will not be available to the LLM.
 
-<Tabs items={['Javascript', 'Python']}>
-<Tab value="Javascript">
-```mdx {3,5-8}
-<script>
-    try {
-        state.weatherData = await tools.weather.getForecast(state.location);
-    } catch (error) {
-        console.error("Weather tool failed:", error);
-        state.errors = {
-        ...state.errors,
-        weather: `Failed to fetch weather: ${error.message}`
-        };
-    }
-</script>
-```
-</Tab>
-<Tab value="Python">
 ```mdx
-<script lang="python">
-  import sys # For stderr
-
-  # Assuming state is a mutable dict and tools provides async methods
-  try:
-      state['weatherData'] = await tools.weather.getForecast(state['location']) 
-  except Exception as error:
-      print(f"Weather tool failed: {error}", file=sys.stderr)
-      # Ensure 'errors' key exists before updating
-      if 'errors' not in state:
-          state['errors'] = {}
-      state['errors']['weather'] = f"Failed to fetch weather: {error}"
-</script>
+<llm
+  model="accounts/fireworks/models/llama-v3p1-8b-instruct"
+  tools={[
+    {
+      type: "mcp",
+      mcp: {
+        transport: "sse",
+        url: "https://mcp.weather.example.com/api",
+        headers: {
+          "X-API-Key": "your-weather-api-key"
+        }
+      }
+    }
+  ]}
+>
+  <instructions>
+    If the weather service is unavailable, inform the user politely and suggest checking back later.
+  </instructions>
+  <prompt>
+    ${userRequest}
+  </prompt>
+</llm>
 ```
-</Tab>
-</Tabs>
+
+## Limitations
+
+- Headers must be static (dynamic headers based on runtime state are not yet supported)
 

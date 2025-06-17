@@ -91,10 +91,20 @@ const messageSchema = z.discriminatedUnion("role", [
 ]);
 
 // Tool schemas
-const toolSchema = z.object({
-  type: z.literal("function"),
-  function: functionDefinitionSchema,
-});
+const toolSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("function"),
+    function: functionDefinitionSchema,
+  }),
+  z.object({
+    type: z.literal("mcp"),
+    mcp: z.object({
+      transport: z.union([z.literal("sse"), z.literal("streamable-http")]),
+      url: z.string().url(),
+      headers: z.record(z.string(), z.string()).optional(),
+    }),
+  }),
+]);
 
 // Tool choice schemas
 const namedToolChoiceSchema = z.object({
