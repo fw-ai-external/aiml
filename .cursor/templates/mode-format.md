@@ -75,7 +75,7 @@ The following models are currently supported for the `model` field:
 - `gemini-2.5-pro-max`
 - `gemini-exp-1206`
 - `gpt-3.5-turbo`
-- `gpt-4`
+- `accounts/fireworks/models/llama-v3p1-8b-instruct`
 - `gpt-4-turbo-2024-04-09`
 - `gpt-4.5-preview`
 - `gpt-4o`

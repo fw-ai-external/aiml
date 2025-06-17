@@ -24,7 +24,7 @@ AIML supports two transport types for MCP connections:
 
 ```mdx
 <llm
-  model="gpt-4"
+  model="accounts/fireworks/models/llama-v3p1-8b-instruct"
   tools={[
     {
       type: "mcp",
@@ -51,7 +51,7 @@ AIML supports two transport types for MCP connections:
 ```mdx
 <llm 
   id="weatherAssistant"
-  model="gpt-4"
+  model="accounts/fireworks/models/llama-v3p1-8b-instruct"
   tools={[
     {
       type: "mcp",
@@ -103,7 +103,7 @@ You can combine multiple MCP tools in a single LLM element:
 ```mdx
 <llm
   id="researchAssistant"
-  model="gpt-4"
+  model="accounts/fireworks/models/llama-v3p1-8b-instruct"
   tools={[
     {
       type: "mcp",
@@ -151,7 +151,7 @@ Example of integrating a weather MCP service:
 
 ```mdx
 <llm
-  model="gpt-4"
+  model="accounts/fireworks/models/llama-v3p1-8b-instruct"
   tools={[
     {
       type: "mcp",
@@ -225,7 +225,7 @@ You can dynamically configure MCP tools based on runtime conditions:
 
 <llm
   id="assistant"
-  model="gpt-4"
+  model="accounts/fireworks/models/llama-v3p1-8b-instruct"
   tools={({state}) => {
     const tools = [];
     
@@ -267,7 +267,7 @@ MCP connections may fail or timeout. The runtime automatically handles connectio
 
 ```mdx
 <llm
-  model="gpt-4"
+  model="accounts/fireworks/models/llama-v3p1-8b-instruct"
   tools={[
     {
       type: "mcp",

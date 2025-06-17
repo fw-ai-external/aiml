@@ -811,7 +811,7 @@ describe("Value based tags", () => {
 
   test("Mixed syntax inside prompt tags is treated as text", () => {
     const source = `<prompt>
-<llm model="gpt-4">
+<llm model="accounts/fireworks/models/llama-v3p1-8b-instruct">
   Some text with {expressions}
   \`\`\`js
   const code = true;
@@ -827,7 +827,9 @@ describe("Value based tags", () => {
     // The content should be a single text node containing all the mixed syntax
     expect(result[0].children?.length).toBe(1);
     expect(result[0].children?.[0]?.type).toBe("Text");
-    expect(result[0].children?.[0]?.content).toContain('<llm model="gpt-4">');
+    expect(result[0].children?.[0]?.content).toContain(
+      '<llm model="accounts/fireworks/models/llama-v3p1-8b-instruct">'
+    );
     expect(result[0].children?.[0]?.content).toContain("{expressions}");
     expect(result[0].children?.[0]?.content).toContain("```js");
     expect(result[0].children?.[0]?.content).toContain("const code = true;");

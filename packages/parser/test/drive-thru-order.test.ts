@@ -14,7 +14,7 @@ const originalAiml = `
 
   <state id="generateResponse">
     <llm
-      model="gpt-4"
+      model="accounts/fireworks/models/llama-v3p1-8b-instruct"
       instructions={\`
 ## Your Personality:
 You are Dash, a friendly and efficient AI voice assistant at BurgerByte drive-thru. You keep conversations fast, clear, and natural, ensuring a smooth ordering process. If asked if you're AI, respond playfully and steer back to the order.
@@ -155,7 +155,7 @@ If incorrect: "Let's fix that! What would you like to change?"
 
   <state id="guardrails">
     <llm
-      model="gpt-4"
+      model="accounts/fireworks/models/llama-v3p1-8b-instruct"
       instructions={\`
 ... Some instructions to validate the response of the previous state ...
 Respond with "true" and nothing else if the current state is valid.
