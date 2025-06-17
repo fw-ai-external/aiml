@@ -27,7 +27,32 @@ export const llmConfig: BaseElementDefinition = {
     stopSequences: z.array(z.string()).optional(),
     topP: z.number().min(0).max(1).optional(),
     toolChoice: z.string().optional(),
-    tools: z.array(z.any()).optional(),
+    tools: z
+      .array(
+        z.discriminatedUnion("type", [
+          z.object({
+            type: z.literal("function"),
+            function: z.object({
+              name: z.string(),
+              description: z.string().optional(),
+              parameters: z.record(z.string(), z.any()),
+            }),
+          }),
+          z.object({
+            type: z.literal("mcp"),
+            mcp: z.object({
+              transport: z.union([
+                z.literal("sse"),
+                z.literal("streamable-http"),
+              ]),
+              url: z.string().url(),
+              headers: z.record(z.string(), z.string()).optional(),
+            }),
+          }),
+        ])
+      )
+      .optional(),
+    maxSteps: z.number().optional(),
     grammar: z.string().optional(),
     repetitionPenalty: z.number().optional(),
     responseFormat: z.union([z.literal("text"), z.object({})]).optional(),
