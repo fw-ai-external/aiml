@@ -9,7 +9,7 @@ import { createElementDefinition } from "../createElementFactory";
 import { getProviderWithClient } from "./utils";
 import { experimental_createMCPClient as createMCPClient } from "ai";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { randomUUIDv7 } from "bun";
+import { v4 as uuidv4 } from "uuid";
 
 // Use the LLMProps type from element-config
 export const LLM = createElementDefinition({
@@ -88,7 +88,7 @@ export const LLM = createElementDefinition({
             } else {
               client = await createMCPClient({
                 transport: new StreamableHTTPClientTransport(tool.mcp.url, {
-                  sessionId: randomUUIDv7(),
+                  sessionId: uuidv4(),
                 }),
               });
             }
