@@ -61,8 +61,9 @@ export function processAttributes(
           // This is a string or any non-function value that makes use of expression syntax to access variables
           // We need to wrap it in a function so that it can be evaluated in the context of the current state
           // This MIGHT go away in the future and evaluate the expression directly at the initial request time with only access to those variables... we will see...
-          result[attr.name!] =
-            `::FUNCTION-EXPRESSION::(context) => { const ctx = context; return ${attr.content}}`;
+          result[
+            attr.name!
+          ] = `::FUNCTION-EXPRESSION::(context) => { const ctx = context; return ${attr.content}}`;
           break;
         case "boolean":
           result[attr.name!] = Boolean(attr.content);
@@ -101,7 +102,9 @@ export function convertParagraphToLlmNode(
       if (child.astSourceType === "text") {
         promptText += (child as import("@aiml/shared").TextNode).value;
       } else if (child.astSourceType === "expression") {
-        promptText += `\${${(child as import("@aiml/shared").ExpressionNode).value}}`;
+        promptText += `\${${
+          (child as import("@aiml/shared").ExpressionNode).value
+        }}`;
       } else {
         console.warn(`${child.astSourceType} - ${child.value}`);
       }
@@ -310,7 +313,9 @@ export function astToElementTree(
 
     if (!nodeConfig) {
       diagnostics.add({
-        message: `No configuration found for element <${tagName}>. Supported elements: ${JSON.stringify(Object.keys(allElementConfigs))}`,
+        message: `No configuration found for element <${tagName}>. Supported elements: ${JSON.stringify(
+          Object.keys(allElementConfigs)
+        )}`,
         severity: DiagnosticSeverity.Error,
         code: "AIML016",
         source: "aiml-parser",
@@ -382,14 +387,14 @@ export function astToElementTree(
           attrs.type === "json" && defaultValueString
             ? JSON.parse(defaultValueString)
             : attrs.type === "number" && defaultValueString
-              ? defaultValueString.includes(".")
-                ? parseFloat(defaultValueString)
-                : parseInt(defaultValueString)
-              : attrs.type === "boolean"
-                ? defaultValueString === "false" || defaultValueString === ""
-                  ? false
-                  : true
-                : defaultValueString;
+            ? defaultValueString.includes(".")
+              ? parseFloat(defaultValueString)
+              : parseInt(defaultValueString)
+            : attrs.type === "boolean"
+            ? defaultValueString === "false" || defaultValueString === ""
+              ? false
+              : true
+            : defaultValueString;
       } catch (e) {
         diagnostics.add({
           message: `Error parsing default value "${defaultValueString}" into type ${attrs.type} for ${fieldName}: ${e}`,
@@ -412,12 +417,12 @@ export function astToElementTree(
           attrs.type === "string"
             ? { type: "string" }
             : attrs.type === "number"
-              ? { type: "number" }
-              : attrs.type === "boolean"
-                ? { type: "boolean" }
-                : attrs.type === "json"
-                  ? attrs.schema || {}
-                  : { type: "string" },
+            ? { type: "number" }
+            : attrs.type === "boolean"
+            ? { type: "boolean" }
+            : attrs.type === "json"
+            ? attrs.schema || {}
+            : { type: "string" },
       };
       const scopeKey = context.currentStates.join(".") || "root";
 
@@ -444,7 +449,9 @@ export function astToElementTree(
         context.currentStates.pop();
       } else {
         diagnostics.add({
-          message: `Scope management error: trying to pop ${stateId}, but current state is ${context.currentStates[context.currentStates.length - 1]}.`,
+          message: `Scope management error: trying to pop ${stateId}, but current state is ${
+            context.currentStates[context.currentStates.length - 1]
+          }.`,
           severity: DiagnosticSeverity.Warning,
           code: "AIML018",
           source: "aiml-parser",
@@ -499,6 +506,30 @@ export function astToElementTree(
       astSourceType: "expression",
       key: generateKey(),
       scope: currentScope,
+      value: node.content as string,
+      lineStart,
+      lineEnd,
+      columnStart,
+      columnEnd,
+    };
+  } else if (node.type === "CodeJavascript") {
+    return {
+      astSourceType: "code",
+      key: generateKey(),
+      scope: currentScope,
+      language: "javascript",
+      value: node.content as string,
+      lineStart,
+      lineEnd,
+      columnStart,
+      columnEnd,
+    };
+  } else if (node.type === "CodePython") {
+    return {
+      astSourceType: "code",
+      key: generateKey(),
+      scope: currentScope,
+      language: "python",
       value: node.content as string,
       lineStart,
       lineEnd,
