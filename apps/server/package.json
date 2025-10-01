@@ -14,11 +14,20 @@
     "lint": "biome lint .",
     "clean": "rm -rf node_modules && rm -rf dist",
     "deploy": "./build-images.sh deploy",
+    "test": "bun test",
+    "test:unit": "bun test ./src/**/*.test.ts",
+    "test:integration": "bun test ./src/integration/**/*.test.ts",
+    "test:e2e": "bun test ./e2e/**/*.e2e.ts",
+    "test:websocket": "bun test ./src/lib/runtimeEventBus.test.ts ./src/endpoints/websocket.test.ts ./src/integration/websocket-integration.test.ts ./e2e/websocket-runtime-events.e2e.ts",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
     "e2e": "bun test ./**/*.e2e.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/pg": "^8.11.11",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.5.12",
     "drizzle-kit": "^0.30.4",
     "tsx": "^4.19.2"
   },
@@ -35,8 +44,10 @@
     "drizzle-zod": "^0.7.0",
     "hono": "^4.7.7",
     "lodash": "^4.17.21",
+    "ws": "^8.18.0",
     "pg": "^8.13.1",
     "postgres": "^3.4.5",
+    "uuid": "^10.0.0",
     "zod-error": "^1.5.0"
   }
 }

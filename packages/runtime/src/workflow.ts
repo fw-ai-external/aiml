@@ -18,10 +18,12 @@ import type { DataModel, FieldValues } from "@aiml/shared";
 import { DataModelRegistry } from "./DataModelRegistry";
 import { WorkflowGraphBuilder } from "./graphBuilder";
 import { v4 as uuidv4 } from "uuid";
+import { RuntimeEventEmitter, type EventCallback } from "./events";
 export type RuntimeOptions = {
   onTransition?: (state: WorkflowRunState) => void;
   onError?: (error: Error) => void;
   onComplete?: () => void;
+  accountId?: string;
 };
 
 /**
@@ -29,7 +31,7 @@ export type RuntimeOptions = {
  */
 export class Workflow<
   InputSchema extends z.AnyZodObject,
-  InputType extends z.infer<InputSchema>,
+  InputType extends z.infer<InputSchema>
 > {
   private debug: string = "";
   private graphBuilder: WorkflowGraphBuilder;
@@ -38,6 +40,9 @@ export class Workflow<
   private value: RunValue | null = null;
   private executionGraph: WorkflowGraph;
   public datamodel: DataModelRegistry;
+  private eventEmitter: RuntimeEventEmitter;
+  private accountId: string;
+  private currentRunId: string | null = null;
 
   // TODO this is a temp solution. Workflows should be able to define their own input
   // schema in addition to the default config
@@ -57,8 +62,11 @@ export class Workflow<
       scopedDataModels: Record<string, DataModel>;
       fieldValues: Record<string, FieldValues>;
     },
-    private options?: RuntimeOptions
+    private options?: RuntimeOptions,
+    accountId?: string
   ) {
+    this.accountId = accountId || options?.accountId || "default";
+    this.eventEmitter = new RuntimeEventEmitter();
     this.datamodel = DataModelRegistry.rehydrateFromDump(datamodel);
     this.graphBuilder = new WorkflowGraphBuilder();
     // Build the execution graph
@@ -81,6 +89,15 @@ export class Workflow<
   }
 
   /**
+   * Subscribe to workflow events
+   * @param callback Function to call when events are emitted
+   * @returns Unsubscribe function
+   */
+  public onEvent(callback: EventCallback): () => void {
+    return this.eventEmitter.onEvent(callback);
+  }
+
+  /**
    * Execute a workflow
    * @param rootElement The root element
    * @param options The execution options
@@ -91,14 +108,14 @@ export class Workflow<
     const currentlyActiveStates = new Set(
       Object.keys(state?.context.steps ?? {}).filter(
         (key) =>
-          (state?.context.steps)[key]?.status === "success" ||
-          (state?.context.steps)[key]?.status === "waiting" ||
-          (state?.context.steps)[key]?.status === "suspended"
+          state?.context.steps[key]?.status === "success" ||
+          state?.context.steps[key]?.status === "waiting" ||
+          state?.context.steps[key]?.status === "suspended"
       )
     );
 
     const failedStates = Object.keys(state?.context.steps ?? {}).filter(
-      (key) => (state?.context.steps)[key]?.status === "failed"
+      (key) => state?.context.steps[key]?.status === "failed"
     );
 
     const newActiveStates = Array.from(currentlyActiveStates).filter(
@@ -107,7 +124,7 @@ export class Workflow<
 
     for (const stateId of newActiveStates) {
       const element = this.findElementByIdOrKey(stateId);
-      // const input = state?.context.steps?.[stateId].payload;
+      const stepInput = state?.context.steps?.[stateId]?.payload;
       if (element) {
         this.value?.addActiveStep({
           ...element,
@@ -116,6 +133,21 @@ export class Workflow<
           datamodel: {},
           id: element.id ?? uuidv4(),
         });
+
+        // Emit step transition event for entering
+        if (this.currentRunId) {
+          this.eventEmitter.emitStepTransition({
+            runId: this.currentRunId,
+            accountId: this.accountId,
+            stepId: element.id ?? uuidv4(),
+            status: "entering",
+            input: stepInput,
+            metadata: {
+              stepKey: element.key,
+              stepTag: element.tag,
+            },
+          });
+        }
       }
     }
 
@@ -127,10 +159,28 @@ export class Workflow<
       ) {
         const element = this.findElementByIdOrKey(stateId);
         if (element) {
-          this.value?.markStepAsFinished(
-            element.id ?? uuidv4(),
-            (state as any).context.steps[stateId].output?.result
-          );
+          const stepOutput = (state as any).context.steps[stateId].output
+            ?.result;
+          const stepStatus = failedStates.includes(stateId)
+            ? "failed"
+            : "success";
+
+          this.value?.markStepAsFinished(element.id ?? uuidv4(), stepOutput);
+
+          // Emit step transition event for exiting
+          if (this.currentRunId) {
+            this.eventEmitter.emitStepTransition({
+              runId: this.currentRunId,
+              accountId: this.accountId,
+              stepId: element.id ?? uuidv4(),
+              status: stepStatus,
+              output: stepOutput,
+              metadata: {
+                stepKey: element.key,
+                stepTag: element.tag,
+              },
+            });
+          }
           // await (element as BaseElement).deactivate?.();
         }
       }
@@ -169,6 +219,8 @@ export class Workflow<
     this.workflow = this.workflow.commit();
 
     const { runId, start } = this.workflow.createRun();
+    this.currentRunId = runId;
+    this.eventEmitter.resetSequence();
 
     this.value = new RunValue({ runId });
     // Set up state transition monitoring
@@ -209,6 +261,8 @@ export class Workflow<
     this.workflow = this.workflow.commit();
 
     const { runId, start } = this.workflow.createRun();
+    this.currentRunId = runId;
+    this.eventEmitter.resetSequence();
 
     this.value = new RunValue({ runId });
     // Set up state transition monitoring
@@ -393,11 +447,9 @@ export class Workflow<
       if (!element) {
         console.log(JSON.stringify(this.spec, null, 2));
         throw new Error(
-          `Invalid graph, no element found for key: ${step.key} - ${JSON.stringify(
-            step,
-            null,
-            2
-          )}`
+          `Invalid graph, no element found for key: ${
+            step.key
+          } - ${JSON.stringify(step, null, 2)}`
         );
       }
 
@@ -428,33 +480,96 @@ export class Workflow<
         if (step.if) {
           this.workflow.if(async (args) => {
             // TODO use actual evaluation
-            return step.if
-              ? new Function(step.if)(
-                  this.datamodel.getScopedDataModel(step.scope.join("."))
-                )
+            const scopedDataModel = this.datamodel.getScopedDataModel(
+              step.scope.join(".")
+            );
+            const result = step.if
+              ? new Function(step.if)(scopedDataModel)
               : true;
+
+            // Emit condition check event
+            if (this.currentRunId) {
+              this.eventEmitter.emitConditionCheck({
+                runId: this.currentRunId,
+                accountId: this.accountId,
+                conditionId: element.id ?? uuidv4(),
+                conditionType: "if",
+                expression: step.if,
+                result: Boolean(result),
+                context: scopedDataModel,
+                input: args,
+              });
+            }
+
+            return result;
           });
         } else if (step.else) {
           this.workflow.else();
+
+          // Emit condition check event for else
+          if (this.currentRunId) {
+            this.eventEmitter.emitConditionCheck({
+              runId: this.currentRunId,
+              accountId: this.accountId,
+              conditionId: element.id ?? uuidv4(),
+              conditionType: "else",
+              result: true, // else always evaluates to true when reached
+              context: this.datamodel.getScopedDataModel(step.scope.join(".")),
+            });
+          }
         } else if (step.when) {
           this.workflow.then(element, {
             when: async (args) => {
               // TODO use actual evaluation
-              return step.when
-                ? new Function(step.when)(
-                    this.datamodel.getScopedDataModel(step.scope.join("."))
-                  )
+              const scopedDataModel = this.datamodel.getScopedDataModel(
+                step.scope.join(".")
+              );
+              const result = step.when
+                ? new Function(step.when)(scopedDataModel)
                 : true;
+
+              // Emit condition check event
+              if (this.currentRunId) {
+                this.eventEmitter.emitConditionCheck({
+                  runId: this.currentRunId,
+                  accountId: this.accountId,
+                  conditionId: element.id ?? uuidv4(),
+                  conditionType: "when",
+                  expression: step.when,
+                  result: Boolean(result),
+                  context: scopedDataModel,
+                  input: args,
+                });
+              }
+
+              return result;
             },
           });
         } else if (step.while) {
           this.workflow.while(async (args) => {
             // TODO use actual evaluation
-            return step.while
-              ? new Function(step.while)(
-                  this.datamodel.getScopedDataModel(step.scope.join("."))
-                )
+            const scopedDataModel = this.datamodel.getScopedDataModel(
+              step.scope.join(".")
+            );
+            const result = step.while
+              ? new Function(step.while)(scopedDataModel)
               : true;
+
+            // Emit condition check event
+            if (this.currentRunId) {
+              this.eventEmitter.emitConditionCheck({
+                runId: this.currentRunId,
+                accountId: this.accountId,
+                conditionId: element.id ?? uuidv4(),
+                conditionType: "while",
+                expression: step.while,
+                result: Boolean(result),
+                context: scopedDataModel,
+                input: args,
+              });
+            }
+
+            return result;
           }, element);
         } else {
           this.workflow.then(element, {
